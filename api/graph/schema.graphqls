@@ -1,0 +1,151 @@
+scalar Time
+
+scalar UUID
+
+type RefreshToken {
+  tokenId: ID!
+  userId: UUID!
+  expiresAt: Time!
+  createdAt: Time!
+}
+
+type UserAccount {
+  userID: ID!
+  email: String!
+  createdAt: Time!
+  displayName: String!
+  username: String!
+}
+
+type Organization {
+  organizationID: ID!
+  createdAt: Time!
+  name: String!
+  teams: [Team!]!
+}
+
+type Team {
+  teamID: ID!
+  createdAt: Time!
+  name: String!
+  projects: [Project!]!
+}
+
+type Project {
+  projectID: ID!
+  teamID: String!
+  createdAt: Time!
+  name: String!
+  taskGroups: [TaskGroup!]!
+}
+
+type TaskGroup {
+  taskGroupID: ID!
+  projectID: String!
+  createdAt: Time!
+  name: String!
+  position: Float!
+  tasks: [Task!]!
+}
+
+type Task {
+  taskID: ID!
+  taskGroupID: String!
+  createdAt: Time!
+  name: String!
+  position: Float!
+}
+
+input ProjectsFilter {
+  teamID: String
+}
+
+input FindUser {
+  userId: String!
+}
+
+input FindProject {
+  projectId: String!
+}
+
+type Query {
+  organizations: [Organization!]!
+  users: [UserAccount!]!
+  findUser(input: FindUser!): UserAccount!
+  findProject(input: FindProject!): Project!
+  teams: [Team!]!
+  projects(input: ProjectsFilter): [Project!]!
+  taskGroups: [TaskGroup!]!
+}
+
+input NewRefreshToken {
+  userId: String!
+}
+
+input NewUserAccount {
+  username: String!
+  email: String!
+  displayName: String!
+  password: String!
+}
+
+input NewTeam {
+  name: String!
+  organizationID: String!
+}
+
+input NewProject {
+  teamID: String!
+  name: String!
+}
+
+input NewTaskGroup {
+  projectID: String!
+  name: String!
+  position: Float!
+}
+
+input NewOrganization {
+  name: String!
+}
+
+input LogoutUser {
+  userID: String!
+}
+input NewTask {
+  taskGroupID: String!
+  name: String!
+  position: Float!
+}
+input NewTaskLocation {
+  taskID: String!
+  taskGroupID: String!
+  position: Float!
+}
+
+input DeleteTaskInput {
+  taskID: String!
+}
+
+type DeleteTaskPayload {
+  taskID: String!
+}
+
+input UpdateTaskName {
+  taskID: String!
+  name: String!
+}
+
+type Mutation {
+  createRefreshToken(input: NewRefreshToken!): RefreshToken!
+  createUserAccount(input: NewUserAccount!): UserAccount!
+  createOrganization(input: NewOrganization!): Organization!
+  createTeam(input: NewTeam!): Team!
+  createProject(input: NewProject!): Project!
+  createTaskGroup(input: NewTaskGroup!): TaskGroup!
+  createTask(input: NewTask!): Task!
+  updateTaskLocation(input: NewTaskLocation!): Task!
+  logoutUser(input: LogoutUser!): Boolean!
+  updateTaskName(input: UpdateTaskName!): Task!
+  deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+}

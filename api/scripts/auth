@@ -1,0 +1,26 @@
+#!/usr/bin/python3
+# vi: ft=python
+
+import click
+import requests
+
+@click.command()
+def authenticate():
+    s = requests.Session()
+    r = s.post('http://localhost:3333/auth/login', json={
+        'username': 'hello',
+        'password': 'test',
+    })
+    if r.status_code != 200:
+        print('issue during login status_code={}'.format(r.status_code))
+        return
+
+    access_code = r.json()['access_token']
+    r = s.get('http://localhost:3333/ping', headers={
+        'Authorization': 'Bearer {}'.format(access_code)
+    })
+    print(r.status_code)
+    print(r.text)
+
+if __name__ == "__main__":
+    authenticate()
