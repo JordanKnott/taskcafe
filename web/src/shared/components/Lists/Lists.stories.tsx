@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Lists from './index';
 import { action } from '@storybook/addon-actions';
+import Lists from '.';
 
 export default {
   component: Lists,

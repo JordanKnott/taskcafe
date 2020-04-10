@@ -3,7 +3,7 @@ import { action } from '@storybook/addon-actions';
 import Card from 'shared/components/Card';
 import CardComposer from 'shared/components/CardComposer';
 import LabelColors from 'shared/constants/labelColors';
-import List, { ListCards } from './index';
+import List, { ListCards } from '.';
 
 export default {
   component: List,

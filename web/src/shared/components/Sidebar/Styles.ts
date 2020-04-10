@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const Container = styled.div`
+const Container = styled.div`
   position: fixed;
   z-index: 99;
   top: 0px;
@@ -13,3 +13,5 @@ export const Container = styled.div`
   background: rgb(244, 245, 247);
   border-right: 1px solid rgb(223, 225, 230);
 `;
+
+export default Container;

@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
-import { Home, Stack, Users, Question } from 'shared/icons';
-import Navbar, { ActionButton, ButtonContainer, PrimaryLogo } from './index';
+import { Home } from 'shared/icons';
+import Navbar, { ActionButton, ButtonContainer, PrimaryLogo } from '.';
 
 export default {
   component: Navbar,

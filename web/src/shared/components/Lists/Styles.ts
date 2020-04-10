@@ -9,3 +9,5 @@ export const Container = styled.div`
   overflow-y: hidden;
   padding-bottom: 8px;
 `;
+
+export default Container;

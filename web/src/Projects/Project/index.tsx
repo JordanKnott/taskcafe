@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/macro';
-import { useQuery, useMutation } from '@apollo/react-hooks';
-import gql from 'graphql-tag';
 import { useParams } from 'react-router-dom';
 import {
   useFindProjectQuery,
@@ -120,7 +118,7 @@ const Project = () => {
   const { loading, data } = useFindProjectQuery({
     variables: { projectId },
     onCompleted: newData => {
-      let newListsData: State = { tasks: {}, columns: {} };
+      const newListsData: State = { tasks: {}, columns: {} };
       newData.findProject.taskGroups.forEach((taskGroup: TaskGroup) => {
         newListsData.columns[taskGroup.taskGroupID] = {
           taskGroupID: taskGroup.taskGroupID,
@@ -166,16 +164,13 @@ const Project = () => {
   };
   const onCardCreate = (taskGroupID: string, name: string) => {
     const taskGroupTasks = Object.values(listsData.tasks).filter((task: Task) => task.taskGroupID === taskGroupID);
-    var position = 65535;
-    console.log(taskGroupID);
-    console.log(taskGroupTasks);
+    let position = 65535;
     if (taskGroupTasks.length !== 0) {
       const [lastTask] = taskGroupTasks.sort((a: any, b: any) => a.position - b.position).slice(-1);
-      console.log(`last tasks position ${lastTask.position}`);
       position = Math.ceil(lastTask.position) * 2 + 1;
     }
 
-    createTask({ variables: { taskGroupID: taskGroupID, name: name, position: position } });
+    createTask({ variables: { taskGroupID, name, position } });
   };
   const onQuickEditorOpen = (e: ContextMenuEvent) => {
     const currentTask = Object.values(listsData.tasks).find(task => task.taskID === e.taskID);
@@ -211,16 +206,16 @@ const Project = () => {
         </MainContent>
         {quickCardEditor.isOpen && (
           <QuickCardEditor
-            isOpen={true}
+            isOpen
             taskID={quickCardEditor.task ? quickCardEditor.task.taskID : ''}
             taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroupID : ''}
             cardTitle={quickCardEditor.task ? quickCardEditor.task.name : ''}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
-            onEditCard={(listId: string, cardId: string, cardName: string) =>
-              updateTaskName({ variables: { taskID: cardId, name: cardName } })
-            }
+            onEditCard={(_listId: string, cardId: string, cardName: string) => {
+              updateTaskName({ variables: { taskID: cardId, name: cardName } });
+            }}
             onOpenPopup={() => console.log()}
-            onArchiveCard={(listId: string, cardId: string) => deleteTask({ variables: { taskID: cardId } })}
+            onArchiveCard={(_listId: string, cardId: string) => deleteTask({ variables: { taskID: cardId } })}
             labels={[]}
             top={quickCardEditor.top}
             left={quickCardEditor.left}

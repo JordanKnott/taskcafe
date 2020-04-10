@@ -6,7 +6,7 @@ import useOnEscapeKeyDown from 'shared/hooks/onEscapeKeyDown';
 
 import { ScrollOverlay, ClickableOverlay, StyledModal } from './Styles';
 
-const $root: HTMLElement = document.getElementById('root')!;
+const $root: HTMLElement = document.getElementById('root')!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
 
 type ModalProps = {
   width: number;

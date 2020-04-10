@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Container } from './Styles';
+import Container from './Styles';
 
 const Sidebar = () => {
-  return <Container></Container>;
+  return <Container />;
 };
 
 export default Sidebar;

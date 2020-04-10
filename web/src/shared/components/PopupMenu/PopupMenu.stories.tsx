@@ -1,8 +1,8 @@
-import React, { createRef, useState } from 'react';
+import React, { useState } from 'react';
 import { action } from '@storybook/addon-actions';
 import LabelColors from 'shared/constants/labelColors';
 import MenuTypes from 'shared/constants/menuTypes';
-import PopupMenu from './index';
+import PopupMenu from '.';
 
 export default {
   component: PopupMenu,

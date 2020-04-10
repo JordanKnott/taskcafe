@@ -1,8 +1,7 @@
 import React, { createRef, useState } from 'react';
 import styled from 'styled-components';
-import { action } from '@storybook/addon-actions';
 
-import DropdownMenu from './index';
+import DropdownMenu from '.';
 
 export default {
   component: DropdownMenu,

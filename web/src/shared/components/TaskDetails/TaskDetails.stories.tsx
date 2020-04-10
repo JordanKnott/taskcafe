@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { action } from '@storybook/addon-actions';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
-import styled from 'styled-components';
 import Modal from 'shared/components/Modal';
-import TaskDetails from './';
+import TaskDetails from '.';
 
 export default {
   component: TaskDetails,
@@ -35,9 +34,9 @@ export const Default = () => {
                 name: 'Hello, world',
                 position: 1,
                 labels: [],
-                description: description,
+                description,
               }}
-              onTaskDescriptionChange={(task, desc) => setDescription(desc)}
+              onTaskDescriptionChange={(_task, desc) => setDescription(desc)}
             />
           );
         }}

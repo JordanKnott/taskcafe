@@ -1,6 +1,6 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
-import CardComposer from './index';
+import CardComposer from '.';
 
 export default {
   component: CardComposer,

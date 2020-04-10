@@ -1,11 +1,9 @@
-import React, { createRef, useState } from 'react';
+import React, { useState } from 'react';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
-
-import TopNavbar from './index';
 import { action } from '@storybook/addon-actions';
-
 import DropdownMenu from 'shared/components/DropdownMenu';
+import TopNavbar from '.';
 
 export default {
   component: TopNavbar,

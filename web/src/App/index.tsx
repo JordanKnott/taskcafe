@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { createBrowserHistory } from 'history';
 import { setAccessToken } from 'shared/utils/accessToken';
-import NormalizeStyles from './NormalizeStyles';
-import BaseStyles from './BaseStyles';
-import Routes from './Routes';
 import Navbar from 'shared/components/Navbar';
 import GlobalTopNavbar from 'App/TopNavbar';
 import styled from 'styled-components';
+import NormalizeStyles from './NormalizeStyles';
+import BaseStyles from './BaseStyles';
+import Routes from './Routes';
 
 const history = createBrowserHistory();
 

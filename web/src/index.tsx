@@ -13,6 +13,7 @@ import App from './App';
 
 // https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
 
+let forward$;
 let isRefreshing = false;
 let pendingRequests: any = [];
 
@@ -21,56 +22,57 @@ const resolvePendingRequests = () => {
   pendingRequests = [];
 };
 
+const resolvePromise = (resolve: () => void) => {
+  pendingRequests.push(() => resolve());
+};
+
+const resetPendingRequests = () => {
+  pendingRequests = [];
+};
+
+const setRefreshing = (newVal: boolean) => {
+  isRefreshing = newVal;
+};
+
 const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
   if (graphQLErrors) {
     for (const err of graphQLErrors) {
-      switch (err!.extensions!.code) {
-        case 'UNAUTHENTICATED':
-          // error code is set to UNAUTHENTICATED
-          // when AuthenticationError thrown in resolver
-          let forward$;
-
-          if (!isRefreshing) {
-            isRefreshing = true;
-            forward$ = fromPromise(
-              getNewToken()
-                .then((response: any) => {
-                  // Store the new tokens for your auth link
-                  setAccessToken(response.accessToken);
-                  resolvePendingRequests();
-                  return response.accessToken;
-                })
-                .catch((error: any) => {
-                  pendingRequests = [];
-                  // TODO
-                  // Handle token refresh errors e.g clear stored tokens, redirect to login, ...
-                  return;
-                })
-                .finally(() => {
-                  isRefreshing = false;
-                }),
-            ).filter(value => Boolean(value));
-          } else {
-            // Will only emit once the Promise is resolved
-            forward$ = fromPromise(
-              new Promise(resolve => {
-                pendingRequests.push(() => resolve());
-              }),
-            );
-          }
-
-          return forward$.flatMap(() => forward(operation));
-        default:
-        // pass
+      if (err.extensions && err.extensions.code) {
+        switch (err.extensions.code) {
+          case 'UNAUTHENTICATED':
+            if (!isRefreshing) {
+              setRefreshing(true);
+              forward$ = fromPromise(
+                getNewToken()
+                  .then((response: any) => {
+                    setAccessToken(response.accessToken);
+                    resolvePendingRequests();
+                    return response.accessToken;
+                  })
+                  .catch(() => {
+                    resetPendingRequests();
+                    // TODO
+                    // Handle token refresh errors e.g clear stored tokens, redirect to login, ...
+                    return undefined;
+                  })
+                  .finally(() => {
+                    setRefreshing(false);
+                  }),
+              ).filter(value => Boolean(value));
+            } else {
+              forward$ = fromPromise(new Promise(resolvePromise));
+            }
+            return forward$.flatMap(() => forward(operation));
+          default:
+          // pass
+        }
       }
     }
   }
   if (networkError) {
     console.log(`[Network error]: ${networkError}`);
-    // if you would also like to retry automatically on
-    // network errors, we recommend that you use
-    // apollo-link-retry
   }
+  return undefined;
 });
 
 const requestLink = new ApolloLink(
@@ -78,10 +80,10 @@ const requestLink = new ApolloLink(
     new Observable((observer: any) => {
       let handle: any;
       Promise.resolve(operation)
-        .then((operation: any) => {
+        .then((op: any) => {
           const accessToken = getAccessToken();
           if (accessToken) {
-            operation.setContext({
+            op.setContext({
               headers: {
                 Authorization: `Bearer ${accessToken}`,
               },
@@ -98,7 +100,9 @@ const requestLink = new ApolloLink(
         .catch(observer.error.bind(observer));
 
       return () => {
-        if (handle) handle.unsubscribe();
+        if (handle) {
+          handle.unsubscribe();
+        }
       };
     }),
 );
@@ -106,11 +110,14 @@ const requestLink = new ApolloLink(
 const client = new ApolloClient({
   link: ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
-      if (graphQLErrors)
+      if (graphQLErrors) {
         graphQLErrors.forEach(({ message, locations, path }) =>
           console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
         );
-      if (networkError) console.log(`[Network error]: ${networkError}`);
+      }
+      if (networkError) {
+        console.log(`[Network error]: ${networkError}`);
+      }
     }),
     errorLink,
     requestLink,

@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { action } from '@storybook/addon-actions';
-import ProjectGridItem from './';
+import ProjectGridItem from '.';
 
 export default {
   component: ProjectGridItem,

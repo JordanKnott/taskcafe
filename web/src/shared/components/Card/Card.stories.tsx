@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { action } from '@storybook/addon-actions';
 import LabelColors from 'shared/constants/labelColors';
-import Card from './index';
+import Card from '.';
 
 export default {
   component: Card,

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import useOnEscapeKeyDown from 'shared/hooks/onEscapeKeyDown';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import TextareaAutosize from 'react-autosize-textarea';
+import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 
 import {
   CardComposerWrapper,
@@ -15,7 +15,6 @@ import {
   ComposerControlsSaveSection,
   ComposerControlsActionsSection,
 } from './Styles';
-import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 
 type Props = {
   isOpen: boolean;

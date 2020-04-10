@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { action } from '@storybook/addon-actions';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
 import styled from 'styled-components';
-import Login from './index';
+import Login from '.';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-
 import List, { ListCards } from 'shared/components/List';
 import Card from 'shared/components/Card';
-import { Container } from './Styles';
 import CardComposer from 'shared/components/CardComposer';
 import {
   isPositionChanged,
@@ -11,6 +9,8 @@ import {
   getNewDraggablePosition,
   getAfterDropDraggableList,
 } from 'shared/utils/draggables';
+
+import { Container } from './Styles';
 
 interface Columns {
   [key: string]: TaskGroup;
@@ -26,13 +26,6 @@ type Props = {
   onListDrop: any;
   onCardCreate: (taskGroupID: string, name: string) => void;
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
-};
-
-type OnDragEndProps = {
-  draggableId: any;
-  source: any;
-  destination: any;
-  type: any;
 };
 
 const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEditorOpen }: Props) => {
@@ -137,7 +130,7 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
                                   setCurrentComposer('');
                                   onCardCreate(column.taskGroupID, name);
                                 }}
-                                isOpen={true}
+                                isOpen
                               />
                             )}
                           </ListCards>

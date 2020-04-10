@@ -1,9 +1,8 @@
 import React from 'react';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
-import Sidebar from './index';
-
 import Navbar from 'shared/components/Navbar';
+import Sidebar from '.';
 
 export default {
   component: Sidebar,
