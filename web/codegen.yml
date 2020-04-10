@@ -1,0 +1,16 @@
+overwrite: true
+schema:
+  - '../api/graph/schema.graphqls'
+documents: 'src/shared/graphql/*.graphqls'
+generates:
+  src/shared/generated/graphql.tsx:
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-react-apollo'
+    config:
+      withHOC: false
+      withComponent: false
+      withHooks: true
+      scalars:
+        UUID: string

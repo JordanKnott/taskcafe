@@ -3,6 +3,13 @@ import styled from 'styled-components/macro';
 import { useQuery, useMutation } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
 import { useParams } from 'react-router-dom';
+import {
+  useFindProjectQuery,
+  useUpdateTaskNameMutation,
+  useCreateTaskMutation,
+  useDeleteTaskMutation,
+  useUpdateTaskLocationMutation,
+} from 'shared/generated/graphql';
 
 import Navbar from 'App/Navbar';
 import TopNavbar from 'App/TopNavbar';
@@ -14,7 +21,7 @@ interface ColumnState {
 }
 
 interface TaskState {
-  [key: string]: RemoteTask;
+  [key: string]: Task;
 }
 
 interface State {
@@ -26,7 +33,7 @@ interface QuickCardEditorState {
   isOpen: boolean;
   left: number;
   top: number;
-  task?: RemoteTask;
+  task?: Task;
 }
 
 const MainContent = styled.div`
@@ -46,112 +53,9 @@ const Title = styled.span`
   color: #fff;
 `;
 
-interface ProjectData {
-  findProject: Project;
-}
-
-interface UpdateTaskLocationData {
-  updateTaskLocation: Task;
-}
-
-interface UpdateTaskLocationVars {
-  taskID: string;
-  taskGroupID: string;
-  position: number;
-}
-
-interface ProjectVars {
-  projectId: string;
-}
-
-interface CreateTaskVars {
-  taskGroupID: string;
-  name: string;
-  position: number;
-}
-
-interface CreateTaskData {
-  createTask: RemoteTask;
-}
-
 interface ProjectParams {
   projectId: string;
 }
-
-interface DeleteTaskData {
-  deleteTask: { taskID: string };
-}
-
-interface DeleteTaskVars {
-  taskID: string;
-}
-
-interface UpdateTaskNameData {
-  updateTaskName: RemoteTask;
-}
-
-interface UpdateTaskNameVars {
-  taskID: string;
-  name: string;
-}
-
-const UPDATE_TASK_NAME = gql`
-  mutation updateTaskName($taskID: String!, $name: String!) {
-    updateTaskName(input: { taskID: $taskID, name: $name }) {
-      taskID
-      name
-      position
-    }
-  }
-`;
-
-const GET_PROJECT = gql`
-  query getProject($projectId: String!) {
-    findProject(input: { projectId: $projectId }) {
-      name
-      taskGroups {
-        taskGroupID
-        name
-        position
-        tasks {
-          taskID
-          name
-          position
-        }
-      }
-    }
-  }
-`;
-
-const CREATE_TASK = gql`
-  mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
-    createTask(input: { taskGroupID: $taskGroupID, name: $name, position: $position }) {
-      taskID
-      taskGroupID
-      name
-      position
-    }
-  }
-`;
-
-const DELETE_TASK = gql`
-  mutation deleteTask($taskID: String!) {
-    deleteTask(input: { taskID: $taskID }) {
-      taskID
-    }
-  }
-`;
-
-const UPDATE_TASK_LOCATION = gql`
-  mutation updateTaskLocation($taskID: String!, $taskGroupID: String!, $position: Float!) {
-    updateTaskLocation(input: { taskID: $taskID, taskGroupID: $taskGroupID, position: $position }) {
-      taskID
-      createdAt
-      name
-      position
-    }
-  }
-`;
 
 const initialState: State = { tasks: {}, columns: {} };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
@@ -160,10 +64,8 @@ const Project = () => {
   const { projectId } = useParams<ProjectParams>();
   const [listsData, setListsData] = useState(initialState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
-  const [updateTaskLocation, updateTaskLocationData] = useMutation<UpdateTaskLocationData, UpdateTaskLocationVars>(
-    UPDATE_TASK_LOCATION,
-  );
-  const [createTask, createTaskData] = useMutation<CreateTaskData, CreateTaskVars>(CREATE_TASK, {
+  const [updateTaskLocation] = useUpdateTaskLocationMutation();
+  const [createTask] = useCreateTaskMutation({
     onCompleted: newTaskData => {
       const newListsData = {
         ...listsData,
@@ -181,7 +83,7 @@ const Project = () => {
       setListsData(newListsData);
     },
   });
-  const [deleteTask, deleteTaskData] = useMutation<DeleteTaskData, DeleteTaskVars>(DELETE_TASK, {
+  const [deleteTask] = useDeleteTaskMutation({
     onCompleted: deletedTask => {
       const { [deletedTask.deleteTask.taskID]: removedTask, ...remainingTasks } = listsData.tasks;
       const newListsData = {
@@ -191,7 +93,7 @@ const Project = () => {
       setListsData(newListsData);
     },
   });
-  const [updateTaskName, updateTaskNameData] = useMutation<UpdateTaskNameData, UpdateTaskNameVars>(UPDATE_TASK_NAME, {
+  const [updateTaskName] = useUpdateTaskNameMutation({
     onCompleted: newTaskData => {
       const newListsData = {
         ...listsData,
@@ -206,7 +108,7 @@ const Project = () => {
       setListsData(newListsData);
     },
   });
-  const { loading, data } = useQuery<ProjectData, ProjectVars>(GET_PROJECT, {
+  const { loading, data } = useFindProjectQuery({
     variables: { projectId },
     onCompleted: newData => {
       let newListsData: State = { tasks: {}, columns: {} };
@@ -217,7 +119,7 @@ const Project = () => {
           position: taskGroup.position,
           tasks: [],
         };
-        taskGroup.tasks.forEach((task: RemoteTask) => {
+        taskGroup.tasks.forEach((task: Task) => {
           newListsData.tasks[task.taskID] = {
             taskID: task.taskID,
             taskGroupID: taskGroup.taskGroupID,
@@ -254,9 +156,7 @@ const Project = () => {
     setListsData(newState);
   };
   const onCardCreate = (taskGroupID: string, name: string) => {
-    const taskGroupTasks = Object.values(listsData.tasks).filter(
-      (task: RemoteTask) => task.taskGroupID === taskGroupID,
-    );
+    const taskGroupTasks = Object.values(listsData.tasks).filter((task: Task) => task.taskGroupID === taskGroupID);
     var position = 65535;
     console.log(taskGroupID);
     console.log(taskGroupTasks);
@@ -269,12 +169,12 @@ const Project = () => {
     createTask({ variables: { taskGroupID: taskGroupID, name: name, position: position } });
   };
   const onQuickEditorOpen = (e: ContextMenuEvent) => {
-    const task = Object.values(listsData.tasks).find(task => task.taskID === e.cardId);
+    const currentTask = Object.values(listsData.tasks).find(task => task.taskID === e.taskID);
     setQuickCardEditor({
       top: e.top,
       left: e.left,
       isOpen: true,
-      task,
+      task: currentTask,
     });
   };
 
@@ -299,8 +199,8 @@ const Project = () => {
         {quickCardEditor.isOpen && (
           <QuickCardEditor
             isOpen={true}
-            listId={quickCardEditor.task ? quickCardEditor.task.taskGroupID : ''}
-            cardId={quickCardEditor.task ? quickCardEditor.task.taskID : ''}
+            taskID={quickCardEditor.task ? quickCardEditor.task.taskID : ''}
+            taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroupID : ''}
             cardTitle={quickCardEditor.task ? quickCardEditor.task.name : ''}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
             onEditCard={(listId: string, cardId: string, cardName: string) =>

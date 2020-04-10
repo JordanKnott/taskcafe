@@ -33,8 +33,8 @@ type Checklist = {
 type Props = {
   title: string;
   description: string;
-  cardId: string;
-  listId: string;
+  taskID: string;
+  taskGroupID: string;
   onContextMenu: (e: ContextMenuEvent) => void;
   onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   dueDate?: DueDate;
@@ -49,8 +49,8 @@ const Card = React.forwardRef(
     {
       wrapperProps,
       onContextMenu,
-      cardId,
-      listId,
+      taskID,
+      taskGroupID,
       onClick,
       labels,
       title,
@@ -69,8 +69,8 @@ const Card = React.forwardRef(
         onContextMenu({
           top: pos.top,
           left: pos.left,
-          listId,
-          cardId,
+          taskGroupID,
+          taskID,
         });
       }
     };

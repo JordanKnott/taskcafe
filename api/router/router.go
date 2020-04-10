@@ -24,7 +24,7 @@ func NewRouter(db *sqlx.DB) (chi.Router, error) {
 	formatter.FullTimestamp = true
 
 	routerLogger := log.New()
-	routerLogger.SetLevel(log.WarnLevel)
+	routerLogger.SetLevel(log.DebugLevel)
 	routerLogger.Formatter = formatter
 	r := chi.NewRouter()
 	cors := cors.New(cors.Options{

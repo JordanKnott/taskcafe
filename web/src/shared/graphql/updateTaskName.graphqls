@@ -1,0 +1,7 @@
+mutation updateTaskName($taskID: String!, $name: String!) {
+  updateTaskName(input: { taskID: $taskID, name: $name }) {
+    taskID
+    name
+    position
+  }
+}

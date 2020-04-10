@@ -33,8 +33,8 @@ export const Default = () => {
   const $ref = useRef<HTMLDivElement>(null);
   return (
     <Card
-      cardId="1"
-      listId="1"
+      taskID="1"
+      taskGroupID="1"
       description=""
       ref={$ref}
       title="Hello, world"
@@ -48,8 +48,8 @@ export const Labels = () => {
   const $ref = useRef<HTMLDivElement>(null);
   return (
     <Card
-      cardId="1"
-      listId="1"
+      taskID="1"
+      taskGroupID="1"
       description=""
       ref={$ref}
       title="Hello, world"
@@ -64,8 +64,8 @@ export const Badges = () => {
   const $ref = useRef<HTMLDivElement>(null);
   return (
     <Card
-      cardId="1"
-      listId="1"
+      taskID="1"
+      taskGroupID="1"
       description="hello!"
       ref={$ref}
       title="Hello, world"
@@ -82,8 +82,8 @@ export const PastDue = () => {
   const $ref = useRef<HTMLDivElement>(null);
   return (
     <Card
-      cardId="1"
-      listId="1"
+      taskID="1"
+      taskGroupID="1"
       description="hello!"
       ref={$ref}
       title="Hello, world"
@@ -100,8 +100,8 @@ export const Everything = () => {
   const $ref = useRef<HTMLDivElement>(null);
   return (
     <Card
-      cardId="1"
-      listId="1"
+      taskID="1"
+      taskGroupID="1"
       description="hello!"
       ref={$ref}
       title="Hello, world"

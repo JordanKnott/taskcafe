@@ -53,7 +53,7 @@ interface Columns {
   [key: string]: TaskGroup;
 }
 interface Tasks {
-  [key: string]: RemoteTask;
+  [key: string]: Task;
 }
 
 type Props = {
@@ -139,7 +139,7 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
                       <Droppable type="tasks" droppableId={column.taskGroupID}>
                         {columnDropProvided => (
                           <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
-                            {columnCards.map((task: RemoteTask, taskIndex: any) => {
+                            {columnCards.map((task: Task, taskIndex: any) => {
                               return (
                                 <Draggable key={task.taskID} draggableId={task.taskID} index={taskIndex}>
                                   {taskProvided => {
@@ -150,8 +150,8 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
                                           ...taskProvided.dragHandleProps,
                                         }}
                                         ref={taskProvided.innerRef}
-                                        cardId={task.taskID}
-                                        listId={column.taskGroupID}
+                                        taskID={task.taskID}
+                                        taskGroupID={column.taskGroupID}
                                         description=""
                                         title={task.name}
                                         labels={task.labels}

@@ -1,0 +1,15 @@
+query findProject($projectId: String!) {
+  findProject(input: { projectId: $projectId }) {
+    name
+    taskGroups {
+      taskGroupID
+      name
+      position
+      tasks {
+        taskID
+        name
+        position
+      }
+    }
+  }
+}

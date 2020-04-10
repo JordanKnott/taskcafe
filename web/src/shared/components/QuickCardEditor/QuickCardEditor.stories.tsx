@@ -42,8 +42,8 @@ export const Default = () => {
       {isEditorOpen && (
         <QuickCardEditor
           isOpen={isEditorOpen}
-          listId="1"
-          cardId="1"
+          taskGroupID="1"
+          taskID="1"
           cardTitle="Hello, world"
           onCloseEditor={() => setEditorOpen(false)}
           onEditCard={action('edit card')}
@@ -64,8 +64,8 @@ export const Default = () => {
       >
         <ListCards>
           <Card
-            cardId="1"
-            listId="1"
+            taskID="1"
+            taskGroupID="1"
             description="hello!"
             ref={$cardRef}
             title="Hello, world"

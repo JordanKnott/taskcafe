@@ -12,6 +12,9 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bearerTokenRaw := r.Header.Get("Authorization")
 		splitToken := strings.Split(bearerTokenRaw, "Bearer")
+		log.WithFields(log.Fields{
+			"bearerToken": bearerTokenRaw,
+		}).Warning("loading bearer token")
 		if len(splitToken) != 2 {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -21,7 +24,7 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			if _, ok := err.(*ErrExpiredToken); ok {
 				w.Write([]byte(`{
-	"data": {}, 
+	"data": {},
 	"errors": [
 	{
 		"extensions": {

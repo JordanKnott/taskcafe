@@ -1,0 +1,12 @@
+query getProjects {
+  organizations {
+    name
+    teams {
+      name
+      projects {
+        name
+        projectID
+      }
+    }
+  }
+}

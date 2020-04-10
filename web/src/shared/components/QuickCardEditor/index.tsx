@@ -15,13 +15,13 @@ import {
 } from './Styles';
 
 type Props = {
-  listId: string;
-  cardId: string;
+  taskID: string;
+  taskGroupID: string;
   cardTitle: string;
   onCloseEditor: () => void;
-  onEditCard: (listId: string, cardId: string, cardName: string) => void;
+  onEditCard: (taskGroupID: string, taskID: string, cardName: string) => void;
   onOpenPopup: (popupType: number, top: number, left: number) => void;
-  onArchiveCard: (listId: string, cardId: string) => void;
+  onArchiveCard: (taskGroupID: string, taskID: string) => void;
   labels?: Label[];
   isOpen: boolean;
   top: number;
@@ -29,8 +29,8 @@ type Props = {
 };
 
 const QuickCardEditor = ({
-  listId,
-  cardId,
+  taskGroupID,
+  taskID,
   cardTitle,
   onCloseEditor,
   onOpenPopup,
@@ -57,7 +57,7 @@ const QuickCardEditor = ({
   const handleKeyDown = (e: any) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      onEditCard(listId, cardId, currentCardTitle);
+      onEditCard(taskGroupID, taskID, currentCardTitle);
       onCloseEditor();
     }
   };
@@ -89,7 +89,7 @@ const QuickCardEditor = ({
             />
           </EditorDetails>
         </Editor>
-        <SaveButton onClick={e => onEditCard(listId, cardId, currentCardTitle)}>Save</SaveButton>
+        <SaveButton onClick={e => onEditCard(taskGroupID, taskID, currentCardTitle)}>Save</SaveButton>
         <EditorButtons>
           <EditorButton
             ref={$labelsRef}
@@ -104,7 +104,7 @@ const QuickCardEditor = ({
           <EditorButton
             onClick={e => {
               e.stopPropagation();
-              onArchiveCard(listId, cardId);
+              onArchiveCard(taskGroupID, taskID);
               onCloseEditor();
             }}
           >

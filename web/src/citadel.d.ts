@@ -1,23 +1,25 @@
 type ContextMenuEvent = {
   left: number;
   top: number;
-  cardId: string;
-  listId: string;
+  taskID: string;
+  taskGroupID: string;
 };
 
-interface RemoteTask {
+type Task = {
   taskID: string;
   taskGroupID: string;
   name: string;
   position: number;
   labels: Label[];
-}
+};
+
 type TaskGroup = {
   taskGroupID: string;
   name: string;
   position: number;
   tasks: RemoteTask[];
 };
+
 type Project = {
   projectID: string;
   name: string;
@@ -26,25 +28,21 @@ type Project = {
   taskGroups: TaskGroup[];
 };
 
-interface Organization {
+type Organization = {
   name: string;
   teams: Team[];
-}
+};
 
-interface Team {
+type Team = {
   name: string;
   projects: Project[];
-}
+};
+
 type Label = {
   labelId: string;
   name: string;
   color: string;
   active: boolean;
-};
-
-type Task = {
-  title: string;
-  position: number;
 };
 
 type RefreshTokenResponse = {

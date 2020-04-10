@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/macro';
-import { useQuery } from '@apollo/react-hooks';
-import gql from 'graphql-tag';
+import { useGetProjectsQuery } from 'shared/generated/graphql';
 
 import TopNavbar from 'App/TopNavbar';
 import ProjectGridItem from 'shared/components/ProjectGridItem';
@@ -25,29 +24,8 @@ const Wrapper = styled.div`
   font-size: 16px;
   background-color: red;
 `;
-
-interface ProjectData {
-  name: string;
-  organizations: Organization[];
-}
-
-const GET_PROJECTS = gql`
-  query getProjects {
-    organizations {
-      name
-      teams {
-        name
-        projects {
-          name
-          projectID
-        }
-      }
-    }
-  }
-`;
-
 const Projects = () => {
-  const { loading, data } = useQuery<ProjectData>(GET_PROJECTS);
+  const { loading, data } = useGetProjectsQuery();
   console.log(loading, data);
   if (loading) {
     return <Wrapper>Loading</Wrapper>;

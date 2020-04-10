@@ -1,0 +1,8 @@
+mutation updateTaskLocation($taskID: String!, $taskGroupID: String!, $position: Float!) {
+  updateTaskLocation(input: { taskID: $taskID, taskGroupID: $taskGroupID, position: $position }) {
+    taskID
+    createdAt
+    name
+    position
+  }
+}

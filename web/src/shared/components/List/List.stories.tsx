@@ -35,8 +35,8 @@ const createCard = () => {
   const $ref = createRef<HTMLDivElement>();
   return (
     <Card
-      cardId="1"
-      listId="1"
+      taskID="1"
+      taskGroupID="1"
       description="hello!"
       ref={$ref}
       title="Hello, world"
@@ -113,8 +113,8 @@ export const WithCard = () => {
     >
       <ListCards>
         <Card
-          cardId="1"
-          listId="1"
+          taskID="1"
+          taskGroupID="1"
           description="hello!"
           ref={$cardRef}
           title="Hello, world"
@@ -151,8 +151,8 @@ export const WithCardAndComposer = () => {
     >
       <ListCards>
         <Card
-          cardId="1"
-          listId="1"
+          taskID="1"
+          taskGroupID="1"
           description="hello!"
           ref={$cardRef}
           title="Hello, world"
