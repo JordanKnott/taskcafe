@@ -4,8 +4,16 @@ import { setAccessToken } from 'shared/utils/accessToken';
 import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
 import Routes from './Routes';
+import Navbar from 'shared/components/Navbar';
+import GlobalTopNavbar from 'App/TopNavbar';
+import styled from 'styled-components';
 
 const history = createBrowserHistory();
+
+const MainContent = styled.div`
+  padding: 0 0 50px 80px;
+  background: #262c49;
+`;
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -29,7 +37,14 @@ const App = () => {
   }, []);
 
   if (loading) {
-    return <div>loading...</div>;
+    return (
+      <>
+        <Navbar />
+        <MainContent>
+          <GlobalTopNavbar />
+        </MainContent>
+      </>
+    );
   }
   return (
     <>

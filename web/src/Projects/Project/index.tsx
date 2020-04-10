@@ -37,7 +37,7 @@ interface QuickCardEditorState {
 }
 
 const MainContent = styled.div`
-  padding: 0 0 50px 100px;
+  padding: 0 0 50px 80px;
   height: 100%;
   background: #262c49;
 `;
@@ -47,10 +47,19 @@ const Wrapper = styled.div`
   background-color: red;
 `;
 
+const TitleWrapper = styled.div`
+  margin-left: 38px;
+  margin-bottom: 15px;
+`;
+
 const Title = styled.span`
   text-align: center;
   font-size: 24px;
   color: #fff;
+`;
+
+const Board = styled.div`
+  margin-left: 36px;
 `;
 
 interface ProjectParams {
@@ -187,14 +196,18 @@ const Project = () => {
         <Navbar />
         <MainContent>
           <TopNavbar />
-          <Title>{data.findProject.name}</Title>
-          <Lists
-            onQuickEditorOpen={onQuickEditorOpen}
-            onCardCreate={onCardCreate}
-            {...listsData}
-            onCardDrop={onCardDrop}
-            onListDrop={onListDrop}
-          />
+          <TitleWrapper>
+            <Title>{data.findProject.name}</Title>
+          </TitleWrapper>
+          <Board>
+            <Lists
+              onQuickEditorOpen={onQuickEditorOpen}
+              onCardCreate={onCardCreate}
+              {...listsData}
+              onCardDrop={onCardDrop}
+              onListDrop={onListDrop}
+            />
+          </Board>
         </MainContent>
         {quickCardEditor.isOpen && (
           <QuickCardEditor

@@ -28,7 +28,14 @@ const Projects = () => {
   const { loading, data } = useGetProjectsQuery();
   console.log(loading, data);
   if (loading) {
-    return <Wrapper>Loading</Wrapper>;
+    return (
+      <>
+        <Navbar />
+        <MainContent>
+          <TopNavbar />
+        </MainContent>
+      </>
+    );
   }
   if (data) {
     const { teams } = data.organizations[0];
