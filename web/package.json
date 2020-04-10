@@ -58,7 +58,8 @@
     "eject": "react-scripts eject",
     "storybook": "start-storybook -p 9009 -s public",
     "build-storybook": "build-storybook -s public",
-    "generate": "graphql-codegen"
+    "generate": "graphql-codegen",
+    "lint": "eslint --ext js,ts,tsx src"
   },
   "eslintConfig": {
     "extends": "react-app"

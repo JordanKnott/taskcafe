@@ -1,5 +1,6 @@
 import Cross from './Cross';
 import Bell from './Bell';
+import Bin from './Bin';
 import Pencil from './Pencil';
 import Checkmark from './Checkmark';
 import User from './User';
@@ -11,4 +12,4 @@ import Stack from './Stack';
 import Question from './Question';
 import Exit from './Exit';
 
-export { Cross, Bell, Exit, Pencil, Stack, Question, Home, Citadel, Checkmark, User, Users, Lock };
+export { Cross, Bell, Bin, Exit, Pencil, Stack, Question, Home, Citadel, Checkmark, User, Users, Lock };

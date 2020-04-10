@@ -11,6 +11,7 @@ type Task = {
   name: string;
   position: number;
   labels: Label[];
+  description?: string;
 };
 
 type TaskGroup = {
