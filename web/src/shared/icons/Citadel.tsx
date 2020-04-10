@@ -27,4 +27,3 @@ Citadel.defaultProps = {
 };
 
 export default Citadel;
-

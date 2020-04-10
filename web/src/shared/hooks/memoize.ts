@@ -11,4 +11,3 @@ const useDeepCompareMemoize = (value: any) => {
 };
 
 export default useDeepCompareMemoize;
-

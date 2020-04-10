@@ -41,4 +41,3 @@ export const getAfterDropDraggableList = (
     ? moveItemWithinArray(beforeDropDraggables, droppedDraggable, destination.index)
     : insertItemIntoArray(beforeDropDraggables, droppedDraggable, destination.index);
 };
-
