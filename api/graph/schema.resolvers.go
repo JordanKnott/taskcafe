@@ -65,6 +65,14 @@ func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGro
 	return &project, err
 }
 
+func (r *mutationResolver) UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*pg.TaskGroup, error) {
+	taskGroup, err := r.Repository.UpdateTaskGroupLocation(ctx, pg.UpdateTaskGroupLocationParams{
+		input.TaskGroupID,
+		input.Position,
+	})
+	return &taskGroup, err
+}
+
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*pg.Task, error) {
 	taskGroupID, err := uuid.Parse(input.TaskGroupID)
 	createdAt := time.Now().UTC()

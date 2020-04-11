@@ -55,17 +55,18 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateOrganization func(childComplexity int, input NewOrganization) int
-		CreateProject      func(childComplexity int, input NewProject) int
-		CreateRefreshToken func(childComplexity int, input NewRefreshToken) int
-		CreateTask         func(childComplexity int, input NewTask) int
-		CreateTaskGroup    func(childComplexity int, input NewTaskGroup) int
-		CreateTeam         func(childComplexity int, input NewTeam) int
-		CreateUserAccount  func(childComplexity int, input NewUserAccount) int
-		DeleteTask         func(childComplexity int, input DeleteTaskInput) int
-		LogoutUser         func(childComplexity int, input LogoutUser) int
-		UpdateTaskLocation func(childComplexity int, input NewTaskLocation) int
-		UpdateTaskName     func(childComplexity int, input UpdateTaskName) int
+		CreateOrganization      func(childComplexity int, input NewOrganization) int
+		CreateProject           func(childComplexity int, input NewProject) int
+		CreateRefreshToken      func(childComplexity int, input NewRefreshToken) int
+		CreateTask              func(childComplexity int, input NewTask) int
+		CreateTaskGroup         func(childComplexity int, input NewTaskGroup) int
+		CreateTeam              func(childComplexity int, input NewTeam) int
+		CreateUserAccount       func(childComplexity int, input NewUserAccount) int
+		DeleteTask              func(childComplexity int, input DeleteTaskInput) int
+		LogoutUser              func(childComplexity int, input LogoutUser) int
+		UpdateTaskGroupLocation func(childComplexity int, input NewTaskGroupLocation) int
+		UpdateTaskLocation      func(childComplexity int, input NewTaskLocation) int
+		UpdateTaskName          func(childComplexity int, input UpdateTaskName) int
 	}
 
 	Organization struct {
@@ -140,6 +141,7 @@ type MutationResolver interface {
 	CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error)
 	CreateProject(ctx context.Context, input NewProject) (*pg.Project, error)
 	CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*pg.TaskGroup, error)
+	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*pg.TaskGroup, error)
 	CreateTask(ctx context.Context, input NewTask) (*pg.Task, error)
 	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*pg.Task, error)
 	LogoutUser(ctx context.Context, input LogoutUser) (bool, error)
@@ -304,6 +306,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LogoutUser(childComplexity, args["input"].(LogoutUser)), true
+
+	case "Mutation.updateTaskGroupLocation":
+		if e.complexity.Mutation.UpdateTaskGroupLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskGroupLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskGroupLocation(childComplexity, args["input"].(NewTaskGroupLocation)), true
 
 	case "Mutation.updateTaskLocation":
 		if e.complexity.Mutation.UpdateTaskLocation == nil {
@@ -826,6 +840,11 @@ input UpdateTaskName {
   name: String!
 }
 
+input NewTaskGroupLocation {
+  taskGroupID: UUID!
+  position: Float!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
   createUserAccount(input: NewUserAccount!): UserAccount!
@@ -833,6 +852,7 @@ type Mutation {
   createTeam(input: NewTeam!): Team!
   createProject(input: NewProject!): Project!
   createTaskGroup(input: NewTaskGroup!): TaskGroup!
+  updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
   createTask(input: NewTask!): Task!
   updateTaskLocation(input: NewTaskLocation!): Task!
   logoutUser(input: LogoutUser!): Boolean!
@@ -965,6 +985,20 @@ func (ec *executionContext) field_Mutation_logoutUser_args(ctx context.Context, 
 	var arg0 LogoutUser
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNLogoutUser2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐLogoutUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTaskGroupLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 NewTaskGroupLocation
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNNewTaskGroupLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐNewTaskGroupLocation(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1357,6 +1391,47 @@ func (ec *executionContext) _Mutation_createTaskGroup(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateTaskGroup(rctx, args["input"].(NewTaskGroup))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.TaskGroup)
+	fc.Result = res
+	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskGroupLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskGroupLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTaskGroupLocation(rctx, args["input"].(NewTaskGroupLocation))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4275,6 +4350,30 @@ func (ec *executionContext) unmarshalInputNewTaskGroup(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewTaskGroupLocation(ctx context.Context, obj interface{}) (NewTaskGroupLocation, error) {
+	var it NewTaskGroupLocation
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskGroupID":
+			var err error
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "position":
+			var err error
+			it.Position, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewTaskLocation(ctx context.Context, obj interface{}) (NewTaskLocation, error) {
 	var it NewTaskLocation
 	var asMap = obj.(map[string]interface{})
@@ -4484,6 +4583,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createTaskGroup":
 			out.Values[i] = ec._Mutation_createTaskGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskGroupLocation":
+			out.Values[i] = ec._Mutation_updateTaskGroupLocation(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5368,6 +5472,10 @@ func (ec *executionContext) unmarshalNNewTask2githubᚗcomᚋjordanknottᚋproje
 
 func (ec *executionContext) unmarshalNNewTaskGroup2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐNewTaskGroup(ctx context.Context, v interface{}) (NewTaskGroup, error) {
 	return ec.unmarshalInputNewTaskGroup(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNNewTaskGroupLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐNewTaskGroupLocation(ctx context.Context, v interface{}) (NewTaskGroupLocation, error) {
+	return ec.unmarshalInputNewTaskGroupLocation(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNNewTaskLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐNewTaskLocation(ctx context.Context, v interface{}) (NewTaskLocation, error) {

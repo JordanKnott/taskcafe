@@ -2,6 +2,10 @@
 
 package graph
 
+import (
+	"github.com/google/uuid"
+)
+
 type DeleteTaskInput struct {
 	TaskID string `json:"taskID"`
 }
@@ -45,6 +49,11 @@ type NewTaskGroup struct {
 	ProjectID string  `json:"projectID"`
 	Name      string  `json:"name"`
 	Position  float64 `json:"position"`
+}
+
+type NewTaskGroupLocation struct {
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Position    float64   `json:"position"`
 }
 
 type NewTaskLocation struct {

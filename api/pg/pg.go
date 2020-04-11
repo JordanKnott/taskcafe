@@ -16,6 +16,7 @@ type Repository interface {
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
+	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)
 	GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error)
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)

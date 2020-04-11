@@ -122,3 +122,25 @@ func (q *Queries) GetTaskGroupsForProject(ctx context.Context, projectID uuid.UU
 	}
 	return items, nil
 }
+
+const updateTaskGroupLocation = `-- name: UpdateTaskGroupLocation :one
+UPDATE task_group SET position = $2 WHERE task_group_id = $1 RETURNING task_group_id, project_id, created_at, name, position
+`
+
+type UpdateTaskGroupLocationParams struct {
+	TaskGroupID uuid.UUID `json:"task_group_id"`
+	Position    float64   `json:"position"`
+}
+
+func (q *Queries) UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskGroupLocation, arg.TaskGroupID, arg.Position)
+	var i TaskGroup
+	err := row.Scan(
+		&i.TaskGroupID,
+		&i.ProjectID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+	)
+	return i, err
+}

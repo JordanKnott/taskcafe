@@ -37,6 +37,7 @@ type Querier interface {
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 	GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)
+	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)
 	UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocationParams) (Task, error)
 	UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error)
 }
