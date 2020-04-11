@@ -7,6 +7,7 @@ import {
   useCreateTaskMutation,
   useDeleteTaskMutation,
   useUpdateTaskLocationMutation,
+  useUpdateTaskGroupLocationMutation,
   useCreateTaskGroupMutation,
 } from 'shared/generated/graphql';
 
@@ -77,6 +78,7 @@ const Project = () => {
   const [popupData, setPopupData] = useState(initialPopupState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
+  const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation();
   const [createTaskGroup] = useCreateTaskGroupMutation({
     onCompleted: newTaskGroupData => {
       const newListsData = {
@@ -179,6 +181,9 @@ const Project = () => {
     setListsData(newState);
   };
   const onListDrop = (droppedColumn: any) => {
+    updateTaskGroupLocation({
+      variables: { taskGroupID: droppedColumn.taskGroupID, position: droppedColumn.position },
+    });
     const newState = {
       ...listsData,
       columns: {

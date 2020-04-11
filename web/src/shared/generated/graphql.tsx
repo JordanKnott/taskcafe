@@ -175,6 +175,11 @@ export type UpdateTaskName = {
   name: Scalars['String'];
 };
 
+export type NewTaskGroupLocation = {
+  taskGroupID: Scalars['UUID'];
+  position: Scalars['Float'];
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
@@ -183,6 +188,7 @@ export type Mutation = {
   createTeam: Team;
   createProject: Project;
   createTaskGroup: TaskGroup;
+  updateTaskGroupLocation: TaskGroup;
   createTask: Task;
   updateTaskLocation: Task;
   logoutUser: Scalars['Boolean'];
@@ -218,6 +224,11 @@ export type MutationCreateProjectArgs = {
 
 export type MutationCreateTaskGroupArgs = {
   input: NewTaskGroup;
+};
+
+
+export type MutationUpdateTaskGroupLocationArgs = {
+  input: NewTaskGroupLocation;
 };
 
 
@@ -330,6 +341,20 @@ export type GetProjectsQuery = (
       )> }
     )> }
   )> }
+);
+
+export type UpdateTaskGroupLocationMutationVariables = {
+  taskGroupID: Scalars['UUID'];
+  position: Scalars['Float'];
+};
+
+
+export type UpdateTaskGroupLocationMutation = (
+  { __typename?: 'Mutation' }
+  & { updateTaskGroupLocation: (
+    { __typename?: 'TaskGroup' }
+    & Pick<TaskGroup, 'taskGroupID' | 'position'>
+  ) }
 );
 
 export type UpdateTaskLocationMutationVariables = {
@@ -551,6 +576,40 @@ export function useGetProjectsLazyQuery(baseOptions?: ApolloReactHooks.LazyQuery
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
 export type GetProjectsQueryResult = ApolloReactCommon.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
+export const UpdateTaskGroupLocationDocument = gql`
+    mutation updateTaskGroupLocation($taskGroupID: UUID!, $position: Float!) {
+  updateTaskGroupLocation(input: {taskGroupID: $taskGroupID, position: $position}) {
+    taskGroupID
+    position
+  }
+}
+    `;
+export type UpdateTaskGroupLocationMutationFn = ApolloReactCommon.MutationFunction<UpdateTaskGroupLocationMutation, UpdateTaskGroupLocationMutationVariables>;
+
+/**
+ * __useUpdateTaskGroupLocationMutation__
+ *
+ * To run a mutation, you first call `useUpdateTaskGroupLocationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTaskGroupLocationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTaskGroupLocationMutation, { data, loading, error }] = useUpdateTaskGroupLocationMutation({
+ *   variables: {
+ *      taskGroupID: // value for 'taskGroupID'
+ *      position: // value for 'position'
+ *   },
+ * });
+ */
+export function useUpdateTaskGroupLocationMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateTaskGroupLocationMutation, UpdateTaskGroupLocationMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateTaskGroupLocationMutation, UpdateTaskGroupLocationMutationVariables>(UpdateTaskGroupLocationDocument, baseOptions);
+      }
+export type UpdateTaskGroupLocationMutationHookResult = ReturnType<typeof useUpdateTaskGroupLocationMutation>;
+export type UpdateTaskGroupLocationMutationResult = ApolloReactCommon.MutationResult<UpdateTaskGroupLocationMutation>;
+export type UpdateTaskGroupLocationMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskGroupLocationMutation, UpdateTaskGroupLocationMutationVariables>;
 export const UpdateTaskLocationDocument = gql`
     mutation updateTaskLocation($taskID: String!, $taskGroupID: String!, $position: Float!) {
   updateTaskLocation(input: {taskID: $taskID, taskGroupID: $taskGroupID, position: $position}) {
