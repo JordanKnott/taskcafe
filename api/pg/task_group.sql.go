@@ -73,6 +73,23 @@ func (q *Queries) GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error) {
 	return items, nil
 }
 
+const getTaskGroupByID = `-- name: GetTaskGroupByID :one
+SELECT task_group_id, project_id, created_at, name, position FROM task_group WHERE task_group_id = $1
+`
+
+func (q *Queries) GetTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (TaskGroup, error) {
+	row := q.db.QueryRowContext(ctx, getTaskGroupByID, taskGroupID)
+	var i TaskGroup
+	err := row.Scan(
+		&i.TaskGroupID,
+		&i.ProjectID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+	)
+	return i, err
+}
+
 const getTaskGroupsForProject = `-- name: GetTaskGroupsForProject :many
 SELECT task_group_id, project_id, created_at, name, position FROM task_group WHERE project_id = $1
 `

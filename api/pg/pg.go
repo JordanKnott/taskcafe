@@ -27,6 +27,7 @@ type Repository interface {
 	GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error)
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
 	GetTaskGroupsForProject(ctx context.Context, projectID uuid.UUID) ([]TaskGroup, error)
+	GetTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (TaskGroup, error)
 	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (Organization, error)
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)

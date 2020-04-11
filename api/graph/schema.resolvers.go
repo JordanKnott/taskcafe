@@ -1,6 +1,7 @@
+package graph
+
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
-package graph
 
 import (
 	"context"
@@ -198,8 +199,9 @@ func (r *queryResolver) TaskGroups(ctx context.Context) ([]pg.TaskGroup, error) 
 	return r.Repository.GetAllTaskGroups(ctx)
 }
 
-func (r *taskResolver) TaskGroupID(ctx context.Context, obj *pg.Task) (string, error) {
-	return obj.TaskGroupID.String(), nil
+func (r *taskResolver) TaskGroup(ctx context.Context, obj *pg.Task) (*pg.TaskGroup, error) {
+	taskGroup, err := r.Repository.GetTaskGroupByID(ctx, obj.TaskGroupID)
+	return &taskGroup, err
 }
 
 func (r *taskGroupResolver) ProjectID(ctx context.Context, obj *pg.TaskGroup) (string, error) {
@@ -215,13 +217,26 @@ func (r *teamResolver) Projects(ctx context.Context, obj *pg.Team) ([]pg.Project
 	return r.Repository.GetAllProjectsForTeam(ctx, obj.TeamID)
 }
 
-func (r *Resolver) Mutation() MutationResolver         { return &mutationResolver{r} }
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
+// Organization returns OrganizationResolver implementation.
 func (r *Resolver) Organization() OrganizationResolver { return &organizationResolver{r} }
-func (r *Resolver) Project() ProjectResolver           { return &projectResolver{r} }
-func (r *Resolver) Query() QueryResolver               { return &queryResolver{r} }
-func (r *Resolver) Task() TaskResolver                 { return &taskResolver{r} }
-func (r *Resolver) TaskGroup() TaskGroupResolver       { return &taskGroupResolver{r} }
-func (r *Resolver) Team() TeamResolver                 { return &teamResolver{r} }
+
+// Project returns ProjectResolver implementation.
+func (r *Resolver) Project() ProjectResolver { return &projectResolver{r} }
+
+// Query returns QueryResolver implementation.
+func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+// Task returns TaskResolver implementation.
+func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
+
+// TaskGroup returns TaskGroupResolver implementation.
+func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }
+
+// Team returns TeamResolver implementation.
+func (r *Resolver) Team() TeamResolver { return &teamResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type organizationResolver struct{ *Resolver }

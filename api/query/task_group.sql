@@ -7,3 +7,6 @@ SELECT * FROM task_group WHERE project_id = $1;
 
 -- name: GetAllTaskGroups :many
 SELECT * FROM task_group;
+
+-- name: GetTaskGroupByID :one
+SELECT * FROM task_group WHERE task_group_id = $1;

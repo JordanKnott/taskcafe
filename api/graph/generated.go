@@ -101,11 +101,11 @@ type ComplexityRoot struct {
 	}
 
 	Task struct {
-		CreatedAt   func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Position    func(childComplexity int) int
-		TaskGroupID func(childComplexity int) int
-		TaskID      func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Position  func(childComplexity int) int
+		TaskGroup func(childComplexity int) int
+		TaskID    func(childComplexity int) int
 	}
 
 	TaskGroup struct {
@@ -164,7 +164,7 @@ type QueryResolver interface {
 	TaskGroups(ctx context.Context) ([]pg.TaskGroup, error)
 }
 type TaskResolver interface {
-	TaskGroupID(ctx context.Context, obj *pg.Task) (string, error)
+	TaskGroup(ctx context.Context, obj *pg.Task) (*pg.TaskGroup, error)
 }
 type TaskGroupResolver interface {
 	ProjectID(ctx context.Context, obj *pg.TaskGroup) (string, error)
@@ -505,12 +505,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Task.Position(childComplexity), true
 
-	case "Task.taskGroupID":
-		if e.complexity.Task.TaskGroupID == nil {
+	case "Task.taskGroup":
+		if e.complexity.Task.TaskGroup == nil {
 			break
 		}
 
-		return e.complexity.Task.TaskGroupID(childComplexity), true
+		return e.complexity.Task.TaskGroup(childComplexity), true
 
 	case "Task.taskID":
 		if e.complexity.Task.TaskID == nil {
@@ -740,7 +740,7 @@ type TaskGroup {
 
 type Task {
   taskID: ID!
-  taskGroupID: String!
+  taskGroup: TaskGroup!
   createdAt: Time!
   name: String!
   position: Float!
@@ -2382,7 +2382,7 @@ func (ec *executionContext) _Task_taskID(ctx context.Context, field graphql.Coll
 	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Task_taskGroupID(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
+func (ec *executionContext) _Task_taskGroup(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2399,7 +2399,7 @@ func (ec *executionContext) _Task_taskGroupID(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Task().TaskGroupID(rctx, obj)
+		return ec.resolvers.Task().TaskGroup(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2411,9 +2411,9 @@ func (ec *executionContext) _Task_taskGroupID(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*pg.TaskGroup)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Task_createdAt(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
@@ -4825,7 +4825,7 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "taskGroupID":
+		case "taskGroup":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -4833,7 +4833,7 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Task_taskGroupID(ctx, field, obj)
+				res = ec._Task_taskGroup(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

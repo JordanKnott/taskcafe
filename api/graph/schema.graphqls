@@ -50,7 +50,7 @@ type TaskGroup {
 
 type Task {
   taskID: ID!
-  taskGroupID: String!
+  taskGroup: TaskGroup!
   createdAt: Time!
   name: String!
   position: Float!

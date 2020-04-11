@@ -30,6 +30,7 @@ type Querier interface {
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) (RefreshToken, error)
+	GetTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (TaskGroup, error)
 	GetTaskGroupsForProject(ctx context.Context, projectID uuid.UUID) ([]TaskGroup, error)
 	GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error)
 	GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error)
