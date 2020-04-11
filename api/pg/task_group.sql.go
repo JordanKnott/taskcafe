@@ -40,6 +40,18 @@ func (q *Queries) CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams
 	return i, err
 }
 
+const deleteTaskGroupByID = `-- name: DeleteTaskGroupByID :execrows
+DELETE FROM task_group WHERE task_group_id = $1
+`
+
+func (q *Queries) DeleteTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteTaskGroupByID, taskGroupID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getAllTaskGroups = `-- name: GetAllTaskGroups :many
 SELECT task_group_id, project_id, created_at, name, position FROM task_group
 `

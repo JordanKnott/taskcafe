@@ -13,3 +13,6 @@ SELECT * FROM task_group WHERE task_group_id = $1;
 
 -- name: UpdateTaskGroupLocation :one
 UPDATE task_group SET position = $2 WHERE task_group_id = $1 RETURNING *;
+
+-- name: DeleteTaskGroupByID :execrows
+DELETE FROM task_group WHERE task_group_id = $1;

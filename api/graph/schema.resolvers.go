@@ -73,6 +73,22 @@ func (r *mutationResolver) UpdateTaskGroupLocation(ctx context.Context, input Ne
 	return &taskGroup, err
 }
 
+func (r *mutationResolver) DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error) {
+	deletedTasks, err := r.Repository.DeleteTasksByTaskGroupID(ctx, input.TaskGroupID)
+	if err != nil {
+		return &DeleteTaskGroupPayload{}, err
+	}
+	taskGroup, err := r.Repository.GetTaskGroupByID(ctx, input.TaskGroupID)
+	if err != nil {
+		return &DeleteTaskGroupPayload{}, err
+	}
+	deletedTaskGroups, err := r.Repository.DeleteTaskGroupByID(ctx, input.TaskGroupID)
+	if err != nil {
+		return &DeleteTaskGroupPayload{}, err
+	}
+	return &DeleteTaskGroupPayload{true, int(deletedTasks + deletedTaskGroups), &taskGroup}, nil
+}
+
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*pg.Task, error) {
 	taskGroupID, err := uuid.Parse(input.TaskGroupID)
 	createdAt := time.Now().UTC()
@@ -98,16 +114,6 @@ func (r *mutationResolver) UpdateTaskLocation(ctx context.Context, input NewTask
 	return &task, err
 }
 
-func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
-	userID, err := uuid.Parse(input.UserID)
-	if err != nil {
-		return false, err
-	}
-
-	err = r.Repository.DeleteRefreshTokenByUserID(ctx, userID)
-	return true, err
-}
-
 func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskName) (*pg.Task, error) {
 	taskID, err := uuid.Parse(input.TaskID)
 	if err != nil {
@@ -131,6 +137,16 @@ func (r *mutationResolver) DeleteTask(ctx context.Context, input DeleteTaskInput
 		return &DeleteTaskPayload{}, err
 	}
 	return &DeleteTaskPayload{taskID.String()}, nil
+}
+
+func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
+	userID, err := uuid.Parse(input.UserID)
+	if err != nil {
+		return false, err
+	}
+
+	err = r.Repository.DeleteRefreshTokenByUserID(ctx, userID)
+	return true, err
 }
 
 func (r *organizationResolver) Teams(ctx context.Context, obj *pg.Organization) ([]pg.Team, error) {

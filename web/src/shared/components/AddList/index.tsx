@@ -3,6 +3,7 @@ import { Plus, Cross } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 
 import {
+  Container,
   Wrapper,
   Placeholder,
   AddIconWrapper,
@@ -79,26 +80,28 @@ const AddList: React.FC<AddListProps> = ({ onSave }) => {
   useOnOutsideClick($wrapperRef, editorOpen, onOutsideClick, null);
 
   return (
-    <Wrapper
-      ref={$wrapperRef}
-      editorOpen={editorOpen}
-      onClick={() => {
-        if (!editorOpen) {
-          setEditorOpen(true);
-        }
-      }}
-    >
-      {editorOpen ? (
-        <NameEditor onCancel={() => setEditorOpen(false)} onSave={onSave} />
-      ) : (
-        <Placeholder>
-          <AddIconWrapper>
-            <Plus size={12} color="#c2c6dc" />
-          </AddIconWrapper>
-          Add another list
-        </Placeholder>
-      )}
-    </Wrapper>
+    <Container>
+      <Wrapper
+        ref={$wrapperRef}
+        editorOpen={editorOpen}
+        onClick={() => {
+          if (!editorOpen) {
+            setEditorOpen(true);
+          }
+        }}
+      >
+        {editorOpen ? (
+          <NameEditor onCancel={() => setEditorOpen(false)} onSave={onSave} />
+        ) : (
+          <Placeholder>
+            <AddIconWrapper>
+              <Plus size={12} color="#c2c6dc" />
+            </AddIconWrapper>
+            Add another list
+          </Placeholder>
+        )}
+      </Wrapper>
+    </Container>
   );
 };
 

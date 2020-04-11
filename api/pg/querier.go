@@ -20,6 +20,8 @@ type Querier interface {
 	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error
 	DeleteRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error
+	DeleteTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
+	DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
 	GetAllProjects(ctx context.Context) ([]Project, error)

@@ -180,6 +180,17 @@ export type NewTaskGroupLocation = {
   position: Scalars['Float'];
 };
 
+export type DeleteTaskGroupInput = {
+  taskGroupID: Scalars['UUID'];
+};
+
+export type DeleteTaskGroupPayload = {
+   __typename?: 'DeleteTaskGroupPayload';
+  ok: Scalars['Boolean'];
+  affectedRows: Scalars['Int'];
+  taskGroup: TaskGroup;
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
@@ -189,11 +200,12 @@ export type Mutation = {
   createProject: Project;
   createTaskGroup: TaskGroup;
   updateTaskGroupLocation: TaskGroup;
+  deleteTaskGroup: DeleteTaskGroupPayload;
   createTask: Task;
   updateTaskLocation: Task;
-  logoutUser: Scalars['Boolean'];
   updateTaskName: Task;
   deleteTask: DeleteTaskPayload;
+  logoutUser: Scalars['Boolean'];
 };
 
 
@@ -232,6 +244,11 @@ export type MutationUpdateTaskGroupLocationArgs = {
 };
 
 
+export type MutationDeleteTaskGroupArgs = {
+  input: DeleteTaskGroupInput;
+};
+
+
 export type MutationCreateTaskArgs = {
   input: NewTask;
 };
@@ -242,11 +259,6 @@ export type MutationUpdateTaskLocationArgs = {
 };
 
 
-export type MutationLogoutUserArgs = {
-  input: LogoutUser;
-};
-
-
 export type MutationUpdateTaskNameArgs = {
   input: UpdateTaskName;
 };
@@ -254,6 +266,11 @@ export type MutationUpdateTaskNameArgs = {
 
 export type MutationDeleteTaskArgs = {
   input: DeleteTaskInput;
+};
+
+
+export type MutationLogoutUserArgs = {
+  input: LogoutUser;
 };
 
 export type CreateTaskMutationVariables = {
@@ -300,6 +317,27 @@ export type DeleteTaskMutation = (
   & { deleteTask: (
     { __typename?: 'DeleteTaskPayload' }
     & Pick<DeleteTaskPayload, 'taskID'>
+  ) }
+);
+
+export type DeleteTaskGroupMutationVariables = {
+  taskGroupID: Scalars['UUID'];
+};
+
+
+export type DeleteTaskGroupMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteTaskGroup: (
+    { __typename?: 'DeleteTaskGroupPayload' }
+    & Pick<DeleteTaskGroupPayload, 'ok' | 'affectedRows'>
+    & { taskGroup: (
+      { __typename?: 'TaskGroup' }
+      & Pick<TaskGroup, 'taskGroupID'>
+      & { tasks: Array<(
+        { __typename?: 'Task' }
+        & Pick<Task, 'taskID' | 'name'>
+      )> }
+    ) }
   ) }
 );
 
@@ -494,6 +532,46 @@ export function useDeleteTaskMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type DeleteTaskMutationHookResult = ReturnType<typeof useDeleteTaskMutation>;
 export type DeleteTaskMutationResult = ApolloReactCommon.MutationResult<DeleteTaskMutation>;
 export type DeleteTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTaskMutation, DeleteTaskMutationVariables>;
+export const DeleteTaskGroupDocument = gql`
+    mutation deleteTaskGroup($taskGroupID: UUID!) {
+  deleteTaskGroup(input: {taskGroupID: $taskGroupID}) {
+    ok
+    affectedRows
+    taskGroup {
+      taskGroupID
+      tasks {
+        taskID
+        name
+      }
+    }
+  }
+}
+    `;
+export type DeleteTaskGroupMutationFn = ApolloReactCommon.MutationFunction<DeleteTaskGroupMutation, DeleteTaskGroupMutationVariables>;
+
+/**
+ * __useDeleteTaskGroupMutation__
+ *
+ * To run a mutation, you first call `useDeleteTaskGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteTaskGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteTaskGroupMutation, { data, loading, error }] = useDeleteTaskGroupMutation({
+ *   variables: {
+ *      taskGroupID: // value for 'taskGroupID'
+ *   },
+ * });
+ */
+export function useDeleteTaskGroupMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteTaskGroupMutation, DeleteTaskGroupMutationVariables>) {
+        return ApolloReactHooks.useMutation<DeleteTaskGroupMutation, DeleteTaskGroupMutationVariables>(DeleteTaskGroupDocument, baseOptions);
+      }
+export type DeleteTaskGroupMutationHookResult = ReturnType<typeof useDeleteTaskGroupMutation>;
+export type DeleteTaskGroupMutationResult = ApolloReactCommon.MutationResult<DeleteTaskGroupMutation>;
+export type DeleteTaskGroupMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTaskGroupMutation, DeleteTaskGroupMutationVariables>;
 export const FindProjectDocument = gql`
     query findProject($projectId: String!) {
   findProject(input: {projectId: $projectId}) {

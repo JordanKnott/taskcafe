@@ -1,3 +1,8 @@
+interface DraggableElement {
+  id: string;
+  position: number;
+}
+
 type ContextMenuEvent = {
   left: number;
   top: number;

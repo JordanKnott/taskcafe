@@ -141,17 +141,35 @@ input NewTaskGroupLocation {
   position: Float!
 }
 
+input DeleteTaskGroupInput {
+  taskGroupID: UUID!
+}
+
+type DeleteTaskGroupPayload {
+  ok: Boolean!
+  affectedRows: Int!
+  taskGroup: TaskGroup!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
+
   createUserAccount(input: NewUserAccount!): UserAccount!
+
   createOrganization(input: NewOrganization!): Organization!
+
   createTeam(input: NewTeam!): Team!
+
   createProject(input: NewProject!): Project!
+
   createTaskGroup(input: NewTaskGroup!): TaskGroup!
   updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
+  deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
+
   createTask(input: NewTask!): Task!
   updateTaskLocation(input: NewTaskLocation!): Task!
-  logoutUser(input: LogoutUser!): Boolean!
   updateTaskName(input: UpdateTaskName!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+
+  logoutUser(input: LogoutUser!): Boolean!
 }

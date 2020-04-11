@@ -4,7 +4,18 @@ package graph
 
 import (
 	"github.com/google/uuid"
+	"github.com/jordanknott/project-citadel/api/pg"
 )
+
+type DeleteTaskGroupInput struct {
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+}
+
+type DeleteTaskGroupPayload struct {
+	Ok           bool          `json:"ok"`
+	AffectedRows int           `json:"affectedRows"`
+	TaskGroup    *pg.TaskGroup `json:"taskGroup"`
+}
 
 type DeleteTaskInput struct {
 	TaskID string `json:"taskID"`

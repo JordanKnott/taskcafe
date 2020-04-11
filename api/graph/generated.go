@@ -50,6 +50,12 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	DeleteTaskGroupPayload struct {
+		AffectedRows func(childComplexity int) int
+		Ok           func(childComplexity int) int
+		TaskGroup    func(childComplexity int) int
+	}
+
 	DeleteTaskPayload struct {
 		TaskID func(childComplexity int) int
 	}
@@ -63,6 +69,7 @@ type ComplexityRoot struct {
 		CreateTeam              func(childComplexity int, input NewTeam) int
 		CreateUserAccount       func(childComplexity int, input NewUserAccount) int
 		DeleteTask              func(childComplexity int, input DeleteTaskInput) int
+		DeleteTaskGroup         func(childComplexity int, input DeleteTaskGroupInput) int
 		LogoutUser              func(childComplexity int, input LogoutUser) int
 		UpdateTaskGroupLocation func(childComplexity int, input NewTaskGroupLocation) int
 		UpdateTaskLocation      func(childComplexity int, input NewTaskLocation) int
@@ -142,11 +149,12 @@ type MutationResolver interface {
 	CreateProject(ctx context.Context, input NewProject) (*pg.Project, error)
 	CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*pg.TaskGroup, error)
 	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*pg.TaskGroup, error)
+	DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error)
 	CreateTask(ctx context.Context, input NewTask) (*pg.Task, error)
 	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*pg.Task, error)
-	LogoutUser(ctx context.Context, input LogoutUser) (bool, error)
 	UpdateTaskName(ctx context.Context, input UpdateTaskName) (*pg.Task, error)
 	DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error)
+	LogoutUser(ctx context.Context, input LogoutUser) (bool, error)
 }
 type OrganizationResolver interface {
 	Teams(ctx context.Context, obj *pg.Organization) ([]pg.Team, error)
@@ -191,6 +199,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "DeleteTaskGroupPayload.affectedRows":
+		if e.complexity.DeleteTaskGroupPayload.AffectedRows == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskGroupPayload.AffectedRows(childComplexity), true
+
+	case "DeleteTaskGroupPayload.ok":
+		if e.complexity.DeleteTaskGroupPayload.Ok == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskGroupPayload.Ok(childComplexity), true
+
+	case "DeleteTaskGroupPayload.taskGroup":
+		if e.complexity.DeleteTaskGroupPayload.TaskGroup == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskGroupPayload.TaskGroup(childComplexity), true
 
 	case "DeleteTaskPayload.taskID":
 		if e.complexity.DeleteTaskPayload.TaskID == nil {
@@ -294,6 +323,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteTask(childComplexity, args["input"].(DeleteTaskInput)), true
+
+	case "Mutation.deleteTaskGroup":
+		if e.complexity.Mutation.DeleteTaskGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTaskGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTaskGroup(childComplexity, args["input"].(DeleteTaskGroupInput)), true
 
 	case "Mutation.logoutUser":
 		if e.complexity.Mutation.LogoutUser == nil {
@@ -845,19 +886,37 @@ input NewTaskGroupLocation {
   position: Float!
 }
 
+input DeleteTaskGroupInput {
+  taskGroupID: UUID!
+}
+
+type DeleteTaskGroupPayload {
+  ok: Boolean!
+  affectedRows: Int!
+  taskGroup: TaskGroup!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
+
   createUserAccount(input: NewUserAccount!): UserAccount!
+
   createOrganization(input: NewOrganization!): Organization!
+
   createTeam(input: NewTeam!): Team!
+
   createProject(input: NewProject!): Project!
+
   createTaskGroup(input: NewTaskGroup!): TaskGroup!
   updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
+  deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
+
   createTask(input: NewTask!): Task!
   updateTaskLocation(input: NewTaskLocation!): Task!
-  logoutUser(input: LogoutUser!): Boolean!
   updateTaskName(input: UpdateTaskName!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+
+  logoutUser(input: LogoutUser!): Boolean!
 }
 `, BuiltIn: false},
 }
@@ -957,6 +1016,20 @@ func (ec *executionContext) field_Mutation_createUserAccount_args(ctx context.Co
 	var arg0 NewUserAccount
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNNewUserAccount2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐNewUserAccount(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DeleteTaskGroupInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDeleteTaskGroupInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1126,6 +1199,108 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _DeleteTaskGroupPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskGroupPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ok, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTaskGroupPayload_affectedRows(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskGroupPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AffectedRows, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTaskGroupPayload_taskGroup(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskGroupPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskGroup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.TaskGroup)
+	fc.Result = res
+	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskGroup(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _DeleteTaskPayload_taskID(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskPayload) (ret graphql.Marshaler) {
 	defer func() {
@@ -1448,6 +1623,47 @@ func (ec *executionContext) _Mutation_updateTaskGroupLocation(ctx context.Contex
 	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskGroup(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_deleteTaskGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTaskGroup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTaskGroup(rctx, args["input"].(DeleteTaskGroupInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTaskGroupPayload)
+	fc.Result = res
+	return ec.marshalNDeleteTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupPayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1530,47 +1746,6 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTask(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_logoutUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_logoutUser_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().LogoutUser(rctx, args["input"].(LogoutUser))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1651,6 +1826,47 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 	res := resTmp.(*DeleteTaskPayload)
 	fc.Result = res
 	return ec.marshalNDeleteTaskPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_logoutUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_logoutUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().LogoutUser(rctx, args["input"].(LogoutUser))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_organizationID(ctx context.Context, field graphql.CollectedField, obj *pg.Organization) (ret graphql.Marshaler) {
@@ -4158,6 +4374,24 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputDeleteTaskGroupInput(ctx context.Context, obj interface{}) (DeleteTaskGroupInput, error) {
+	var it DeleteTaskGroupInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskGroupID":
+			var err error
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDeleteTaskInput(ctx context.Context, obj interface{}) (DeleteTaskInput, error) {
 	var it DeleteTaskInput
 	var asMap = obj.(map[string]interface{})
@@ -4514,6 +4748,43 @@ func (ec *executionContext) unmarshalInputUpdateTaskName(ctx context.Context, ob
 
 // region    **************************** object.gotpl ****************************
 
+var deleteTaskGroupPayloadImplementors = []string{"DeleteTaskGroupPayload"}
+
+func (ec *executionContext) _DeleteTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskGroupPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTaskGroupPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTaskGroupPayload")
+		case "ok":
+			out.Values[i] = ec._DeleteTaskGroupPayload_ok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "affectedRows":
+			out.Values[i] = ec._DeleteTaskGroupPayload_affectedRows(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "taskGroup":
+			out.Values[i] = ec._DeleteTaskGroupPayload_taskGroup(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var deleteTaskPayloadImplementors = []string{"DeleteTaskPayload"}
 
 func (ec *executionContext) _DeleteTaskPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskPayload) graphql.Marshaler {
@@ -4591,6 +4862,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "deleteTaskGroup":
+			out.Values[i] = ec._Mutation_deleteTaskGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createTask":
 			out.Values[i] = ec._Mutation_createTask(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4601,11 +4877,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "logoutUser":
-			out.Values[i] = ec._Mutation_logoutUser(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateTaskName":
 			out.Values[i] = ec._Mutation_updateTaskName(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4613,6 +4884,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteTask":
 			out.Values[i] = ec._Mutation_deleteTask(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logoutUser":
+			out.Values[i] = ec._Mutation_logoutUser(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5396,6 +5672,24 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNDeleteTaskGroupInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupInput(ctx context.Context, v interface{}) (DeleteTaskGroupInput, error) {
+	return ec.unmarshalInputDeleteTaskGroupInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskGroupPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, v DeleteTaskGroupPayload) graphql.Marshaler {
+	return ec._DeleteTaskGroupPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, v *DeleteTaskGroupPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteTaskGroupPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNDeleteTaskInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskInput(ctx context.Context, v interface{}) (DeleteTaskInput, error) {
 	return ec.unmarshalInputDeleteTaskInput(ctx, v)
 }
@@ -5442,6 +5736,20 @@ func (ec *executionContext) unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 
 func (ec *executionContext) marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
 	res := MarshalUUID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

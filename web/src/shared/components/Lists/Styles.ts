@@ -1,7 +1,6 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-  flex-grow: 1;
   user-select: none;
   white-space: nowrap;
   margin-bottom: 8px;
@@ -10,4 +9,7 @@ export const Container = styled.div`
   padding-bottom: 8px;
 `;
 
+export const BoardWrapper = styled.div`
+  display: flex;
+`;
 export default Container;

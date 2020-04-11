@@ -1,4 +1,5 @@
 import React from 'react';
+import { action } from '@storybook/addon-actions';
 import ListActions from '.';
 
 export default {
@@ -13,5 +14,5 @@ export default {
 };
 
 export const Default = () => {
-  return <ListActions taskGroupID="1" />;
+  return <ListActions taskGroupID="1" onArchiveTaskGroup={action('on archive task group')} />;
 };

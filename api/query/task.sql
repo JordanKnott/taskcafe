@@ -16,3 +16,6 @@ DELETE FROM task WHERE task_id = $1;
 
 -- name: UpdateTaskName :one
 UPDATE task SET name = $2 WHERE task_id = $1 RETURNING *;
+
+-- name: DeleteTasksByTaskGroupID :execrows
+DELETE FROM task where task_group_id = $1;

@@ -77,7 +77,7 @@ export const ListActionsPopup = () => {
           onClose={() => setPopupData(initalState)}
           left={popupData.left}
         >
-          <ListActions taskGroupID="1" />
+          <ListActions taskGroupID="1" onArchiveTaskGroup={action('archive task group')} />
         </PopupMenu>
       )}
       <button

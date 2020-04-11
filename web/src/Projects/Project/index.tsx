@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import produce from 'immer';
 import styled from 'styled-components/macro';
 import { useParams } from 'react-router-dom';
 import {
@@ -9,6 +10,7 @@ import {
   useUpdateTaskLocationMutation,
   useUpdateTaskGroupLocationMutation,
   useCreateTaskGroupMutation,
+  useDeleteTaskGroupMutation,
 } from 'shared/generated/graphql';
 
 import Navbar from 'App/Navbar';
@@ -79,6 +81,26 @@ const Project = () => {
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation();
+  const [deleteTaskGroup] = useDeleteTaskGroupMutation({
+    onCompleted: deletedTaskGroupData => {
+      const nextState = produce(listsData, (draftState: State) => {
+        delete draftState.columns[deletedTaskGroupData.deleteTaskGroup.taskGroup.taskGroupID];
+        const filteredTasks = Object.keys(listsData.tasks)
+          .filter(
+            taskID =>
+              listsData.tasks[taskID].taskGroup.taskGroupID !==
+              deletedTaskGroupData.deleteTaskGroup.taskGroup.taskGroupID,
+          )
+          .reduce((obj: TaskState, key: string) => {
+            obj[key] = listsData.tasks[key];
+            return obj;
+          }, {});
+        draftState.tasks = filteredTasks;
+      });
+
+      setListsData(nextState);
+    },
+  });
   const [createTaskGroup] = useCreateTaskGroupMutation({
     onCompleted: newTaskGroupData => {
       const newListsData = {
@@ -167,9 +189,14 @@ const Project = () => {
       setListsData(newListsData);
     },
   });
-  const onCardDrop = (droppedTask: any) => {
+  const onCardDrop = (droppedTask: Task) => {
+    console.log(droppedTask);
     updateTaskLocation({
-      variables: { taskID: droppedTask.taskID, taskGroupID: droppedTask.taskGroupID, position: droppedTask.position },
+      variables: {
+        taskID: droppedTask.taskID,
+        taskGroupID: droppedTask.taskGroup.taskGroupID,
+        position: droppedTask.position,
+      },
     });
     const newState = {
       ...listsData,
@@ -229,6 +256,14 @@ const Project = () => {
           </TitleWrapper>
           <Board>
             <Lists
+              onExtraMenuOpen={(taskGroupID, pos, size) => {
+                setPopupData({
+                  isOpen: true,
+                  left: pos.left,
+                  top: pos.top + size.height + 5,
+                  taskGroupID,
+                });
+              }}
               onQuickEditorOpen={onQuickEditorOpen}
               onCardCreate={onCardCreate}
               {...listsData}
@@ -271,7 +306,13 @@ const Project = () => {
             onClose={() => setPopupData(initialPopupState)}
             left={popupData.left}
           >
-            <ListActions taskGroupID={popupData.taskGroupID} />
+            <ListActions
+              taskGroupID={popupData.taskGroupID}
+              onArchiveTaskGroup={taskGroupID => {
+                deleteTaskGroup({ variables: { taskGroupID } });
+                setPopupData(initialPopupState);
+              }}
+            />
           </PopupMenu>
         )}
       </>

@@ -70,25 +70,28 @@ export const Default = () => {
       ...listsData,
       tasks: {
         ...listsData.tasks,
-        [droppedTask.id]: droppedTask,
+        [droppedTask.taskGroupID]: droppedTask,
       },
     };
     console.log(newState);
     setListsData(newState);
   };
   const onListDrop = (droppedColumn: any) => {
+    console.log(droppedColumn);
     const newState = {
       ...listsData,
       columns: {
         ...listsData.columns,
-        [droppedColumn.id]: droppedColumn,
+        [droppedColumn.taskGroupID]: droppedColumn,
       },
     };
+    console.log(newState);
     setListsData(newState);
   };
   return (
     <Lists
       {...listsData}
+      onExtraMenuOpen={action('extra menu open')}
       onQuickEditorOpen={action('card composer open')}
       onCardDrop={onCardDrop}
       onListDrop={onListDrop}
@@ -203,6 +206,7 @@ export const ListsWithManyList = () => {
       onCardDrop={onCardDrop}
       onListDrop={onListDrop}
       onCreateList={action('create list')}
+      onExtraMenuOpen={action('extra menu open')}
     />
   );
 };

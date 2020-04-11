@@ -1,26 +1,58 @@
-import { moveItemWithinArray, insertItemIntoArray } from 'shared/utils/arrays';
+import { DraggableLocation } from 'react-beautiful-dnd';
 
-export const getNewDraggablePosition = (afterDropDraggables: any, draggableIndex: any) => {
+export const moveItemWithinArray = (arr: Array<DraggableElement>, item: DraggableElement, newIndex: number) => {
+  const arrClone = [...arr];
+  const oldIndex = arrClone.findIndex(i => i.id === item.id);
+  arrClone.splice(newIndex, 0, arrClone.splice(oldIndex, 1)[0]);
+  return arrClone;
+};
+
+export const insertItemIntoArray = (arr: Array<DraggableElement>, item: DraggableElement, index: number) => {
+  const arrClone = [...arr];
+  arrClone.splice(index, 0, item);
+  return arrClone;
+};
+
+export const updateArrayItemById = (arr: Array<DraggableElement>, itemId: string, fields: any) => {
+  const arrClone = [...arr];
+  const item = arrClone.find(({ id }) => id === itemId);
+  if (item) {
+    const itemIndex = arrClone.indexOf(item);
+    arrClone.splice(itemIndex, 1, { ...item, ...fields });
+  }
+  return arrClone;
+};
+
+export const getNewDraggablePosition = (afterDropDraggables: Array<DraggableElement>, draggableIndex: number) => {
   const prevDraggable = afterDropDraggables[draggableIndex - 1];
   const nextDraggable = afterDropDraggables[draggableIndex + 1];
   if (!prevDraggable && !nextDraggable) {
-    return 1;
+    return 65535;
   }
   if (!prevDraggable) {
-    return nextDraggable.position - 1;
+    console.log(
+      `in front of list [n/a : ${nextDraggable.id}]: ${nextDraggable.position} / 2.0 = ${nextDraggable.position / 2.0}`,
+    );
+    return nextDraggable.position / 2.0;
   }
   if (!nextDraggable) {
-    return prevDraggable.position + 1;
+    console.log(
+      `end of list [${prevDraggable.id} : n/a] : ${prevDraggable.position} * 2.0 = ${prevDraggable.position * 2.0}`,
+    );
+    return prevDraggable.position * 2.0;
   }
   const newPos = (prevDraggable.position + nextDraggable.position) / 2.0;
+  console.log(
+    `middle of two cards [${prevDraggable.id} : ${nextDraggable.id}] : ${prevDraggable.position} + ${nextDraggable.position} / 2.0 = ${newPos}`,
+  );
   return newPos;
 };
 
-export const getSortedDraggables = (draggables: any) => {
+export const getSortedDraggables = (draggables: Array<DraggableElement>) => {
   return draggables.sort((a: any, b: any) => a.position - b.position);
 };
 
-export const isPositionChanged = (source: any, destination: any) => {
+export const isPositionChanged = (source: DraggableLocation, destination: DraggableLocation) => {
   if (!destination) return false;
   const isSameList = destination.droppableId === source.droppableId;
   const isSamePosition = destination.index === source.index;
@@ -28,11 +60,11 @@ export const isPositionChanged = (source: any, destination: any) => {
 };
 
 export const getAfterDropDraggableList = (
-  beforeDropDraggables: any,
-  droppedDraggable: any,
-  isList: any,
-  isSameList: any,
-  destination: any,
+  beforeDropDraggables: Array<DraggableElement>,
+  droppedDraggable: DraggableElement,
+  isList: boolean,
+  isSameList: boolean,
+  destination: DraggableLocation,
 ) => {
   if (isList) {
     return moveItemWithinArray(beforeDropDraggables, droppedDraggable, destination.index);

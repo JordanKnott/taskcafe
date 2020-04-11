@@ -49,6 +49,18 @@ func (q *Queries) DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error {
 	return err
 }
 
+const deleteTasksByTaskGroupID = `-- name: DeleteTasksByTaskGroupID :execrows
+DELETE FROM task where task_group_id = $1
+`
+
+func (q *Queries) DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteTasksByTaskGroupID, taskGroupID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getAllTasks = `-- name: GetAllTasks :many
 SELECT task_id, task_group_id, created_at, name, position FROM task
 `

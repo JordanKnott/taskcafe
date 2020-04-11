@@ -3,8 +3,10 @@ import { ListActionsWrapper, ListActionItemWrapper, ListActionItem, ListSeparato
 
 type Props = {
   taskGroupID: string;
+
+  onArchiveTaskGroup: (taskGroupID: string) => void;
 };
-const LabelManager = ({ taskGroupID }: Props) => {
+const LabelManager: React.FC<Props> = ({ taskGroupID, onArchiveTaskGroup }) => {
   return (
     <>
       <ListActionsWrapper>
@@ -38,7 +40,7 @@ const LabelManager = ({ taskGroupID }: Props) => {
       </ListActionsWrapper>
       <ListSeparator />
       <ListActionsWrapper>
-        <ListActionItemWrapper>
+        <ListActionItemWrapper onClick={() => onArchiveTaskGroup(taskGroupID)}>
           <ListActionItem>Archive This List</ListActionItem>
         </ListActionItemWrapper>
       </ListActionsWrapper>

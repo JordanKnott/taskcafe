@@ -1,6 +1,8 @@
 import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
 
+export const Container = styled.div``;
+
 export const Wrapper = styled.div<{ editorOpen: boolean }>`
   display: inline-block;
   background-color: hsla(0, 0%, 100%, 0.24);
