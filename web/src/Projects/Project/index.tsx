@@ -7,12 +7,15 @@ import {
   useCreateTaskMutation,
   useDeleteTaskMutation,
   useUpdateTaskLocationMutation,
+  useCreateTaskGroupMutation,
 } from 'shared/generated/graphql';
 
 import Navbar from 'App/Navbar';
 import TopNavbar from 'App/TopNavbar';
 import Lists from 'shared/components/Lists';
 import QuickCardEditor from 'shared/components/QuickCardEditor';
+import PopupMenu from 'shared/components/PopupMenu';
+import ListActions from 'shared/components/ListActions';
 
 interface ColumnState {
   [key: string]: TaskGroup;
@@ -65,13 +68,32 @@ interface ProjectParams {
 }
 
 const initialState: State = { tasks: {}, columns: {} };
+const initialPopupState = { left: 0, top: 0, isOpen: false, taskGroupID: '' };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
 
 const Project = () => {
   const { projectId } = useParams<ProjectParams>();
   const [listsData, setListsData] = useState(initialState);
+  const [popupData, setPopupData] = useState(initialPopupState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
+  const [createTaskGroup] = useCreateTaskGroupMutation({
+    onCompleted: newTaskGroupData => {
+      const newListsData = {
+        ...listsData,
+        columns: {
+          ...listsData.columns,
+          [newTaskGroupData.createTaskGroup.taskGroupID]: {
+            taskGroupID: newTaskGroupData.createTaskGroup.taskGroupID,
+            name: newTaskGroupData.createTaskGroup.name,
+            position: newTaskGroupData.createTaskGroup.position,
+            tasks: [],
+          },
+        },
+      };
+      setListsData(newListsData);
+    },
+  });
   const [createTask] = useCreateTaskMutation({
     onCompleted: newTaskData => {
       const newListsData = {
@@ -79,7 +101,9 @@ const Project = () => {
         tasks: {
           ...listsData.tasks,
           [newTaskData.createTask.taskID]: {
-            taskGroupID: newTaskData.createTask.taskGroupID,
+            taskGroup: {
+              taskGroupID: newTaskData.createTask.taskGroup.taskGroupID,
+            },
             taskID: newTaskData.createTask.taskID,
             name: newTaskData.createTask.name,
             position: newTaskData.createTask.position,
@@ -119,17 +143,19 @@ const Project = () => {
     variables: { projectId },
     onCompleted: newData => {
       const newListsData: State = { tasks: {}, columns: {} };
-      newData.findProject.taskGroups.forEach((taskGroup: TaskGroup) => {
+      newData.findProject.taskGroups.forEach(taskGroup => {
         newListsData.columns[taskGroup.taskGroupID] = {
           taskGroupID: taskGroup.taskGroupID,
           name: taskGroup.name,
           position: taskGroup.position,
           tasks: [],
         };
-        taskGroup.tasks.forEach((task: Task) => {
+        taskGroup.tasks.forEach(task => {
           newListsData.tasks[task.taskID] = {
             taskID: task.taskID,
-            taskGroupID: taskGroup.taskGroupID,
+            taskGroup: {
+              taskGroupID: taskGroup.taskGroupID,
+            },
             name: task.name,
             position: task.position,
             labels: [],
@@ -163,7 +189,9 @@ const Project = () => {
     setListsData(newState);
   };
   const onCardCreate = (taskGroupID: string, name: string) => {
-    const taskGroupTasks = Object.values(listsData.tasks).filter((task: Task) => task.taskGroupID === taskGroupID);
+    const taskGroupTasks = Object.values(listsData.tasks).filter(
+      (task: Task) => task.taskGroup.taskGroupID === taskGroupID,
+    );
     let position = 65535;
     if (taskGroupTasks.length !== 0) {
       const [lastTask] = taskGroupTasks.sort((a: any, b: any) => a.position - b.position).slice(-1);
@@ -201,6 +229,16 @@ const Project = () => {
               {...listsData}
               onCardDrop={onCardDrop}
               onListDrop={onListDrop}
+              onCreateList={listName => {
+                const [lastColumn] = Object.values(listsData.columns)
+                  .sort((a, b) => a.position - b.position)
+                  .slice(-1);
+                let position = 65535;
+                if (lastColumn) {
+                  position = lastColumn.position * 2 + 1;
+                }
+                createTaskGroup({ variables: { projectID: projectId, name: listName, position } });
+              }}
             />
           </Board>
         </MainContent>
@@ -208,7 +246,7 @@ const Project = () => {
           <QuickCardEditor
             isOpen
             taskID={quickCardEditor.task ? quickCardEditor.task.taskID : ''}
-            taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroupID : ''}
+            taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroup.taskGroupID : ''}
             cardTitle={quickCardEditor.task ? quickCardEditor.task.name : ''}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
             onEditCard={(_listId: string, cardId: string, cardName: string) => {
@@ -220,6 +258,16 @@ const Project = () => {
             top={quickCardEditor.top}
             left={quickCardEditor.left}
           />
+        )}
+        {popupData.isOpen && (
+          <PopupMenu
+            title="List Actions"
+            top={popupData.top}
+            onClose={() => setPopupData(initialPopupState)}
+            left={popupData.left}
+          >
+            <ListActions taskGroupID={popupData.taskGroupID} />
+          </PopupMenu>
         )}
       </>
     );

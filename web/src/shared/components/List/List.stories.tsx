@@ -59,6 +59,7 @@ export const Default = () => {
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
       tasks={[]}
+      onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
         <CardComposer
@@ -84,6 +85,7 @@ export const WithCardComposer = () => {
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
       tasks={[]}
+      onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
         <CardComposer
@@ -110,6 +112,7 @@ export const WithCard = () => {
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
       tasks={[]}
+      onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
         <Card
@@ -148,6 +151,7 @@ export const WithCardAndComposer = () => {
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
       tasks={[]}
+      onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
         <Card

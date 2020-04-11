@@ -61,6 +61,7 @@ export const Default = () => {
         onSaveName={action('on save name')}
         onOpenComposer={action('on open composer')}
         tasks={[]}
+        onExtraMenuOpen={(taskGroupID, pos, size) => console.log(taskGroupID, pos, size)}
       >
         <ListCards>
           <Card

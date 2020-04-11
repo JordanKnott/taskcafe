@@ -68,7 +68,7 @@ const DetailsEditor: React.FC<DetailsEditorProps> = ({
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.currentTarget.value)}
       />
       <TaskDetailsControls>
-        <ConfirmSave>Save</ConfirmSave>
+        <ConfirmSave onClick={handleOutsideClick}>Save</ConfirmSave>
         <CancelEdit onClick={onCancel}>
           <Cross size={16} />
         </CancelEdit>
@@ -80,22 +80,27 @@ const DetailsEditor: React.FC<DetailsEditorProps> = ({
 type TaskDetailsProps = {
   task: Task;
   onTaskDescriptionChange: (task: Task, newDescription: string) => void;
+  onDeleteTask: (task: Task) => void;
+  onCloseModal: () => void;
 };
 
-const TaskDetails: React.FC<TaskDetailsProps> = ({ task, onTaskDescriptionChange }) => {
+const TaskDetails: React.FC<TaskDetailsProps> = ({ task, onTaskDescriptionChange, onDeleteTask, onCloseModal }) => {
   const [editorOpen, setEditorOpen] = useState(false);
   const handleClick = () => {
     setEditorOpen(!editorOpen);
+  };
+  const handleDeleteTask = () => {
+    onDeleteTask(task);
   };
   return (
     <>
       <TaskHeader>
         <TaskMeta />
         <TaskActions>
-          <TaskAction>
+          <TaskAction onClick={handleDeleteTask}>
             <Bin size={20} />
           </TaskAction>
-          <TaskAction>
+          <TaskAction onClick={onCloseModal}>
             <Cross size={20} />
           </TaskAction>
         </TaskActions>

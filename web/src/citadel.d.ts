@@ -5,9 +5,15 @@ type ContextMenuEvent = {
   taskGroupID: string;
 };
 
+type InnerTaskGroup = {
+  taskGroupID: string;
+  name?: string;
+  position?: number;
+};
+
 type Task = {
   taskID: string;
-  taskGroupID: string;
+  taskGroup: InnerTaskGroup;
   name: string;
   position: number;
   labels: Label[];
@@ -18,7 +24,7 @@ type TaskGroup = {
   taskGroupID: string;
   name: string;
   position: number;
-  tasks: RemoteTask[];
+  tasks: Task[];
 };
 
 type Project = {
@@ -61,4 +67,16 @@ type LoginProps = {
     setComplete: (val: boolean) => void,
     setError: (field: string, eType: string, message: string) => void,
   ) => void;
+};
+
+type ElementPosition = {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+};
+
+type ElementSize = {
+  width: number;
+  height: number;
 };

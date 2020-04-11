@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import useOnEscapeKeyDown from 'shared/hooks/onEscapeKeyDown';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { Plus, Ellipsis } from 'shared/icons';
 
 import {
   Container,
@@ -13,6 +12,7 @@ import {
   AddCardButton,
   AddCardButtonText,
   ListCards,
+  ListExtraMenuButtonWrapper,
 } from './Styles';
 
 type Props = {
@@ -26,20 +26,32 @@ type Props = {
   wrapperProps?: any;
   headerProps?: any;
   index?: number;
+  onExtraMenuOpen: (taskGroupID: string, pos: ElementPosition, size: ElementSize) => void;
 };
 
 const List = React.forwardRef(
   (
-    { id, name, onSaveName, isComposerOpen, onOpenComposer, children, wrapperProps, headerProps }: Props,
+    {
+      id,
+      name,
+      onSaveName,
+      isComposerOpen,
+      onOpenComposer,
+      children,
+      wrapperProps,
+      headerProps,
+      onExtraMenuOpen,
+    }: Props,
     $wrapperRef: any,
   ) => {
     const [listName, setListName] = useState(name);
     const [isEditingTitle, setEditingTitle] = useState(false);
-    const $listNameRef: any = useRef<HTMLTextAreaElement>();
+    const $listNameRef = useRef<HTMLTextAreaElement>(null);
+    const $extraActionsRef = useRef<HTMLDivElement>(null);
 
     const onClick = () => {
       setEditingTitle(true);
-      if ($listNameRef) {
+      if ($listNameRef && $listNameRef.current) {
         $listNameRef.current.select();
       }
     };
@@ -48,7 +60,9 @@ const List = React.forwardRef(
       onSaveName(listName);
     };
     const onEscape = () => {
-      $listNameRef.current.blur();
+      if ($listNameRef && $listNameRef.current) {
+        $listNameRef.current.blur();
+      }
     };
     const onChange = (event: React.FormEvent<HTMLTextAreaElement>): void => {
       setListName(event.currentTarget.value);
@@ -56,7 +70,28 @@ const List = React.forwardRef(
     const onKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        $listNameRef.current.blur();
+        if ($listNameRef && $listNameRef.current) {
+          $listNameRef.current.blur();
+        }
+      }
+    };
+
+    const handleExtraMenuOpen = () => {
+      if ($extraActionsRef && $extraActionsRef.current) {
+        const pos = $extraActionsRef.current.getBoundingClientRect();
+        onExtraMenuOpen(
+          id,
+          {
+            top: pos.top,
+            left: pos.left,
+            right: pos.right,
+            bottom: pos.bottom,
+          },
+          {
+            width: pos.width,
+            height: pos.height,
+          },
+        );
       }
     };
     useOnEscapeKeyDown(isEditingTitle, onEscape);
@@ -74,11 +109,14 @@ const List = React.forwardRef(
               spellCheck={false}
               value={listName}
             />
+            <ListExtraMenuButtonWrapper ref={$extraActionsRef} onClick={handleExtraMenuOpen}>
+              <Ellipsis size={16} color="#c2c6dc" />
+            </ListExtraMenuButtonWrapper>
           </Header>
           {children && children}
           <AddCardContainer hidden={isComposerOpen}>
             <AddCardButton onClick={() => onOpenComposer(id)}>
-              <FontAwesomeIcon icon={faPlus} size="xs" color="#42526e" />
+              <Plus size={12} color="#42526e" />
               <AddCardButtonText>Add another card</AddCardButtonText>
             </AddCardButton>
           </AddCardContainer>

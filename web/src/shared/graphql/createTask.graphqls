@@ -1,7 +1,9 @@
 mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
   createTask(input: { taskGroupID: $taskGroupID, name: $name, position: $position }) {
     taskID
-    taskGroupID
+    taskGroup {
+      taskGroupID
+    }
     name
     position
   }

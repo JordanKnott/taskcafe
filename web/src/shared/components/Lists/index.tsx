@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import List, { ListCards } from 'shared/components/List';
 import Card from 'shared/components/Card';
 import CardComposer from 'shared/components/CardComposer';
+import AddList from 'shared/components/AddList';
 import {
   isPositionChanged,
   getSortedDraggables,
@@ -26,9 +27,10 @@ type Props = {
   onListDrop: any;
   onCardCreate: (taskGroupID: string, name: string) => void;
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
+  onCreateList: (listName: string) => void;
 };
 
-const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEditorOpen }: Props) => {
+const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEditorOpen, onCreateList }: Props) => {
   const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
     if (typeof destination === 'undefined') return;
     if (!isPositionChanged(source, destination)) return;
@@ -74,7 +76,7 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
           <Container {...provided.droppableProps} ref={provided.innerRef}>
             {orderedColumns.map((column: TaskGroup, index: number) => {
               const columnCards = getSortedDraggables(
-                Object.values(tasks).filter((t: any) => t.taskGroupID === column.taskGroupID),
+                Object.values(tasks).filter((t: Task) => t.taskGroup.taskGroupID === column.taskGroupID),
               );
               return (
                 <Draggable draggableId={column.taskGroupID} key={column.taskGroupID} index={index}>
@@ -91,6 +93,7 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
                       ref={columnDragProvided.innerRef}
                       wrapperProps={columnDragProvided.draggableProps}
                       headerProps={columnDragProvided.dragHandleProps}
+                      onExtraMenuOpen={(taskGroupID, pos, size) => console.log(taskGroupID, pos, size)}
                     >
                       <Droppable type="tasks" droppableId={column.taskGroupID}>
                         {columnDropProvided => (
@@ -127,7 +130,6 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
                                   setCurrentComposer('');
                                 }}
                                 onCreateCard={name => {
-                                  setCurrentComposer('');
                                   onCardCreate(column.taskGroupID, name);
                                 }}
                                 isOpen
@@ -142,6 +144,7 @@ const Lists = ({ columns, tasks, onCardDrop, onListDrop, onCardCreate, onQuickEd
               );
             })}
             {provided.placeholder}
+            <AddList onSave={onCreateList} />
           </Container>
         )}
       </Droppable>

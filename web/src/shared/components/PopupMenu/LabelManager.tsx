@@ -8,7 +8,7 @@ type Props = {
   onLabelToggle: (labelId: string) => void;
   onLabelEdit: (labelId: string, labelName: string, color: string) => void;
 };
-const LabelManager = ({ labels, onLabelToggle, onLabelEdit }: Props) => {
+const LabelManager: React.FC<Props> = ({ labels, onLabelToggle, onLabelEdit }) => {
   const [currentLabel, setCurrentLabel] = useState('');
   return (
     <>

@@ -1,0 +1,9 @@
+mutation createTaskGroup( $projectID: String!, $name: String!, $position: Float! ) {
+  createTaskGroup(
+    input: { projectID: $projectID, name: $name, position: $position }
+  ) {
+    taskGroupID
+    name
+    position
+  }
+}

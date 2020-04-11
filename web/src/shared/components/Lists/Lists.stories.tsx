@@ -7,8 +7,8 @@ export default {
   title: 'Lists',
   parameters: {
     backgrounds: [
-      { name: 'white', value: '#ffffff', default: true },
-      { name: 'gray', value: '#f8f8f8' },
+      { name: 'gray', value: '#262c49', default: true },
+      { name: 'white', value: '#ffffff' },
     ],
   },
 };
@@ -33,28 +33,28 @@ const initialListsData = {
   tasks: {
     'task-1': {
       taskID: 'task-1',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       name: 'Create roadmap',
       position: 2,
       labels: [],
     },
     'task-2': {
       taskID: 'task-2',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       position: 1,
       name: 'Create authentication',
       labels: [],
     },
     'task-3': {
       taskID: 'task-3',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       position: 3,
       name: 'Create login',
       labels: [],
     },
     'task-4': {
       taskID: 'task-4',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       position: 4,
       name: 'Create plugins',
       labels: [],
@@ -93,6 +93,29 @@ export const Default = () => {
       onCardDrop={onCardDrop}
       onListDrop={onListDrop}
       onCardCreate={action('card create')}
+      onCreateList={listName => {
+        const [lastColumn] = Object.values(listsData.columns)
+          .sort((a, b) => a.position - b.position)
+          .slice(-1);
+        let position = 1;
+        if (lastColumn) {
+          position = lastColumn.position + 1;
+        }
+        const taskGroupID = Math.random().toString();
+        const newListsData = {
+          ...listsData,
+          columns: {
+            ...listsData.columns,
+            [taskGroupID]: {
+              taskGroupID,
+              name: listName,
+              position,
+              tasks: [],
+            },
+          },
+        };
+        setListsData(newListsData);
+      }}
     />
   );
 };
@@ -121,28 +144,28 @@ const initialListsDataLarge = {
   tasks: {
     'task-1': {
       taskID: 'task-1',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       name: 'Create roadmap',
       position: 2,
       labels: [],
     },
     'task-2': {
       taskID: 'task-2',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       position: 1,
       name: 'Create authentication',
       labels: [],
     },
     'task-3': {
       taskID: 'task-3',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       position: 3,
       name: 'Create login',
       labels: [],
     },
     'task-4': {
       taskID: 'task-4',
-      taskGroupID: 'column-1',
+      taskGroup: { taskGroupID: 'column-1' },
       position: 4,
       name: 'Create plugins',
       labels: [],
@@ -179,6 +202,7 @@ export const ListsWithManyList = () => {
       onCardCreate={action('card create')}
       onCardDrop={onCardDrop}
       onListDrop={onListDrop}
+      onCreateList={action('create list')}
     />
   );
 };

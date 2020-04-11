@@ -30,13 +30,15 @@ export const Default = () => {
             <TaskDetails
               task={{
                 taskID: '1',
-                taskGroupID: '1',
+                taskGroup: { taskGroupID: '1' },
                 name: 'Hello, world',
                 position: 1,
                 labels: [],
                 description,
               }}
               onTaskDescriptionChange={(_task, desc) => setDescription(desc)}
+              onDeleteTask={action('delete task')}
+              onCloseModal={action('close modal')}
             />
           );
         }}

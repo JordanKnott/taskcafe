@@ -25,20 +25,17 @@ type Props = {
 const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
   const [cardName, setCardName] = useState('');
   const $cardEditor: any = useRef(null);
-  const onClick = () => {
+  const handleCreateCard = () => {
     onCreateCard(cardName);
+    setCardName('');
+    if ($cardEditor && $cardEditor.current) {
+      $cardEditor.current.focus();
+    }
   };
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      onCreateCard(cardName);
-    }
-  };
-  const onBlur = () => {
-    if (cardName === '') {
-      onClose();
-    } else {
-      onCreateCard(cardName);
+      handleCreateCard();
     }
   };
   useOnEscapeKeyDown(isOpen, onClose);
@@ -63,7 +60,7 @@ const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
       </ListCard>
       <ComposerControls>
         <ComposerControlsSaveSection>
-          <AddCardButton onClick={onClick}>Add Card</AddCardButton>
+          <AddCardButton onClick={handleCreateCard}>Add Card</AddCardButton>
           <CancelIcon onClick={onClose} icon={faTimes} color="#42526e" />
         </ComposerControlsSaveSection>
         <ComposerControlsActionsSection />

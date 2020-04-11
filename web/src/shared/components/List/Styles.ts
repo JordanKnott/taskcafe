@@ -117,3 +117,12 @@ export const ListCards = styled.div`
   overflow-y: auto;
   overflow-x: hidden;
 `;
+
+export const ListExtraMenuButtonWrapper = styled.div`
+  cursor: pointer;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 1;
+  padding: 6px;
+`;
