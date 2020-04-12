@@ -23,6 +23,7 @@ interface Tasks {
 type Props = {
   columns: Columns;
   tasks: Tasks;
+  onCardClick: (task: Task) => void;
   onCardDrop: (task: Task) => void;
   onListDrop: (taskGroup: TaskGroup) => void;
   onCardCreate: (taskGroupID: string, name: string) => void;
@@ -34,6 +35,7 @@ type Props = {
 const Lists: React.FC<Props> = ({
   columns,
   tasks,
+  onCardClick,
   onCardDrop,
   onListDrop,
   onCardCreate,
@@ -72,7 +74,6 @@ const Lists: React.FC<Props> = ({
 
     console.log(beforeDropDraggables);
     console.log(destination);
-    console.log(droppedDraggable);
     const afterDropDraggables = getAfterDropDraggableList(
       beforeDropDraggables,
       droppedDraggable,
@@ -85,16 +86,20 @@ const Lists: React.FC<Props> = ({
 
     if (isList) {
       const droppedList = columns[droppedDraggable.id];
+      console.log(`is list ${droppedList}`);
       onListDrop({
         ...droppedList,
         position: newPosition,
       });
     } else {
       const droppedCard = tasks[droppedDraggable.id];
+      console.log(`is card ${droppedCard}`);
       const newCard = {
         ...droppedCard,
         position: newPosition,
-        taskGroupID: destination.droppableId,
+        taskGroup: {
+          taskGroupID: destination.droppableId,
+        },
       };
       onCardDrop(newCard);
     }
@@ -121,22 +126,22 @@ const Lists: React.FC<Props> = ({
                 return (
                   <Draggable draggableId={column.taskGroupID} key={column.taskGroupID} index={index}>
                     {columnDragProvided => (
-                      <List
-                        id={column.taskGroupID}
-                        name={column.name}
-                        key={column.taskGroupID}
-                        onOpenComposer={id => setCurrentComposer(id)}
-                        isComposerOpen={currentComposer === column.taskGroupID}
-                        onSaveName={name => console.log(name)}
-                        index={index}
-                        tasks={columnCards}
-                        ref={columnDragProvided.innerRef}
-                        wrapperProps={columnDragProvided.draggableProps}
-                        headerProps={columnDragProvided.dragHandleProps}
-                        onExtraMenuOpen={onExtraMenuOpen}
-                      >
-                        <Droppable type="tasks" droppableId={column.taskGroupID}>
-                          {columnDropProvided => (
+                      <Droppable type="tasks" droppableId={column.taskGroupID}>
+                        {(columnDropProvided, snapshot) => (
+                          <List
+                            name={column.name}
+                            onOpenComposer={id => setCurrentComposer(id)}
+                            isComposerOpen={currentComposer === column.taskGroupID}
+                            onSaveName={name => console.log(name)}
+                            tasks={columnCards}
+                            ref={columnDragProvided.innerRef}
+                            wrapperProps={columnDragProvided.draggableProps}
+                            headerProps={columnDragProvided.dragHandleProps}
+                            onExtraMenuOpen={onExtraMenuOpen}
+                            id={column.taskGroupID}
+                            key={column.taskGroupID}
+                            index={index}
+                          >
                             <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
                               {columnCards.map((task: Task, taskIndex: any) => {
                                 return (
@@ -154,7 +159,7 @@ const Lists: React.FC<Props> = ({
                                           description=""
                                           title={task.name}
                                           labels={task.labels}
-                                          onClick={e => console.log(e)}
+                                          onClick={() => onCardClick(task)}
                                           onContextMenu={onQuickEditorOpen}
                                         />
                                       );
@@ -163,7 +168,6 @@ const Lists: React.FC<Props> = ({
                                 );
                               })}
                               {columnDropProvided.placeholder}
-
                               {currentComposer === column.taskGroupID && (
                                 <CardComposer
                                   onClose={() => {
@@ -176,9 +180,9 @@ const Lists: React.FC<Props> = ({
                                 />
                               )}
                             </ListCards>
-                          )}
-                        </Droppable>
-                      </List>
+                          </List>
+                        )}
+                      </Droppable>
                     )}
                   </Draggable>
                 );

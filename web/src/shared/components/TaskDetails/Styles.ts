@@ -1,22 +1,38 @@
 import styled from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
+import { mixin } from 'shared/utils/styles';
 
 export const TaskHeader = styled.div`
+  padding: 21px 30px 0px;
+  margin-right: 70px;
   display: flex;
-  -webkit-box-pack: justify;
-  justify-content: space-between;
-  padding: 21px 18px 0px;
+  flex-direction: column;
 `;
 
 export const TaskMeta = styled.div`
   position: relative;
   cursor: pointer;
   font-size: 14px;
-  display: inline-block;
+  display: flex;
+  align-items: center;
   border-radius: 4px;
 `;
 
+export const TaskGroupLabel = styled.span`
+  color: #c2c6dc;
+  font-size: 14px;
+`;
+export const TaskGroupLabelName = styled.span`
+  color: #c2c6dc;
+  text-decoration: underline;
+  font-size: 14px;
+`;
+
 export const TaskActions = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 21px 18px 0px;
   display: flex;
   align-items: center;
 `;
@@ -26,19 +42,8 @@ export const TaskAction = styled.button`
   align-items: center;
   justify-content: center;
   height: 32px;
-  vertical-align: middle;
-  line-height: 1;
-  white-space: nowrap;
   cursor: pointer;
-  user-select: none;
-  font-size: 14.5px;
-  color: rgb(66, 82, 110);
-  font-family: CircularStdBook;
-  font-weight: normal;
   padding: 0px 9px;
-  border-radius: 3px;
-  transition: all 0.1s ease 0s;
-  background: rgb(255, 255, 255);
 `;
 
 export const TaskDetailsWrapper = styled.div`
@@ -53,13 +58,12 @@ export const TaskDetailsContent = styled.div`
 
 export const TaskDetailsSidebar = styled.div`
   width: 35%;
-  padding-top: 5px;
 `;
 
 export const TaskDetailsTitleWrapper = styled.div`
   height: 44px;
   width: 100%;
-  margin: 18px 0px 0px -8px;
+  margin: 0 0 0 -8px;
   display: inline-block;
 `;
 
@@ -70,8 +74,8 @@ export const TaskDetailsTitle = styled(TextareaAutosize)`
   font-size: 24px;
   font-family: 'Droid Sans';
   font-weight: 700;
-  padding: 7px 7px 8px;
-  background: rgb(255, 255, 255);
+  padding: 4px;
+  background: #262c49;
   border-width: 1px;
   border-style: solid;
   border-color: transparent;
@@ -79,28 +83,22 @@ export const TaskDetailsTitle = styled(TextareaAutosize)`
   transition: background 0.1s ease 0s;
   overflow-y: hidden;
   width: 100%;
-  color: rgb(23, 43, 77);
-  &:hover {
-    background: rgb(235, 236, 240);
-  }
+  color: #c2c6dc;
   &:focus {
-    box-shadow: rgb(76, 154, 255) 0px 0px 0px 1px;
-    background: rgb(255, 255, 255);
-    border-width: 1px;
-    border-style: solid;
-    border-color: rgb(76, 154, 255);
-    border-image: initial;
+    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    background: ${mixin.darken('#262c49', 0.15)};
   }
 `;
 
 export const TaskDetailsLabel = styled.div`
-  padding: 20px 0px 12px;
+  padding: 24px 0px 12px;
   font-size: 15px;
   font-weight: 600;
+  color: #c2c6dc;
 `;
 
 export const TaskDetailsAddDetailsButton = styled.div`
-  background-color: rgba(9, 30, 66, 0.04);
+  background: ${mixin.darken('#262c49', 0.15)};
   box-shadow: none;
   border: none;
   border-radius: 3px;
@@ -110,8 +108,9 @@ export const TaskDetailsAddDetailsButton = styled.div`
   text-decoration: none;
   font-size: 14px;
   cursor: pointer;
+  color: #c2c6dc;
   &:hover {
-    background-color: rgba(9, 30, 66, 0.08);
+    background: ${mixin.darken('#262c49', 0.25)};
     box-shadow: none;
     border: none;
   }
@@ -128,9 +127,9 @@ export const TaskDetailsEditorWrapper = styled.div`
 export const TaskDetailsEditor = styled(TextareaAutosize)`
   width: 100%;
   min-height: 108px;
-  background: #fff;
-  box-shadow: none;
-  border-color: rgba(9, 30, 66, 0.13);
+  color: #c2c6dc;
+  background: #262c49;
+  box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
   border-radius: 3px;
   line-height: 20px;
   padding: 8px 12px;
@@ -138,15 +137,15 @@ export const TaskDetailsEditor = styled(TextareaAutosize)`
   border: none;
 
   &:focus {
-    background: #fff;
-    border: none;
-    box-shadow: inset 0 0 0 2px #0079bf;
+    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    background: ${mixin.darken('#262c49', 0.05)};
   }
 `;
 
 export const TaskDetailsMarkdown = styled.div`
   width: 100%;
   cursor: pointer;
+  color: #c2c6dc;
 `;
 
 export const TaskDetailsControls = styled.div`
@@ -177,5 +176,108 @@ export const CancelEdit = styled.div`
   justify-content: center;
   height: 32px;
   width: 32px;
+  cursor: pointer;
+`;
+
+export const TaskDetailSectionTitle = styled.div`
+  text-transform: uppercase;
+  color: #c2c6dc;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 24px 0px 5px;
+`;
+
+export const TaskDetailAssignees = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+`;
+
+export const TaskDetailAssignee = styled.div`
+  &:hover {
+    opacity: 0.8;
+  }
+  margin-right: 4px;
+`;
+export const ProfileIcon = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  background: rgb(115, 103, 240);
+  cursor: pointer;
+`;
+
+export const TaskDetailsAddMember = styled.div`
+  border-radius: 100%;
+  background: ${mixin.darken('#262c49', 0.15)};
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+export const TaskDetailsAddMemberIcon = styled.div`
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const TaskDetailLabels = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+`;
+
+export const TaskDetailLabel = styled.div`
+  &:hover {
+    opacity: 0.8;
+  }
+  background-color: #00c2e0;
+  color: #fff;
+
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  border-radius: 3px;
+  box-sizing: border-box;
+  display: block;
+  float: left;
+  font-weight: 600;
+  height: 32px;
+  line-height: 32px;
+  margin: 0 4px 4px 0;
+  min-width: 40px;
+  padding: 0 12px;
+  width: auto;
+`;
+
+export const TaskDetailsAddLabel = styled.div`
+  border-radius: 3px;
+  background: ${mixin.darken('#262c49', 0.15)};
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+export const TaskDetailsAddLabelIcon = styled.div`
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const NoDueDateLabel = styled.span`
+  color: rgb(137, 147, 164);
+  font-size: 14px;
   cursor: pointer;
 `;

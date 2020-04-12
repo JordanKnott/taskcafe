@@ -9,7 +9,9 @@ export const moveItemWithinArray = (arr: Array<DraggableElement>, item: Draggabl
 
 export const insertItemIntoArray = (arr: Array<DraggableElement>, item: DraggableElement, index: number) => {
   const arrClone = [...arr];
+  console.log(arrClone, index, item);
   arrClone.splice(index, 0, item);
+  console.log(arrClone);
   return arrClone;
 };
 
@@ -56,6 +58,7 @@ export const isPositionChanged = (source: DraggableLocation, destination: Dragga
   if (!destination) return false;
   const isSameList = destination.droppableId === source.droppableId;
   const isSamePosition = destination.index === source.index;
+  console.log(`isSameList: ${isSameList} : isSamePosition: ${isSamePosition}`);
   return !isSameList || !isSamePosition;
 };
 

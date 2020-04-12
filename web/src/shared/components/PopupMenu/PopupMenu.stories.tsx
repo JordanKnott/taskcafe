@@ -4,8 +4,12 @@ import LabelColors from 'shared/constants/labelColors';
 import LabelManager from 'shared/components/PopupMenu/LabelManager';
 import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 import ListActions from 'shared/components/ListActions';
+import MemberManager from 'shared/components/MemberManager';
+import DueDateManager from 'shared/components/DueDateManager';
 
 import PopupMenu from '.';
+import NormalizeStyles from 'App/NormalizeStyles';
+import BaseStyles from 'App/BaseStyles';
 
 export default {
   component: PopupMenu,
@@ -96,6 +100,96 @@ export const ListActionsPopup = () => {
       >
         Open
       </button>
+    </>
+  );
+};
+
+export const MemberManagerPopup = () => {
+  const $buttonRef = useRef<HTMLButtonElement>(null);
+  const [popupData, setPopupData] = useState(initalState);
+  return (
+    <>
+      <NormalizeStyles />
+      <BaseStyles />
+      {popupData.isOpen && (
+        <PopupMenu title="Members" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
+          <MemberManager
+            availableMembers={[{ userID: '1', displayName: 'Jordan Knott' }]}
+            activeMembers={[]}
+            onMemberChange={action('member change')}
+          />
+        </PopupMenu>
+      )}
+      <span
+        style={{
+          width: '60px',
+          textAlign: 'center',
+          margin: '25px auto',
+          cursor: 'pointer',
+        }}
+        ref={$buttonRef}
+        onClick={() => {
+          if ($buttonRef && $buttonRef.current) {
+            const pos = $buttonRef.current.getBoundingClientRect();
+            setPopupData({
+              isOpen: true,
+              left: pos.left,
+              top: pos.top + pos.height + 10,
+            });
+          }
+        }}
+      >
+        Open
+      </span>
+    </>
+  );
+};
+
+export const DueDateManagerPopup = () => {
+  const $buttonRef = useRef<HTMLButtonElement>(null);
+  const [popupData, setPopupData] = useState(initalState);
+  return (
+    <>
+      <NormalizeStyles />
+      <BaseStyles />
+      {popupData.isOpen && (
+        <PopupMenu title="Due Date" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
+          <DueDateManager
+            task={{
+              taskID: '1',
+              taskGroup: { name: 'General', taskGroupID: '1' },
+              name: 'Hello, world',
+              position: 1,
+              labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
+              description: 'hello!',
+              members: [{ userID: '1', displayName: 'Jordan Knott' }],
+            }}
+            onCancel={action('cancel')}
+            onDueDateChange={action('due date change')}
+          />
+        </PopupMenu>
+      )}
+      <span
+        style={{
+          width: '60px',
+          textAlign: 'center',
+          margin: '25px auto',
+          cursor: 'pointer',
+        }}
+        ref={$buttonRef}
+        onClick={() => {
+          if ($buttonRef && $buttonRef.current) {
+            const pos = $buttonRef.current.getBoundingClientRect();
+            setPopupData({
+              isOpen: true,
+              left: pos.left,
+              top: pos.top + pos.height + 10,
+            });
+          }
+        }}
+      >
+        Open
+      </span>
     </>
   );
 };

@@ -8,10 +8,9 @@ export const Container = styled.div<{ top: number; left: number; ref: any }>`
   border-radius: 3px;
   box-shadow: 0 8px 16px -4px rgba(9, 30, 66, 0.25), 0 0 0 1px rgba(9, 30, 66, 0.08);
   display: block;
-  overflow: hidden;
   position: absolute;
   width: 304px;
-  z-index: 70;
+  z-index: 100000000000;
   &:focus {
     outline: none;
     border: none;

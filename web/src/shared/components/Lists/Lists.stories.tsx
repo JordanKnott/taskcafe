@@ -64,13 +64,13 @@ const initialListsData = {
 
 export const Default = () => {
   const [listsData, setListsData] = useState(initialListsData);
-  const onCardDrop = (droppedTask: any) => {
+  const onCardDrop = (droppedTask: Task) => {
     console.log(droppedTask);
     const newState = {
       ...listsData,
       tasks: {
         ...listsData.tasks,
-        [droppedTask.taskGroupID]: droppedTask,
+        [droppedTask.taskID]: droppedTask,
       },
     };
     console.log(newState);
@@ -91,6 +91,7 @@ export const Default = () => {
   return (
     <Lists
       {...listsData}
+      onCardClick={action('card click')}
       onExtraMenuOpen={action('extra menu open')}
       onQuickEditorOpen={action('card composer open')}
       onCardDrop={onCardDrop}
@@ -201,6 +202,7 @@ export const ListsWithManyList = () => {
   return (
     <Lists
       {...listsData}
+      onCardClick={action('card click')}
       onQuickEditorOpen={action('card composer open')}
       onCardCreate={action('card create')}
       onCardDrop={onCardDrop}

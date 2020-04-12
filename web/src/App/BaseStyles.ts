@@ -106,5 +106,9 @@ export default createGlobalStyle`
     touch-action: manipulation;
   }
 
+  textarea {
+    resize: none;
+  }
+
   ${mixin.placeholderColor(color.textLight)}
 `;

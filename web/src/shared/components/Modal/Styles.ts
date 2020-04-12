@@ -14,7 +14,7 @@ export const ScrollOverlay = styled.div`
 
 export const ClickableOverlay = styled.div`
   min-height: 100%;
-  background: rgba(9, 30, 66, 0.54);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,7 +25,7 @@ export const StyledModal = styled.div<{ width: number }>`
   display: inline-block;
   position: relative;
   width: 100%;
-  background: #fff;
+  background: #262c49;
   max-width: ${props => props.width}px;
   vertical-align: middle;
   border-radius: 3px;

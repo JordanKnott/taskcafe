@@ -30,15 +30,19 @@ export const Default = () => {
             <TaskDetails
               task={{
                 taskID: '1',
-                taskGroup: { taskGroupID: '1' },
+                taskGroup: { name: 'General', taskGroupID: '1' },
                 name: 'Hello, world',
                 position: 1,
-                labels: [],
+                labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
                 description,
+                members: [{ userID: '1', displayName: 'Jordan Knott' }],
               }}
+              onTaskNameChange={action('task name change')}
               onTaskDescriptionChange={(_task, desc) => setDescription(desc)}
               onDeleteTask={action('delete task')}
               onCloseModal={action('close modal')}
+              onOpenAddMemberPopup={action('open add member popup')}
+              onOpenAddLabelPopup={action('open add label popup')}
             />
           );
         }}

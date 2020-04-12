@@ -19,6 +19,10 @@ import Lists from 'shared/components/Lists';
 import QuickCardEditor from 'shared/components/QuickCardEditor';
 import PopupMenu from 'shared/components/PopupMenu';
 import ListActions from 'shared/components/ListActions';
+import Modal from 'shared/components/Modal';
+import TaskDetails from 'shared/components/TaskDetails';
+import MemberManager from 'shared/components/MemberManager';
+import { LabelsPopup } from 'shared/components/PopupMenu/PopupMenu.stories';
 
 interface ColumnState {
   [key: string]: TaskGroup;
@@ -73,11 +77,16 @@ interface ProjectParams {
 const initialState: State = { tasks: {}, columns: {} };
 const initialPopupState = { left: 0, top: 0, isOpen: false, taskGroupID: '' };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
+const initialMemberPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
+const initialLabelsPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
+const initialTaskDetailsState = { isOpen: false, taskID: '' };
 
 const Project = () => {
   const { projectId } = useParams<ProjectParams>();
   const [listsData, setListsData] = useState(initialState);
   const [popupData, setPopupData] = useState(initialPopupState);
+  const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
+  const [taskDetails, setTaskDetails] = useState(initialTaskDetailsState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation();
@@ -256,6 +265,9 @@ const Project = () => {
           </TitleWrapper>
           <Board>
             <Lists
+              onCardClick={task => {
+                setTaskDetails({ isOpen: true, taskID: task.taskID });
+              }}
               onExtraMenuOpen={(taskGroupID, pos, size) => {
                 setPopupData({
                   isOpen: true,
@@ -314,6 +326,57 @@ const Project = () => {
               }}
             />
           </PopupMenu>
+        )}
+        {memberPopupData.isOpen && (
+          <PopupMenu
+            title="Members"
+            onClose={() => setMemberPopupData(initialMemberPopupState)}
+            top={memberPopupData.top}
+            left={memberPopupData.left}
+          >
+            <MemberManager
+              availableMembers={[{ displayName: 'Jordan Knott', userID: '21345076-6423-4a00-a6bd-cd9f830e2764' }]}
+              activeMembers={[]}
+              onMemberChange={(member, isActive) => console.log(member, isActive)}
+            />
+          </PopupMenu>
+        )}
+        {taskDetails.isOpen && (
+          <Modal
+            width={1040}
+            onClose={() => {
+              setTaskDetails(initialTaskDetailsState);
+            }}
+            renderContent={() => {
+              const task = listsData.tasks[taskDetails.taskID];
+              return (
+                <TaskDetails
+                  task={task}
+                  onTaskNameChange={(updatedTask, newName) => {
+                    updateTaskName({ variables: { taskID: updatedTask.taskID, name: newName } });
+                  }}
+                  onTaskDescriptionChange={(updatedTask, newDescription) => {
+                    console.log(updatedTask, newDescription);
+                  }}
+                  onDeleteTask={deletedTask => {
+                    setTaskDetails(initialTaskDetailsState);
+                    deleteTask({ variables: { taskID: deletedTask.taskID } });
+                  }}
+                  onCloseModal={() => setTaskDetails(initialTaskDetailsState)}
+                  onOpenAddMemberPopup={(task, bounds) => {
+                    console.log(task, bounds);
+                    setMemberPopupData({
+                      isOpen: true,
+                      taskID: task.taskID,
+                      top: bounds.position.top + bounds.size.height + 10,
+                      left: bounds.position.left,
+                    });
+                  }}
+                  onOpenAddLabelPopup={(task, bounds) => {}}
+                />
+              );
+            }}
+          />
         )}
       </>
     );

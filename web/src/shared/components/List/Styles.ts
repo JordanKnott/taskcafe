@@ -113,7 +113,7 @@ export const ListCards = styled.div`
   margin: 0 4px;
   padding: 0 4px;
   flex: 1 1 auto;
-  min-height: 30px;
+  min-height: 45px;
   overflow-y: auto;
   overflow-x: hidden;
 `;

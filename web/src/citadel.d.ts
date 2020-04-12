@@ -16,6 +16,11 @@ type InnerTaskGroup = {
   position?: number;
 };
 
+type TaskUser = {
+  userID: string;
+  displayName: string;
+};
+
 type Task = {
   taskID: string;
   taskGroup: InnerTaskGroup;
@@ -23,6 +28,7 @@ type Task = {
   position: number;
   labels: Label[];
   description?: string;
+  members?: Array<TaskUser>;
 };
 
 type TaskGroup = {
@@ -84,4 +90,9 @@ type ElementPosition = {
 type ElementSize = {
   width: number;
   height: number;
+};
+
+type ElementBounds = {
+  size: ElementSize;
+  position: ElementPosition;
 };
