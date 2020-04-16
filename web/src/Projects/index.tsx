@@ -58,7 +58,7 @@ const Projects = () => {
           <TopNavbar />
           <ProjectGrid>
             {projects.map(project => (
-              <Link to={`/projects/${project.projectID}/`}>
+              <Link to={`/projects/${project.projectID}`}>
                 <ProjectGridItem project={project} />
               </Link>
             ))}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import produce from 'immer';
+import * as BoardStateUtils from 'shared/utils/boardState';
 import styled from 'styled-components/macro';
-import { useParams } from 'react-router-dom';
+import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
 import {
   useFindProjectQuery,
   useUpdateTaskNameMutation,
@@ -15,7 +15,6 @@ import {
 
 import Navbar from 'App/Navbar';
 import TopNavbar from 'App/TopNavbar';
-import Lists from 'shared/components/Lists';
 import QuickCardEditor from 'shared/components/QuickCardEditor';
 import PopupMenu from 'shared/components/PopupMenu';
 import ListActions from 'shared/components/ListActions';
@@ -23,19 +22,11 @@ import Modal from 'shared/components/Modal';
 import TaskDetails from 'shared/components/TaskDetails';
 import MemberManager from 'shared/components/MemberManager';
 import { LabelsPopup } from 'shared/components/PopupMenu/PopupMenu.stories';
+import KanbanBoard from 'Projects/Project/KanbanBoard';
 
-interface ColumnState {
-  [key: string]: TaskGroup;
-}
-
-interface TaskState {
-  [key: string]: Task;
-}
-
-interface State {
-  columns: ColumnState;
-  tasks: TaskState;
-}
+type TaskRouteProps = {
+  taskID: string;
+};
 
 interface QuickCardEditorState {
   isOpen: boolean;
@@ -66,15 +57,11 @@ const Title = styled.span`
   color: #fff;
 `;
 
-const Board = styled.div`
-  margin-left: 36px;
-`;
-
 interface ProjectParams {
   projectId: string;
 }
 
-const initialState: State = { tasks: {}, columns: {} };
+const initialState: BoardState = { tasks: {}, columns: {} };
 const initialPopupState = { left: 0, top: 0, isOpen: false, taskGroupID: '' };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
 const initialMemberPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
@@ -83,6 +70,9 @@ const initialTaskDetailsState = { isOpen: false, taskID: '' };
 
 const Project = () => {
   const { projectId } = useParams<ProjectParams>();
+  const match = useRouteMatch();
+  const history = useHistory();
+
   const [listsData, setListsData] = useState(initialState);
   const [popupData, setPopupData] = useState(initialPopupState);
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
@@ -90,92 +80,52 @@ const Project = () => {
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation();
+
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
     onCompleted: deletedTaskGroupData => {
-      const nextState = produce(listsData, (draftState: State) => {
-        delete draftState.columns[deletedTaskGroupData.deleteTaskGroup.taskGroup.taskGroupID];
-        const filteredTasks = Object.keys(listsData.tasks)
-          .filter(
-            taskID =>
-              listsData.tasks[taskID].taskGroup.taskGroupID !==
-              deletedTaskGroupData.deleteTaskGroup.taskGroup.taskGroupID,
-          )
-          .reduce((obj: TaskState, key: string) => {
-            obj[key] = listsData.tasks[key];
-            return obj;
-          }, {});
-        draftState.tasks = filteredTasks;
-      });
-
-      setListsData(nextState);
+      setListsData(
+        BoardStateUtils.deleteTaskGroup(listsData, deletedTaskGroupData.deleteTaskGroup.taskGroup.taskGroupID),
+      );
     },
   });
+
   const [createTaskGroup] = useCreateTaskGroupMutation({
     onCompleted: newTaskGroupData => {
-      const newListsData = {
-        ...listsData,
-        columns: {
-          ...listsData.columns,
-          [newTaskGroupData.createTaskGroup.taskGroupID]: {
-            taskGroupID: newTaskGroupData.createTaskGroup.taskGroupID,
-            name: newTaskGroupData.createTaskGroup.name,
-            position: newTaskGroupData.createTaskGroup.position,
-            tasks: [],
-          },
-        },
+      const newTaskGroup = {
+        ...newTaskGroupData.createTaskGroup,
+        tasks: [],
       };
-      setListsData(newListsData);
+      setListsData(BoardStateUtils.addTaskGroup(listsData, newTaskGroup));
     },
   });
+
   const [createTask] = useCreateTaskMutation({
     onCompleted: newTaskData => {
-      const newListsData = {
-        ...listsData,
-        tasks: {
-          ...listsData.tasks,
-          [newTaskData.createTask.taskID]: {
-            taskGroup: {
-              taskGroupID: newTaskData.createTask.taskGroup.taskGroupID,
-            },
-            taskID: newTaskData.createTask.taskID,
-            name: newTaskData.createTask.name,
-            position: newTaskData.createTask.position,
-            labels: [],
-          },
-        },
+      const newTask = {
+        ...newTaskData.createTask,
+        labels: [],
       };
-      setListsData(newListsData);
+      setListsData(BoardStateUtils.addTask(listsData, newTask));
     },
   });
+
   const [deleteTask] = useDeleteTaskMutation({
     onCompleted: deletedTask => {
-      const { [deletedTask.deleteTask.taskID]: removedTask, ...remainingTasks } = listsData.tasks;
-      const newListsData = {
-        ...listsData,
-        tasks: remainingTasks,
-      };
-      setListsData(newListsData);
+      setListsData(BoardStateUtils.deleteTask(listsData, deletedTask.deleteTask.taskID));
     },
   });
+
   const [updateTaskName] = useUpdateTaskNameMutation({
     onCompleted: newTaskData => {
-      const newListsData = {
-        ...listsData,
-        tasks: {
-          ...listsData.tasks,
-          [newTaskData.updateTaskName.taskID]: {
-            ...listsData.tasks[newTaskData.updateTaskName.taskID],
-            name: newTaskData.updateTaskName.name,
-          },
-        },
-      };
-      setListsData(newListsData);
+      setListsData(
+        BoardStateUtils.updateTaskName(listsData, newTaskData.updateTaskName.taskID, newTaskData.updateTaskName.name),
+      );
     },
   });
   const { loading, data } = useFindProjectQuery({
     variables: { projectId },
     onCompleted: newData => {
-      const newListsData: State = { tasks: {}, columns: {} };
+      const newListsData: BoardState = { tasks: {}, columns: {} };
       newData.findProject.taskGroups.forEach(taskGroup => {
         newListsData.columns[taskGroup.taskGroupID] = {
           taskGroupID: taskGroup.taskGroupID,
@@ -198,37 +148,7 @@ const Project = () => {
       setListsData(newListsData);
     },
   });
-  const onCardDrop = (droppedTask: Task) => {
-    console.log(droppedTask);
-    updateTaskLocation({
-      variables: {
-        taskID: droppedTask.taskID,
-        taskGroupID: droppedTask.taskGroup.taskGroupID,
-        position: droppedTask.position,
-      },
-    });
-    const newState = {
-      ...listsData,
-      tasks: {
-        ...listsData.tasks,
-        [droppedTask.taskID]: droppedTask,
-      },
-    };
-    setListsData(newState);
-  };
-  const onListDrop = (droppedColumn: any) => {
-    updateTaskGroupLocation({
-      variables: { taskGroupID: droppedColumn.taskGroupID, position: droppedColumn.position },
-    });
-    const newState = {
-      ...listsData,
-      columns: {
-        ...listsData.columns,
-        [droppedColumn.taskGroupID]: droppedColumn,
-      },
-    };
-    setListsData(newState);
-  };
+
   const onCardCreate = (taskGroupID: string, name: string) => {
     const taskGroupTasks = Object.values(listsData.tasks).filter(
       (task: Task) => task.taskGroup.taskGroupID === taskGroupID,
@@ -241,6 +161,7 @@ const Project = () => {
 
     createTask({ variables: { taskGroupID, name, position } });
   };
+
   const onQuickEditorOpen = (e: ContextMenuEvent) => {
     const currentTask = Object.values(listsData.tasks).find(task => task.taskID === e.taskID);
     setQuickCardEditor({
@@ -249,6 +170,33 @@ const Project = () => {
       isOpen: true,
       task: currentTask,
     });
+  };
+  const onCardDrop = (droppedTask: Task) => {
+    updateTaskLocation({
+      variables: {
+        taskID: droppedTask.taskID,
+        taskGroupID: droppedTask.taskGroup.taskGroupID,
+        position: droppedTask.position,
+      },
+    });
+    setListsData(BoardStateUtils.updateTask(listsData, droppedTask));
+  };
+  const onListDrop = (droppedColumn: TaskGroup) => {
+    updateTaskGroupLocation({
+      variables: { taskGroupID: droppedColumn.taskGroupID, position: droppedColumn.position },
+    });
+    setListsData(BoardStateUtils.updateTaskGroup(listsData, droppedColumn));
+  };
+
+  const onCreateList = (listName: string) => {
+    const [lastColumn] = Object.values(listsData.columns)
+      .sort((a, b) => a.position - b.position)
+      .slice(-1);
+    let position = 65535;
+    if (lastColumn) {
+      position = lastColumn.position * 2 + 1;
+    }
+    createTaskGroup({ variables: { projectID: projectId, name: listName, position } });
   };
 
   if (loading) {
@@ -262,38 +210,35 @@ const Project = () => {
           <TopNavbar />
           <TitleWrapper>
             <Title>{data.findProject.name}</Title>
-          </TitleWrapper>
-          <Board>
-            <Lists
-              onCardClick={task => {
-                setTaskDetails({ isOpen: true, taskID: task.taskID });
-              }}
-              onExtraMenuOpen={(taskGroupID, pos, size) => {
-                setPopupData({
-                  isOpen: true,
-                  left: pos.left,
-                  top: pos.top + size.height + 5,
-                  taskGroupID,
-                });
-              }}
-              onQuickEditorOpen={onQuickEditorOpen}
-              onCardCreate={onCardCreate}
-              {...listsData}
+            <KanbanBoard
+              listsData={listsData}
               onCardDrop={onCardDrop}
               onListDrop={onListDrop}
-              onCreateList={listName => {
-                const [lastColumn] = Object.values(listsData.columns)
-                  .sort((a, b) => a.position - b.position)
-                  .slice(-1);
-                let position = 65535;
-                if (lastColumn) {
-                  position = lastColumn.position * 2 + 1;
-                }
-                createTaskGroup({ variables: { projectID: projectId, name: listName, position } });
+              onCardCreate={onCardCreate}
+              onCreateList={onCreateList}
+              onQuickEditorOpen={onQuickEditorOpen}
+              onOpenListActionsPopup={(isOpen, left, top, taskGroupID) => {
+                setPopupData({ isOpen, top, left, taskGroupID });
               }}
             />
-          </Board>
+          </TitleWrapper>
         </MainContent>
+        {popupData.isOpen && (
+          <PopupMenu
+            title="List Actions"
+            top={popupData.top}
+            onClose={() => setPopupData(initialPopupState)}
+            left={popupData.left}
+          >
+            <ListActions
+              taskGroupID={popupData.taskGroupID}
+              onArchiveTaskGroup={taskGroupID => {
+                deleteTaskGroup({ variables: { taskGroupID } });
+                setPopupData(initialPopupState);
+              }}
+            />
+          </PopupMenu>
+        )}
         {quickCardEditor.isOpen && (
           <QuickCardEditor
             isOpen
@@ -311,73 +256,49 @@ const Project = () => {
             left={quickCardEditor.left}
           />
         )}
-        {popupData.isOpen && (
-          <PopupMenu
-            title="List Actions"
-            top={popupData.top}
-            onClose={() => setPopupData(initialPopupState)}
-            left={popupData.left}
-          >
-            <ListActions
-              taskGroupID={popupData.taskGroupID}
-              onArchiveTaskGroup={taskGroupID => {
-                deleteTaskGroup({ variables: { taskGroupID } });
-                setPopupData(initialPopupState);
+        <Route
+          path={`${match.path}/c/:taskID`}
+          render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
+            <Modal
+              width={1040}
+              onClose={() => {
+                history.push(match.url);
+              }}
+              renderContent={() => {
+                const task = listsData.tasks[routeProps.match.params.taskID];
+                if (!task) {
+                  return <div>loading</div>;
+                }
+                return (
+                  <TaskDetails
+                    task={task}
+                    onTaskNameChange={(updatedTask, newName) => {
+                      updateTaskName({ variables: { taskID: updatedTask.taskID, name: newName } });
+                    }}
+                    onTaskDescriptionChange={(updatedTask, newDescription) => {
+                      console.log(updatedTask, newDescription);
+                    }}
+                    onDeleteTask={deletedTask => {
+                      setTaskDetails(initialTaskDetailsState);
+                      deleteTask({ variables: { taskID: deletedTask.taskID } });
+                    }}
+                    onCloseModal={() => history.push(match.url)}
+                    onOpenAddMemberPopup={(task, bounds) => {
+                      console.log(task, bounds);
+                      setMemberPopupData({
+                        isOpen: true,
+                        taskID: task.taskID,
+                        top: bounds.position.top + bounds.size.height + 10,
+                        left: bounds.position.left,
+                      });
+                    }}
+                    onOpenAddLabelPopup={(task, bounds) => {}}
+                  />
+                );
               }}
             />
-          </PopupMenu>
-        )}
-        {memberPopupData.isOpen && (
-          <PopupMenu
-            title="Members"
-            onClose={() => setMemberPopupData(initialMemberPopupState)}
-            top={memberPopupData.top}
-            left={memberPopupData.left}
-          >
-            <MemberManager
-              availableMembers={[{ displayName: 'Jordan Knott', userID: '21345076-6423-4a00-a6bd-cd9f830e2764' }]}
-              activeMembers={[]}
-              onMemberChange={(member, isActive) => console.log(member, isActive)}
-            />
-          </PopupMenu>
-        )}
-        {taskDetails.isOpen && (
-          <Modal
-            width={1040}
-            onClose={() => {
-              setTaskDetails(initialTaskDetailsState);
-            }}
-            renderContent={() => {
-              const task = listsData.tasks[taskDetails.taskID];
-              return (
-                <TaskDetails
-                  task={task}
-                  onTaskNameChange={(updatedTask, newName) => {
-                    updateTaskName({ variables: { taskID: updatedTask.taskID, name: newName } });
-                  }}
-                  onTaskDescriptionChange={(updatedTask, newDescription) => {
-                    console.log(updatedTask, newDescription);
-                  }}
-                  onDeleteTask={deletedTask => {
-                    setTaskDetails(initialTaskDetailsState);
-                    deleteTask({ variables: { taskID: deletedTask.taskID } });
-                  }}
-                  onCloseModal={() => setTaskDetails(initialTaskDetailsState)}
-                  onOpenAddMemberPopup={(task, bounds) => {
-                    console.log(task, bounds);
-                    setMemberPopupData({
-                      isOpen: true,
-                      taskID: task.taskID,
-                      top: bounds.position.top + bounds.size.height + 10,
-                      left: bounds.position.left,
-                    });
-                  }}
-                  onOpenAddLabelPopup={(task, bounds) => {}}
-                />
-              );
-            }}
-          />
-        )}
+          )}
+        />
       </>
     );
   }

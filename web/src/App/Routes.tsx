@@ -16,7 +16,7 @@ const Routes = ({ history }: RoutesProps) => (
     <Switch>
       <Route exact path="/" component={Dashboard} />
       <Route exact path="/projects" component={Projects} />
-      <Route exact path="/projects/:projectId" component={Project} />
+      <Route path="/projects/:projectId" component={Project} />
       <Route exact path="/login" component={Login} />
     </Switch>
   </Router>

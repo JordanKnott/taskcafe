@@ -1,3 +1,16 @@
+interface ColumnState {
+  [key: string]: TaskGroup;
+}
+
+interface TaskState {
+  [key: string]: Task;
+}
+
+interface BoardState {
+  columns: ColumnState;
+  tasks: TaskState;
+}
+
 interface DraggableElement {
   id: string;
   position: number;
