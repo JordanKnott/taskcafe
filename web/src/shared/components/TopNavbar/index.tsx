@@ -19,8 +19,11 @@ import {
 type NavBarProps = {
   onProfileClick: (bottom: number, right: number) => void;
   onNotificationClick: () => void;
+  firstName: string;
+  lastName: string;
+  initials: string;
 };
-const NavBar: React.FC<NavBarProps> = ({ onProfileClick, onNotificationClick }) => {
+const NavBar: React.FC<NavBarProps> = ({ onProfileClick, onNotificationClick, firstName, lastName, initials }) => {
   const $profileRef: any = useRef(null);
   const handleProfileClick = () => {
     console.log('click');
@@ -45,11 +48,13 @@ const NavBar: React.FC<NavBarProps> = ({ onProfileClick, onNotificationClick }) 
           </NotificationContainer>
           <ProfileContainer>
             <ProfileNameWrapper>
-              <ProfileNamePrimary>Jordan Knott</ProfileNamePrimary>
+              <ProfileNamePrimary>
+                {firstName} {lastName}
+              </ProfileNamePrimary>
               <ProfileNameSecondary>Manager</ProfileNameSecondary>
             </ProfileNameWrapper>
             <ProfileIcon ref={$profileRef} onClick={handleProfileClick}>
-              JK
+              {initials}
             </ProfileIcon>
           </ProfileContainer>
         </GlobalActions>

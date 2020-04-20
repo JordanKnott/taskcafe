@@ -1,0 +1,20 @@
+query findTask($taskID: UUID!) {
+  findTask(input: {taskID: $taskID}) {
+    taskID
+    name
+    description
+    position
+    taskGroup {
+      taskGroupID
+    }
+    assigned {
+      userID
+      firstName
+      lastName
+      profileIcon {
+        url
+        initials
+      }
+    }
+  }
+}

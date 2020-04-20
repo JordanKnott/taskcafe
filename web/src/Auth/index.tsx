@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { useHistory } from 'react-router';
 
@@ -6,10 +6,13 @@ import { setAccessToken } from 'shared/utils/accessToken';
 
 import Login from 'shared/components/Login';
 import { Container, LoginWrapper } from './Styles';
+import UserIDContext from 'App/context';
+import JwtDecode from 'jwt-decode';
 
 const Auth = () => {
   const [invalidLoginAttempt, setInvalidLoginAttempt] = useState(0);
   const history = useHistory();
+  const { setUserID } = useContext(UserIDContext);
   const login = (
     data: LoginFormData,
     setComplete: (val: boolean) => void,
@@ -31,8 +34,11 @@ const Auth = () => {
       } else {
         const response = await x.json();
         const { accessToken } = response;
-        setAccessToken(accessToken);
+        const claims: JWTToken = JwtDecode(accessToken);
+        setUserID(claims.userId);
         setComplete(true);
+        setAccessToken(accessToken);
+
         history.push('/');
       }
     });

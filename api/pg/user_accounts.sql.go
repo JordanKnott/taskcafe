@@ -11,13 +11,14 @@ import (
 )
 
 const createUserAccount = `-- name: CreateUserAccount :one
-INSERT INTO user_account(display_name, email, username, created_at, password_hash)
-  VALUES ($1, $2, $3, $4, $5)
-RETURNING user_id, created_at, display_name, email, username, password_hash
+INSERT INTO user_account(first_name, last_name, email, username, created_at, password_hash)
+  VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING user_id, created_at, first_name, last_name, email, username, password_hash
 `
 
 type CreateUserAccountParams struct {
-	DisplayName  string    `json:"display_name"`
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
 	Email        string    `json:"email"`
 	Username     string    `json:"username"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -26,7 +27,8 @@ type CreateUserAccountParams struct {
 
 func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error) {
 	row := q.db.QueryRowContext(ctx, createUserAccount,
-		arg.DisplayName,
+		arg.FirstName,
+		arg.LastName,
 		arg.Email,
 		arg.Username,
 		arg.CreatedAt,
@@ -36,7 +38,8 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 	err := row.Scan(
 		&i.UserID,
 		&i.CreatedAt,
-		&i.DisplayName,
+		&i.FirstName,
+		&i.LastName,
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
@@ -45,7 +48,7 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 }
 
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
-SELECT user_id, created_at, display_name, email, username, password_hash FROM user_account
+SELECT user_id, created_at, first_name, last_name, email, username, password_hash FROM user_account
 `
 
 func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error) {
@@ -60,7 +63,8 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 		if err := rows.Scan(
 			&i.UserID,
 			&i.CreatedAt,
-			&i.DisplayName,
+			&i.FirstName,
+			&i.LastName,
 			&i.Email,
 			&i.Username,
 			&i.PasswordHash,
@@ -79,7 +83,7 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 }
 
 const getUserAccountByID = `-- name: GetUserAccountByID :one
-SELECT user_id, created_at, display_name, email, username, password_hash FROM user_account WHERE user_id = $1
+SELECT user_id, created_at, first_name, last_name, email, username, password_hash FROM user_account WHERE user_id = $1
 `
 
 func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error) {
@@ -88,7 +92,8 @@ func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (Use
 	err := row.Scan(
 		&i.UserID,
 		&i.CreatedAt,
-		&i.DisplayName,
+		&i.FirstName,
+		&i.LastName,
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
@@ -97,7 +102,7 @@ func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (Use
 }
 
 const getUserAccountByUsername = `-- name: GetUserAccountByUsername :one
-SELECT user_id, created_at, display_name, email, username, password_hash FROM user_account WHERE username = $1
+SELECT user_id, created_at, first_name, last_name, email, username, password_hash FROM user_account WHERE username = $1
 `
 
 func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error) {
@@ -106,7 +111,8 @@ func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string)
 	err := row.Scan(
 		&i.UserID,
 		&i.CreatedAt,
-		&i.DisplayName,
+		&i.FirstName,
+		&i.LastName,
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,

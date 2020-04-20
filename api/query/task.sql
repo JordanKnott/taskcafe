@@ -2,6 +2,12 @@
 INSERT INTO task (task_group_id, created_at, name, position)
   VALUES($1, $2, $3, $4) RETURNING *;
 
+-- name: UpdateTaskDescription :one
+UPDATE task SET description = $2 WHERE task_id = $1 RETURNING *;
+
+-- name: GetTaskByID :one
+SELECT * FROM task WHERE task_id = $1;
+
 -- name: GetTasksForTaskGroupID :many
 SELECT * FROM task WHERE task_group_id = $1;
 

@@ -1,6 +1,23 @@
 scalar Time
-
 scalar UUID
+
+type TaskLabel {
+  taskLabelID: ID!
+  labelColorID: UUID!
+  colorHex: String!
+}
+
+type ProfileIcon {
+  url: String
+  initials: String
+}
+
+type ProjectMember {
+  userID: ID!
+  firstName: String!
+  lastName: String!
+  profileIcon: ProfileIcon!
+}
 
 type RefreshToken {
   tokenId: ID!
@@ -13,30 +30,26 @@ type UserAccount {
   userID: ID!
   email: String!
   createdAt: Time!
-  displayName: String!
+  firstName: String!
+  lastName: String!
   username: String!
-}
-
-type Organization {
-  organizationID: ID!
-  createdAt: Time!
-  name: String!
-  teams: [Team!]!
+  profileIcon: ProfileIcon!
 }
 
 type Team {
   teamID: ID!
   createdAt: Time!
   name: String!
-  projects: [Project!]!
 }
 
 type Project {
   projectID: ID!
-  teamID: String!
   createdAt: Time!
   name: String!
+  team: Team!
+  owner: ProjectMember!
   taskGroups: [TaskGroup!]!
+  members: [ProjectMember!]!
 }
 
 type TaskGroup {
@@ -54,6 +67,9 @@ type Task {
   createdAt: Time!
   name: String!
   position: Float!
+  description: String
+  assigned: [ProjectMember!]!
+  labels: [TaskLabel!]!
 }
 
 input ProjectsFilter {
@@ -68,14 +84,18 @@ input FindProject {
   projectId: String!
 }
 
+input FindTask {
+  taskID: UUID!
+}
+
 type Query {
-  organizations: [Organization!]!
   users: [UserAccount!]!
   findUser(input: FindUser!): UserAccount!
   findProject(input: FindProject!): Project!
-  teams: [Team!]!
+  findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
   taskGroups: [TaskGroup!]!
+  me: UserAccount!
 }
 
 input NewRefreshToken {
@@ -85,7 +105,8 @@ input NewRefreshToken {
 input NewUserAccount {
   username: String!
   email: String!
-  displayName: String!
+  firstName: String!
+  lastName: String!
   password: String!
 }
 
@@ -95,7 +116,8 @@ input NewTeam {
 }
 
 input NewProject {
-  teamID: String!
+  userID: UUID!
+  teamID: UUID!
   name: String!
 }
 
@@ -103,10 +125,6 @@ input NewTaskGroup {
   projectID: String!
   name: String!
   position: Float!
-}
-
-input NewOrganization {
-  name: String!
 }
 
 input LogoutUser {
@@ -151,12 +169,30 @@ type DeleteTaskGroupPayload {
   taskGroup: TaskGroup!
 }
 
+input AssignTaskInput {
+  taskID: UUID!
+  userID: UUID!
+}
+
+input UpdateTaskDescriptionInput {
+  taskID: UUID!
+  description: String!
+}
+
+input AddTaskLabelInput {
+  taskID: UUID!
+  labelColorID: UUID!
+}
+
+input RemoveTaskLabelInput {
+  taskID: UUID!
+  taskLabelID: UUID!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
   createUserAccount(input: NewUserAccount!): UserAccount!
-
-  createOrganization(input: NewOrganization!): Organization!
 
   createTeam(input: NewTeam!): Team!
 
@@ -166,10 +202,15 @@ type Mutation {
   updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
   deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
 
+  addTaskLabel(input: AddTaskLabelInput): Task!
+  removeTaskLabel(input: RemoveTaskLabelInput): Task!
+
   createTask(input: NewTask!): Task!
+  updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
   updateTaskLocation(input: NewTaskLocation!): Task!
   updateTaskName(input: UpdateTaskName!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+  assignTask(input: AssignTaskInput): Task!
 
   logoutUser(input: LogoutUser!): Boolean!
 }

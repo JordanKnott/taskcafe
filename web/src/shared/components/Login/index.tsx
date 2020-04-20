@@ -55,7 +55,7 @@ const Login = ({ onSubmit }: LoginProps) => {
               <FormLabel htmlFor="password">
                 Password
                 <FormTextInput
-                  type="text"
+                  type="password"
                   id="password"
                   name="password"
                   ref={register({ required: 'Password is required' })}

@@ -6,9 +6,10 @@ import { Separator, Container, WrapperDiamond, Wrapper, ActionsList, ActionItem,
 type DropdownMenuProps = {
   left: number;
   top: number;
+  onLogout: () => void;
 };
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top }) => {
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout }) => {
   return (
     <Container left={left} top={top}>
       <Wrapper>
@@ -18,7 +19,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top }) => {
         </ActionItem>
         <Separator />
         <ActionsList>
-          <ActionItem>
+          <ActionItem onClick={onLogout}>
             <Exit size={16} color="#c2c6dc" />
             <ActionTitle>Logout</ActionTitle>
           </ActionItem>

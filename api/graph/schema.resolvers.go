@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,14 +25,8 @@ func (r *mutationResolver) CreateRefreshToken(ctx context.Context, input NewRefr
 
 func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserAccount) (*pg.UserAccount, error) {
 	createdAt := time.Now().UTC()
-	userAccount, err := r.Repository.CreateUserAccount(ctx, pg.CreateUserAccountParams{input.Username, input.Email, input.DisplayName, createdAt, input.Password})
+	userAccount, err := r.Repository.CreateUserAccount(ctx, pg.CreateUserAccountParams{input.FirstName, input.LastName, input.Email, input.Username, createdAt, input.Password})
 	return &userAccount, err
-}
-
-func (r *mutationResolver) CreateOrganization(ctx context.Context, input NewOrganization) (*pg.Organization, error) {
-	createdAt := time.Now().UTC()
-	organization, err := r.Repository.CreateOrganization(ctx, pg.CreateOrganizationParams{createdAt, input.Name})
-	return &organization, err
 }
 
 func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error) {
@@ -46,11 +41,7 @@ func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*pg.T
 
 func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) (*pg.Project, error) {
 	createdAt := time.Now().UTC()
-	teamID, err := uuid.Parse(input.TeamID)
-	if err != nil {
-		return &pg.Project{}, err
-	}
-	project, err := r.Repository.CreateProject(ctx, pg.CreateProjectParams{teamID, createdAt, input.Name})
+	project, err := r.Repository.CreateProject(ctx, pg.CreateProjectParams{input.UserID, input.TeamID, createdAt, input.Name})
 	return &project, err
 }
 
@@ -89,6 +80,20 @@ func (r *mutationResolver) DeleteTaskGroup(ctx context.Context, input DeleteTask
 	return &DeleteTaskGroupPayload{true, int(deletedTasks + deletedTaskGroups), &taskGroup}, nil
 }
 
+func (r *mutationResolver) AddTaskLabel(ctx context.Context, input *AddTaskLabelInput) (*pg.Task, error) {
+	assignedDate := time.Now().UTC()
+	_, err := r.Repository.CreateTaskLabelForTask(ctx, pg.CreateTaskLabelForTaskParams{input.TaskID, input.LabelColorID, assignedDate})
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	return &task, nil
+}
+
+func (r *mutationResolver) RemoveTaskLabel(ctx context.Context, input *RemoveTaskLabelInput) (*pg.Task, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*pg.Task, error) {
 	taskGroupID, err := uuid.Parse(input.TaskGroupID)
 	createdAt := time.Now().UTC()
@@ -97,6 +102,11 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*pg.T
 	}
 
 	task, err := r.Repository.CreateTask(ctx, pg.CreateTaskParams{taskGroupID, createdAt, input.Name, input.Position})
+	return &task, err
+}
+
+func (r *mutationResolver) UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*pg.Task, error) {
+	task, err := r.Repository.UpdateTaskDescription(ctx, pg.UpdateTaskDescriptionParams{input.TaskID, sql.NullString{String: input.Description, Valid: true}})
 	return &task, err
 }
 
@@ -139,6 +149,21 @@ func (r *mutationResolver) DeleteTask(ctx context.Context, input DeleteTaskInput
 	return &DeleteTaskPayload{taskID.String()}, nil
 }
 
+func (r *mutationResolver) AssignTask(ctx context.Context, input *AssignTaskInput) (*pg.Task, error) {
+	assignedDate := time.Now().UTC()
+	assignedTask, err := r.Repository.CreateTaskAssigned(ctx, pg.CreateTaskAssignedParams{input.TaskID, input.UserID, assignedDate})
+	log.WithFields(log.Fields{
+		"userID":         assignedTask.UserID,
+		"taskID":         assignedTask.TaskID,
+		"assignedTaskID": assignedTask.TaskAssignedID,
+	}).Info("assigned task")
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	return &task, err
+}
+
 func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
 	userID, err := uuid.Parse(input.UserID)
 	if err != nil {
@@ -149,21 +174,35 @@ func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bo
 	return true, err
 }
 
-func (r *organizationResolver) Teams(ctx context.Context, obj *pg.Organization) ([]pg.Team, error) {
-	teams, err := r.Repository.GetTeamsForOrganization(ctx, obj.OrganizationID)
-	return teams, err
+func (r *projectResolver) Team(ctx context.Context, obj *pg.Project) (*pg.Team, error) {
+	team, err := r.Repository.GetTeamByID(ctx, obj.TeamID)
+	return &team, err
 }
 
-func (r *projectResolver) TeamID(ctx context.Context, obj *pg.Project) (string, error) {
-	return obj.TeamID.String(), nil
+func (r *projectResolver) Owner(ctx context.Context, obj *pg.Project) (*ProjectMember, error) {
+	user, err := r.Repository.GetUserAccountByID(ctx, obj.Owner)
+	if err != nil {
+		return &ProjectMember{}, err
+	}
+	initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
+	profileIcon := &ProfileIcon{nil, &initials}
+	return &ProjectMember{obj.Owner, user.FirstName, user.LastName, profileIcon}, nil
 }
 
 func (r *projectResolver) TaskGroups(ctx context.Context, obj *pg.Project) ([]pg.TaskGroup, error) {
 	return r.Repository.GetTaskGroupsForProject(ctx, obj.ProjectID)
 }
 
-func (r *queryResolver) Organizations(ctx context.Context) ([]pg.Organization, error) {
-	return r.Repository.GetAllOrganizations(ctx)
+func (r *projectResolver) Members(ctx context.Context, obj *pg.Project) ([]ProjectMember, error) {
+	user, err := r.Repository.GetUserAccountByID(ctx, obj.Owner)
+	members := []ProjectMember{}
+	if err != nil {
+		return members, err
+	}
+	initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
+	profileIcon := &ProfileIcon{nil, &initials}
+	members = append(members, ProjectMember{obj.Owner, user.FirstName, user.LastName, profileIcon})
+	return members, nil
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]pg.UserAccount, error) {
@@ -204,8 +243,9 @@ func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*pg
 	return &project, err
 }
 
-func (r *queryResolver) Teams(ctx context.Context) ([]pg.Team, error) {
-	return r.Repository.GetAllTeams(ctx)
+func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*pg.Task, error) {
+	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	return &task, err
 }
 
 func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]pg.Project, error) {
@@ -223,9 +263,57 @@ func (r *queryResolver) TaskGroups(ctx context.Context) ([]pg.TaskGroup, error) 
 	return r.Repository.GetAllTaskGroups(ctx)
 }
 
+func (r *queryResolver) Me(ctx context.Context) (*pg.UserAccount, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		return &pg.UserAccount{}, fmt.Errorf("internal server error")
+	}
+	log.WithFields(log.Fields{
+		"userID": userID,
+	}).Info("getting user account")
+	user, err := r.Repository.GetUserAccountByID(ctx, userID)
+	if err != nil {
+		return &pg.UserAccount{}, err
+	}
+	return &user, err
+}
+
 func (r *taskResolver) TaskGroup(ctx context.Context, obj *pg.Task) (*pg.TaskGroup, error) {
 	taskGroup, err := r.Repository.GetTaskGroupByID(ctx, obj.TaskGroupID)
 	return &taskGroup, err
+}
+
+func (r *taskResolver) Description(ctx context.Context, obj *pg.Task) (*string, error) {
+	task, err := r.Repository.GetTaskByID(ctx, obj.TaskID)
+	if err != nil {
+		return nil, err
+	}
+	if !task.Description.Valid {
+		return nil, nil
+	}
+	return &task.Description.String, nil
+}
+
+func (r *taskResolver) Assigned(ctx context.Context, obj *pg.Task) ([]ProjectMember, error) {
+	taskMemberLinks, err := r.Repository.GetAssignedMembersForTask(ctx, obj.TaskID)
+	taskMembers := []ProjectMember{}
+	if err != nil {
+		return taskMembers, err
+	}
+	for _, taskMemberLink := range taskMemberLinks {
+		user, err := r.Repository.GetUserAccountByID(ctx, taskMemberLink.UserID)
+		if err != nil {
+			return taskMembers, err
+		}
+		initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
+		profileIcon := &ProfileIcon{nil, &initials}
+		taskMembers = append(taskMembers, ProjectMember{taskMemberLink.UserID, user.FirstName, user.LastName, profileIcon})
+	}
+	return taskMembers, nil
+}
+
+func (r *taskResolver) Labels(ctx context.Context, obj *pg.Task) ([]pg.TaskLabel, error) {
+	return r.Repository.GetTaskLabelsForTaskID(ctx, obj.TaskID)
 }
 
 func (r *taskGroupResolver) ProjectID(ctx context.Context, obj *pg.TaskGroup) (string, error) {
@@ -237,15 +325,22 @@ func (r *taskGroupResolver) Tasks(ctx context.Context, obj *pg.TaskGroup) ([]pg.
 	return tasks, err
 }
 
-func (r *teamResolver) Projects(ctx context.Context, obj *pg.Team) ([]pg.Project, error) {
-	return r.Repository.GetAllProjectsForTeam(ctx, obj.TeamID)
+func (r *taskLabelResolver) ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error) {
+	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
+	if err != nil {
+		return "", err
+	}
+	return labelColor.ColorHex, nil
+}
+
+func (r *userAccountResolver) ProfileIcon(ctx context.Context, obj *pg.UserAccount) (*ProfileIcon, error) {
+	initials := string([]rune(obj.FirstName)[0]) + string([]rune(obj.LastName)[0])
+	profileIcon := &ProfileIcon{nil, &initials}
+	return profileIcon, nil
 }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
-
-// Organization returns OrganizationResolver implementation.
-func (r *Resolver) Organization() OrganizationResolver { return &organizationResolver{r} }
 
 // Project returns ProjectResolver implementation.
 func (r *Resolver) Project() ProjectResolver { return &projectResolver{r} }
@@ -259,13 +354,26 @@ func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 // TaskGroup returns TaskGroupResolver implementation.
 func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }
 
-// Team returns TeamResolver implementation.
-func (r *Resolver) Team() TeamResolver { return &teamResolver{r} }
+// TaskLabel returns TaskLabelResolver implementation.
+func (r *Resolver) TaskLabel() TaskLabelResolver { return &taskLabelResolver{r} }
+
+// UserAccount returns UserAccountResolver implementation.
+func (r *Resolver) UserAccount() UserAccountResolver { return &userAccountResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-type organizationResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type taskResolver struct{ *Resolver }
 type taskGroupResolver struct{ *Resolver }
-type teamResolver struct{ *Resolver }
+type taskLabelResolver struct{ *Resolver }
+type userAccountResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *userAccountResolver) DisplayName(ctx context.Context, obj *pg.UserAccount) (string, error) {
+	return obj.FirstName + " " + obj.LastName, nil
+}

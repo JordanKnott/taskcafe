@@ -1,3 +1,8 @@
+interface JWTToken {
+  userId: string;
+  iat: string;
+  exp: string;
+}
 interface ColumnState {
   [key: string]: TaskGroup;
 }
@@ -29,9 +34,15 @@ type InnerTaskGroup = {
   position?: number;
 };
 
+type ProfileIcon = {
+  url: string | null;
+  initials: string | null;
+};
+
 type TaskUser = {
   userID: string;
   displayName: string;
+  profileIcon: ProfileIcon;
 };
 
 type Task = {

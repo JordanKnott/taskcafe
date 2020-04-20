@@ -15,6 +15,27 @@ export type Scalars = {
 
 
 
+export type TaskLabel = {
+   __typename?: 'TaskLabel';
+  taskLabelID: Scalars['ID'];
+  labelColorID: Scalars['UUID'];
+  colorHex: Scalars['String'];
+};
+
+export type ProfileIcon = {
+   __typename?: 'ProfileIcon';
+  url?: Maybe<Scalars['String']>;
+  initials?: Maybe<Scalars['String']>;
+};
+
+export type ProjectMember = {
+   __typename?: 'ProjectMember';
+  userID: Scalars['ID'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
+  profileIcon: ProfileIcon;
+};
+
 export type RefreshToken = {
    __typename?: 'RefreshToken';
   tokenId: Scalars['ID'];
@@ -28,16 +49,10 @@ export type UserAccount = {
   userID: Scalars['ID'];
   email: Scalars['String'];
   createdAt: Scalars['Time'];
-  displayName: Scalars['String'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
   username: Scalars['String'];
-};
-
-export type Organization = {
-   __typename?: 'Organization';
-  organizationID: Scalars['ID'];
-  createdAt: Scalars['Time'];
-  name: Scalars['String'];
-  teams: Array<Team>;
+  profileIcon: ProfileIcon;
 };
 
 export type Team = {
@@ -45,16 +60,17 @@ export type Team = {
   teamID: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
-  projects: Array<Project>;
 };
 
 export type Project = {
    __typename?: 'Project';
   projectID: Scalars['ID'];
-  teamID: Scalars['String'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
+  team: Team;
+  owner: ProjectMember;
   taskGroups: Array<TaskGroup>;
+  members: Array<ProjectMember>;
 };
 
 export type TaskGroup = {
@@ -74,6 +90,9 @@ export type Task = {
   createdAt: Scalars['Time'];
   name: Scalars['String'];
   position: Scalars['Float'];
+  description?: Maybe<Scalars['String']>;
+  assigned: Array<ProjectMember>;
+  labels: Array<TaskLabel>;
 };
 
 export type ProjectsFilter = {
@@ -88,15 +107,19 @@ export type FindProject = {
   projectId: Scalars['String'];
 };
 
+export type FindTask = {
+  taskID: Scalars['UUID'];
+};
+
 export type Query = {
    __typename?: 'Query';
-  organizations: Array<Organization>;
   users: Array<UserAccount>;
   findUser: UserAccount;
   findProject: Project;
-  teams: Array<Team>;
+  findTask: Task;
   projects: Array<Project>;
   taskGroups: Array<TaskGroup>;
+  me: UserAccount;
 };
 
 
@@ -107,6 +130,11 @@ export type QueryFindUserArgs = {
 
 export type QueryFindProjectArgs = {
   input: FindProject;
+};
+
+
+export type QueryFindTaskArgs = {
+  input: FindTask;
 };
 
 
@@ -121,7 +149,8 @@ export type NewRefreshToken = {
 export type NewUserAccount = {
   username: Scalars['String'];
   email: Scalars['String'];
-  displayName: Scalars['String'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
   password: Scalars['String'];
 };
 
@@ -131,7 +160,8 @@ export type NewTeam = {
 };
 
 export type NewProject = {
-  teamID: Scalars['String'];
+  userID: Scalars['UUID'];
+  teamID: Scalars['UUID'];
   name: Scalars['String'];
 };
 
@@ -139,10 +169,6 @@ export type NewTaskGroup = {
   projectID: Scalars['String'];
   name: Scalars['String'];
   position: Scalars['Float'];
-};
-
-export type NewOrganization = {
-  name: Scalars['String'];
 };
 
 export type LogoutUser = {
@@ -191,20 +217,43 @@ export type DeleteTaskGroupPayload = {
   taskGroup: TaskGroup;
 };
 
+export type AssignTaskInput = {
+  taskID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
+export type UpdateTaskDescriptionInput = {
+  taskID: Scalars['UUID'];
+  description: Scalars['String'];
+};
+
+export type AddTaskLabelInput = {
+  taskID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
+};
+
+export type RemoveTaskLabelInput = {
+  taskID: Scalars['UUID'];
+  taskLabelID: Scalars['UUID'];
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
   createUserAccount: UserAccount;
-  createOrganization: Organization;
   createTeam: Team;
   createProject: Project;
   createTaskGroup: TaskGroup;
   updateTaskGroupLocation: TaskGroup;
   deleteTaskGroup: DeleteTaskGroupPayload;
+  addTaskLabel: Task;
+  removeTaskLabel: Task;
   createTask: Task;
+  updateTaskDescription: Task;
   updateTaskLocation: Task;
   updateTaskName: Task;
   deleteTask: DeleteTaskPayload;
+  assignTask: Task;
   logoutUser: Scalars['Boolean'];
 };
 
@@ -216,11 +265,6 @@ export type MutationCreateRefreshTokenArgs = {
 
 export type MutationCreateUserAccountArgs = {
   input: NewUserAccount;
-};
-
-
-export type MutationCreateOrganizationArgs = {
-  input: NewOrganization;
 };
 
 
@@ -249,8 +293,23 @@ export type MutationDeleteTaskGroupArgs = {
 };
 
 
+export type MutationAddTaskLabelArgs = {
+  input?: Maybe<AddTaskLabelInput>;
+};
+
+
+export type MutationRemoveTaskLabelArgs = {
+  input?: Maybe<RemoveTaskLabelInput>;
+};
+
+
 export type MutationCreateTaskArgs = {
   input: NewTask;
+};
+
+
+export type MutationUpdateTaskDescriptionArgs = {
+  input: UpdateTaskDescriptionInput;
 };
 
 
@@ -269,9 +328,32 @@ export type MutationDeleteTaskArgs = {
 };
 
 
+export type MutationAssignTaskArgs = {
+  input?: Maybe<AssignTaskInput>;
+};
+
+
 export type MutationLogoutUserArgs = {
   input: LogoutUser;
 };
+
+export type AssignTaskMutationVariables = {
+  taskID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
+
+export type AssignTaskMutation = (
+  { __typename?: 'Mutation' }
+  & { assignTask: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'taskID'>
+    & { assigned: Array<(
+      { __typename?: 'ProjectMember' }
+      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+    )> }
+  ) }
+);
 
 export type CreateTaskMutationVariables = {
   taskGroupID: Scalars['String'];
@@ -351,13 +433,44 @@ export type FindProjectQuery = (
   & { findProject: (
     { __typename?: 'Project' }
     & Pick<Project, 'name'>
-    & { taskGroups: Array<(
+    & { members: Array<(
+      { __typename?: 'ProjectMember' }
+      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+      & { profileIcon: (
+        { __typename?: 'ProfileIcon' }
+        & Pick<ProfileIcon, 'url' | 'initials'>
+      ) }
+    )>, taskGroups: Array<(
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'taskGroupID' | 'name' | 'position'>
       & { tasks: Array<(
         { __typename?: 'Task' }
-        & Pick<Task, 'taskID' | 'name' | 'position'>
+        & Pick<Task, 'taskID' | 'name' | 'position' | 'description'>
       )> }
+    )> }
+  ) }
+);
+
+export type FindTaskQueryVariables = {
+  taskID: Scalars['UUID'];
+};
+
+
+export type FindTaskQuery = (
+  { __typename?: 'Query' }
+  & { findTask: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'taskID' | 'name' | 'description' | 'position'>
+    & { taskGroup: (
+      { __typename?: 'TaskGroup' }
+      & Pick<TaskGroup, 'taskGroupID'>
+    ), assigned: Array<(
+      { __typename?: 'ProjectMember' }
+      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+      & { profileIcon: (
+        { __typename?: 'ProfileIcon' }
+        & Pick<ProfileIcon, 'url' | 'initials'>
+      ) }
     )> }
   ) }
 );
@@ -367,18 +480,43 @@ export type GetProjectsQueryVariables = {};
 
 export type GetProjectsQuery = (
   { __typename?: 'Query' }
-  & { organizations: Array<(
-    { __typename?: 'Organization' }
-    & Pick<Organization, 'name'>
-    & { teams: Array<(
+  & { projects: Array<(
+    { __typename?: 'Project' }
+    & Pick<Project, 'projectID' | 'name'>
+    & { team: (
       { __typename?: 'Team' }
-      & Pick<Team, 'name'>
-      & { projects: Array<(
-        { __typename?: 'Project' }
-        & Pick<Project, 'name' | 'projectID'>
-      )> }
-    )> }
+      & Pick<Team, 'teamID' | 'name'>
+    ) }
   )> }
+);
+
+export type MeQueryVariables = {};
+
+
+export type MeQuery = (
+  { __typename?: 'Query' }
+  & { me: (
+    { __typename?: 'UserAccount' }
+    & Pick<UserAccount, 'firstName' | 'lastName'>
+    & { profileIcon: (
+      { __typename?: 'ProfileIcon' }
+      & Pick<ProfileIcon, 'initials'>
+    ) }
+  ) }
+);
+
+export type UpdateTaskDescriptionMutationVariables = {
+  taskID: Scalars['UUID'];
+  description: Scalars['String'];
+};
+
+
+export type UpdateTaskDescriptionMutation = (
+  { __typename?: 'Mutation' }
+  & { updateTaskDescription: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'taskID'>
+  ) }
 );
 
 export type UpdateTaskGroupLocationMutationVariables = {
@@ -425,6 +563,44 @@ export type UpdateTaskNameMutation = (
 );
 
 
+export const AssignTaskDocument = gql`
+    mutation assignTask($taskID: UUID!, $userID: UUID!) {
+  assignTask(input: {taskID: $taskID, userID: $userID}) {
+    assigned {
+      userID
+      firstName
+      lastName
+    }
+    taskID
+  }
+}
+    `;
+export type AssignTaskMutationFn = ApolloReactCommon.MutationFunction<AssignTaskMutation, AssignTaskMutationVariables>;
+
+/**
+ * __useAssignTaskMutation__
+ *
+ * To run a mutation, you first call `useAssignTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssignTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assignTaskMutation, { data, loading, error }] = useAssignTaskMutation({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *      userID: // value for 'userID'
+ *   },
+ * });
+ */
+export function useAssignTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<AssignTaskMutation, AssignTaskMutationVariables>) {
+        return ApolloReactHooks.useMutation<AssignTaskMutation, AssignTaskMutationVariables>(AssignTaskDocument, baseOptions);
+      }
+export type AssignTaskMutationHookResult = ReturnType<typeof useAssignTaskMutation>;
+export type AssignTaskMutationResult = ApolloReactCommon.MutationResult<AssignTaskMutation>;
+export type AssignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<AssignTaskMutation, AssignTaskMutationVariables>;
 export const CreateTaskDocument = gql`
     mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
   createTask(input: {taskGroupID: $taskGroupID, name: $name, position: $position}) {
@@ -576,6 +752,15 @@ export const FindProjectDocument = gql`
     query findProject($projectId: String!) {
   findProject(input: {projectId: $projectId}) {
     name
+    members {
+      userID
+      firstName
+      lastName
+      profileIcon {
+        url
+        initials
+      }
+    }
     taskGroups {
       taskGroupID
       name
@@ -584,6 +769,7 @@ export const FindProjectDocument = gql`
         taskID
         name
         position
+        description
       }
     }
   }
@@ -615,16 +801,62 @@ export function useFindProjectLazyQuery(baseOptions?: ApolloReactHooks.LazyQuery
 export type FindProjectQueryHookResult = ReturnType<typeof useFindProjectQuery>;
 export type FindProjectLazyQueryHookResult = ReturnType<typeof useFindProjectLazyQuery>;
 export type FindProjectQueryResult = ApolloReactCommon.QueryResult<FindProjectQuery, FindProjectQueryVariables>;
+export const FindTaskDocument = gql`
+    query findTask($taskID: UUID!) {
+  findTask(input: {taskID: $taskID}) {
+    taskID
+    name
+    description
+    position
+    taskGroup {
+      taskGroupID
+    }
+    assigned {
+      userID
+      firstName
+      lastName
+      profileIcon {
+        url
+        initials
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useFindTaskQuery__
+ *
+ * To run a query within a React component, call `useFindTaskQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFindTaskQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFindTaskQuery({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *   },
+ * });
+ */
+export function useFindTaskQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<FindTaskQuery, FindTaskQueryVariables>) {
+        return ApolloReactHooks.useQuery<FindTaskQuery, FindTaskQueryVariables>(FindTaskDocument, baseOptions);
+      }
+export function useFindTaskLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<FindTaskQuery, FindTaskQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<FindTaskQuery, FindTaskQueryVariables>(FindTaskDocument, baseOptions);
+        }
+export type FindTaskQueryHookResult = ReturnType<typeof useFindTaskQuery>;
+export type FindTaskLazyQueryHookResult = ReturnType<typeof useFindTaskLazyQuery>;
+export type FindTaskQueryResult = ApolloReactCommon.QueryResult<FindTaskQuery, FindTaskQueryVariables>;
 export const GetProjectsDocument = gql`
     query getProjects {
-  organizations {
+  projects {
+    projectID
     name
-    teams {
+    team {
+      teamID
       name
-      projects {
-        name
-        projectID
-      }
     }
   }
 }
@@ -654,6 +886,75 @@ export function useGetProjectsLazyQuery(baseOptions?: ApolloReactHooks.LazyQuery
 export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
 export type GetProjectsLazyQueryHookResult = ReturnType<typeof useGetProjectsLazyQuery>;
 export type GetProjectsQueryResult = ApolloReactCommon.QueryResult<GetProjectsQuery, GetProjectsQueryVariables>;
+export const MeDocument = gql`
+    query me {
+  me {
+    firstName
+    lastName
+    profileIcon {
+      initials
+    }
+  }
+}
+    `;
+
+/**
+ * __useMeQuery__
+ *
+ * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMeQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<MeQuery, MeQueryVariables>) {
+        return ApolloReactHooks.useQuery<MeQuery, MeQueryVariables>(MeDocument, baseOptions);
+      }
+export function useMeLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, baseOptions);
+        }
+export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
+export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
+export type MeQueryResult = ApolloReactCommon.QueryResult<MeQuery, MeQueryVariables>;
+export const UpdateTaskDescriptionDocument = gql`
+    mutation updateTaskDescription($taskID: UUID!, $description: String!) {
+  updateTaskDescription(input: {taskID: $taskID, description: $description}) {
+    taskID
+  }
+}
+    `;
+export type UpdateTaskDescriptionMutationFn = ApolloReactCommon.MutationFunction<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>;
+
+/**
+ * __useUpdateTaskDescriptionMutation__
+ *
+ * To run a mutation, you first call `useUpdateTaskDescriptionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTaskDescriptionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTaskDescriptionMutation, { data, loading, error }] = useUpdateTaskDescriptionMutation({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *      description: // value for 'description'
+ *   },
+ * });
+ */
+export function useUpdateTaskDescriptionMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>(UpdateTaskDescriptionDocument, baseOptions);
+      }
+export type UpdateTaskDescriptionMutationHookResult = ReturnType<typeof useUpdateTaskDescriptionMutation>;
+export type UpdateTaskDescriptionMutationResult = ApolloReactCommon.MutationResult<UpdateTaskDescriptionMutation>;
+export type UpdateTaskDescriptionMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>;
 export const UpdateTaskGroupLocationDocument = gql`
     mutation updateTaskGroupLocation($taskGroupID: UUID!, $position: Float!) {
   updateTaskGroupLocation(input: {taskGroupID: $taskGroupID, position: $position}) {

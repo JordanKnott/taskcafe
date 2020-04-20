@@ -1,6 +1,15 @@
 query findProject($projectId: String!) {
   findProject(input: { projectId: $projectId }) {
     name
+    members {
+      userID
+      firstName
+      lastName
+      profileIcon {
+        url
+        initials
+      }
+    }
     taskGroups {
       taskGroupID
       name
@@ -9,6 +18,7 @@ query findProject($projectId: String!) {
         taskID
         name
         position
+        description
       }
     }
   }

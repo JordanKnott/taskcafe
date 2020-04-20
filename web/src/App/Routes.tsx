@@ -12,14 +12,12 @@ type RoutesProps = {
 };
 
 const Routes = ({ history }: RoutesProps) => (
-  <Router history={history}>
-    <Switch>
-      <Route exact path="/" component={Dashboard} />
-      <Route exact path="/projects" component={Projects} />
-      <Route path="/projects/:projectId" component={Project} />
-      <Route exact path="/login" component={Login} />
-    </Switch>
-  </Router>
+  <Switch>
+    <Route exact path="/login" component={Login} />
+    <Route exact path="/" component={Dashboard} />
+    <Route exact path="/projects" component={Projects} />
+    <Route path="/projects/:projectId" component={Project} />
+  </Switch>
 );
 
 export default Routes;

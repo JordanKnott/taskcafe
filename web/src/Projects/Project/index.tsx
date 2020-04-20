@@ -11,18 +11,17 @@ import {
   useUpdateTaskGroupLocationMutation,
   useCreateTaskGroupMutation,
   useDeleteTaskGroupMutation,
+  useUpdateTaskDescriptionMutation,
+  useAssignTaskMutation,
 } from 'shared/generated/graphql';
 
-import Navbar from 'App/Navbar';
-import TopNavbar from 'App/TopNavbar';
 import QuickCardEditor from 'shared/components/QuickCardEditor';
 import PopupMenu from 'shared/components/PopupMenu';
 import ListActions from 'shared/components/ListActions';
-import Modal from 'shared/components/Modal';
-import TaskDetails from 'shared/components/TaskDetails';
 import MemberManager from 'shared/components/MemberManager';
 import { LabelsPopup } from 'shared/components/PopupMenu/PopupMenu.stories';
 import KanbanBoard from 'Projects/Project/KanbanBoard';
+import Details from './Details';
 
 type TaskRouteProps = {
   taskID: string;
@@ -34,17 +33,6 @@ interface QuickCardEditorState {
   top: number;
   task?: Task;
 }
-
-const MainContent = styled.div`
-  padding: 0 0 50px 80px;
-  height: 100%;
-  background: #262c49;
-`;
-
-const Wrapper = styled.div`
-  font-size: 16px;
-  background-color: red;
-`;
 
 const TitleWrapper = styled.div`
   margin-left: 38px;
@@ -64,7 +52,6 @@ interface ProjectParams {
 const initialState: BoardState = { tasks: {}, columns: {} };
 const initialPopupState = { left: 0, top: 0, isOpen: false, taskGroupID: '' };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
-const initialMemberPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
 const initialLabelsPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
 const initialTaskDetailsState = { isOpen: false, taskID: '' };
 
@@ -73,9 +60,9 @@ const Project = () => {
   const match = useRouteMatch();
   const history = useHistory();
 
+  const [updateTaskDescription] = useUpdateTaskDescriptionMutation();
   const [listsData, setListsData] = useState(initialState);
   const [popupData, setPopupData] = useState(initialPopupState);
-  const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
   const [taskDetails, setTaskDetails] = useState(initialTaskDetailsState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
@@ -142,6 +129,7 @@ const Project = () => {
             name: task.name,
             position: task.position,
             labels: [],
+            description: task.description ?? undefined,
           };
         });
       });
@@ -199,30 +187,35 @@ const Project = () => {
     createTaskGroup({ variables: { projectID: projectId, name: listName, position } });
   };
 
+  const [assignTask] = useAssignTaskMutation();
+
   if (loading) {
-    return <Wrapper>Loading</Wrapper>;
+    return <Title>Error Loading</Title>;
   }
   if (data) {
+    const availableMembers = data.findProject.members.map(member => {
+      return {
+        displayName: `${member.firstName} ${member.lastName}`,
+        profileIcon: { url: null, initials: member.profileIcon.initials ?? null },
+        userID: member.userID,
+      };
+    });
     return (
       <>
-        <Navbar />
-        <MainContent>
-          <TopNavbar />
-          <TitleWrapper>
-            <Title>{data.findProject.name}</Title>
-            <KanbanBoard
-              listsData={listsData}
-              onCardDrop={onCardDrop}
-              onListDrop={onListDrop}
-              onCardCreate={onCardCreate}
-              onCreateList={onCreateList}
-              onQuickEditorOpen={onQuickEditorOpen}
-              onOpenListActionsPopup={(isOpen, left, top, taskGroupID) => {
-                setPopupData({ isOpen, top, left, taskGroupID });
-              }}
-            />
-          </TitleWrapper>
-        </MainContent>
+        <TitleWrapper>
+          <Title>{data.findProject.name}</Title>
+        </TitleWrapper>
+        <KanbanBoard
+          listsData={listsData}
+          onCardDrop={onCardDrop}
+          onListDrop={onListDrop}
+          onCardCreate={onCardCreate}
+          onCreateList={onCreateList}
+          onQuickEditorOpen={onQuickEditorOpen}
+          onOpenListActionsPopup={(isOpen, left, top, taskGroupID) => {
+            setPopupData({ isOpen, top, left, taskGroupID });
+          }}
+        />
         {popupData.isOpen && (
           <PopupMenu
             title="List Actions"
@@ -259,50 +252,28 @@ const Project = () => {
         <Route
           path={`${match.path}/c/:taskID`}
           render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
-            <Modal
-              width={1040}
-              onClose={() => {
-                history.push(match.url);
+            <Details
+              availableMembers={availableMembers}
+              projectURL={match.url}
+              taskID={routeProps.match.params.taskID}
+              onTaskNameChange={(updatedTask, newName) => {
+                updateTaskName({ variables: { taskID: updatedTask.taskID, name: newName } });
               }}
-              renderContent={() => {
-                const task = listsData.tasks[routeProps.match.params.taskID];
-                if (!task) {
-                  return <div>loading</div>;
-                }
-                return (
-                  <TaskDetails
-                    task={task}
-                    onTaskNameChange={(updatedTask, newName) => {
-                      updateTaskName({ variables: { taskID: updatedTask.taskID, name: newName } });
-                    }}
-                    onTaskDescriptionChange={(updatedTask, newDescription) => {
-                      console.log(updatedTask, newDescription);
-                    }}
-                    onDeleteTask={deletedTask => {
-                      setTaskDetails(initialTaskDetailsState);
-                      deleteTask({ variables: { taskID: deletedTask.taskID } });
-                    }}
-                    onCloseModal={() => history.push(match.url)}
-                    onOpenAddMemberPopup={(task, bounds) => {
-                      console.log(task, bounds);
-                      setMemberPopupData({
-                        isOpen: true,
-                        taskID: task.taskID,
-                        top: bounds.position.top + bounds.size.height + 10,
-                        left: bounds.position.left,
-                      });
-                    }}
-                    onOpenAddLabelPopup={(task, bounds) => {}}
-                  />
-                );
+              onTaskDescriptionChange={(updatedTask, newDescription) => {
+                updateTaskDescription({ variables: { taskID: updatedTask.taskID, description: newDescription } });
               }}
+              onDeleteTask={deletedTask => {
+                setTaskDetails(initialTaskDetailsState);
+                deleteTask({ variables: { taskID: deletedTask.taskID } });
+              }}
+              onOpenAddLabelPopup={(task, bounds) => {}}
             />
           )}
         />
       </>
     );
   }
-  return <Wrapper>Error</Wrapper>;
+  return <div>Error</div>;
 };
 
 export default Project;

@@ -11,29 +11,36 @@ import (
 )
 
 const createProject = `-- name: CreateProject :one
-INSERT INTO project(team_id, created_at, name) VALUES ($1, $2, $3) RETURNING project_id, team_id, created_at, name
+INSERT INTO project(owner, team_id, created_at, name) VALUES ($1, $2, $3, $4) RETURNING project_id, team_id, created_at, name, owner
 `
 
 type CreateProjectParams struct {
+	Owner     uuid.UUID `json:"owner"`
 	TeamID    uuid.UUID `json:"team_id"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
 }
 
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
-	row := q.db.QueryRowContext(ctx, createProject, arg.TeamID, arg.CreatedAt, arg.Name)
+	row := q.db.QueryRowContext(ctx, createProject,
+		arg.Owner,
+		arg.TeamID,
+		arg.CreatedAt,
+		arg.Name,
+	)
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
+		&i.Owner,
 	)
 	return i, err
 }
 
 const getAllProjects = `-- name: GetAllProjects :many
-SELECT project_id, team_id, created_at, name FROM project
+SELECT project_id, team_id, created_at, name, owner FROM project
 `
 
 func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
@@ -50,6 +57,7 @@ func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
 			&i.TeamID,
 			&i.CreatedAt,
 			&i.Name,
+			&i.Owner,
 		); err != nil {
 			return nil, err
 		}
@@ -65,7 +73,7 @@ func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
 }
 
 const getAllProjectsForTeam = `-- name: GetAllProjectsForTeam :many
-SELECT project_id, team_id, created_at, name FROM project WHERE team_id = $1
+SELECT project_id, team_id, created_at, name, owner FROM project WHERE team_id = $1
 `
 
 func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error) {
@@ -82,6 +90,7 @@ func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) (
 			&i.TeamID,
 			&i.CreatedAt,
 			&i.Name,
+			&i.Owner,
 		); err != nil {
 			return nil, err
 		}
@@ -97,7 +106,7 @@ func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) (
 }
 
 const getProjectByID = `-- name: GetProjectByID :one
-SELECT project_id, team_id, created_at, name FROM project WHERE project_id = $1
+SELECT project_id, team_id, created_at, name, owner FROM project WHERE project_id = $1
 `
 
 func (q *Queries) GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error) {
@@ -108,6 +117,7 @@ func (q *Queries) GetProjectByID(ctx context.Context, projectID uuid.UUID) (Proj
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
+		&i.Owner,
 	)
 	return i, err
 }

@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/google/uuid"
 	"github.com/jordanknott/project-citadel/api/pg"
 )
 
@@ -44,4 +46,8 @@ func NewHandler(repo pg.Repository) http.Handler {
 // NewPlaygroundHandler returns a new GraphQL Playground handler.
 func NewPlaygroundHandler(endpoint string) http.Handler {
 	return playground.Handler("GraphQL Playground", endpoint)
+}
+func GetUserID(ctx context.Context) (uuid.UUID, bool) {
+	userID, ok := ctx.Value("userID").(uuid.UUID)
+	return userID, ok
 }

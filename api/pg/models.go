@@ -3,10 +3,17 @@
 package pg
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type LabelColor struct {
+	LabelColorID uuid.UUID `json:"label_color_id"`
+	ColorHex     string    `json:"color_hex"`
+	Position     float64   `json:"position"`
+}
 
 type Organization struct {
 	OrganizationID uuid.UUID `json:"organization_id"`
@@ -19,6 +26,7 @@ type Project struct {
 	TeamID    uuid.UUID `json:"team_id"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
+	Owner     uuid.UUID `json:"owner"`
 }
 
 type RefreshToken struct {
@@ -29,11 +37,20 @@ type RefreshToken struct {
 }
 
 type Task struct {
-	TaskID      uuid.UUID `json:"task_id"`
-	TaskGroupID uuid.UUID `json:"task_group_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	Name        string    `json:"name"`
-	Position    float64   `json:"position"`
+	TaskID      uuid.UUID      `json:"task_id"`
+	TaskGroupID uuid.UUID      `json:"task_group_id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	Name        string         `json:"name"`
+	Position    float64        `json:"position"`
+	Description sql.NullString `json:"description"`
+	DueDate     sql.NullTime   `json:"due_date"`
+}
+
+type TaskAssigned struct {
+	TaskAssignedID uuid.UUID `json:"task_assigned_id"`
+	TaskID         uuid.UUID `json:"task_id"`
+	UserID         uuid.UUID `json:"user_id"`
+	AssignedDate   time.Time `json:"assigned_date"`
 }
 
 type TaskGroup struct {
@@ -42,6 +59,13 @@ type TaskGroup struct {
 	CreatedAt   time.Time `json:"created_at"`
 	Name        string    `json:"name"`
 	Position    float64   `json:"position"`
+}
+
+type TaskLabel struct {
+	TaskLabelID  uuid.UUID `json:"task_label_id"`
+	TaskID       uuid.UUID `json:"task_id"`
+	LabelColorID uuid.UUID `json:"label_color_id"`
+	AssignedDate time.Time `json:"assigned_date"`
 }
 
 type Team struct {
@@ -54,7 +78,8 @@ type Team struct {
 type UserAccount struct {
 	UserID       uuid.UUID `json:"user_id"`
 	CreatedAt    time.Time `json:"created_at"`
-	DisplayName  string    `json:"display_name"`
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
 	Email        string    `json:"email"`
 	Username     string    `json:"username"`
 	PasswordHash string    `json:"password_hash"`

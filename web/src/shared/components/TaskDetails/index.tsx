@@ -97,9 +97,9 @@ type TaskDetailsProps = {
   onTaskNameChange: (task: Task, newName: string) => void;
   onTaskDescriptionChange: (task: Task, newDescription: string) => void;
   onDeleteTask: (task: Task) => void;
-  onCloseModal: () => void;
   onOpenAddMemberPopup: (task: Task, bounds: ElementBounds) => void;
   onOpenAddLabelPopup: (task: Task, bounds: ElementBounds) => void;
+  onCloseModal: () => void;
 };
 
 const TaskDetails: React.FC<TaskDetailsProps> = ({
@@ -112,6 +112,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onOpenAddLabelPopup,
 }) => {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [description, setDescription] = useState(task.description ?? '');
   const [taskName, setTaskName] = useState(task.name);
   const handleClick = () => {
     setEditorOpen(!editorOpen);
@@ -141,6 +142,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       onOpenAddLabelPopup(task, bounds);
     }
   };
+  console.log(task);
   return (
     <>
       <TaskActions>
@@ -172,9 +174,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TaskDetailsLabel>Description</TaskDetailsLabel>
           {editorOpen ? (
             <DetailsEditor
-              description={task.description ?? ''}
+              description={description}
               onTaskDescriptionChange={newDescription => {
                 setEditorOpen(false);
+                setDescription(newDescription);
                 onTaskDescriptionChange(task, newDescription);
               }}
               onCancel={() => {
@@ -182,7 +185,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               }}
             />
           ) : (
-            <TaskContent description={task.description ?? ''} onEditContent={handleClick} />
+            <TaskContent description={description} onEditContent={handleClick} />
           )}
         </TaskDetailsContent>
         <TaskDetailsSidebar>
@@ -190,10 +193,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TaskDetailAssignees>
             {task.members &&
               task.members.map(member => {
-                const initials = 'JK';
+                console.log(member);
                 return (
                   <TaskDetailAssignee key={member.userID}>
-                    <ProfileIcon>{initials}</ProfileIcon>
+                    <ProfileIcon>{member.profileIcon.initials ?? ''}</ProfileIcon>
                   </TaskDetailAssignee>
                 );
               })}

@@ -8,4 +8,4 @@ SELECT * FROM project WHERE team_id = $1;
 SELECT * FROM project WHERE project_id = $1;
 
 -- name: CreateProject :one
-INSERT INTO project(team_id, created_at, name) VALUES ($1, $2, $3) RETURNING *;
+INSERT INTO project(owner, team_id, created_at, name) VALUES ($1, $2, $3, $4) RETURNING *;

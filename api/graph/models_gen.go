@@ -7,6 +7,16 @@ import (
 	"github.com/jordanknott/project-citadel/api/pg"
 )
 
+type AddTaskLabelInput struct {
+	TaskID       uuid.UUID `json:"taskID"`
+	LabelColorID uuid.UUID `json:"labelColorID"`
+}
+
+type AssignTaskInput struct {
+	TaskID uuid.UUID `json:"taskID"`
+	UserID uuid.UUID `json:"userID"`
+}
+
 type DeleteTaskGroupInput struct {
 	TaskGroupID uuid.UUID `json:"taskGroupID"`
 }
@@ -29,6 +39,10 @@ type FindProject struct {
 	ProjectID string `json:"projectId"`
 }
 
+type FindTask struct {
+	TaskID uuid.UUID `json:"taskID"`
+}
+
 type FindUser struct {
 	UserID string `json:"userId"`
 }
@@ -37,13 +51,10 @@ type LogoutUser struct {
 	UserID string `json:"userID"`
 }
 
-type NewOrganization struct {
-	Name string `json:"name"`
-}
-
 type NewProject struct {
-	TeamID string `json:"teamID"`
-	Name   string `json:"name"`
+	UserID uuid.UUID `json:"userID"`
+	TeamID uuid.UUID `json:"teamID"`
+	Name   string    `json:"name"`
 }
 
 type NewRefreshToken struct {
@@ -79,14 +90,37 @@ type NewTeam struct {
 }
 
 type NewUserAccount struct {
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	DisplayName string `json:"displayName"`
-	Password    string `json:"password"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
+}
+
+type ProfileIcon struct {
+	URL      *string `json:"url"`
+	Initials *string `json:"initials"`
+}
+
+type ProjectMember struct {
+	UserID      uuid.UUID    `json:"userID"`
+	FirstName   string       `json:"firstName"`
+	LastName    string       `json:"lastName"`
+	ProfileIcon *ProfileIcon `json:"profileIcon"`
 }
 
 type ProjectsFilter struct {
 	TeamID *string `json:"teamID"`
+}
+
+type RemoveTaskLabelInput struct {
+	TaskID      uuid.UUID `json:"taskID"`
+	TaskLabelID uuid.UUID `json:"taskLabelID"`
+}
+
+type UpdateTaskDescriptionInput struct {
+	TaskID      uuid.UUID `json:"taskID"`
+	Description string    `json:"description"`
 }
 
 type UpdateTaskName struct {

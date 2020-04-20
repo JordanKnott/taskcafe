@@ -1,0 +1,9 @@
+query me {
+  me {
+    firstName
+    lastName
+    profileIcon {
+      initials
+    }
+  }
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -40,7 +41,13 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "accessClaims", accessClaims)
+		userID, err := uuid.Parse(accessClaims.UserID)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		ctx := context.WithValue(r.Context(), "userID", userID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

@@ -41,11 +41,20 @@ type Repository interface {
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
+	GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, error)
 	GetAllTasks(ctx context.Context) ([]Task, error)
 	GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error)
 	UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocationParams) (Task, error)
 	DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error
 	UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error)
+	UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescriptionParams) (Task, error)
+
+	CreateTaskLabelForTask(ctx context.Context, arg CreateTaskLabelForTaskParams) (TaskLabel, error)
+	GetTaskLabelsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskLabel, error)
+	GetLabelColorByID(ctx context.Context, labelColorID uuid.UUID) (LabelColor, error)
+
+	CreateTaskAssigned(ctx context.Context, arg CreateTaskAssignedParams) (TaskAssigned, error)
+	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
 }
 
 type repoSvc struct {

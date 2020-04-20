@@ -23,6 +23,10 @@ type LoginResponseData struct {
 	AccessToken string `json:"accessToken"`
 }
 
+type LogoutResponseData struct {
+	Status string `json:"status"`
+}
+
 type RefreshTokenResponseData struct {
 	AccessToken string `json:"accessToken"`
 }

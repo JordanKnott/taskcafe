@@ -2,6 +2,7 @@ import React, { createRef, useState } from 'react';
 import styled from 'styled-components';
 
 import DropdownMenu from '.';
+import { action } from '@storybook/addon-actions';
 
 export default {
   component: DropdownMenu,
@@ -49,7 +50,7 @@ export const Default = () => {
           Click me
         </Button>
       </Container>
-      {menu.isOpen && <DropdownMenu left={menu.left} top={menu.top} />}
+      {menu.isOpen && <DropdownMenu onLogout={action('on logout')} left={menu.left} top={menu.top} />}
     </>
   );
 };

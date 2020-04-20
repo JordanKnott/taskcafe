@@ -114,19 +114,15 @@ export const MemberManagerPopup = () => {
       {popupData.isOpen && (
         <PopupMenu title="Members" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
           <MemberManager
-            availableMembers={[{ userID: '1', displayName: 'Jordan Knott' }]}
+            availableMembers={[
+              { userID: '1', displayName: 'Jordan Knott', profileIcon: { url: null, initials: null } },
+            ]}
             activeMembers={[]}
             onMemberChange={action('member change')}
           />
         </PopupMenu>
       )}
       <span
-        style={{
-          width: '60px',
-          textAlign: 'center',
-          margin: '25px auto',
-          cursor: 'pointer',
-        }}
         ref={$buttonRef}
         onClick={() => {
           if ($buttonRef && $buttonRef.current) {
@@ -162,7 +158,7 @@ export const DueDateManagerPopup = () => {
               position: 1,
               labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
               description: 'hello!',
-              members: [{ userID: '1', displayName: 'Jordan Knott' }],
+              members: [{ userID: '1', profileIcon: { url: null, initials: null }, displayName: 'Jordan Knott' }],
             }}
             onCancel={action('cancel')}
             onDueDateChange={action('due date change')}

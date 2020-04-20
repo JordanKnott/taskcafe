@@ -23,7 +23,7 @@ export const Default = () => {
         position: 1,
         labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
         description: 'hello!',
-        members: [{ userID: '1', displayName: 'Jordan Knott' }],
+        members: [{ userID: '1', profileIcon: { url: null, initials: null }, displayName: 'Jordan Knott' }],
       }}
       onCancel={action('cancel')}
       onDueDateChange={action('due date change')}

@@ -8,6 +8,6 @@ SELECT * FROM user_account;
 SELECT * FROM user_account WHERE username = $1;
 
 -- name: CreateUserAccount :one
-INSERT INTO user_account(display_name, email, username, created_at, password_hash)
-  VALUES ($1, $2, $3, $4, $5)
+INSERT INTO user_account(first_name, last_name, email, username, created_at, password_hash)
+  VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;

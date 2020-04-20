@@ -37,8 +37,14 @@ export const Default = () => {
     <>
       <NormalizeStyles />
       <BaseStyles />
-      <TopNavbar onNotificationClick={action('notifications click')} onProfileClick={onClick} />
-      {menu.isOpen && <DropdownMenu left={menu.left} top={menu.top} />}
+      <TopNavbar
+        firstName="Jordan"
+        lastName="Knott"
+        initials="JK"
+        onNotificationClick={action('notifications click')}
+        onProfileClick={onClick}
+      />
+      {menu.isOpen && <DropdownMenu onLogout={action('on logout')} left={menu.left} top={menu.top} />}
     </>
   );
 };

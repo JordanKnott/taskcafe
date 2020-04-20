@@ -42,7 +42,7 @@ func (h *CitadelHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	accessTokenString, err := NewAccessToken("1")
+	accessTokenString, err := NewAccessToken(token.UserID.String())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -55,6 +55,25 @@ func (h *CitadelHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Requ
 		HttpOnly: true,
 	})
 	json.NewEncoder(w).Encode(LoginResponseData{AccessToken: accessTokenString})
+}
+
+func (h *CitadelHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("refreshToken")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	refreshTokenID := uuid.MustParse(c.Value)
+	err = h.repo.DeleteRefreshTokenByID(r.Context(), refreshTokenID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(LogoutResponseData{Status: "success"})
 }
 
 func (h *CitadelHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -85,12 +104,11 @@ func (h *CitadelHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := uuid.MustParse("0183d9ab-d0ed-4c9b-a3df-77a0cdd93dca")
 	refreshCreatedAt := time.Now().UTC()
 	refreshExpiresAt := refreshCreatedAt.AddDate(0, 0, 1)
-	refreshTokenString, err := h.repo.CreateRefreshToken(r.Context(), pg.CreateRefreshTokenParams{userID, refreshCreatedAt, refreshExpiresAt})
+	refreshTokenString, err := h.repo.CreateRefreshToken(r.Context(), pg.CreateRefreshTokenParams{user.UserID, refreshCreatedAt, refreshExpiresAt})
 
-	accessTokenString, err := NewAccessToken("1")
+	accessTokenString, err := NewAccessToken(user.UserID.String())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -109,5 +127,6 @@ func (rs authResource) Routes(citadelHandler CitadelHandler) chi.Router {
 	r := chi.NewRouter()
 	r.Post("/login", citadelHandler.LoginHandler)
 	r.Post("/refresh_token", citadelHandler.RefreshTokenHandler)
+	r.Post("/logout", citadelHandler.LogoutHandler)
 	return r
 }

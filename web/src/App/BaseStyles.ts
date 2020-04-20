@@ -7,6 +7,7 @@ export default createGlobalStyle`
     height: 100%;
     min-height: 100%;
     min-width: 768px;
+    background: #262c49;
   }
 
   body {
