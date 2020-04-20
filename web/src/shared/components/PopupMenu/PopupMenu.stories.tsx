@@ -6,6 +6,7 @@ import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 import ListActions from 'shared/components/ListActions';
 import MemberManager from 'shared/components/MemberManager';
 import DueDateManager from 'shared/components/DueDateManager';
+import MiniProfile from 'shared/components/MiniProfile';
 
 import PopupMenu from '.';
 import NormalizeStyles from 'App/NormalizeStyles';
@@ -115,7 +116,7 @@ export const MemberManagerPopup = () => {
         <PopupMenu title="Members" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
           <MemberManager
             availableMembers={[
-              { userID: '1', displayName: 'Jordan Knott', profileIcon: { url: null, initials: null } },
+              { userID: '1', displayName: 'Jordan Knott', profileIcon: { bgColor: null, url: null, initials: null } },
             ]}
             activeMembers={[]}
             onMemberChange={action('member change')}
@@ -158,7 +159,9 @@ export const DueDateManagerPopup = () => {
               position: 1,
               labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
               description: 'hello!',
-              members: [{ userID: '1', profileIcon: { url: null, initials: null }, displayName: 'Jordan Knott' }],
+              members: [
+                { userID: '1', profileIcon: { bgColor: null, url: null, initials: null }, displayName: 'Jordan Knott' },
+              ],
             }}
             onCancel={action('cancel')}
             onDueDateChange={action('due date change')}
@@ -171,6 +174,50 @@ export const DueDateManagerPopup = () => {
           textAlign: 'center',
           margin: '25px auto',
           cursor: 'pointer',
+        }}
+        ref={$buttonRef}
+        onClick={() => {
+          if ($buttonRef && $buttonRef.current) {
+            const pos = $buttonRef.current.getBoundingClientRect();
+            setPopupData({
+              isOpen: true,
+              left: pos.left,
+              top: pos.top + pos.height + 10,
+            });
+          }
+        }}
+      >
+        Open
+      </span>
+    </>
+  );
+};
+
+export const MiniProfilePopup = () => {
+  const $buttonRef = useRef<HTMLButtonElement>(null);
+  const [popupData, setPopupData] = useState(initalState);
+  return (
+    <>
+      <NormalizeStyles />
+      <BaseStyles />
+      {popupData.isOpen && (
+        <PopupMenu title="Due Date" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
+          <MiniProfile
+            displayName="Jordan Knott"
+            profileIcon={{ url: null, bgColor: '#000', initials: 'JK' }}
+            username="@jordanthedev"
+            bio="Stuff and things"
+          />
+        </PopupMenu>
+      )}
+      <span
+        style={{
+          width: '60px',
+          textAlign: 'center',
+          margin: '25px auto',
+          cursor: 'pointer',
+          color: '#fff',
+          background: '#f00',
         }}
         ref={$buttonRef}
         onClick={() => {

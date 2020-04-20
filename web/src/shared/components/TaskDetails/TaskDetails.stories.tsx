@@ -35,7 +35,13 @@ export const Default = () => {
                 position: 1,
                 labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
                 description,
-                members: [{ userID: '1', profileIcon: { url: null, initials: null }, displayName: 'Jordan Knott' }],
+                members: [
+                  {
+                    userID: '1',
+                    profileIcon: { bgColor: null, url: null, initials: null },
+                    displayName: 'Jordan Knott',
+                  },
+                ],
               }}
               onTaskNameChange={action('task name change')}
               onTaskDescriptionChange={(_task, desc) => setDescription(desc)}

@@ -41,13 +41,27 @@ const GlobalTopNavbar: React.FC = () => {
   return (
     <>
       <TopNavbar
+        bgColor={data ? data.me.profileIcon.bgColor ?? '#7367F0' : '#7367F0'}
         firstName={data ? data.me.firstName : ''}
         lastName={data ? data.me.lastName : ''}
         initials={!data ? '' : data.me.profileIcon.initials ?? ''}
         onNotificationClick={() => console.log('beep')}
         onProfileClick={onProfileClick}
       />
-      {menu.isOpen && <DropdownMenu onLogout={onLogout} left={menu.left} top={menu.top} />}
+      {menu.isOpen && (
+        <DropdownMenu
+          onCloseDropdown={() => {
+            setMenu({
+              top: 0,
+              left: 0,
+              isOpen: false,
+            });
+          }}
+          onLogout={onLogout}
+          left={menu.left}
+          top={menu.top}
+        />
+      )}
     </>
   );
 };

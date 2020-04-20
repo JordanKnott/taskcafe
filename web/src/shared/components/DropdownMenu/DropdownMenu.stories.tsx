@@ -1,8 +1,7 @@
 import React, { createRef, useState } from 'react';
 import styled from 'styled-components';
-
-import DropdownMenu from '.';
 import { action } from '@storybook/addon-actions';
+import DropdownMenu from '.';
 
 export default {
   component: DropdownMenu,
@@ -50,7 +49,16 @@ export const Default = () => {
           Click me
         </Button>
       </Container>
-      {menu.isOpen && <DropdownMenu onLogout={action('on logout')} left={menu.left} top={menu.top} />}
+      {menu.isOpen && (
+        <DropdownMenu
+          onCloseDropdown={() => {
+            setMenu({ top: 0, left: 0, isOpen: false });
+          }}
+          onLogout={action('on logout')}
+          left={menu.left}
+          top={menu.top}
+        />
+      )}
     </>
   );
 };

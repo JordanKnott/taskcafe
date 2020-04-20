@@ -13,7 +13,7 @@ import (
 const createUserAccount = `-- name: CreateUserAccount :one
 INSERT INTO user_account(first_name, last_name, email, username, created_at, password_hash)
   VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING user_id, created_at, first_name, last_name, email, username, password_hash
+RETURNING user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color
 `
 
 type CreateUserAccountParams struct {
@@ -43,12 +43,13 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
+		&i.ProfileBgColor,
 	)
 	return i, err
 }
 
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
-SELECT user_id, created_at, first_name, last_name, email, username, password_hash FROM user_account
+SELECT user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color FROM user_account
 `
 
 func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error) {
@@ -68,6 +69,7 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 			&i.Email,
 			&i.Username,
 			&i.PasswordHash,
+			&i.ProfileBgColor,
 		); err != nil {
 			return nil, err
 		}
@@ -83,7 +85,7 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 }
 
 const getUserAccountByID = `-- name: GetUserAccountByID :one
-SELECT user_id, created_at, first_name, last_name, email, username, password_hash FROM user_account WHERE user_id = $1
+SELECT user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color FROM user_account WHERE user_id = $1
 `
 
 func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error) {
@@ -97,12 +99,13 @@ func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (Use
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
+		&i.ProfileBgColor,
 	)
 	return i, err
 }
 
 const getUserAccountByUsername = `-- name: GetUserAccountByUsername :one
-SELECT user_id, created_at, first_name, last_name, email, username, password_hash FROM user_account WHERE username = $1
+SELECT user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color FROM user_account WHERE username = $1
 `
 
 func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error) {
@@ -116,6 +119,7 @@ func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string)
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
+		&i.ProfileBgColor,
 	)
 	return i, err
 }

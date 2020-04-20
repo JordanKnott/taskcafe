@@ -15,17 +15,28 @@ export type Scalars = {
 
 
 
+export type ProjectLabel = {
+   __typename?: 'ProjectLabel';
+  projectLabelID: Scalars['ID'];
+  createdDate: Scalars['Time'];
+  colorHex: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
+};
+
 export type TaskLabel = {
    __typename?: 'TaskLabel';
   taskLabelID: Scalars['ID'];
-  labelColorID: Scalars['UUID'];
+  projectLabelID: Scalars['UUID'];
+  assignedDate: Scalars['Time'];
   colorHex: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
 };
 
 export type ProfileIcon = {
    __typename?: 'ProfileIcon';
   url?: Maybe<Scalars['String']>;
   initials?: Maybe<Scalars['String']>;
+  bgColor?: Maybe<Scalars['String']>;
 };
 
 export type ProjectMember = {
@@ -71,6 +82,7 @@ export type Project = {
   owner: ProjectMember;
   taskGroups: Array<TaskGroup>;
   members: Array<ProjectMember>;
+  labels: Array<ProjectLabel>;
 };
 
 export type TaskGroup = {
@@ -222,6 +234,11 @@ export type AssignTaskInput = {
   userID: Scalars['UUID'];
 };
 
+export type UnassignTaskInput = {
+  taskID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
 export type UpdateTaskDescriptionInput = {
   taskID: Scalars['UUID'];
   description: Scalars['String'];
@@ -237,12 +254,19 @@ export type RemoveTaskLabelInput = {
   taskLabelID: Scalars['UUID'];
 };
 
+export type NewProjectLabel = {
+  projectID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
+  name?: Maybe<Scalars['String']>;
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
   createUserAccount: UserAccount;
   createTeam: Team;
   createProject: Project;
+  createProjectLabel: ProjectLabel;
   createTaskGroup: TaskGroup;
   updateTaskGroupLocation: TaskGroup;
   deleteTaskGroup: DeleteTaskGroupPayload;
@@ -254,6 +278,7 @@ export type Mutation = {
   updateTaskName: Task;
   deleteTask: DeleteTaskPayload;
   assignTask: Task;
+  unassignTask: Task;
   logoutUser: Scalars['Boolean'];
 };
 
@@ -275,6 +300,11 @@ export type MutationCreateTeamArgs = {
 
 export type MutationCreateProjectArgs = {
   input: NewProject;
+};
+
+
+export type MutationCreateProjectLabelArgs = {
+  input: NewProjectLabel;
 };
 
 
@@ -330,6 +360,11 @@ export type MutationDeleteTaskArgs = {
 
 export type MutationAssignTaskArgs = {
   input?: Maybe<AssignTaskInput>;
+};
+
+
+export type MutationUnassignTaskArgs = {
+  input?: Maybe<UnassignTaskInput>;
 };
 
 
@@ -438,7 +473,7 @@ export type FindProjectQuery = (
       & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
-        & Pick<ProfileIcon, 'url' | 'initials'>
+        & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
       ) }
     )>, taskGroups: Array<(
       { __typename?: 'TaskGroup' }
@@ -446,6 +481,14 @@ export type FindProjectQuery = (
       & { tasks: Array<(
         { __typename?: 'Task' }
         & Pick<Task, 'taskID' | 'name' | 'position' | 'description'>
+        & { assigned: Array<(
+          { __typename?: 'ProjectMember' }
+          & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+          & { profileIcon: (
+            { __typename?: 'ProfileIcon' }
+            & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
+          ) }
+        )> }
       )> }
     )> }
   ) }
@@ -469,7 +512,7 @@ export type FindTaskQuery = (
       & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
-        & Pick<ProfileIcon, 'url' | 'initials'>
+        & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
       ) }
     )> }
   ) }
@@ -500,8 +543,26 @@ export type MeQuery = (
     & Pick<UserAccount, 'firstName' | 'lastName'>
     & { profileIcon: (
       { __typename?: 'ProfileIcon' }
-      & Pick<ProfileIcon, 'initials'>
+      & Pick<ProfileIcon, 'initials' | 'bgColor'>
     ) }
+  ) }
+);
+
+export type UnassignTaskMutationVariables = {
+  taskID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
+
+export type UnassignTaskMutation = (
+  { __typename?: 'Mutation' }
+  & { unassignTask: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'taskID'>
+    & { assigned: Array<(
+      { __typename?: 'ProjectMember' }
+      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+    )> }
   ) }
 );
 
@@ -759,6 +820,7 @@ export const FindProjectDocument = gql`
       profileIcon {
         url
         initials
+        bgColor
       }
     }
     taskGroups {
@@ -770,6 +832,16 @@ export const FindProjectDocument = gql`
         name
         position
         description
+        assigned {
+          userID
+          firstName
+          lastName
+          profileIcon {
+            url
+            initials
+            bgColor
+          }
+        }
       }
     }
   }
@@ -818,6 +890,7 @@ export const FindTaskDocument = gql`
       profileIcon {
         url
         initials
+        bgColor
       }
     }
   }
@@ -893,6 +966,7 @@ export const MeDocument = gql`
     lastName
     profileIcon {
       initials
+      bgColor
     }
   }
 }
@@ -922,6 +996,44 @@ export function useMeLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptio
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = ApolloReactCommon.QueryResult<MeQuery, MeQueryVariables>;
+export const UnassignTaskDocument = gql`
+    mutation unassignTask($taskID: UUID!, $userID: UUID!) {
+  unassignTask(input: {taskID: $taskID, userID: $userID}) {
+    assigned {
+      userID
+      firstName
+      lastName
+    }
+    taskID
+  }
+}
+    `;
+export type UnassignTaskMutationFn = ApolloReactCommon.MutationFunction<UnassignTaskMutation, UnassignTaskMutationVariables>;
+
+/**
+ * __useUnassignTaskMutation__
+ *
+ * To run a mutation, you first call `useUnassignTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnassignTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unassignTaskMutation, { data, loading, error }] = useUnassignTaskMutation({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *      userID: // value for 'userID'
+ *   },
+ * });
+ */
+export function useUnassignTaskMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UnassignTaskMutation, UnassignTaskMutationVariables>) {
+        return ApolloReactHooks.useMutation<UnassignTaskMutation, UnassignTaskMutationVariables>(UnassignTaskDocument, baseOptions);
+      }
+export type UnassignTaskMutationHookResult = ReturnType<typeof useUnassignTaskMutation>;
+export type UnassignTaskMutationResult = ApolloReactCommon.MutationResult<UnassignTaskMutation>;
+export type UnassignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<UnassignTaskMutation, UnassignTaskMutationVariables>;
 export const UpdateTaskDescriptionDocument = gql`
     mutation updateTaskDescription($taskID: UUID!, $description: String!) {
   updateTaskDescription(input: {taskID: $taskID, description: $description}) {

@@ -159,6 +159,7 @@ const Lists: React.FC<Props> = ({
                                           description=""
                                           title={task.name}
                                           labels={task.labels}
+                                          members={task.members}
                                           onClick={() => onCardClick(task)}
                                           onContextMenu={onQuickEditorOpen}
                                         />

@@ -33,6 +33,27 @@ func (q *Queries) CreateTaskAssigned(ctx context.Context, arg CreateTaskAssigned
 	return i, err
 }
 
+const deleteTaskAssignedByID = `-- name: DeleteTaskAssignedByID :one
+DELETE FROM task_assigned WHERE task_id = $1 AND user_id = $2 RETURNING task_assigned_id, task_id, user_id, assigned_date
+`
+
+type DeleteTaskAssignedByIDParams struct {
+	TaskID uuid.UUID `json:"task_id"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) DeleteTaskAssignedByID(ctx context.Context, arg DeleteTaskAssignedByIDParams) (TaskAssigned, error) {
+	row := q.db.QueryRowContext(ctx, deleteTaskAssignedByID, arg.TaskID, arg.UserID)
+	var i TaskAssigned
+	err := row.Scan(
+		&i.TaskAssignedID,
+		&i.TaskID,
+		&i.UserID,
+		&i.AssignedDate,
+	)
+	return i, err
+}
+
 const getAssignedMembersForTask = `-- name: GetAssignedMembersForTask :many
 SELECT task_assigned_id, task_id, user_id, assigned_date FROM task_assigned WHERE task_id = $1
 `

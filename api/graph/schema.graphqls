@@ -1,15 +1,25 @@
 scalar Time
 scalar UUID
 
+type ProjectLabel {
+  projectLabelID: ID!
+  createdDate: Time!
+  colorHex: String!
+  name: String
+}
+
 type TaskLabel {
   taskLabelID: ID!
-  labelColorID: UUID!
+  projectLabelID: UUID!
+  assignedDate: Time!
   colorHex: String!
+  name: String
 }
 
 type ProfileIcon {
   url: String
   initials: String
+  bgColor: String
 }
 
 type ProjectMember {
@@ -50,6 +60,7 @@ type Project {
   owner: ProjectMember!
   taskGroups: [TaskGroup!]!
   members: [ProjectMember!]!
+  labels: [ProjectLabel!]!
 }
 
 type TaskGroup {
@@ -174,6 +185,10 @@ input AssignTaskInput {
   userID: UUID!
 }
 
+input UnassignTaskInput {
+  taskID: UUID!
+  userID: UUID!
+}
 input UpdateTaskDescriptionInput {
   taskID: UUID!
   description: String!
@@ -189,6 +204,12 @@ input RemoveTaskLabelInput {
   taskLabelID: UUID!
 }
 
+input NewProjectLabel {
+  projectID: UUID!
+  labelColorID: UUID!
+  name: String
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -197,6 +218,7 @@ type Mutation {
   createTeam(input: NewTeam!): Team!
 
   createProject(input: NewProject!): Project!
+  createProjectLabel(input: NewProjectLabel!): ProjectLabel!
 
   createTaskGroup(input: NewTaskGroup!): TaskGroup!
   updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
@@ -211,6 +233,7 @@ type Mutation {
   updateTaskName(input: UpdateTaskName!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
   assignTask(input: AssignTaskInput): Task!
+  unassignTask(input: UnassignTaskInput): Task!
 
   logoutUser(input: LogoutUser!): Boolean!
 }

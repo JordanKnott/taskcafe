@@ -18,6 +18,9 @@ import {
   ListCardLabel,
   ListCardOperation,
   CardTitle,
+  CardMembers,
+  CardMember,
+  CardMemberInitials,
 } from './Styles';
 
 type DueDate = {
@@ -42,6 +45,7 @@ type Props = {
   watched?: boolean;
   labels?: Label[];
   wrapperProps?: any;
+  members?: Array<TaskUser> | null;
 };
 
 const Card = React.forwardRef(
@@ -58,6 +62,7 @@ const Card = React.forwardRef(
       description,
       checklists,
       watched,
+      members,
     }: Props,
     $cardRef: any,
   ) => {
@@ -95,9 +100,11 @@ const Card = React.forwardRef(
         {...wrapperProps}
       >
         <ListCardInnerContainer ref={$innerCardRef}>
-          <ListCardOperation>
-            <FontAwesomeIcon onClick={onOperationClick} color="#c2c6dc" size="xs" icon={faPencilAlt} />
-          </ListCardOperation>
+          {isActive && (
+            <ListCardOperation>
+              <FontAwesomeIcon onClick={onOperationClick} color="#c2c6dc" size="xs" icon={faPencilAlt} />
+            </ListCardOperation>
+          )}
           <ListCardDetails>
             <ListCardLabels>
               {labels &&
@@ -132,6 +139,14 @@ const Card = React.forwardRef(
                 </ListCardBadge>
               )}
             </ListCardBadges>
+            <CardMembers>
+              {members &&
+                members.map(member => (
+                  <CardMember key={member.userID} bgColor={member.profileIcon.bgColor ?? '#7367F0'}>
+                    <CardMemberInitials>{member.profileIcon.initials}</CardMemberInitials>
+                  </CardMember>
+                ))}
+            </CardMembers>
           </ListCardDetails>
         </ListCardInnerContainer>
       </ListCardContainer>

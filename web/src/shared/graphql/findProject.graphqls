@@ -8,6 +8,7 @@ query findProject($projectId: String!) {
       profileIcon {
         url
         initials
+        bgColor
       }
     }
     taskGroups {
@@ -19,6 +20,16 @@ query findProject($projectId: String!) {
         name
         position
         description
+        assigned {
+          userID
+          firstName
+          lastName
+          profileIcon {
+            url
+            initials
+            bgColor
+          }
+        }
       }
     }
   }

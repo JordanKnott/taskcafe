@@ -57,6 +57,12 @@ type NewProject struct {
 	Name   string    `json:"name"`
 }
 
+type NewProjectLabel struct {
+	ProjectID    uuid.UUID `json:"projectID"`
+	LabelColorID uuid.UUID `json:"labelColorID"`
+	Name         *string   `json:"name"`
+}
+
 type NewRefreshToken struct {
 	UserID string `json:"userId"`
 }
@@ -100,6 +106,7 @@ type NewUserAccount struct {
 type ProfileIcon struct {
 	URL      *string `json:"url"`
 	Initials *string `json:"initials"`
+	BgColor  *string `json:"bgColor"`
 }
 
 type ProjectMember struct {
@@ -116,6 +123,11 @@ type ProjectsFilter struct {
 type RemoveTaskLabelInput struct {
 	TaskID      uuid.UUID `json:"taskID"`
 	TaskLabelID uuid.UUID `json:"taskLabelID"`
+}
+
+type UnassignTaskInput struct {
+	TaskID uuid.UUID `json:"taskID"`
+	UserID uuid.UUID `json:"userID"`
 }
 
 type UpdateTaskDescriptionInput struct {

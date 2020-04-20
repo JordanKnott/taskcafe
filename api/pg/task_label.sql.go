@@ -11,30 +11,30 @@ import (
 )
 
 const createTaskLabelForTask = `-- name: CreateTaskLabelForTask :one
-INSERT INTO task_label (task_id, label_color_id, assigned_date)
-  VALUES ($1, $2, $3) RETURNING task_label_id, task_id, label_color_id, assigned_date
+INSERT INTO task_label (task_id, project_label_id, assigned_date)
+  VALUES ($1, $2, $3) RETURNING task_label_id, task_id, project_label_id, assigned_date
 `
 
 type CreateTaskLabelForTaskParams struct {
-	TaskID       uuid.UUID `json:"task_id"`
-	LabelColorID uuid.UUID `json:"label_color_id"`
-	AssignedDate time.Time `json:"assigned_date"`
+	TaskID         uuid.UUID `json:"task_id"`
+	ProjectLabelID uuid.UUID `json:"project_label_id"`
+	AssignedDate   time.Time `json:"assigned_date"`
 }
 
 func (q *Queries) CreateTaskLabelForTask(ctx context.Context, arg CreateTaskLabelForTaskParams) (TaskLabel, error) {
-	row := q.db.QueryRowContext(ctx, createTaskLabelForTask, arg.TaskID, arg.LabelColorID, arg.AssignedDate)
+	row := q.db.QueryRowContext(ctx, createTaskLabelForTask, arg.TaskID, arg.ProjectLabelID, arg.AssignedDate)
 	var i TaskLabel
 	err := row.Scan(
 		&i.TaskLabelID,
 		&i.TaskID,
-		&i.LabelColorID,
+		&i.ProjectLabelID,
 		&i.AssignedDate,
 	)
 	return i, err
 }
 
 const getTaskLabelsForTaskID = `-- name: GetTaskLabelsForTaskID :many
-SELECT task_label_id, task_id, label_color_id, assigned_date FROM task_label WHERE task_id = $1
+SELECT task_label_id, task_id, project_label_id, assigned_date FROM task_label WHERE task_id = $1
 `
 
 func (q *Queries) GetTaskLabelsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskLabel, error) {
@@ -49,7 +49,7 @@ func (q *Queries) GetTaskLabelsForTaskID(ctx context.Context, taskID uuid.UUID) 
 		if err := rows.Scan(
 			&i.TaskLabelID,
 			&i.TaskID,
-			&i.LabelColorID,
+			&i.ProjectLabelID,
 			&i.AssignedDate,
 		); err != nil {
 			return nil, err

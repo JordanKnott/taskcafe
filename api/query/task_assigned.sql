@@ -4,3 +4,6 @@ INSERT INTO task_assigned (task_id, user_id, assigned_date)
 
 -- name: GetAssignedMembersForTask :many
 SELECT * FROM task_assigned WHERE task_id = $1;
+
+-- name: DeleteTaskAssignedByID :one
+DELETE FROM task_assigned WHERE task_id = $1 AND user_id = $2 RETURNING *;

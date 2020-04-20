@@ -29,6 +29,14 @@ type Project struct {
 	Owner     uuid.UUID `json:"owner"`
 }
 
+type ProjectLabel struct {
+	ProjectLabelID uuid.UUID      `json:"project_label_id"`
+	ProjectID      uuid.UUID      `json:"project_id"`
+	LabelColorID   uuid.UUID      `json:"label_color_id"`
+	CreatedDate    time.Time      `json:"created_date"`
+	Name           sql.NullString `json:"name"`
+}
+
 type RefreshToken struct {
 	TokenID   uuid.UUID `json:"token_id"`
 	UserID    uuid.UUID `json:"user_id"`
@@ -62,10 +70,10 @@ type TaskGroup struct {
 }
 
 type TaskLabel struct {
-	TaskLabelID  uuid.UUID `json:"task_label_id"`
-	TaskID       uuid.UUID `json:"task_id"`
-	LabelColorID uuid.UUID `json:"label_color_id"`
-	AssignedDate time.Time `json:"assigned_date"`
+	TaskLabelID    uuid.UUID `json:"task_label_id"`
+	TaskID         uuid.UUID `json:"task_id"`
+	ProjectLabelID uuid.UUID `json:"project_label_id"`
+	AssignedDate   time.Time `json:"assigned_date"`
 }
 
 type Team struct {
@@ -76,11 +84,12 @@ type Team struct {
 }
 
 type UserAccount struct {
-	UserID       uuid.UUID `json:"user_id"`
-	CreatedAt    time.Time `json:"created_at"`
-	FirstName    string    `json:"first_name"`
-	LastName     string    `json:"last_name"`
-	Email        string    `json:"email"`
-	Username     string    `json:"username"`
-	PasswordHash string    `json:"password_hash"`
+	UserID         uuid.UUID `json:"user_id"`
+	CreatedAt      time.Time `json:"created_at"`
+	FirstName      string    `json:"first_name"`
+	LastName       string    `json:"last_name"`
+	Email          string    `json:"email"`
+	Username       string    `json:"username"`
+	PasswordHash   string    `json:"password_hash"`
+	ProfileBgColor string    `json:"profile_bg_color"`
 }

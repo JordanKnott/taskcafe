@@ -4,7 +4,7 @@ import TaskDetails from 'shared/components/TaskDetails';
 import PopupMenu from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
 import { useRouteMatch, useHistory } from 'react-router';
-import { useFindTaskQuery, useAssignTaskMutation } from 'shared/generated/graphql';
+import { useFindTaskQuery, useAssignTaskMutation, useUnassignTaskMutation } from 'shared/generated/graphql';
 import UserIDContext from 'App/context';
 
 type DetailsProps = {
@@ -15,6 +15,7 @@ type DetailsProps = {
   onDeleteTask: (task: Task) => void;
   onOpenAddLabelPopup: (task: Task, bounds: ElementBounds) => void;
   availableMembers: Array<TaskUser>;
+  refreshCache: () => void;
 };
 
 const initialMemberPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
@@ -27,13 +28,25 @@ const Details: React.FC<DetailsProps> = ({
   onDeleteTask,
   onOpenAddLabelPopup,
   availableMembers,
+  refreshCache,
 }) => {
   const { userID } = useContext(UserIDContext);
   const history = useHistory();
   const match = useRouteMatch();
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
-  const { loading, data } = useFindTaskQuery({ variables: { taskID } });
-  const [assignTask] = useAssignTaskMutation();
+  const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
+  const [assignTask] = useAssignTaskMutation({
+    onCompleted: () => {
+      refetch();
+      refreshCache();
+    },
+  });
+  const [unassignTask] = useUnassignTaskMutation({
+    onCompleted: () => {
+      refetch();
+      refreshCache();
+    },
+  });
   if (loading) {
     return <div>loading</div>;
   }
@@ -47,6 +60,7 @@ const Details: React.FC<DetailsProps> = ({
       profileIcon: {
         url: null,
         initials: assigned.profileIcon.initials ?? null,
+        bgColor: assigned.profileIcon.bgColor ?? null,
       },
     };
   });
@@ -93,10 +107,13 @@ const Details: React.FC<DetailsProps> = ({
         >
           <MemberManager
             availableMembers={availableMembers}
-            activeMembers={[]}
+            activeMembers={taskMembers}
             onMemberChange={(member, isActive) => {
+              console.log(`is active ${member.userID} - ${isActive}`);
               if (isActive) {
                 assignTask({ variables: { taskID: data.findTask.taskID, userID: userID ?? '' } });
+              } else {
+                unassignTask({ variables: { taskID: data.findTask.taskID, userID: userID ?? '' } });
               }
               console.log(member, isActive);
             }}

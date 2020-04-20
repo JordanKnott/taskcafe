@@ -14,6 +14,7 @@ query findTask($taskID: UUID!) {
       profileIcon {
         url
         initials
+        bgColor
       }
     }
   }

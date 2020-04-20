@@ -4,6 +4,7 @@ query me {
     lastName
     profileIcon {
       initials
+      bgColor
     }
   }
 }

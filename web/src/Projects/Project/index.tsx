@@ -109,9 +109,10 @@ const Project = () => {
       );
     },
   });
-  const { loading, data } = useFindProjectQuery({
+  const { loading, data, refetch } = useFindProjectQuery({
     variables: { projectId },
     onCompleted: newData => {
+      console.log('beep!');
       const newListsData: BoardState = { tasks: {}, columns: {} };
       newData.findProject.taskGroups.forEach(taskGroup => {
         newListsData.columns[taskGroup.taskGroupID] = {
@@ -121,15 +122,27 @@ const Project = () => {
           tasks: [],
         };
         taskGroup.tasks.forEach(task => {
+          const taskMembers = task.assigned.map(assigned => {
+            return {
+              userID: assigned.userID,
+              displayName: `${assigned.firstName} ${assigned.lastName}`,
+              profileIcon: {
+                url: null,
+                initials: assigned.profileIcon.initials ?? '',
+                bgColor: assigned.profileIcon.bgColor ?? '#7367F0',
+              },
+            };
+          });
           newListsData.tasks[task.taskID] = {
             taskID: task.taskID,
             taskGroup: {
               taskGroupID: taskGroup.taskGroupID,
             },
             name: task.name,
-            position: task.position,
             labels: [],
+            position: task.position,
             description: task.description ?? undefined,
+            members: taskMembers,
           };
         });
       });
@@ -196,15 +209,16 @@ const Project = () => {
     const availableMembers = data.findProject.members.map(member => {
       return {
         displayName: `${member.firstName} ${member.lastName}`,
-        profileIcon: { url: null, initials: member.profileIcon.initials ?? null },
+        profileIcon: {
+          url: null,
+          initials: member.profileIcon.initials ?? null,
+          bgColor: member.profileIcon.bgColor ?? null,
+        },
         userID: member.userID,
       };
     });
     return (
       <>
-        <TitleWrapper>
-          <Title>{data.findProject.name}</Title>
-        </TitleWrapper>
         <KanbanBoard
           listsData={listsData}
           onCardDrop={onCardDrop}
@@ -253,6 +267,10 @@ const Project = () => {
           path={`${match.path}/c/:taskID`}
           render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
             <Details
+              refreshCache={() => {
+                console.log('beep 2!');
+                refetch();
+              }}
               availableMembers={availableMembers}
               projectURL={match.url}
               taskID={routeProps.match.params.taskID}

@@ -37,6 +37,7 @@ type InnerTaskGroup = {
 type ProfileIcon = {
   url: string | null;
   initials: string | null;
+  bgColor: string | null;
 };
 
 type TaskUser = {

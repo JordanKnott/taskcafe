@@ -4,6 +4,7 @@ import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 
 import {
   NoDueDateLabel,
+  UnassignedLabel,
   TaskDetailsAddMember,
   TaskGroupLabel,
   TaskGroupLabelName,
@@ -126,11 +127,16 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       onTaskNameChange(task, taskName);
     }
   };
+  const $unassignedRef = useRef<HTMLDivElement>(null);
   const $addMemberRef = useRef<HTMLDivElement>(null);
+  const onUnassignedClick = () => {
+    const bounds = convertDivElementRefToBounds($unassignedRef);
+    if (bounds) {
+      onOpenAddMemberPopup(task, bounds);
+    }
+  };
   const onAddMember = () => {
-    console.log('beep!');
     const bounds = convertDivElementRefToBounds($addMemberRef);
-    console.log(bounds);
     if (bounds) {
       onOpenAddMemberPopup(task, bounds);
     }
@@ -191,20 +197,28 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         <TaskDetailsSidebar>
           <TaskDetailSectionTitle>Assignees</TaskDetailSectionTitle>
           <TaskDetailAssignees>
-            {task.members &&
-              task.members.map(member => {
-                console.log(member);
-                return (
-                  <TaskDetailAssignee key={member.userID}>
-                    <ProfileIcon>{member.profileIcon.initials ?? ''}</ProfileIcon>
-                  </TaskDetailAssignee>
-                );
-              })}
-            <TaskDetailsAddMember ref={$addMemberRef} onClick={onAddMember}>
-              <TaskDetailsAddMemberIcon>
-                <Plus size={16} color="#c2c6dc" />
-              </TaskDetailsAddMemberIcon>
-            </TaskDetailsAddMember>
+            {task.members && task.members.length === 0 ? (
+              <UnassignedLabel ref={$unassignedRef} onClick={onUnassignedClick}>
+                Unassigned
+              </UnassignedLabel>
+            ) : (
+              <>
+                {task.members &&
+                  task.members.map(member => {
+                    console.log(member);
+                    return (
+                      <TaskDetailAssignee key={member.userID}>
+                        <ProfileIcon>{member.profileIcon.initials ?? ''}</ProfileIcon>
+                      </TaskDetailAssignee>
+                    );
+                  })}
+                <TaskDetailsAddMember ref={$addMemberRef} onClick={onAddMember}>
+                  <TaskDetailsAddMemberIcon>
+                    <Plus size={16} color="#c2c6dc" />
+                  </TaskDetailsAddMemberIcon>
+                </TaskDetailsAddMember>
+              </>
+            )}
           </TaskDetailAssignees>
           <TaskDetailSectionTitle>Labels</TaskDetailSectionTitle>
           <TaskDetailLabels>

@@ -38,13 +38,23 @@ export const Default = () => {
       <NormalizeStyles />
       <BaseStyles />
       <TopNavbar
+        bgColor="#7367F0"
         firstName="Jordan"
         lastName="Knott"
         initials="JK"
         onNotificationClick={action('notifications click')}
         onProfileClick={onClick}
       />
-      {menu.isOpen && <DropdownMenu onLogout={action('on logout')} left={menu.left} top={menu.top} />}
+      {menu.isOpen && (
+        <DropdownMenu
+          onCloseDropdown={() => {
+            setMenu({ left: 0, top: 0, isOpen: false });
+          }}
+          onLogout={action('on logout')}
+          left={menu.left}
+          top={menu.top}
+        />
+      )}
     </>
   );
 };

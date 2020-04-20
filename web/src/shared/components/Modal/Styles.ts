@@ -17,13 +17,12 @@ export const ClickableOverlay = styled.div`
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 50px;
 `;
 
 export const StyledModal = styled.div<{ width: number }>`
   display: inline-block;
   position: relative;
+  margin: 48px 0 80px;
   width: 100%;
   background: #262c49;
   max-width: ${props => props.width}px;

@@ -22,6 +22,10 @@ type Repository interface {
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 
+	CreateProjectLabel(ctx context.Context, arg CreateProjectLabelParams) (ProjectLabel, error)
+	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
+	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
+
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	GetRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) (RefreshToken, error)
 	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error
@@ -55,6 +59,7 @@ type Repository interface {
 
 	CreateTaskAssigned(ctx context.Context, arg CreateTaskAssignedParams) (TaskAssigned, error)
 	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
+	DeleteTaskAssignedByID(ctx context.Context, arg DeleteTaskAssignedByIDParams) (TaskAssigned, error)
 }
 
 type repoSvc struct {

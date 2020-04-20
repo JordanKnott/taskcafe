@@ -45,6 +45,10 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) 
 	return &project, err
 }
 
+func (r *mutationResolver) CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*pg.ProjectLabel, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*pg.TaskGroup, error) {
 	createdAt := time.Now().UTC()
 	projectID, err := uuid.Parse(input.ProjectID)
@@ -164,6 +168,18 @@ func (r *mutationResolver) AssignTask(ctx context.Context, input *AssignTaskInpu
 	return &task, err
 }
 
+func (r *mutationResolver) UnassignTask(ctx context.Context, input *UnassignTaskInput) (*pg.Task, error) {
+	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	_, err = r.Repository.DeleteTaskAssignedByID(ctx, pg.DeleteTaskAssignedByIDParams{input.TaskID, input.UserID})
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	return &task, nil
+}
+
 func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
 	userID, err := uuid.Parse(input.UserID)
 	if err != nil {
@@ -185,7 +201,7 @@ func (r *projectResolver) Owner(ctx context.Context, obj *pg.Project) (*ProjectM
 		return &ProjectMember{}, err
 	}
 	initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
-	profileIcon := &ProfileIcon{nil, &initials}
+	profileIcon := &ProfileIcon{nil, &initials, &user.ProfileBgColor}
 	return &ProjectMember{obj.Owner, user.FirstName, user.LastName, profileIcon}, nil
 }
 
@@ -200,9 +216,26 @@ func (r *projectResolver) Members(ctx context.Context, obj *pg.Project) ([]Proje
 		return members, err
 	}
 	initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
-	profileIcon := &ProfileIcon{nil, &initials}
+	profileIcon := &ProfileIcon{nil, &initials, &user.ProfileBgColor}
 	members = append(members, ProjectMember{obj.Owner, user.FirstName, user.LastName, profileIcon})
 	return members, nil
+}
+
+func (r *projectResolver) Labels(ctx context.Context, obj *pg.Project) ([]pg.ProjectLabel, error) {
+	labels, err := r.Repository.GetProjectLabelsForProject(ctx, obj.ProjectID)
+	return labels, err
+}
+
+func (r *projectLabelResolver) ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error) {
+	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
+	if err != nil {
+		return "", err
+	}
+	return labelColor.ColorHex, nil
+}
+
+func (r *projectLabelResolver) Name(ctx context.Context, obj *pg.ProjectLabel) (*string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]pg.UserAccount, error) {
@@ -306,7 +339,7 @@ func (r *taskResolver) Assigned(ctx context.Context, obj *pg.Task) ([]ProjectMem
 			return taskMembers, err
 		}
 		initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
-		profileIcon := &ProfileIcon{nil, &initials}
+		profileIcon := &ProfileIcon{nil, &initials, &user.ProfileBgColor}
 		taskMembers = append(taskMembers, ProjectMember{taskMemberLink.UserID, user.FirstName, user.LastName, profileIcon})
 	}
 	return taskMembers, nil
@@ -326,16 +359,32 @@ func (r *taskGroupResolver) Tasks(ctx context.Context, obj *pg.TaskGroup) ([]pg.
 }
 
 func (r *taskLabelResolver) ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error) {
-	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
+	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
+	if err != nil {
+		return "", err
+	}
+	labelColor, err := r.Repository.GetLabelColorByID(ctx, projectLabel.LabelColorID)
 	if err != nil {
 		return "", err
 	}
 	return labelColor.ColorHex, nil
 }
 
+func (r *taskLabelResolver) Name(ctx context.Context, obj *pg.TaskLabel) (*string, error) {
+	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
+	if err != nil {
+		return nil, err
+	}
+	name := projectLabel.Name
+	if !name.Valid {
+		return nil, err
+	}
+	return &name.String, err
+}
+
 func (r *userAccountResolver) ProfileIcon(ctx context.Context, obj *pg.UserAccount) (*ProfileIcon, error) {
 	initials := string([]rune(obj.FirstName)[0]) + string([]rune(obj.LastName)[0])
-	profileIcon := &ProfileIcon{nil, &initials}
+	profileIcon := &ProfileIcon{nil, &initials, &obj.ProfileBgColor}
 	return profileIcon, nil
 }
 
@@ -344,6 +393,9 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Project returns ProjectResolver implementation.
 func (r *Resolver) Project() ProjectResolver { return &projectResolver{r} }
+
+// ProjectLabel returns ProjectLabelResolver implementation.
+func (r *Resolver) ProjectLabel() ProjectLabelResolver { return &projectLabelResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
@@ -362,6 +414,7 @@ func (r *Resolver) UserAccount() UserAccountResolver { return &userAccountResolv
 
 type mutationResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
+type projectLabelResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type taskResolver struct{ *Resolver }
 type taskGroupResolver struct{ *Resolver }
@@ -374,6 +427,9 @@ type userAccountResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *taskLabelResolver) ProjectLabelID(ctx context.Context, obj *pg.TaskLabel) (uuid.UUID, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 func (r *userAccountResolver) DisplayName(ctx context.Context, obj *pg.UserAccount) (string, error) {
 	return obj.FirstName + " " + obj.LastName, nil
 }

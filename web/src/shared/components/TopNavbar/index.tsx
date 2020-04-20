@@ -5,6 +5,10 @@ import {
   NotificationContainer,
   GlobalActions,
   ProjectActions,
+  ProjectMeta,
+  ProjectName,
+  ProjectTabs,
+  ProjectTab,
   NavbarWrapper,
   NavbarHeader,
   Breadcrumbs,
@@ -19,11 +23,19 @@ import {
 type NavBarProps = {
   onProfileClick: (bottom: number, right: number) => void;
   onNotificationClick: () => void;
+  bgColor: string;
   firstName: string;
   lastName: string;
   initials: string;
 };
-const NavBar: React.FC<NavBarProps> = ({ onProfileClick, onNotificationClick, firstName, lastName, initials }) => {
+const NavBar: React.FC<NavBarProps> = ({
+  onProfileClick,
+  onNotificationClick,
+  firstName,
+  lastName,
+  initials,
+  bgColor,
+}) => {
   const $profileRef: any = useRef(null);
   const handleProfileClick = () => {
     console.log('click');
@@ -34,13 +46,12 @@ const NavBar: React.FC<NavBarProps> = ({ onProfileClick, onNotificationClick, fi
     <NavbarWrapper>
       <NavbarHeader>
         <ProjectActions>
-          <Breadcrumbs>
-            Projects
-            <BreadcrumpSeparator>/</BreadcrumpSeparator>
-            project name
-            <BreadcrumpSeparator>/</BreadcrumpSeparator>
-            Board
-          </Breadcrumbs>
+          <ProjectMeta>
+            <ProjectName>Production Team</ProjectName>
+          </ProjectMeta>
+          <ProjectTabs>
+            <ProjectTab>Board</ProjectTab>
+          </ProjectTabs>
         </ProjectActions>
         <GlobalActions>
           <NotificationContainer onClick={onNotificationClick}>
@@ -53,7 +64,7 @@ const NavBar: React.FC<NavBarProps> = ({ onProfileClick, onNotificationClick, fi
               </ProfileNamePrimary>
               <ProfileNameSecondary>Manager</ProfileNameSecondary>
             </ProfileNameWrapper>
-            <ProfileIcon ref={$profileRef} onClick={handleProfileClick}>
+            <ProfileIcon ref={$profileRef} onClick={handleProfileClick} bgColor={bgColor}>
               {initials}
             </ProfileIcon>
           </ProfileContainer>
