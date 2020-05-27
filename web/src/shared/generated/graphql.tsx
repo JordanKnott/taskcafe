@@ -19,8 +19,16 @@ export type ProjectLabel = {
    __typename?: 'ProjectLabel';
   id: Scalars['ID'];
   createdDate: Scalars['Time'];
-  colorHex: Scalars['String'];
+  labelColor: LabelColor;
   name?: Maybe<Scalars['String']>;
+};
+
+export type LabelColor = {
+   __typename?: 'LabelColor';
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+  colorHex: Scalars['String'];
 };
 
 export type TaskLabel = {
@@ -130,6 +138,7 @@ export type Query = {
   findProject: Project;
   findTask: Task;
   projects: Array<Project>;
+  labelColors: Array<LabelColor>;
   taskGroups: Array<TaskGroup>;
   me: UserAccount;
 };
@@ -401,7 +410,11 @@ export type CreateProjectLabelMutation = (
   { __typename?: 'Mutation' }
   & { createProjectLabel: (
     { __typename?: 'ProjectLabel' }
-    & Pick<ProjectLabel, 'id' | 'createdDate' | 'colorHex' | 'name'>
+    & Pick<ProjectLabel, 'id' | 'createdDate' | 'name'>
+    & { labelColor: (
+      { __typename?: 'LabelColor' }
+      & Pick<LabelColor, 'id' | 'colorHex'>
+    ) }
   ) }
 );
 
@@ -499,7 +512,11 @@ export type FindProjectQuery = (
       ) }
     )>, labels: Array<(
       { __typename?: 'ProjectLabel' }
-      & Pick<ProjectLabel, 'id' | 'createdDate' | 'colorHex' | 'name'>
+      & Pick<ProjectLabel, 'id' | 'createdDate' | 'name'>
+      & { labelColor: (
+        { __typename?: 'LabelColor' }
+        & Pick<LabelColor, 'id' | 'name' | 'colorHex' | 'position'>
+      ) }
     )>, taskGroups: Array<(
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name' | 'position'>
@@ -516,7 +533,10 @@ export type FindProjectQuery = (
         )> }
       )> }
     )> }
-  ) }
+  ), labelColors: Array<(
+    { __typename?: 'LabelColor' }
+    & Pick<LabelColor, 'id' | 'position' | 'colorHex' | 'name'>
+  )> }
 );
 
 export type FindTaskQueryVariables = {
@@ -692,7 +712,10 @@ export const CreateProjectLabelDocument = gql`
   createProjectLabel(input: {projectID: $projectID, labelColorID: $labelColorID, name: $name}) {
     id
     createdDate
-    colorHex
+    labelColor {
+      id
+      colorHex
+    }
     name
   }
 }
@@ -899,7 +922,12 @@ export const FindProjectDocument = gql`
     labels {
       id
       createdDate
-      colorHex
+      labelColor {
+        id
+        name
+        colorHex
+        position
+      }
       name
     }
     taskGroups {
@@ -923,6 +951,12 @@ export const FindProjectDocument = gql`
         }
       }
     }
+  }
+  labelColors {
+    id
+    position
+    colorHex
+    name
   }
 }
     `;

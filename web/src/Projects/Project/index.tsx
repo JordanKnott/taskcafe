@@ -18,8 +18,10 @@ import {
   useAssignTaskMutation,
   DeleteTaskDocument,
   FindProjectDocument,
+  useCreateProjectLabelMutation,
 } from 'shared/generated/graphql';
 
+import TaskAssignee from 'shared/components/TaskAssignee';
 import QuickCardEditor from 'shared/components/QuickCardEditor';
 import ListActions from 'shared/components/ListActions';
 import MemberManager from 'shared/components/MemberManager';
@@ -30,6 +32,7 @@ import LabelManager from 'shared/components/PopupMenu/LabelManager';
 import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 import produce from 'immer';
 import Details from './Details';
+import MiniProfile from 'shared/components/MiniProfile';
 
 type TaskRouteProps = {
   taskID: string;
@@ -52,14 +55,23 @@ const Title = styled.span`
   font-size: 24px;
   color: #fff;
 `;
+const ProjectMembers = styled.div`
+  display: flex;
+  padding-left: 4px;
+  padding-top: 4px;
+  align-items: center;
+`;
 
 type LabelManagerEditorProps = {
   labels: Array<Label>;
+  projectID: string;
+  labelColors: Array<LabelColor>;
 };
 
-const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initialLabels }) => {
+const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initialLabels, projectID, labelColors }) => {
   const [labels, setLabels] = useState<Array<Label>>(initialLabels);
   const [currentLabel, setCurrentLabel] = useState('');
+  const [createProjectLabel] = useCreateProjectLabelMutation();
   const { setTab } = usePopup();
   return (
     <>
@@ -74,26 +86,21 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initial
             setTab(1);
           }}
           onLabelToggle={labelId => {
-            setLabels(
-              produce(labels, draftState => {
-                const idx = labels.findIndex(label => label.labelId === labelId);
-                if (idx !== -1) {
-                  draftState[idx] = { ...draftState[idx], active: !labels[idx].active };
-                }
-              }),
-            );
+            setCurrentLabel(labelId);
+            setTab(1);
           }}
         />
       </Popup>
       <Popup onClose={() => {}} title="Edit label" tab={1}>
         <LabelEditor
+          labelColors={labelColors}
           label={labels.find(label => label.labelId === currentLabel) ?? null}
           onLabelEdit={(_labelId, name, color) => {
             setLabels(
               produce(labels, draftState => {
                 const idx = labels.findIndex(label => label.labelId === currentLabel);
                 if (idx !== -1) {
-                  draftState[idx] = { ...draftState[idx], name, color };
+                  draftState[idx] = { ...draftState[idx], name, labelColor: color };
                 }
               }),
             );
@@ -103,9 +110,12 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initial
       </Popup>
       <Popup onClose={() => {}} title="Create new label" tab={2}>
         <LabelEditor
+          labelColors={labelColors}
           label={null}
           onLabelEdit={(_labelId, name, color) => {
-            setLabels([...labels, { labelId: name, name, color, active: false }]);
+            console.log(name, color);
+            setLabels([...labels, { labelId: name, name, labelColor: color, active: false }]);
+            createProjectLabel({ variables: { projectID, labelColorID: color.id, name } });
             setTab(0);
           }}
         />
@@ -124,12 +134,17 @@ const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 
 const initialLabelsPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
 const initialTaskDetailsState = { isOpen: false, taskID: '' };
 
-const ProjectActions = styled.div`
+const ProjectBar = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
   height: 40px;
   padding: 0 12px;
+`;
+
+const ProjectActions = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const ProjectAction = styled.div`
@@ -351,46 +366,67 @@ const Project = () => {
         task: currentTask,
       });
     };
+
     return (
       <>
-        <GlobalTopNavbar name={data.findProject.name} />
-        <ProjectActions>
-          <ProjectAction
-            ref={$labelsRef}
-            onClick={() => {
-              showPopup(
-                $labelsRef,
-                <LabelManagerEditor
-                  labels={data.findProject.labels.map(label => {
-                    return {
-                      labelId: label.id,
-                      name: label.name ?? '',
-                      color: label.colorHex,
-                      active: false,
-                    };
-                  })}
-                />,
-              );
-            }}
-          >
-            <Tags size={13} color="#c2c6dc" />
-            <ProjectActionText>Labels</ProjectActionText>
-          </ProjectAction>
-          <ProjectAction>
-            <ToggleOn size={13} color="#c2c6dc" />
-            <ProjectActionText>Fields</ProjectActionText>
-          </ProjectAction>
-          <ProjectAction>
-            <Bolt size={13} color="#c2c6dc" />
-            <ProjectActionText>Rules</ProjectActionText>
-          </ProjectAction>
-        </ProjectActions>
+        <GlobalTopNavbar projectMembers={availableMembers} name={data.findProject.name} />
+        <ProjectBar>
+          <ProjectActions>
+            <ProjectAction
+              ref={$labelsRef}
+              onClick={() => {
+                showPopup(
+                  $labelsRef,
+                  <LabelManagerEditor
+                    labelColors={data.labelColors}
+                    labels={data.findProject.labels.map(label => {
+                      return {
+                        labelId: label.id,
+                        name: label.name ?? '',
+                        labelColor: label.labelColor,
+                        active: false,
+                      };
+                    })}
+                    projectID={projectId}
+                  />,
+                );
+              }}
+            >
+              <Tags size={13} color="#c2c6dc" />
+              <ProjectActionText>Labels</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction>
+              <ToggleOn size={13} color="#c2c6dc" />
+              <ProjectActionText>Fields</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction>
+              <Bolt size={13} color="#c2c6dc" />
+              <ProjectActionText>Rules</ProjectActionText>
+            </ProjectAction>
+          </ProjectActions>
+        </ProjectBar>
         <KanbanBoard
           listsData={currentListsData}
           onCardDrop={onCardDrop}
           onListDrop={onListDrop}
           onCardCreate={onCardCreate}
           onCreateList={onCreateList}
+          onCardMemberClick={($targetRef, taskID, memberID) => {
+            showPopup(
+              $targetRef,
+              <Popup title={null} onClose={() => {}} tab={0}>
+                <MiniProfile
+                  profileIcon={availableMembers[0].profileIcon}
+                  displayName="Jordan Knott"
+                  username="@jordanthedev"
+                  bio="None"
+                  onRemoveFromTask={() => {
+                    /* unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } }); */
+                  }}
+                />
+              </Popup>,
+            );
+          }}
           onQuickEditorOpen={onQuickEditorOpen}
           onOpenListActionsPopup={($targetRef, taskGroupID) => {
             showPopup(

@@ -96,6 +96,7 @@ export const Default = () => {
       onQuickEditorOpen={action('card composer open')}
       onCardDrop={onCardDrop}
       onListDrop={onListDrop}
+      onCardMemberClick={action('card member click')}
       onCardCreate={action('card create')}
       onCreateList={listName => {
         const [lastColumn] = Object.values(listsData.columns)
@@ -209,6 +210,7 @@ export const ListsWithManyList = () => {
       onListDrop={onListDrop}
       onCreateList={action('create list')}
       onExtraMenuOpen={action('extra menu open')}
+      onCardMemberClick={action('card member click')}
     />
   );
 };

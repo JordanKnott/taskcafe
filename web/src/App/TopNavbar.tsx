@@ -7,8 +7,9 @@ import { useMeQuery } from 'shared/generated/graphql';
 
 type GlobalTopNavbarProps = {
   name: string;
+  projectMembers?: null | Array<TaskUser>;
 };
-const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name }) => {
+const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers }) => {
   const { loading, data } = useMeQuery();
   const history = useHistory();
   const { userID, setUserID } = useContext(UserIDContext);
@@ -50,6 +51,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name }) => {
         lastName={data ? data.me.lastName : ''}
         initials={!data ? '' : data.me.profileIcon.initials ?? ''}
         onNotificationClick={() => console.log('beep')}
+        projectMembers={projectMembers}
         onProfileClick={onProfileClick}
       />
       {menu.isOpen && (

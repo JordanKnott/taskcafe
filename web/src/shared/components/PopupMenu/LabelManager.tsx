@@ -49,7 +49,7 @@ const LabelManager: React.FC<Props> = ({ labels, onLabelToggle, onLabelEdit, onL
                   </LabelIcon>
                   <CardLabel
                     key={label.labelId}
-                    color={label.color}
+                    color={label.labelColor.colorHex}
                     active={currentLabel === label.labelId}
                     onMouseEnter={() => {
                       setCurrentLabel(label.labelId);

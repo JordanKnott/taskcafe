@@ -21,7 +21,14 @@ export const Default = () => {
         taskGroup: { name: 'General', taskGroupID: '1' },
         name: 'Hello, world',
         position: 1,
-        labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
+        labels: [
+          {
+            labelId: 'soft-skills',
+            labelColor: { id: '1', colorHex: '#fff', name: 'white', position: 1 },
+            active: true,
+            name: 'Soft Skills',
+          },
+        ],
         description: 'hello!',
         members: [
           { userID: '1', profileIcon: { url: null, initials: null, bgColor: null }, displayName: 'Jordan Knott' },

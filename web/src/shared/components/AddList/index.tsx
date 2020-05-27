@@ -45,6 +45,7 @@ const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
           onKeyDown={onKeyDown}
           value={listName}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setListName(e.currentTarget.value)}
+          placeholder="Enter a title for this list..."
         />
       </ListNameEditorWrapper>
       <ListAddControls>
@@ -60,7 +61,7 @@ const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
           Save
         </AddListButton>
         <CancelAdd onClick={() => onCancel()}>
-          <Cross />
+          <Cross color="#c2c6dc" />
         </CancelAdd>
       </ListAddControls>
     </>

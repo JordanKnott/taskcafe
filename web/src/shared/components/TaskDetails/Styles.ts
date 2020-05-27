@@ -199,6 +199,7 @@ export const TaskDetailAssignee = styled.div`
   }
   margin-right: 4px;
 `;
+
 export const ProfileIcon = styled.div`
   width: 32px;
   height: 32px;

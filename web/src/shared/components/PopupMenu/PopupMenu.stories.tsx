@@ -28,13 +28,23 @@ const labelData = [
   {
     labelId: 'development',
     name: 'Development',
-    color: LabelColors.BLUE,
-    active: true,
+    labelColor: {
+      id: '1',
+      name: 'white',
+      colorHex: LabelColors.BLUE,
+      position: 1,
+    },
+    active: false,
   },
   {
     labelId: 'general',
     name: 'General',
-    color: LabelColors.PINK,
+    labelColor: {
+      id: '1',
+      name: 'white',
+      colorHex: LabelColors.PINK,
+      position: 1,
+    },
     active: false,
   },
 ];
@@ -75,13 +85,14 @@ const LabelManagerEditor = () => {
       </Popup>
       <Popup onClose={action('on close')} title="Edit label" tab={1}>
         <LabelEditor
+          labelColors={[{ id: '1', colorHex: '#c2c6dc', position: 1, name: 'gray' }]}
           label={labels.find(label => label.labelId === currentLabel) ?? null}
           onLabelEdit={(_labelId, name, color) => {
             setLabels(
               produce(labels, draftState => {
                 const idx = labels.findIndex(label => label.labelId === currentLabel);
                 if (idx !== -1) {
-                  draftState[idx] = { ...draftState[idx], name, color };
+                  draftState[idx] = { ...draftState[idx], name, labelColor: color };
                 }
               }),
             );
@@ -92,8 +103,9 @@ const LabelManagerEditor = () => {
       <Popup onClose={action('on close')} title="Create new label" tab={2}>
         <LabelEditor
           label={null}
+          labelColors={[{ id: '1', colorHex: '#c2c6dc', position: 1, name: 'gray' }]}
           onLabelEdit={(_labelId, name, color) => {
-            setLabels([...labels, { labelId: name, name, color, active: false }]);
+            setLabels([...labels, { labelId: name, name, labelColor: color, active: false }]);
             setTab(0);
           }}
         />
@@ -141,7 +153,11 @@ export const LabelsLabelEditor = () => {
           onClose={() => setPopupOpen(false)}
           left={10}
         >
-          <LabelEditor label={labelData[0]} onLabelEdit={action('label edit')} />
+          <LabelEditor
+            label={labelData[0]}
+            onLabelEdit={action('label edit')}
+            labelColors={[{ id: '1', colorHex: '#c2c6dc', position: 1, name: 'gray' }]}
+          />
         </PopupMenu>
       )}
       <button type="submit" onClick={() => setPopupOpen(true)}>
@@ -239,7 +255,19 @@ export const DueDateManagerPopup = () => {
               taskGroup: { name: 'General', taskGroupID: '1' },
               name: 'Hello, world',
               position: 1,
-              labels: [{ labelId: 'soft-skills', color: '#fff', active: true, name: 'Soft Skills' }],
+              labels: [
+                {
+                  labelId: 'soft-skills',
+                  labelColor: {
+                    id: '1',
+                    name: 'white',
+                    colorHex: '#fff',
+                    position: 1,
+                  },
+                  active: true,
+                  name: 'Soft Skills',
+                },
+              ],
               description: 'hello!',
               members: [
                 { userID: '1', profileIcon: { bgColor: null, url: null, initials: null }, displayName: 'Jordan Knott' },
@@ -325,4 +353,3 @@ export const MiniProfilePopup = () => {
     </>
   );
 };
-

@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CreateLabelColor(ctx context.Context, arg CreateLabelColorParams) (LabelColor, error)
 	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (Organization, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	CreateProjectLabel(ctx context.Context, arg CreateProjectLabelParams) (ProjectLabel, error)
@@ -36,6 +37,7 @@ type Querier interface {
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
 	GetLabelColorByID(ctx context.Context, labelColorID uuid.UUID) (LabelColor, error)
+	GetLabelColors(ctx context.Context) ([]LabelColor, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)

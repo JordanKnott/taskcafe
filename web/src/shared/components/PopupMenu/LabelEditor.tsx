@@ -4,14 +4,15 @@ import { Checkmark } from 'shared/icons';
 import { SaveButton, DeleteButton, LabelBox, EditLabelForm, FieldLabel, FieldName } from './Styles';
 
 type Props = {
+  labelColors: Array<LabelColor>;
   label: Label | null;
-  onLabelEdit: (labelId: string | null, labelName: string, color: string) => void;
+  onLabelEdit: (labelId: string | null, labelName: string, labelColor: LabelColor) => void;
 };
 
-const LabelManager = ({ label, onLabelEdit }: Props) => {
+const LabelManager = ({ labelColors, label, onLabelEdit }: Props) => {
   console.log(label);
   const [currentLabel, setCurrentLabel] = useState(label ? label.name : '');
-  const [currentColor, setCurrentColor] = useState<string | null>(label ? label.color : null);
+  const [currentColor, setCurrentColor] = useState<LabelColor | null>(label ? label.labelColor : null);
   return (
     <EditLabelForm>
       <FieldLabel>Name</FieldLabel>
@@ -26,14 +27,14 @@ const LabelManager = ({ label, onLabelEdit }: Props) => {
       />
       <FieldLabel>Select a color</FieldLabel>
       <div>
-        {Object.values(LabelColors).map(labelColor => (
+        {labelColors.map((labelColor: LabelColor) => (
           <LabelBox
-            color={labelColor}
+            color={labelColor.colorHex}
             onClick={() => {
               setCurrentColor(labelColor);
             }}
           >
-            {labelColor === currentColor && <Checkmark color="#fff" size={12} />}
+            {currentColor && labelColor.id === currentColor.id && <Checkmark color="#fff" size={12} />}
           </LabelBox>
         ))}
       </div>

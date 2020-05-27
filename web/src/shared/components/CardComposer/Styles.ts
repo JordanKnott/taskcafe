@@ -75,10 +75,10 @@ export const ComposerControlsActionsSection = styled.div`
 `;
 
 export const AddCardButton = styled.button`
-  background-color: #5aac44;
+  background: rgb(115, 103, 240);
   box-shadow: none;
   border: none;
-  color: #fff;
+  color: #c2c6dc;
   cursor: pointer;
   display: inline-block;
   font-weight: 400;

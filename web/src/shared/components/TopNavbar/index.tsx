@@ -3,6 +3,7 @@ import { Star, Bell, Cog, AngleDown } from 'shared/icons';
 
 import {
   NotificationContainer,
+  InviteButton,
   GlobalActions,
   ProjectActions,
   ProjectSwitcher,
@@ -21,7 +22,11 @@ import {
   ProfileNameWrapper,
   ProfileNamePrimary,
   ProfileNameSecondary,
+  ProjectMembers,
 } from './Styles';
+import TaskAssignee from 'shared/components/TaskAssignee';
+import { usePopup, Popup } from 'shared/components/PopupMenu';
+import MiniProfile from 'shared/components/MiniProfile';
 
 type NavBarProps = {
   projectName: string;
@@ -31,6 +36,7 @@ type NavBarProps = {
   firstName: string;
   lastName: string;
   initials: string;
+  projectMembers?: Array<TaskUser> | null;
 };
 const NavBar: React.FC<NavBarProps> = ({
   projectName,
@@ -40,12 +46,28 @@ const NavBar: React.FC<NavBarProps> = ({
   lastName,
   initials,
   bgColor,
+  projectMembers,
 }) => {
   const $profileRef: any = useRef(null);
   const handleProfileClick = () => {
     console.log('click');
     const boundingRect = $profileRef.current.getBoundingClientRect();
     onProfileClick(boundingRect.bottom, boundingRect.right);
+  };
+  const { showPopup } = usePopup();
+  const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
+    showPopup(
+      $targetRef,
+      <Popup title={null} onClose={() => {}} tab={0}>
+        <MiniProfile
+          profileIcon={projectMembers ? projectMembers[0].profileIcon : { url: null, initials: 'JK', bgColor: '#000' }}
+          displayName="Jordan Knott"
+          username="@jordanthedev"
+          bio="None"
+          onRemoveFromTask={() => {}}
+        />
+      </Popup>,
+    );
   };
   return (
     <NavbarWrapper>
@@ -58,7 +80,9 @@ const NavBar: React.FC<NavBarProps> = ({
             <ProjectSettingsButton>
               <AngleDown color="#c2c6dc" />
             </ProjectSettingsButton>
-            <Star filled color="#c2c6dc" />
+            <ProjectSettingsButton>
+              <Star width={16} height={16} color="#c2c6dc" />
+            </ProjectSettingsButton>
           </ProjectMeta>
           <ProjectTabs>
             <ProjectTab active>Board</ProjectTab>
@@ -68,6 +92,14 @@ const NavBar: React.FC<NavBarProps> = ({
           </ProjectTabs>
         </ProjectActions>
         <GlobalActions>
+          {projectMembers && (
+            <ProjectMembers>
+              {projectMembers.map(member => (
+                <TaskAssignee size={28} member={member} onMemberProfile={onMemberProfile} />
+              ))}
+              <InviteButton>Invite</InviteButton>
+            </ProjectMembers>
+          )}
           <NotificationContainer onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />
           </NotificationContainer>

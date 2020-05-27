@@ -30,6 +30,7 @@ type Props = {
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
   onCreateList: (listName: string) => void;
   onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
+  onCardMemberClick: OnCardMemberClick;
 };
 
 const Lists: React.FC<Props> = ({
@@ -41,6 +42,7 @@ const Lists: React.FC<Props> = ({
   onCardCreate,
   onQuickEditorOpen,
   onCreateList,
+  onCardMemberClick,
   onExtraMenuOpen,
 }) => {
   const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
@@ -161,6 +163,7 @@ const Lists: React.FC<Props> = ({
                                           labels={task.labels}
                                           members={task.members}
                                           onClick={() => onCardClick(task)}
+                                          onCardMemberClick={onCardMemberClick}
                                           onContextMenu={onQuickEditorOpen}
                                         />
                                       );

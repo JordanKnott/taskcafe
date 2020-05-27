@@ -207,21 +207,23 @@ export const FieldName = styled.input`
   margin: 4px 0 12px;
   width: 100%;
   box-sizing: border-box;
-  border-radius: 3px;
   display: block;
   line-height: 20px;
   margin-bottom: 12px;
   padding: 8px 12px;
   background: #262c49;
+  outline: none;
+  color: #c2c6dc;
+
+  border-radius: 3px;
   border-width: 1px;
   border-style: solid;
   border-color: transparent;
   border-image: initial;
+  border-color: #414561;
 
   font-size: 12px;
   font-weight: 400;
-
-  color: #c2c6dc;
 
   &:focus {
     box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;

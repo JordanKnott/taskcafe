@@ -13,6 +13,7 @@ type LabelColor struct {
 	LabelColorID uuid.UUID `json:"label_color_id"`
 	ColorHex     string    `json:"color_hex"`
 	Position     float64   `json:"position"`
+	Name         string    `json:"name"`
 }
 
 type Organization struct {

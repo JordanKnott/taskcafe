@@ -5,6 +5,11 @@ export const NavbarWrapper = styled.div`
   width: 100%;
 `;
 
+export const ProjectMembers = styled.div`
+  display: flex;
+  padding-right: 18px;
+  align-items: center;
+`;
 export const NavbarHeader = styled.header`
   height: 80px;
   padding: 0 1.75rem;
@@ -170,6 +175,32 @@ export const ProjectSettingsButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  &:hover {
+    background: rgb(115, 103, 240);
+  }
+`;
+
+export const InviteButton = styled.button`
+  outline: none;
+  border: none;
+  width: 100%;
+  line-height: 20px;
+  padding: 6px 12px;
+  background-color: none;
+  text-align: center;
+  color: #c2c6dc;
+  font-size: 14px;
+  cursor: pointer;
+
+  margin: 0 0 0 8px;
+
+  border-radius: 3px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-color: #414561;
+
   &:hover {
     background: rgb(115, 103, 240);
   }

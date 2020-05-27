@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bin, Cross, Plus } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+import TaskAssignee from 'shared/components/TaskAssignee';
 
 import {
   NoDueDateLabel,
@@ -90,19 +91,6 @@ const DetailsEditor: React.FC<DetailsEditorProps> = ({
         </CancelEdit>
       </TaskDetailsControls>
     </TaskDetailsEditorWrapper>
-  );
-};
-
-type TaskAssigneeProps = {
-  member: TaskUser;
-  onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
-};
-const TaskAssignee: React.FC<TaskAssigneeProps> = ({ member, onMemberProfile }) => {
-  const $memberRef = useRef<HTMLDivElement>(null);
-  return (
-    <TaskDetailAssignee ref={$memberRef} onClick={() => onMemberProfile($memberRef, member.userID)} key={member.userID}>
-      <ProfileIcon>{member.profileIcon.initials ?? ''}</ProfileIcon>
-    </TaskDetailAssignee>
   );
 };
 
@@ -210,7 +198,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             ) : (
               <>
                 {task.members &&
-                  task.members.map(member => <TaskAssignee member={member} onMemberProfile={onMemberProfile} />)}
+                  task.members.map(member => (
+                    <TaskAssignee size={32} member={member} onMemberProfile={onMemberProfile} />
+                  ))}
                 <TaskDetailsAddMember ref={$addMemberRef} onClick={onAddMember}>
                   <TaskDetailsAddMemberIcon>
                     <Plus size={16} color="#c2c6dc" />

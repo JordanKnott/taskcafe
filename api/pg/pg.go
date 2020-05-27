@@ -26,6 +26,9 @@ type Repository interface {
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
 
+	GetLabelColors(ctx context.Context) ([]LabelColor, error)
+	CreateLabelColor(ctx context.Context, arg CreateLabelColorParams) (LabelColor, error)
+
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	GetRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) (RefreshToken, error)
 	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error

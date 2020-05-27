@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
+import { mixin } from 'shared/utils/styles';
 
 export const Container = styled.div``;
 
@@ -27,11 +28,11 @@ export const Wrapper = styled.div<{ editorOpen: boolean }>`
   ${props =>
     props.editorOpen &&
     css`
-      background-color: #ebecf0;
+      background-color: #10163a;
       border-radius: 3px;
       height: auto;
       min-height: 32px;
-      padding: 4px;
+      padding: 8px;
       transition: background 85ms ease-in, opacity 40ms ease-in, border-color 85ms ease-in;
     `}
 `;
@@ -53,17 +54,33 @@ export const ListNameEditorWrapper = styled.div`
   display: flex;
 `;
 export const ListNameEditor = styled(TextareaAutosize)`
-  background: #fff;
+  background-color: ${props => mixin.lighten('#262c49', 0.05)};
   border: none;
   box-shadow: inset 0 0 0 2px #0079bf;
-  display: block;
-  margin: 0;
   transition: margin 85ms ease-in, background 85ms ease-in;
-  width: 100%;
   line-height: 20px;
   padding: 8px 12px;
+
+  font-family: 'Droid Sans';
+  overflow: hidden;
+  overflow-wrap: break-word;
+  resize: none;
+  height: 54px;
+  width: 100%;
+
+  border: none;
+  border-radius: 3px;
+  box-shadow: none;
+  margin-bottom: 4px;
+  max-height: 162px;
+  min-height: 54px;
   font-size: 14px;
-  outline: none;
+  line-height: 20px;
+
+  color: #c2c6dc;
+  l &:focus {
+    background-color: ${props => mixin.lighten('#262c49', 0.05)};
+  }
 `;
 
 export const ListAddControls = styled.div`
@@ -74,10 +91,9 @@ export const ListAddControls = styled.div`
 `;
 
 export const AddListButton = styled.button`
-  background-color: #5aac44;
   box-shadow: none;
   border: none;
-  color: #fff;
+  color: #c2c6dc;
   float: left;
   margin: 0 4px 0 0;
   cursor: pointer;
@@ -88,6 +104,8 @@ export const AddListButton = styled.button`
   text-align: center;
   border-radius: 3px;
   font-size: 14px;
+
+  background: rgb(115, 103, 240);
 `;
 
 export const CancelAdd = styled.div`

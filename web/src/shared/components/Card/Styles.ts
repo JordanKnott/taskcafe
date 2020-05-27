@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
+import { RefObject } from 'react';
 
 export const ClockIcon = styled(FontAwesomeIcon)``;
 
@@ -127,7 +128,7 @@ export const CardMembers = styled.div`
   margin: 0 -2px 0 0;
 `;
 
-export const CardMember = styled.div<{ bgColor: string }>`
+export const CardMember = styled.div<{ bgColor: string; ref: any }>`
   height: 28px;
   width: 28px;
   float: right;

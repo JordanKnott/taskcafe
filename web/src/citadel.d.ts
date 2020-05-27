@@ -84,7 +84,7 @@ type Team = {
 type Label = {
   labelId: string;
   name: string;
-  color: string;
+  labelColor: LabelColor;
   active: boolean;
 };
 
@@ -117,7 +117,17 @@ type ElementSize = {
   height: number;
 };
 
+type LabelColor = {
+  id: string;
+  name: string;
+  colorHex: string;
+  position: number;
+};
+
+type OnCardMemberClick = ($targetRef: RefObject<HTMLElement>, taskID: string, memberID: string) => void;
+
 type ElementBounds = {
   size: ElementSize;
   position: ElementPosition;
 };
+

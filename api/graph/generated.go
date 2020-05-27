@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	LabelColor() LabelColorResolver
 	Mutation() MutationResolver
 	Project() ProjectResolver
 	ProjectLabel() ProjectLabelResolver
@@ -61,6 +62,13 @@ type ComplexityRoot struct {
 
 	DeleteTaskPayload struct {
 		TaskID func(childComplexity int) int
+	}
+
+	LabelColor struct {
+		ColorHex func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Position func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -102,9 +110,9 @@ type ComplexityRoot struct {
 	}
 
 	ProjectLabel struct {
-		ColorHex    func(childComplexity int) int
 		CreatedDate func(childComplexity int) int
 		ID          func(childComplexity int) int
+		LabelColor  func(childComplexity int) int
 		Name        func(childComplexity int) int
 	}
 
@@ -119,6 +127,7 @@ type ComplexityRoot struct {
 		FindProject func(childComplexity int, input FindProject) int
 		FindTask    func(childComplexity int, input FindTask) int
 		FindUser    func(childComplexity int, input FindUser) int
+		LabelColors func(childComplexity int) int
 		Me          func(childComplexity int) int
 		Projects    func(childComplexity int, input *ProjectsFilter) int
 		TaskGroups  func(childComplexity int) int
@@ -177,6 +186,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type LabelColorResolver interface {
+	ID(ctx context.Context, obj *pg.LabelColor) (uuid.UUID, error)
+}
 type MutationResolver interface {
 	CreateRefreshToken(ctx context.Context, input NewRefreshToken) (*pg.RefreshToken, error)
 	CreateUserAccount(ctx context.Context, input NewUserAccount) (*pg.UserAccount, error)
@@ -209,7 +221,7 @@ type ProjectResolver interface {
 type ProjectLabelResolver interface {
 	ID(ctx context.Context, obj *pg.ProjectLabel) (uuid.UUID, error)
 
-	ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error)
+	LabelColor(ctx context.Context, obj *pg.ProjectLabel) (*pg.LabelColor, error)
 	Name(ctx context.Context, obj *pg.ProjectLabel) (*string, error)
 }
 type QueryResolver interface {
@@ -218,6 +230,7 @@ type QueryResolver interface {
 	FindProject(ctx context.Context, input FindProject) (*pg.Project, error)
 	FindTask(ctx context.Context, input FindTask) (*pg.Task, error)
 	Projects(ctx context.Context, input *ProjectsFilter) ([]pg.Project, error)
+	LabelColors(ctx context.Context) ([]pg.LabelColor, error)
 	TaskGroups(ctx context.Context) ([]pg.TaskGroup, error)
 	Me(ctx context.Context) (*pg.UserAccount, error)
 }
@@ -295,6 +308,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteTaskPayload.TaskID(childComplexity), true
+
+	case "LabelColor.colorHex":
+		if e.complexity.LabelColor.ColorHex == nil {
+			break
+		}
+
+		return e.complexity.LabelColor.ColorHex(childComplexity), true
+
+	case "LabelColor.id":
+		if e.complexity.LabelColor.ID == nil {
+			break
+		}
+
+		return e.complexity.LabelColor.ID(childComplexity), true
+
+	case "LabelColor.name":
+		if e.complexity.LabelColor.Name == nil {
+			break
+		}
+
+		return e.complexity.LabelColor.Name(childComplexity), true
+
+	case "LabelColor.position":
+		if e.complexity.LabelColor.Position == nil {
+			break
+		}
+
+		return e.complexity.LabelColor.Position(childComplexity), true
 
 	case "Mutation.addTaskLabel":
 		if e.complexity.Mutation.AddTaskLabel == nil {
@@ -589,13 +630,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.Team(childComplexity), true
 
-	case "ProjectLabel.colorHex":
-		if e.complexity.ProjectLabel.ColorHex == nil {
-			break
-		}
-
-		return e.complexity.ProjectLabel.ColorHex(childComplexity), true
-
 	case "ProjectLabel.createdDate":
 		if e.complexity.ProjectLabel.CreatedDate == nil {
 			break
@@ -609,6 +643,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProjectLabel.ID(childComplexity), true
+
+	case "ProjectLabel.labelColor":
+		if e.complexity.ProjectLabel.LabelColor == nil {
+			break
+		}
+
+		return e.complexity.ProjectLabel.LabelColor(childComplexity), true
 
 	case "ProjectLabel.name":
 		if e.complexity.ProjectLabel.Name == nil {
@@ -680,6 +721,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindUser(childComplexity, args["input"].(FindUser)), true
+
+	case "Query.labelColors":
+		if e.complexity.Query.LabelColors == nil {
+			break
+		}
+
+		return e.complexity.Query.LabelColors(childComplexity), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -1015,8 +1063,15 @@ scalar UUID
 type ProjectLabel {
   id: ID!
   createdDate: Time!
-  colorHex: String!
+  labelColor: LabelColor!
   name: String
+}
+
+type LabelColor {
+  id: ID!
+  name: String!
+  position: Float!
+  colorHex: String!
 }
 
 type TaskLabel {
@@ -1116,6 +1171,7 @@ type Query {
   findProject(input: FindProject!): Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
+  labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
   me: UserAccount!
 }
@@ -1734,6 +1790,142 @@ func (ec *executionContext) _DeleteTaskPayload_taskID(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.TaskID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LabelColor_id(ctx context.Context, field graphql.CollectedField, obj *pg.LabelColor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LabelColor",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.LabelColor().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LabelColor_name(ctx context.Context, field graphql.CollectedField, obj *pg.LabelColor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LabelColor",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LabelColor_position(ctx context.Context, field graphql.CollectedField, obj *pg.LabelColor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LabelColor",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Position, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LabelColor_colorHex(ctx context.Context, field graphql.CollectedField, obj *pg.LabelColor) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LabelColor",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ColorHex, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2921,7 +3113,7 @@ func (ec *executionContext) _ProjectLabel_createdDate(ctx context.Context, field
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectLabel_colorHex(ctx context.Context, field graphql.CollectedField, obj *pg.ProjectLabel) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectLabel_labelColor(ctx context.Context, field graphql.CollectedField, obj *pg.ProjectLabel) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2938,7 +3130,7 @@ func (ec *executionContext) _ProjectLabel_colorHex(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ProjectLabel().ColorHex(rctx, obj)
+		return ec.resolvers.ProjectLabel().LabelColor(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2950,9 +3142,9 @@ func (ec *executionContext) _ProjectLabel_colorHex(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*pg.LabelColor)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNLabelColor2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐLabelColor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProjectLabel_name(ctx context.Context, field graphql.CollectedField, obj *pg.ProjectLabel) (ret graphql.Marshaler) {
@@ -3318,6 +3510,40 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 	res := resTmp.([]pg.Project)
 	fc.Result = res
 	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_labelColors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LabelColors(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]pg.LabelColor)
+	fc.Result = res
+	return ec.marshalNLabelColor2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐLabelColorᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_taskGroups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6228,6 +6454,57 @@ func (ec *executionContext) _DeleteTaskPayload(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var labelColorImplementors = []string{"LabelColor"}
+
+func (ec *executionContext) _LabelColor(ctx context.Context, sel ast.SelectionSet, obj *pg.LabelColor) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, labelColorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LabelColor")
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LabelColor_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "name":
+			out.Values[i] = ec._LabelColor_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "position":
+			out.Values[i] = ec._LabelColor_position(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "colorHex":
+			out.Values[i] = ec._LabelColor_colorHex(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -6518,7 +6795,7 @@ func (ec *executionContext) _ProjectLabel(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "colorHex":
+		case "labelColor":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -6526,7 +6803,7 @@ func (ec *executionContext) _ProjectLabel(ctx context.Context, sel ast.Selection
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ProjectLabel_colorHex(ctx, field, obj)
+				res = ec._ProjectLabel_labelColor(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -6676,6 +6953,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_projects(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "labelColors":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_labelColors(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -7497,6 +7788,57 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNLabelColor2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐLabelColor(ctx context.Context, sel ast.SelectionSet, v pg.LabelColor) graphql.Marshaler {
+	return ec._LabelColor(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLabelColor2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐLabelColorᚄ(ctx context.Context, sel ast.SelectionSet, v []pg.LabelColor) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLabelColor2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐLabelColor(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNLabelColor2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐLabelColor(ctx context.Context, sel ast.SelectionSet, v *pg.LabelColor) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LabelColor(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNLogoutUser2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐLogoutUser(ctx context.Context, v interface{}) (LogoutUser, error) {

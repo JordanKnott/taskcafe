@@ -15,6 +15,10 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
+func (r *labelColorResolver) ID(ctx context.Context, obj *pg.LabelColor) (uuid.UUID, error) {
+	return obj.LabelColorID, nil
+}
+
 func (r *mutationResolver) CreateRefreshToken(ctx context.Context, input NewRefreshToken) (*pg.RefreshToken, error) {
 	userID := uuid.MustParse("0183d9ab-d0ed-4c9b-a3df-77a0cdd93dca")
 	refreshCreatedAt := time.Now().UTC()
@@ -46,7 +50,23 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) 
 }
 
 func (r *mutationResolver) CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*pg.ProjectLabel, error) {
-	panic(fmt.Errorf("not implemented"))
+	createdAt := time.Now().UTC()
+
+	var name sql.NullString
+	if input.Name != nil {
+		name = sql.NullString{
+			*input.Name,
+			true,
+		}
+	} else {
+		name = sql.NullString{
+			"",
+			false,
+		}
+	}
+	projectLabel, err := r.Repository.CreateProjectLabel(ctx, pg.CreateProjectLabelParams{input.ProjectID,
+		input.LabelColorID, createdAt, name})
+	return &projectLabel, err
 }
 
 func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*pg.TaskGroup, error) {
@@ -234,12 +254,12 @@ func (r *projectLabelResolver) ID(ctx context.Context, obj *pg.ProjectLabel) (uu
 	return obj.ProjectLabelID, nil
 }
 
-func (r *projectLabelResolver) ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error) {
+func (r *projectLabelResolver) LabelColor(ctx context.Context, obj *pg.ProjectLabel) (*pg.LabelColor, error) {
 	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
 	if err != nil {
-		return "", err
+		return &pg.LabelColor{}, err
 	}
-	return labelColor.ColorHex, nil
+	return &labelColor, nil
 }
 
 func (r *projectLabelResolver) Name(ctx context.Context, obj *pg.ProjectLabel) (*string, error) {
@@ -302,6 +322,10 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 		return r.Repository.GetAllProjectsForTeam(ctx, teamID)
 	}
 	return r.Repository.GetAllProjects(ctx)
+}
+
+func (r *queryResolver) LabelColors(ctx context.Context) ([]pg.LabelColor, error) {
+	return r.Repository.GetLabelColors(ctx)
 }
 
 func (r *queryResolver) TaskGroups(ctx context.Context) ([]pg.TaskGroup, error) {
@@ -424,6 +448,9 @@ func (r *userAccountResolver) ProfileIcon(ctx context.Context, obj *pg.UserAccou
 	return profileIcon, nil
 }
 
+// LabelColor returns LabelColorResolver implementation.
+func (r *Resolver) LabelColor() LabelColorResolver { return &labelColorResolver{r} }
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -454,6 +481,7 @@ func (r *Resolver) Team() TeamResolver { return &teamResolver{r} }
 // UserAccount returns UserAccountResolver implementation.
 func (r *Resolver) UserAccount() UserAccountResolver { return &userAccountResolver{r} }
 
+type labelColorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type projectLabelResolver struct{ *Resolver }
@@ -464,3 +492,17 @@ type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }
 type userAccountResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *projectLabelResolver) ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error) {
+	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
+	if err != nil {
+		return "", err
+	}
+	return labelColor.ColorHex, nil
+}

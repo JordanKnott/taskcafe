@@ -4,8 +4,15 @@ scalar UUID
 type ProjectLabel {
   id: ID!
   createdDate: Time!
-  colorHex: String!
+  labelColor: LabelColor!
   name: String
+}
+
+type LabelColor {
+  id: ID!
+  name: String!
+  position: Float!
+  colorHex: String!
 }
 
 type TaskLabel {
@@ -105,6 +112,7 @@ type Query {
   findProject(input: FindProject!): Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
+  labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
   me: UserAccount!
 }

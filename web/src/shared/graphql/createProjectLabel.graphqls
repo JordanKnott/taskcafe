@@ -2,7 +2,10 @@ mutation createProjectLabel($projectID: UUID!, $labelColorID: UUID!, $name: Stri
   createProjectLabel(input:{projectID:$projectID, labelColorID: $labelColorID, name: $name}) {
     id
     createdDate
-    colorHex
+    labelColor {
+      id
+      colorHex
+    }
     name
   }
 }

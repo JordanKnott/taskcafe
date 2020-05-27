@@ -12,6 +12,7 @@ type KanbanBoardProps = {
   onCardCreate: (taskGroupID: string, name: string) => void;
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
   onCreateList: (listName: string) => void;
+  onCardMemberClick: OnCardMemberClick;
 };
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -22,6 +23,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onCardDrop,
   onListDrop,
   onCreateList,
+  onCardMemberClick,
 }) => {
   const match = useRouteMatch();
   const history = useHistory();
@@ -40,6 +42,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
         onListDrop={onListDrop}
         {...listsData}
         onCreateList={onCreateList}
+        onCardMemberClick={onCardMemberClick}
       />
     </Board>
   );

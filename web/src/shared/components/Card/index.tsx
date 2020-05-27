@@ -33,6 +33,31 @@ type Checklist = {
   total: number;
 };
 
+type MemberProps = {
+  onCardMemberClick?: OnCardMemberClick;
+  taskID: string;
+  member: TaskUser;
+};
+
+const Member: React.FC<MemberProps> = ({ onCardMemberClick, taskID, member }) => {
+  const $targetRef = useRef<HTMLDivElement>();
+  return (
+    <CardMember
+      ref={$targetRef}
+      onClick={e => {
+        if (onCardMemberClick) {
+          e.stopPropagation();
+          onCardMemberClick($targetRef, taskID, member.userID);
+        }
+      }}
+      key={member.userID}
+      bgColor={member.profileIcon.bgColor ?? '#7367F0'}
+    >
+      <CardMemberInitials>{member.profileIcon.initials}</CardMemberInitials>
+    </CardMember>
+  );
+};
+
 type Props = {
   title: string;
   description: string;
@@ -46,6 +71,7 @@ type Props = {
   labels?: Label[];
   wrapperProps?: any;
   members?: Array<TaskUser> | null;
+  onCardMemberClick?: OnCardMemberClick;
 };
 
 const Card = React.forwardRef(
@@ -63,6 +89,7 @@ const Card = React.forwardRef(
       checklists,
       watched,
       members,
+      onCardMemberClick,
     }: Props,
     $cardRef: any,
   ) => {
@@ -109,7 +136,7 @@ const Card = React.forwardRef(
             <ListCardLabels>
               {labels &&
                 labels.map(label => (
-                  <ListCardLabel color={label.color} key={label.name}>
+                  <ListCardLabel color={label.labelColor.colorHex} key={label.name}>
                     {label.name}
                   </ListCardLabel>
                 ))}
@@ -141,11 +168,7 @@ const Card = React.forwardRef(
             </ListCardBadges>
             <CardMembers>
               {members &&
-                members.map(member => (
-                  <CardMember key={member.userID} bgColor={member.profileIcon.bgColor ?? '#7367F0'}>
-                    <CardMemberInitials>{member.profileIcon.initials}</CardMemberInitials>
-                  </CardMember>
-                ))}
+                members.map(member => <Member taskID={taskID} member={member} onCardMemberClick={onCardMemberClick} />)}
             </CardMembers>
           </ListCardDetails>
         </ListCardInnerContainer>

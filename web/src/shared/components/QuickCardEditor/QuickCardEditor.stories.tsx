@@ -21,13 +21,23 @@ const labelData = [
   {
     labelId: 'development',
     name: 'Development',
-    color: LabelColors.BLUE,
+    labelColor: {
+      id: '1',
+      name: 'white',
+      colorHex: LabelColors.BLUE,
+      position: 1,
+    },
     active: false,
   },
   {
     labelId: 'general',
     name: 'General',
-    color: LabelColors.PINK,
+    labelColor: {
+      id: '1',
+      name: 'white',
+      colorHex: LabelColors.PINK,
+      position: 1,
+    },
     active: false,
   },
 ];

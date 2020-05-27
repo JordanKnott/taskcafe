@@ -72,7 +72,7 @@ const QuickCardEditor = ({
           <ListCardLabels>
             {labels &&
               labels.map(label => (
-                <ListCardLabel color={label.color} key={label.name}>
+                <ListCardLabel color={label.labelColor.colorHex} key={label.name}>
                   {label.name}
                 </ListCardLabel>
               ))}
