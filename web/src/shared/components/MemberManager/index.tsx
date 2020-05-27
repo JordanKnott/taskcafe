@@ -43,7 +43,7 @@ const MemberManager: React.FC<MemberManagerProps> = ({
           )
           .map(member => {
             return (
-              <BoardMembersListItem>
+              <BoardMembersListItem key={member.userID}>
                 <BoardMemberListItemContent
                   onClick={() => {
                     const isActive = activeMembers.findIndex(m => m.userID === member.userID) !== -1;

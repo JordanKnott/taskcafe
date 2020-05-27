@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/macro';
+import GlobalTopNavbar from 'App/TopNavbar';
 import { useGetProjectsQuery } from 'shared/generated/graphql';
 
 import ProjectGridItem from 'shared/components/ProjectGridItem';
@@ -40,13 +41,18 @@ const Projects = () => {
   if (data) {
     const { projects } = data;
     return (
-      <ProjectGrid>
-        {projects.map(project => (
-          <ProjectLink key={project.projectID} to={`/projects/${project.projectID}`}>
-            <ProjectGridItem project={{ ...project, teamTitle: project.team.name, taskGroups: [] }} />
-          </ProjectLink>
-        ))}
-      </ProjectGrid>
+      <>
+        <GlobalTopNavbar name="Projects" />
+        <ProjectGrid>
+          {projects.map(project => (
+            <ProjectLink key={project.id} to={`/projects/${project.id}`}>
+              <ProjectGridItem
+                project={{ ...project, projectID: project.id, teamTitle: project.team.name, taskGroups: [] }}
+              />
+            </ProjectLink>
+          ))}
+        </ProjectGrid>
+      </>
     );
   }
   return <div>Error!</div>;

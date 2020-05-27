@@ -16,7 +16,7 @@ export const CardComposerWrapper = styled.div<{ isOpen: boolean }>`
 `;
 
 export const ListCard = styled.div`
-  background-color: #fff;
+  background-color: ${props => mixin.lighten('#262c49', 0.05)};
   border-radius: 3px;
   ${mixin.boxShadowCard}
   cursor: pointer;
@@ -55,9 +55,10 @@ export const ListCardEditor = styled(TextareaAutosize)`
   padding: 0;
   font-size: 14px;
   line-height: 20px;
-  &:focus {
-    border: none;
-    outline: none;
+
+  color: #c2c6dc;
+  l &:focus {
+    background-color: ${props => mixin.lighten('#262c49', 0.05)};
   }
 `;
 

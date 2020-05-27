@@ -3,9 +3,9 @@ mutation deleteTaskGroup($taskGroupID: UUID!) {
     ok
     affectedRows
     taskGroup {
-      taskGroupID
+      id
       tasks {
-        taskID
+        id
         name
       }
     }

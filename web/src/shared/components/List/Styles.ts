@@ -21,7 +21,7 @@ export const AddCardContainer = styled.div`
 
 export const AddCardButton = styled.a`
   border-radius: 3px;
-  color: #5e6c84;
+  color: #c2c6dc;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -32,9 +32,9 @@ export const AddCardButton = styled.a`
   text-decoration: none;
   user-select: none;
   &:hover {
-    background-color: rgba(9, 30, 66, 0.08);
-    color: #172b4d;
+    color: #c2c6dc;
     text-decoration: none;
+    background: rgb(115, 103, 240);
   }
 `;
 export const Wrapper = styled.div`
@@ -125,4 +125,5 @@ export const ListExtraMenuButtonWrapper = styled.div`
   top: 4px;
   z-index: 1;
   padding: 6px;
+  padding-bottom: 0;
 `;

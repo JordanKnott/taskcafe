@@ -17,7 +17,7 @@ export type Scalars = {
 
 export type ProjectLabel = {
    __typename?: 'ProjectLabel';
-  projectLabelID: Scalars['ID'];
+  id: Scalars['ID'];
   createdDate: Scalars['Time'];
   colorHex: Scalars['String'];
   name?: Maybe<Scalars['String']>;
@@ -25,7 +25,7 @@ export type ProjectLabel = {
 
 export type TaskLabel = {
    __typename?: 'TaskLabel';
-  taskLabelID: Scalars['ID'];
+  id: Scalars['ID'];
   projectLabelID: Scalars['UUID'];
   assignedDate: Scalars['Time'];
   colorHex: Scalars['String'];
@@ -41,7 +41,7 @@ export type ProfileIcon = {
 
 export type ProjectMember = {
    __typename?: 'ProjectMember';
-  userID: Scalars['ID'];
+  id: Scalars['ID'];
   firstName: Scalars['String'];
   lastName: Scalars['String'];
   profileIcon: ProfileIcon;
@@ -49,7 +49,7 @@ export type ProjectMember = {
 
 export type RefreshToken = {
    __typename?: 'RefreshToken';
-  tokenId: Scalars['ID'];
+  id: Scalars['ID'];
   userId: Scalars['UUID'];
   expiresAt: Scalars['Time'];
   createdAt: Scalars['Time'];
@@ -57,7 +57,7 @@ export type RefreshToken = {
 
 export type UserAccount = {
    __typename?: 'UserAccount';
-  userID: Scalars['ID'];
+  id: Scalars['ID'];
   email: Scalars['String'];
   createdAt: Scalars['Time'];
   firstName: Scalars['String'];
@@ -68,14 +68,14 @@ export type UserAccount = {
 
 export type Team = {
    __typename?: 'Team';
-  teamID: Scalars['ID'];
+  id: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
 };
 
 export type Project = {
    __typename?: 'Project';
-  projectID: Scalars['ID'];
+  id: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
   team: Team;
@@ -87,7 +87,7 @@ export type Project = {
 
 export type TaskGroup = {
    __typename?: 'TaskGroup';
-  taskGroupID: Scalars['ID'];
+  id: Scalars['ID'];
   projectID: Scalars['String'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
@@ -97,7 +97,7 @@ export type TaskGroup = {
 
 export type Task = {
    __typename?: 'Task';
-  taskID: Scalars['ID'];
+  id: Scalars['ID'];
   taskGroup: TaskGroup;
   createdAt: Scalars['Time'];
   name: Scalars['String'];
@@ -382,11 +382,26 @@ export type AssignTaskMutation = (
   { __typename?: 'Mutation' }
   & { assignTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID'>
+    & Pick<Task, 'id'>
     & { assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
     )> }
+  ) }
+);
+
+export type CreateProjectLabelMutationVariables = {
+  projectID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+
+export type CreateProjectLabelMutation = (
+  { __typename?: 'Mutation' }
+  & { createProjectLabel: (
+    { __typename?: 'ProjectLabel' }
+    & Pick<ProjectLabel, 'id' | 'createdDate' | 'colorHex' | 'name'>
   ) }
 );
 
@@ -401,11 +416,18 @@ export type CreateTaskMutation = (
   { __typename?: 'Mutation' }
   & { createTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID' | 'name' | 'position'>
+    & Pick<Task, 'id' | 'name' | 'position' | 'description'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
-      & Pick<TaskGroup, 'taskGroupID'>
-    ) }
+      & Pick<TaskGroup, 'id'>
+    ), assigned: Array<(
+      { __typename?: 'ProjectMember' }
+      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+      & { profileIcon: (
+        { __typename?: 'ProfileIcon' }
+        & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
+      ) }
+    )> }
   ) }
 );
 
@@ -420,7 +442,7 @@ export type CreateTaskGroupMutation = (
   { __typename?: 'Mutation' }
   & { createTaskGroup: (
     { __typename?: 'TaskGroup' }
-    & Pick<TaskGroup, 'taskGroupID' | 'name' | 'position'>
+    & Pick<TaskGroup, 'id' | 'name' | 'position'>
   ) }
 );
 
@@ -449,10 +471,10 @@ export type DeleteTaskGroupMutation = (
     & Pick<DeleteTaskGroupPayload, 'ok' | 'affectedRows'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
-      & Pick<TaskGroup, 'taskGroupID'>
+      & Pick<TaskGroup, 'id'>
       & { tasks: Array<(
         { __typename?: 'Task' }
-        & Pick<Task, 'taskID' | 'name'>
+        & Pick<Task, 'id' | 'name'>
       )> }
     ) }
   ) }
@@ -470,20 +492,23 @@ export type FindProjectQuery = (
     & Pick<Project, 'name'>
     & { members: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
       ) }
+    )>, labels: Array<(
+      { __typename?: 'ProjectLabel' }
+      & Pick<ProjectLabel, 'id' | 'createdDate' | 'colorHex' | 'name'>
     )>, taskGroups: Array<(
       { __typename?: 'TaskGroup' }
-      & Pick<TaskGroup, 'taskGroupID' | 'name' | 'position'>
+      & Pick<TaskGroup, 'id' | 'name' | 'position'>
       & { tasks: Array<(
         { __typename?: 'Task' }
-        & Pick<Task, 'taskID' | 'name' | 'position' | 'description'>
+        & Pick<Task, 'id' | 'name' | 'position' | 'description'>
         & { assigned: Array<(
           { __typename?: 'ProjectMember' }
-          & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+          & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
           & { profileIcon: (
             { __typename?: 'ProfileIcon' }
             & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -503,13 +528,13 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID' | 'name' | 'description' | 'position'>
+    & Pick<Task, 'id' | 'name' | 'description' | 'position'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
-      & Pick<TaskGroup, 'taskGroupID'>
+      & Pick<TaskGroup, 'id'>
     ), assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -525,10 +550,10 @@ export type GetProjectsQuery = (
   { __typename?: 'Query' }
   & { projects: Array<(
     { __typename?: 'Project' }
-    & Pick<Project, 'projectID' | 'name'>
+    & Pick<Project, 'id' | 'name'>
     & { team: (
       { __typename?: 'Team' }
-      & Pick<Team, 'teamID' | 'name'>
+      & Pick<Team, 'id' | 'name'>
     ) }
   )> }
 );
@@ -558,10 +583,10 @@ export type UnassignTaskMutation = (
   { __typename?: 'Mutation' }
   & { unassignTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID'>
+    & Pick<Task, 'id'>
     & { assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'userID' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
     )> }
   ) }
 );
@@ -576,7 +601,7 @@ export type UpdateTaskDescriptionMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskDescription: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID'>
+    & Pick<Task, 'id'>
   ) }
 );
 
@@ -590,7 +615,7 @@ export type UpdateTaskGroupLocationMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskGroupLocation: (
     { __typename?: 'TaskGroup' }
-    & Pick<TaskGroup, 'taskGroupID' | 'position'>
+    & Pick<TaskGroup, 'id' | 'position'>
   ) }
 );
 
@@ -605,7 +630,7 @@ export type UpdateTaskLocationMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskLocation: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID' | 'createdAt' | 'name' | 'position'>
+    & Pick<Task, 'id' | 'createdAt' | 'name' | 'position'>
   ) }
 );
 
@@ -619,7 +644,7 @@ export type UpdateTaskNameMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskName: (
     { __typename?: 'Task' }
-    & Pick<Task, 'taskID' | 'name' | 'position'>
+    & Pick<Task, 'id' | 'name' | 'position'>
   ) }
 );
 
@@ -627,12 +652,12 @@ export type UpdateTaskNameMutation = (
 export const AssignTaskDocument = gql`
     mutation assignTask($taskID: UUID!, $userID: UUID!) {
   assignTask(input: {taskID: $taskID, userID: $userID}) {
+    id
     assigned {
-      userID
+      id
       firstName
       lastName
     }
-    taskID
   }
 }
     `;
@@ -662,15 +687,63 @@ export function useAssignTaskMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type AssignTaskMutationHookResult = ReturnType<typeof useAssignTaskMutation>;
 export type AssignTaskMutationResult = ApolloReactCommon.MutationResult<AssignTaskMutation>;
 export type AssignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<AssignTaskMutation, AssignTaskMutationVariables>;
+export const CreateProjectLabelDocument = gql`
+    mutation createProjectLabel($projectID: UUID!, $labelColorID: UUID!, $name: String!) {
+  createProjectLabel(input: {projectID: $projectID, labelColorID: $labelColorID, name: $name}) {
+    id
+    createdDate
+    colorHex
+    name
+  }
+}
+    `;
+export type CreateProjectLabelMutationFn = ApolloReactCommon.MutationFunction<CreateProjectLabelMutation, CreateProjectLabelMutationVariables>;
+
+/**
+ * __useCreateProjectLabelMutation__
+ *
+ * To run a mutation, you first call `useCreateProjectLabelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateProjectLabelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createProjectLabelMutation, { data, loading, error }] = useCreateProjectLabelMutation({
+ *   variables: {
+ *      projectID: // value for 'projectID'
+ *      labelColorID: // value for 'labelColorID'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useCreateProjectLabelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateProjectLabelMutation, CreateProjectLabelMutationVariables>) {
+        return ApolloReactHooks.useMutation<CreateProjectLabelMutation, CreateProjectLabelMutationVariables>(CreateProjectLabelDocument, baseOptions);
+      }
+export type CreateProjectLabelMutationHookResult = ReturnType<typeof useCreateProjectLabelMutation>;
+export type CreateProjectLabelMutationResult = ApolloReactCommon.MutationResult<CreateProjectLabelMutation>;
+export type CreateProjectLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateProjectLabelMutation, CreateProjectLabelMutationVariables>;
 export const CreateTaskDocument = gql`
     mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
   createTask(input: {taskGroupID: $taskGroupID, name: $name, position: $position}) {
-    taskID
-    taskGroup {
-      taskGroupID
-    }
+    id
     name
     position
+    description
+    taskGroup {
+      id
+    }
+    assigned {
+      id
+      firstName
+      lastName
+      profileIcon {
+        url
+        initials
+        bgColor
+      }
+    }
   }
 }
     `;
@@ -704,7 +777,7 @@ export type CreateTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<Cr
 export const CreateTaskGroupDocument = gql`
     mutation createTaskGroup($projectID: String!, $name: String!, $position: Float!) {
   createTaskGroup(input: {projectID: $projectID, name: $name, position: $position}) {
-    taskGroupID
+    id
     name
     position
   }
@@ -775,9 +848,9 @@ export const DeleteTaskGroupDocument = gql`
     ok
     affectedRows
     taskGroup {
-      taskGroupID
+      id
       tasks {
-        taskID
+        id
         name
       }
     }
@@ -814,7 +887,7 @@ export const FindProjectDocument = gql`
   findProject(input: {projectId: $projectId}) {
     name
     members {
-      userID
+      id
       firstName
       lastName
       profileIcon {
@@ -823,17 +896,23 @@ export const FindProjectDocument = gql`
         bgColor
       }
     }
+    labels {
+      id
+      createdDate
+      colorHex
+      name
+    }
     taskGroups {
-      taskGroupID
+      id
       name
       position
       tasks {
-        taskID
+        id
         name
         position
         description
         assigned {
-          userID
+          id
           firstName
           lastName
           profileIcon {
@@ -876,15 +955,15 @@ export type FindProjectQueryResult = ApolloReactCommon.QueryResult<FindProjectQu
 export const FindTaskDocument = gql`
     query findTask($taskID: UUID!) {
   findTask(input: {taskID: $taskID}) {
-    taskID
+    id
     name
     description
     position
     taskGroup {
-      taskGroupID
+      id
     }
     assigned {
-      userID
+      id
       firstName
       lastName
       profileIcon {
@@ -925,10 +1004,10 @@ export type FindTaskQueryResult = ApolloReactCommon.QueryResult<FindTaskQuery, F
 export const GetProjectsDocument = gql`
     query getProjects {
   projects {
-    projectID
+    id
     name
     team {
-      teamID
+      id
       name
     }
   }
@@ -1000,11 +1079,11 @@ export const UnassignTaskDocument = gql`
     mutation unassignTask($taskID: UUID!, $userID: UUID!) {
   unassignTask(input: {taskID: $taskID, userID: $userID}) {
     assigned {
-      userID
+      id
       firstName
       lastName
     }
-    taskID
+    id
   }
 }
     `;
@@ -1037,7 +1116,7 @@ export type UnassignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<
 export const UpdateTaskDescriptionDocument = gql`
     mutation updateTaskDescription($taskID: UUID!, $description: String!) {
   updateTaskDescription(input: {taskID: $taskID, description: $description}) {
-    taskID
+    id
   }
 }
     `;
@@ -1070,7 +1149,7 @@ export type UpdateTaskDescriptionMutationOptions = ApolloReactCommon.BaseMutatio
 export const UpdateTaskGroupLocationDocument = gql`
     mutation updateTaskGroupLocation($taskGroupID: UUID!, $position: Float!) {
   updateTaskGroupLocation(input: {taskGroupID: $taskGroupID, position: $position}) {
-    taskGroupID
+    id
     position
   }
 }
@@ -1104,7 +1183,7 @@ export type UpdateTaskGroupLocationMutationOptions = ApolloReactCommon.BaseMutat
 export const UpdateTaskLocationDocument = gql`
     mutation updateTaskLocation($taskID: String!, $taskGroupID: String!, $position: Float!) {
   updateTaskLocation(input: {taskID: $taskID, taskGroupID: $taskGroupID, position: $position}) {
-    taskID
+    id
     createdAt
     name
     position
@@ -1141,7 +1220,7 @@ export type UpdateTaskLocationMutationOptions = ApolloReactCommon.BaseMutationOp
 export const UpdateTaskNameDocument = gql`
     mutation updateTaskName($taskID: String!, $name: String!) {
   updateTaskName(input: {taskID: $taskID, name: $name}) {
-    taskID
+    id
     name
     position
   }

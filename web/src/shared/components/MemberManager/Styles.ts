@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
+import { mixin } from 'shared/utils/styles';
 
 export const MemberManagerWrapper = styled.div``;
 
@@ -11,17 +12,27 @@ export const MemberManagerSearchWrapper = styled.div`
 export const MemberManagerSearch = styled(TextareaAutosize)`
   margin: 4px 0 12px;
   width: 100%;
-  background-color: #ebecf0;
-  border: none;
-  box-shadow: inset 0 0 0 2px #dfe1e6;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
   line-height: 20px;
   padding: 8px 12px;
   font-size: 14px;
-  color: #172b4d;
+  font-family: 'Droid Sans';
+  font-weight: 400;
+
+  background: #262c49;
+  outline: none;
+  color: #c2c6dc;
+  border-color: #414561;
+
+  &:focus {
+    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    background: ${mixin.darken('#262c49', 0.15)};
+  }
 `;
 
 export const BoardMembersLabel = styled.h4`
-  color: #5e6c84;
+  color: #c2c6dc;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -52,7 +63,7 @@ export const BoardMemberListItemContent = styled.div`
   white-space: nowrap;
   padding: 4px;
   margin-bottom: 2px;
-  color: #172b4d;
+  color: #c2c6dc;
 `;
 
 export const ProfileIcon = styled.div`
@@ -62,7 +73,7 @@ export const ProfileIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #c2c6dc;
   font-weight: 700;
   background: rgb(115, 103, 240);
   cursor: pointer;

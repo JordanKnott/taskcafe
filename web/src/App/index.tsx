@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import jwtDecode from 'jwt-decode';
 import { createBrowserHistory } from 'history';
 import { setAccessToken } from 'shared/utils/accessToken';
-import GlobalTopNavbar from 'App/TopNavbar';
 import styled from 'styled-components';
 import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
@@ -10,6 +9,7 @@ import Routes from './Routes';
 import { UserIDContext } from './context';
 import Navbar from './Navbar';
 import { Router } from 'react-router';
+import { PopupProvider } from 'shared/components/PopupMenu';
 
 const history = createBrowserHistory();
 
@@ -45,21 +45,22 @@ const App = () => {
   return (
     <>
       <UserIDContext.Provider value={{ userID, setUserID }}>
-        <NormalizeStyles />
-        <BaseStyles />
-        <Router history={history}>
-          {loading ? (
-            <div>loading</div>
-          ) : (
-            <>
-              <Navbar />
-              <MainContent>
-                <GlobalTopNavbar />
-                <Routes history={history} />
-              </MainContent>
-            </>
-          )}
-        </Router>
+        <PopupProvider>
+          <NormalizeStyles />
+          <BaseStyles />
+          <Router history={history}>
+            {loading ? (
+              <div>loading</div>
+            ) : (
+              <>
+                <Navbar />
+                <MainContent>
+                  <Routes history={history} />
+                </MainContent>
+              </>
+            )}
+          </Router>
+        </PopupProvider>
       </UserIDContext.Provider>
     </>
   );

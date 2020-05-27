@@ -1,6 +1,6 @@
 mutation updateTaskLocation($taskID: String!, $taskGroupID: String!, $position: Float!) {
   updateTaskLocation(input: { taskID: $taskID, taskGroupID: $taskGroupID, position: $position }) {
-    taskID
+    id
     createdAt
     name
     position

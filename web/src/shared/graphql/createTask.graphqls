@@ -1,10 +1,21 @@
 mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
   createTask(input: { taskGroupID: $taskGroupID, name: $name, position: $position }) {
-    taskID
-    taskGroup {
-      taskGroupID
-    }
+    id
     name
     position
+    description
+    taskGroup {
+      id
+    }
+    assigned {
+      id
+      firstName
+      lastName
+      profileIcon {
+        url
+        initials
+        bgColor
+      }
+    }
   }
 }

@@ -110,7 +110,7 @@ type ProfileIcon struct {
 }
 
 type ProjectMember struct {
-	UserID      uuid.UUID    `json:"userID"`
+	ID          uuid.UUID    `json:"id"`
 	FirstName   string       `json:"firstName"`
 	LastName    string       `json:"lastName"`
 	ProfileIcon *ProfileIcon `json:"profileIcon"`

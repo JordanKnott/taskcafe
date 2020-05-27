@@ -41,9 +41,11 @@ type ResolverRoot interface {
 	Project() ProjectResolver
 	ProjectLabel() ProjectLabelResolver
 	Query() QueryResolver
+	RefreshToken() RefreshTokenResolver
 	Task() TaskResolver
 	TaskGroup() TaskGroupResolver
 	TaskLabel() TaskLabelResolver
+	Team() TeamResolver
 	UserAccount() UserAccountResolver
 }
 
@@ -90,27 +92,27 @@ type ComplexityRoot struct {
 
 	Project struct {
 		CreatedAt  func(childComplexity int) int
+		ID         func(childComplexity int) int
 		Labels     func(childComplexity int) int
 		Members    func(childComplexity int) int
 		Name       func(childComplexity int) int
 		Owner      func(childComplexity int) int
-		ProjectID  func(childComplexity int) int
 		TaskGroups func(childComplexity int) int
 		Team       func(childComplexity int) int
 	}
 
 	ProjectLabel struct {
-		ColorHex       func(childComplexity int) int
-		CreatedDate    func(childComplexity int) int
-		Name           func(childComplexity int) int
-		ProjectLabelID func(childComplexity int) int
+		ColorHex    func(childComplexity int) int
+		CreatedDate func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
 	}
 
 	ProjectMember struct {
 		FirstName   func(childComplexity int) int
+		ID          func(childComplexity int) int
 		LastName    func(childComplexity int) int
 		ProfileIcon func(childComplexity int) int
-		UserID      func(childComplexity int) int
 	}
 
 	Query struct {
@@ -126,7 +128,7 @@ type ComplexityRoot struct {
 	RefreshToken struct {
 		CreatedAt func(childComplexity int) int
 		ExpiresAt func(childComplexity int) int
-		TokenID   func(childComplexity int) int
+		ID        func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -134,43 +136,43 @@ type ComplexityRoot struct {
 		Assigned    func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
 		Labels      func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Position    func(childComplexity int) int
 		TaskGroup   func(childComplexity int) int
-		TaskID      func(childComplexity int) int
 	}
 
 	TaskGroup struct {
-		CreatedAt   func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Position    func(childComplexity int) int
-		ProjectID   func(childComplexity int) int
-		TaskGroupID func(childComplexity int) int
-		Tasks       func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Position  func(childComplexity int) int
+		ProjectID func(childComplexity int) int
+		Tasks     func(childComplexity int) int
 	}
 
 	TaskLabel struct {
 		AssignedDate   func(childComplexity int) int
 		ColorHex       func(childComplexity int) int
+		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		ProjectLabelID func(childComplexity int) int
-		TaskLabelID    func(childComplexity int) int
 	}
 
 	Team struct {
 		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
-		TeamID    func(childComplexity int) int
 	}
 
 	UserAccount struct {
 		CreatedAt   func(childComplexity int) int
 		Email       func(childComplexity int) int
 		FirstName   func(childComplexity int) int
+		ID          func(childComplexity int) int
 		LastName    func(childComplexity int) int
 		ProfileIcon func(childComplexity int) int
-		UserID      func(childComplexity int) int
 		Username    func(childComplexity int) int
 	}
 }
@@ -196,6 +198,8 @@ type MutationResolver interface {
 	LogoutUser(ctx context.Context, input LogoutUser) (bool, error)
 }
 type ProjectResolver interface {
+	ID(ctx context.Context, obj *pg.Project) (uuid.UUID, error)
+
 	Team(ctx context.Context, obj *pg.Project) (*pg.Team, error)
 	Owner(ctx context.Context, obj *pg.Project) (*ProjectMember, error)
 	TaskGroups(ctx context.Context, obj *pg.Project) ([]pg.TaskGroup, error)
@@ -203,6 +207,8 @@ type ProjectResolver interface {
 	Labels(ctx context.Context, obj *pg.Project) ([]pg.ProjectLabel, error)
 }
 type ProjectLabelResolver interface {
+	ID(ctx context.Context, obj *pg.ProjectLabel) (uuid.UUID, error)
+
 	ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error)
 	Name(ctx context.Context, obj *pg.ProjectLabel) (*string, error)
 }
@@ -215,7 +221,11 @@ type QueryResolver interface {
 	TaskGroups(ctx context.Context) ([]pg.TaskGroup, error)
 	Me(ctx context.Context) (*pg.UserAccount, error)
 }
+type RefreshTokenResolver interface {
+	ID(ctx context.Context, obj *pg.RefreshToken) (uuid.UUID, error)
+}
 type TaskResolver interface {
+	ID(ctx context.Context, obj *pg.Task) (uuid.UUID, error)
 	TaskGroup(ctx context.Context, obj *pg.Task) (*pg.TaskGroup, error)
 
 	Description(ctx context.Context, obj *pg.Task) (*string, error)
@@ -223,15 +233,23 @@ type TaskResolver interface {
 	Labels(ctx context.Context, obj *pg.Task) ([]pg.TaskLabel, error)
 }
 type TaskGroupResolver interface {
+	ID(ctx context.Context, obj *pg.TaskGroup) (uuid.UUID, error)
 	ProjectID(ctx context.Context, obj *pg.TaskGroup) (string, error)
 
 	Tasks(ctx context.Context, obj *pg.TaskGroup) ([]pg.Task, error)
 }
 type TaskLabelResolver interface {
+	ID(ctx context.Context, obj *pg.TaskLabel) (uuid.UUID, error)
+
 	ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error)
 	Name(ctx context.Context, obj *pg.TaskLabel) (*string, error)
 }
+type TeamResolver interface {
+	ID(ctx context.Context, obj *pg.Team) (uuid.UUID, error)
+}
 type UserAccountResolver interface {
+	ID(ctx context.Context, obj *pg.UserAccount) (uuid.UUID, error)
+
 	ProfileIcon(ctx context.Context, obj *pg.UserAccount) (*ProfileIcon, error)
 }
 
@@ -522,6 +540,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.CreatedAt(childComplexity), true
 
+	case "Project.id":
+		if e.complexity.Project.ID == nil {
+			break
+		}
+
+		return e.complexity.Project.ID(childComplexity), true
+
 	case "Project.labels":
 		if e.complexity.Project.Labels == nil {
 			break
@@ -549,13 +574,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Owner(childComplexity), true
-
-	case "Project.projectID":
-		if e.complexity.Project.ProjectID == nil {
-			break
-		}
-
-		return e.complexity.Project.ProjectID(childComplexity), true
 
 	case "Project.taskGroups":
 		if e.complexity.Project.TaskGroups == nil {
@@ -585,6 +603,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ProjectLabel.CreatedDate(childComplexity), true
 
+	case "ProjectLabel.id":
+		if e.complexity.ProjectLabel.ID == nil {
+			break
+		}
+
+		return e.complexity.ProjectLabel.ID(childComplexity), true
+
 	case "ProjectLabel.name":
 		if e.complexity.ProjectLabel.Name == nil {
 			break
@@ -592,19 +617,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ProjectLabel.Name(childComplexity), true
 
-	case "ProjectLabel.projectLabelID":
-		if e.complexity.ProjectLabel.ProjectLabelID == nil {
-			break
-		}
-
-		return e.complexity.ProjectLabel.ProjectLabelID(childComplexity), true
-
 	case "ProjectMember.firstName":
 		if e.complexity.ProjectMember.FirstName == nil {
 			break
 		}
 
 		return e.complexity.ProjectMember.FirstName(childComplexity), true
+
+	case "ProjectMember.id":
+		if e.complexity.ProjectMember.ID == nil {
+			break
+		}
+
+		return e.complexity.ProjectMember.ID(childComplexity), true
 
 	case "ProjectMember.lastName":
 		if e.complexity.ProjectMember.LastName == nil {
@@ -619,13 +644,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProjectMember.ProfileIcon(childComplexity), true
-
-	case "ProjectMember.userID":
-		if e.complexity.ProjectMember.UserID == nil {
-			break
-		}
-
-		return e.complexity.ProjectMember.UserID(childComplexity), true
 
 	case "Query.findProject":
 		if e.complexity.Query.FindProject == nil {
@@ -710,12 +728,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RefreshToken.ExpiresAt(childComplexity), true
 
-	case "RefreshToken.tokenId":
-		if e.complexity.RefreshToken.TokenID == nil {
+	case "RefreshToken.id":
+		if e.complexity.RefreshToken.ID == nil {
 			break
 		}
 
-		return e.complexity.RefreshToken.TokenID(childComplexity), true
+		return e.complexity.RefreshToken.ID(childComplexity), true
 
 	case "RefreshToken.userId":
 		if e.complexity.RefreshToken.UserID == nil {
@@ -745,6 +763,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Task.Description(childComplexity), true
 
+	case "Task.id":
+		if e.complexity.Task.ID == nil {
+			break
+		}
+
+		return e.complexity.Task.ID(childComplexity), true
+
 	case "Task.labels":
 		if e.complexity.Task.Labels == nil {
 			break
@@ -773,19 +798,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Task.TaskGroup(childComplexity), true
 
-	case "Task.taskID":
-		if e.complexity.Task.TaskID == nil {
-			break
-		}
-
-		return e.complexity.Task.TaskID(childComplexity), true
-
 	case "TaskGroup.createdAt":
 		if e.complexity.TaskGroup.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.TaskGroup.CreatedAt(childComplexity), true
+
+	case "TaskGroup.id":
+		if e.complexity.TaskGroup.ID == nil {
+			break
+		}
+
+		return e.complexity.TaskGroup.ID(childComplexity), true
 
 	case "TaskGroup.name":
 		if e.complexity.TaskGroup.Name == nil {
@@ -808,13 +833,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TaskGroup.ProjectID(childComplexity), true
 
-	case "TaskGroup.taskGroupID":
-		if e.complexity.TaskGroup.TaskGroupID == nil {
-			break
-		}
-
-		return e.complexity.TaskGroup.TaskGroupID(childComplexity), true
-
 	case "TaskGroup.tasks":
 		if e.complexity.TaskGroup.Tasks == nil {
 			break
@@ -836,6 +854,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TaskLabel.ColorHex(childComplexity), true
 
+	case "TaskLabel.id":
+		if e.complexity.TaskLabel.ID == nil {
+			break
+		}
+
+		return e.complexity.TaskLabel.ID(childComplexity), true
+
 	case "TaskLabel.name":
 		if e.complexity.TaskLabel.Name == nil {
 			break
@@ -850,13 +875,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TaskLabel.ProjectLabelID(childComplexity), true
 
-	case "TaskLabel.taskLabelID":
-		if e.complexity.TaskLabel.TaskLabelID == nil {
-			break
-		}
-
-		return e.complexity.TaskLabel.TaskLabelID(childComplexity), true
-
 	case "Team.createdAt":
 		if e.complexity.Team.CreatedAt == nil {
 			break
@@ -864,19 +882,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Team.CreatedAt(childComplexity), true
 
+	case "Team.id":
+		if e.complexity.Team.ID == nil {
+			break
+		}
+
+		return e.complexity.Team.ID(childComplexity), true
+
 	case "Team.name":
 		if e.complexity.Team.Name == nil {
 			break
 		}
 
 		return e.complexity.Team.Name(childComplexity), true
-
-	case "Team.teamID":
-		if e.complexity.Team.TeamID == nil {
-			break
-		}
-
-		return e.complexity.Team.TeamID(childComplexity), true
 
 	case "UserAccount.createdAt":
 		if e.complexity.UserAccount.CreatedAt == nil {
@@ -899,6 +917,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserAccount.FirstName(childComplexity), true
 
+	case "UserAccount.id":
+		if e.complexity.UserAccount.ID == nil {
+			break
+		}
+
+		return e.complexity.UserAccount.ID(childComplexity), true
+
 	case "UserAccount.lastName":
 		if e.complexity.UserAccount.LastName == nil {
 			break
@@ -912,13 +937,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserAccount.ProfileIcon(childComplexity), true
-
-	case "UserAccount.userID":
-		if e.complexity.UserAccount.UserID == nil {
-			break
-		}
-
-		return e.complexity.UserAccount.UserID(childComplexity), true
 
 	case "UserAccount.username":
 		if e.complexity.UserAccount.Username == nil {
@@ -995,14 +1013,14 @@ var sources = []*ast.Source{
 scalar UUID
 
 type ProjectLabel {
-  projectLabelID: ID!
+  id: ID!
   createdDate: Time!
   colorHex: String!
   name: String
 }
 
 type TaskLabel {
-  taskLabelID: ID!
+  id: ID!
   projectLabelID: UUID!
   assignedDate: Time!
   colorHex: String!
@@ -1016,21 +1034,21 @@ type ProfileIcon {
 }
 
 type ProjectMember {
-  userID: ID!
+  id: ID!
   firstName: String!
   lastName: String!
   profileIcon: ProfileIcon!
 }
 
 type RefreshToken {
-  tokenId: ID!
+  id: ID!
   userId: UUID!
   expiresAt: Time!
   createdAt: Time!
 }
 
 type UserAccount {
-  userID: ID!
+  id: ID!
   email: String!
   createdAt: Time!
   firstName: String!
@@ -1040,13 +1058,13 @@ type UserAccount {
 }
 
 type Team {
-  teamID: ID!
+  id: ID!
   createdAt: Time!
   name: String!
 }
 
 type Project {
-  projectID: ID!
+  id: ID!
   createdAt: Time!
   name: String!
   team: Team!
@@ -1057,7 +1075,7 @@ type Project {
 }
 
 type TaskGroup {
-  taskGroupID: ID!
+  id: ID!
   projectID: String!
   createdAt: Time!
   name: String!
@@ -1066,7 +1084,7 @@ type TaskGroup {
 }
 
 type Task {
-  taskID: ID!
+  id: ID!
   taskGroup: TaskGroup!
   createdAt: Time!
   name: String!
@@ -2563,7 +2581,7 @@ func (ec *executionContext) _ProfileIcon_bgColor(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Project_projectID(ctx context.Context, field graphql.CollectedField, obj *pg.Project) (ret graphql.Marshaler) {
+func (ec *executionContext) _Project_id(ctx context.Context, field graphql.CollectedField, obj *pg.Project) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2574,13 +2592,13 @@ func (ec *executionContext) _Project_projectID(ctx context.Context, field graphq
 		Object:   "Project",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectID, nil
+		return ec.resolvers.Project().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2835,7 +2853,7 @@ func (ec *executionContext) _Project_labels(ctx context.Context, field graphql.C
 	return ec.marshalNProjectLabel2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectLabelᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectLabel_projectLabelID(ctx context.Context, field graphql.CollectedField, obj *pg.ProjectLabel) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectLabel_id(ctx context.Context, field graphql.CollectedField, obj *pg.ProjectLabel) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2846,13 +2864,13 @@ func (ec *executionContext) _ProjectLabel_projectLabelID(ctx context.Context, fi
 		Object:   "ProjectLabel",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectLabelID, nil
+		return ec.resolvers.ProjectLabel().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2968,7 +2986,7 @@ func (ec *executionContext) _ProjectLabel_name(ctx context.Context, field graphq
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectMember_userID(ctx context.Context, field graphql.CollectedField, obj *ProjectMember) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectMember_id(ctx context.Context, field graphql.CollectedField, obj *ProjectMember) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2985,7 +3003,7 @@ func (ec *executionContext) _ProjectMember_userID(ctx context.Context, field gra
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3439,7 +3457,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RefreshToken_tokenId(ctx context.Context, field graphql.CollectedField, obj *pg.RefreshToken) (ret graphql.Marshaler) {
+func (ec *executionContext) _RefreshToken_id(ctx context.Context, field graphql.CollectedField, obj *pg.RefreshToken) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3450,13 +3468,13 @@ func (ec *executionContext) _RefreshToken_tokenId(ctx context.Context, field gra
 		Object:   "RefreshToken",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TokenID, nil
+		return ec.resolvers.RefreshToken().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3575,7 +3593,7 @@ func (ec *executionContext) _RefreshToken_createdAt(ctx context.Context, field g
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Task_taskID(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
+func (ec *executionContext) _Task_id(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3586,13 +3604,13 @@ func (ec *executionContext) _Task_taskID(ctx context.Context, field graphql.Coll
 		Object:   "Task",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TaskID, nil
+		return ec.resolvers.Task().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3844,7 +3862,7 @@ func (ec *executionContext) _Task_labels(ctx context.Context, field graphql.Coll
 	return ec.marshalNTaskLabel2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskLabelᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TaskGroup_taskGroupID(ctx context.Context, field graphql.CollectedField, obj *pg.TaskGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _TaskGroup_id(ctx context.Context, field graphql.CollectedField, obj *pg.TaskGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3855,13 +3873,13 @@ func (ec *executionContext) _TaskGroup_taskGroupID(ctx context.Context, field gr
 		Object:   "TaskGroup",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TaskGroupID, nil
+		return ec.resolvers.TaskGroup().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4048,7 +4066,7 @@ func (ec *executionContext) _TaskGroup_tasks(ctx context.Context, field graphql.
 	return ec.marshalNTask2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TaskLabel_taskLabelID(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
+func (ec *executionContext) _TaskLabel_id(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4059,13 +4077,13 @@ func (ec *executionContext) _TaskLabel_taskLabelID(ctx context.Context, field gr
 		Object:   "TaskLabel",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TaskLabelID, nil
+		return ec.resolvers.TaskLabel().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4215,7 +4233,7 @@ func (ec *executionContext) _TaskLabel_name(ctx context.Context, field graphql.C
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Team_teamID(ctx context.Context, field graphql.CollectedField, obj *pg.Team) (ret graphql.Marshaler) {
+func (ec *executionContext) _Team_id(ctx context.Context, field graphql.CollectedField, obj *pg.Team) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4226,13 +4244,13 @@ func (ec *executionContext) _Team_teamID(ctx context.Context, field graphql.Coll
 		Object:   "Team",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TeamID, nil
+		return ec.resolvers.Team().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4317,7 +4335,7 @@ func (ec *executionContext) _Team_name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserAccount_userID(ctx context.Context, field graphql.CollectedField, obj *pg.UserAccount) (ret graphql.Marshaler) {
+func (ec *executionContext) _UserAccount_id(ctx context.Context, field graphql.CollectedField, obj *pg.UserAccount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4328,13 +4346,13 @@ func (ec *executionContext) _UserAccount_userID(ctx context.Context, field graph
 		Object:   "UserAccount",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UserID, nil
+		return ec.resolvers.UserAccount().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6365,11 +6383,20 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Project")
-		case "projectID":
-			out.Values[i] = ec._Project_projectID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "createdAt":
 			out.Values[i] = ec._Project_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6472,11 +6499,20 @@ func (ec *executionContext) _ProjectLabel(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProjectLabel")
-		case "projectLabelID":
-			out.Values[i] = ec._ProjectLabel_projectLabelID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ProjectLabel_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "createdDate":
 			out.Values[i] = ec._ProjectLabel_createdDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6529,8 +6565,8 @@ func (ec *executionContext) _ProjectMember(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProjectMember")
-		case "userID":
-			out.Values[i] = ec._ProjectMember_userID(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._ProjectMember_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6699,25 +6735,34 @@ func (ec *executionContext) _RefreshToken(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("RefreshToken")
-		case "tokenId":
-			out.Values[i] = ec._RefreshToken_tokenId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._RefreshToken_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "userId":
 			out.Values[i] = ec._RefreshToken_userId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "expiresAt":
 			out.Values[i] = ec._RefreshToken_expiresAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._RefreshToken_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6741,11 +6786,20 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Task")
-		case "taskID":
-			out.Values[i] = ec._Task_taskID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Task_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "taskGroup":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6836,11 +6890,20 @@ func (ec *executionContext) _TaskGroup(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TaskGroup")
-		case "taskGroupID":
-			out.Values[i] = ec._TaskGroup_taskGroupID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskGroup_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "projectID":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6906,11 +6969,20 @@ func (ec *executionContext) _TaskLabel(ctx context.Context, sel ast.SelectionSet
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TaskLabel")
-		case "taskLabelID":
-			out.Values[i] = ec._TaskLabel_taskLabelID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskLabel_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "projectLabelID":
 			out.Values[i] = ec._TaskLabel_projectLabelID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6968,20 +7040,29 @@ func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Team")
-		case "teamID":
-			out.Values[i] = ec._Team_teamID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Team_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "createdAt":
 			out.Values[i] = ec._Team_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Team_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7005,11 +7086,20 @@ func (ec *executionContext) _UserAccount(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UserAccount")
-		case "userID":
-			out.Values[i] = ec._UserAccount_userID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserAccount_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "email":
 			out.Values[i] = ec._UserAccount_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

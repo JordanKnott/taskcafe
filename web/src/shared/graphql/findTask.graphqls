@@ -1,14 +1,14 @@
 query findTask($taskID: UUID!) {
   findTask(input: {taskID: $taskID}) {
-    taskID
+    id
     name
     description
     position
     taskGroup {
-      taskGroupID
+      id
     }
     assigned {
-      userID
+      id
       firstName
       lastName
       profileIcon {

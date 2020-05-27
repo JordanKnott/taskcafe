@@ -286,4 +286,7 @@ export const UnassignedLabel = styled.div`
   color: rgb(137, 147, 164);
   font-size: 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 32px;
 `;

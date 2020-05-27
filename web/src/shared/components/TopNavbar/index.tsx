@@ -1,10 +1,12 @@
 import React, { useRef } from 'react';
-import { Bell } from 'shared/icons';
+import { Star, Bell, Cog, AngleDown } from 'shared/icons';
 
 import {
   NotificationContainer,
   GlobalActions,
   ProjectActions,
+  ProjectSwitcher,
+  Separator,
   ProjectMeta,
   ProjectName,
   ProjectTabs,
@@ -13,6 +15,7 @@ import {
   NavbarHeader,
   Breadcrumbs,
   BreadcrumpSeparator,
+  ProjectSettingsButton,
   ProfileIcon,
   ProfileContainer,
   ProfileNameWrapper,
@@ -21,6 +24,7 @@ import {
 } from './Styles';
 
 type NavBarProps = {
+  projectName: string;
   onProfileClick: (bottom: number, right: number) => void;
   onNotificationClick: () => void;
   bgColor: string;
@@ -29,6 +33,7 @@ type NavBarProps = {
   initials: string;
 };
 const NavBar: React.FC<NavBarProps> = ({
+  projectName,
   onProfileClick,
   onNotificationClick,
   firstName,
@@ -47,10 +52,19 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarHeader>
         <ProjectActions>
           <ProjectMeta>
-            <ProjectName>Production Team</ProjectName>
+            <ProjectSwitcher>Projects</ProjectSwitcher>
+            <Separator>»</Separator>
+            <ProjectName>{projectName}</ProjectName>
+            <ProjectSettingsButton>
+              <AngleDown color="#c2c6dc" />
+            </ProjectSettingsButton>
+            <Star filled color="#c2c6dc" />
           </ProjectMeta>
           <ProjectTabs>
-            <ProjectTab>Board</ProjectTab>
+            <ProjectTab active>Board</ProjectTab>
+            <ProjectTab>Calender</ProjectTab>
+            <ProjectTab>Timeline</ProjectTab>
+            <ProjectTab>Wiki</ProjectTab>
           </ProjectTabs>
         </ProjectActions>
         <GlobalActions>

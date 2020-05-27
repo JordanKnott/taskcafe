@@ -1,9 +1,9 @@
 query getProjects {
   projects {
-    projectID
+    id
     name
     team {
-      teamID
+      id
       name
     }
   }

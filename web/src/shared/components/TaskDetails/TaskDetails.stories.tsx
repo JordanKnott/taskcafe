@@ -47,6 +47,7 @@ export const Default = () => {
               onTaskDescriptionChange={(_task, desc) => setDescription(desc)}
               onDeleteTask={action('delete task')}
               onCloseModal={action('close modal')}
+              onMemberProfile={action('profile')}
               onOpenAddMemberPopup={action('open add member popup')}
               onOpenAddLabelPopup={action('open add label popup')}
             />

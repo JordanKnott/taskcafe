@@ -1,20 +1,34 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 
-export const Container = styled.div<{ top: number; left: number; ref: any }>`
+export const Container = styled.div<{ invert: boolean; top: number; left: number; ref: any }>`
   left: ${props => props.left}px;
   top: ${props => props.top}px;
-  background: #fff;
-  border-radius: 3px;
-  box-shadow: 0 8px 16px -4px rgba(9, 30, 66, 0.25), 0 0 0 1px rgba(9, 30, 66, 0.08);
   display: block;
   position: absolute;
-  width: 304px;
-  z-index: 100000000000;
-  &:focus {
-    outline: none;
-    border: none;
-  }
+  width: 316px;
+  padding-top: 10px;
+  height: auto;
+  z-index: 40000;
+  ${props =>
+    props.invert &&
+    css`
+      transform: translate(-100%);
+    `}
+`;
+
+export const Wrapper = styled.div`
+  padding: 5px;
+  padding-top: 8px;
+  border-radius: 5px;
+  box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+  margin: 0;
+
+  color: #c2c6dc;
+  background: #262c49;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-color: #414561;
 `;
 
 export const Header = styled.div`
@@ -26,10 +40,10 @@ export const Header = styled.div`
 
 export const HeaderTitle = styled.span`
   box-sizing: border-box;
-  color: #5e6c84;
+  color: #c2c6dc;
   display: block;
   line-height: 40px;
-  border-bottom: 1px solid rgba(9, 30, 66, 0.13);
+  border-bottom: 1px solid #414561;
   margin: 0 12px;
   overflow: hidden;
   padding: 0 32px;
@@ -46,23 +60,30 @@ export const Content = styled.div`
   padding: 0 12px 12px;
 `;
 export const LabelSearch = styled.input`
+  box-sizing: border-box;
+  display: block;
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 85ms;
+  transition-timing-function: ease;
   margin: 4px 0 12px;
   width: 100%;
-  background-color: #fafbfc;
-  border: none;
-  box-shadow: inset 0 0 0 2px #dfe1e6;
-  color: #172b4d;
-  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 3px;
-  display: block;
   line-height: 20px;
   padding: 8px 12px;
   font-size: 14px;
   font-family: 'Droid Sans';
   font-weight: 400;
-  transition-property: background-color, border-color, box-shadow;
-  transition-duration: 85ms;
-  transition-timing-function: ease;
+
+  background: #262c49;
+  outline: none;
+  color: #c2c6dc;
+  border-color: #414561;
+
+  &:focus {
+    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    background: ${mixin.darken('#262c49', 0.15)};
+  }
 `;
 
 export const Section = styled.div`
@@ -70,7 +91,7 @@ export const Section = styled.div`
 `;
 
 export const SectionTitle = styled.h4`
-  color: #5e6c84;
+  color: #c2c6dc;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -95,7 +116,7 @@ export const CardLabel = styled.span<{ active: boolean; color: string }>`
     props.active &&
     css`
       margin-left: 4px;
-      box-shadow: -8px 0 ${mixin.darken(props.color, 0.15)};
+      box-shadow: -8px 0 ${mixin.darken(props.color, 0.12)};
       border-radius: 3px;
     `}
 
@@ -113,6 +134,7 @@ export const CardLabel = styled.span<{ active: boolean; color: string }>`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-height: 31px;
 `;
 
 export const CloseButton = styled.div`
@@ -126,8 +148,6 @@ export const CloseButton = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 40;
-  height: 20px;
-  width: 20px;
   cursor: pointer;
 `;
 
@@ -142,14 +162,14 @@ export const LabelIcon = styled.div`
   align-items: center;
   justify-content: center;
 
-  height: 20px;
+  height: 100%;
   font-size: 16px;
   line-height: 20px;
-  width: 20px;
+  width: auto;
   cursor: pointer;
 
   &:hover {
-    background: rgba(9, 30, 66, 0.08);
+    background: rgb(115, 103, 240);
   }
 `;
 
@@ -186,19 +206,27 @@ export const FieldLabel = styled.label`
 export const FieldName = styled.input`
   margin: 4px 0 12px;
   width: 100%;
-  background-color: #fafbfc;
-  border: none;
-  box-shadow: inset 0 0 0 2px #dfe1e6;
-  color: #172b4d;
   box-sizing: border-box;
   border-radius: 3px;
   display: block;
   line-height: 20px;
   margin-bottom: 12px;
   padding: 8px 12px;
+  background: #262c49;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
 
   font-size: 12px;
   font-weight: 400;
+
+  color: #c2c6dc;
+
+  &:focus {
+    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    background: ${mixin.darken('#262c49', 0.15)};
+  }
 `;
 
 export const LabelBox = styled.span<{ color: string }>`
@@ -208,6 +236,7 @@ export const LabelBox = styled.span<{ color: string }>`
   padding: 0;
   width: 48px;
 
+  cursor: pointer;
   background-color: ${props => props.color};
   border-radius: 4px;
   color: #fff;
@@ -217,6 +246,7 @@ export const LabelBox = styled.span<{ color: string }>`
 `;
 
 export const SaveButton = styled.input`
+  cursor: pointer;
   background-color: #5aac44;
   box-shadow: none;
   border: none;
@@ -239,12 +269,61 @@ export const DeleteButton = styled.input`
   border: none;
   color: #fff;
   cursor: pointer;
-  display: inline-block;
-  font-weight: 400;
+  type="submit"font-weight: 400;
   line-height: 20px;
   margin: 8px 4px 0 0;
   padding: 6px 12px;
   text-align: center;
   border-radius: 3px;
   float: right;
+`;
+
+export const CreateLabelButton = styled.button`
+  outline: none;
+  border: none;
+  width: 100%;
+  border-radius: 3px;
+  line-height: 20px;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  background-color: none;
+  text-align: center;
+  color: #c2c6dc;
+  margin: 8px 4px 0 0;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgb(115, 103, 240);
+  }
+`;
+
+export const PreviousButton = styled.div`
+  padding: 10px 12px 10px 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  cursor: pointer;
+`;
+
+export const ContainerDiamond = styled.div<{ invert: boolean }>`
+  top: 10px;
+  ${props => (props.invert ? 'right: 10px; ' : 'left: 15px;')}
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  display: block;
+  transform: rotate(45deg) translate(-7px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 10;
+
+  background: #262c49;
+  border-color: #414561;
 `;

@@ -29,7 +29,7 @@ type Props = {
   onCardCreate: (taskGroupID: string, name: string) => void;
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
   onCreateList: (listName: string) => void;
-  onExtraMenuOpen: (taskGroupID: string, pos: ElementPosition, size: ElementSize) => void;
+  onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
 };
 
 const Lists: React.FC<Props> = ({

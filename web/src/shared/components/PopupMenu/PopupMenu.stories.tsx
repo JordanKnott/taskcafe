@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, createRef } from 'react';
 import { action } from '@storybook/addon-actions';
 import LabelColors from 'shared/constants/labelColors';
 import LabelManager from 'shared/components/PopupMenu/LabelManager';
@@ -7,10 +7,12 @@ import ListActions from 'shared/components/ListActions';
 import MemberManager from 'shared/components/MemberManager';
 import DueDateManager from 'shared/components/DueDateManager';
 import MiniProfile from 'shared/components/MiniProfile';
+import styled from 'styled-components';
 
-import PopupMenu from '.';
+import PopupMenu, { PopupProvider, usePopup, Popup } from '.';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
+import produce from 'immer';
 
 export default {
   component: PopupMenu,
@@ -37,19 +39,93 @@ const labelData = [
   },
 ];
 
+const OpenLabelBtn = styled.span``;
+
+type TabProps = {
+  tab: number;
+};
+
+const LabelManagerEditor = () => {
+  const [labels, setLabels] = useState(labelData);
+  const [currentLabel, setCurrentLabel] = useState('');
+  const { setTab } = usePopup();
+  return (
+    <>
+      <Popup title="Labels" tab={0} onClose={action('on close')}>
+        <LabelManager
+          labels={labels}
+          onLabelCreate={() => {
+            setTab(2);
+          }}
+          onLabelEdit={labelId => {
+            setCurrentLabel(labelId);
+            setTab(1);
+          }}
+          onLabelToggle={labelId => {
+            setLabels(
+              produce(labels, draftState => {
+                const idx = labels.findIndex(label => label.labelId === labelId);
+                if (idx !== -1) {
+                  draftState[idx] = { ...draftState[idx], active: !labels[idx].active };
+                }
+              }),
+            );
+          }}
+        />
+      </Popup>
+      <Popup onClose={action('on close')} title="Edit label" tab={1}>
+        <LabelEditor
+          label={labels.find(label => label.labelId === currentLabel) ?? null}
+          onLabelEdit={(_labelId, name, color) => {
+            setLabels(
+              produce(labels, draftState => {
+                const idx = labels.findIndex(label => label.labelId === currentLabel);
+                if (idx !== -1) {
+                  draftState[idx] = { ...draftState[idx], name, color };
+                }
+              }),
+            );
+            setTab(0);
+          }}
+        />
+      </Popup>
+      <Popup onClose={action('on close')} title="Create new label" tab={2}>
+        <LabelEditor
+          label={null}
+          onLabelEdit={(_labelId, name, color) => {
+            setLabels([...labels, { labelId: name, name, color, active: false }]);
+            setTab(0);
+          }}
+        />
+      </Popup>
+    </>
+  );
+};
+
+const OpenLabelsButton = () => {
+  const $buttonRef = createRef<HTMLButtonElement>();
+  const [currentLabel, setCurrentLabel] = useState('');
+  const [labels, setLabels] = useState(labelData);
+  const { showPopup, setTab } = usePopup();
+  console.log(labels);
+  return (
+    <OpenLabelBtn
+      ref={$buttonRef}
+      onClick={() => {
+        showPopup($buttonRef, <LabelManagerEditor />);
+      }}
+    >
+      Open
+    </OpenLabelBtn>
+  );
+};
+
 export const LabelsPopup = () => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   return (
-    <>
-      {isPopupOpen && (
-        <PopupMenu title="Label" top={10} onClose={() => setPopupOpen(false)} left={10}>
-          <LabelManager labels={labelData} onLabelToggle={action('label toggle')} onLabelEdit={action('label edit')} />
-        </PopupMenu>
-      )}
-      <button type="submit" onClick={() => setPopupOpen(true)}>
-        Open
-      </button>
-    </>
+    <PopupProvider>
+      <OpenLabelsButton />
+    </PopupProvider>
   );
 };
 
@@ -58,7 +134,13 @@ export const LabelsLabelEditor = () => {
   return (
     <>
       {isPopupOpen && (
-        <PopupMenu title="Change Label" top={10} onClose={() => setPopupOpen(false)} left={10}>
+        <PopupMenu
+          onPrevious={action('on previous')}
+          title="Change Label"
+          top={10}
+          onClose={() => setPopupOpen(false)}
+          left={10}
+        >
           <LabelEditor label={labelData[0]} onLabelEdit={action('label edit')} />
         </PopupMenu>
       )}
@@ -201,12 +283,19 @@ export const MiniProfilePopup = () => {
       <NormalizeStyles />
       <BaseStyles />
       {popupData.isOpen && (
-        <PopupMenu title="Due Date" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
+        <PopupMenu
+          noHeader
+          title="Due Date"
+          top={popupData.top}
+          onClose={() => setPopupData(initalState)}
+          left={popupData.left}
+        >
           <MiniProfile
             displayName="Jordan Knott"
             profileIcon={{ url: null, bgColor: '#000', initials: 'JK' }}
             username="@jordanthedev"
             bio="Stuff and things"
+            onRemoveFromTask={action('mini profile')}
           />
         </PopupMenu>
       )}
@@ -236,3 +325,4 @@ export const MiniProfilePopup = () => {
     </>
   );
 };
+

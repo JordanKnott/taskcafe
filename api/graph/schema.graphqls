@@ -2,14 +2,14 @@ scalar Time
 scalar UUID
 
 type ProjectLabel {
-  projectLabelID: ID!
+  id: ID!
   createdDate: Time!
   colorHex: String!
   name: String
 }
 
 type TaskLabel {
-  taskLabelID: ID!
+  id: ID!
   projectLabelID: UUID!
   assignedDate: Time!
   colorHex: String!
@@ -23,21 +23,21 @@ type ProfileIcon {
 }
 
 type ProjectMember {
-  userID: ID!
+  id: ID!
   firstName: String!
   lastName: String!
   profileIcon: ProfileIcon!
 }
 
 type RefreshToken {
-  tokenId: ID!
+  id: ID!
   userId: UUID!
   expiresAt: Time!
   createdAt: Time!
 }
 
 type UserAccount {
-  userID: ID!
+  id: ID!
   email: String!
   createdAt: Time!
   firstName: String!
@@ -47,13 +47,13 @@ type UserAccount {
 }
 
 type Team {
-  teamID: ID!
+  id: ID!
   createdAt: Time!
   name: String!
 }
 
 type Project {
-  projectID: ID!
+  id: ID!
   createdAt: Time!
   name: String!
   team: Team!
@@ -64,7 +64,7 @@ type Project {
 }
 
 type TaskGroup {
-  taskGroupID: ID!
+  id: ID!
   projectID: String!
   createdAt: Time!
   name: String!
@@ -73,7 +73,7 @@ type TaskGroup {
 }
 
 type Task {
-  taskID: ID!
+  id: ID!
   taskGroup: TaskGroup!
   createdAt: Time!
   name: String!

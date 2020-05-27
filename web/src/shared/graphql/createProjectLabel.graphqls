@@ -1,0 +1,8 @@
+mutation createProjectLabel($projectID: UUID!, $labelColorID: UUID!, $name: String!) {
+  createProjectLabel(input:{projectID:$projectID, labelColorID: $labelColorID, name: $name}) {
+    id
+    createdDate
+    colorHex
+    name
+  }
+}

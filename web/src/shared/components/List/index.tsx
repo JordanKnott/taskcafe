@@ -26,7 +26,7 @@ type Props = {
   wrapperProps?: any;
   headerProps?: any;
   index?: number;
-  onExtraMenuOpen: (taskGroupID: string, pos: ElementPosition, size: ElementSize) => void;
+  onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
 };
 
 const List = React.forwardRef(
@@ -78,20 +78,7 @@ const List = React.forwardRef(
 
     const handleExtraMenuOpen = () => {
       if ($extraActionsRef && $extraActionsRef.current) {
-        const pos = $extraActionsRef.current.getBoundingClientRect();
-        onExtraMenuOpen(
-          id,
-          {
-            top: pos.top,
-            left: pos.left,
-            right: pos.right,
-            bottom: pos.bottom,
-          },
-          {
-            width: pos.width,
-            height: pos.height,
-          },
-        );
+        onExtraMenuOpen(id, $extraActionsRef);
       }
     };
     useOnEscapeKeyDown(isEditingTitle, onEscape);
@@ -116,7 +103,7 @@ const List = React.forwardRef(
           {children && children}
           <AddCardContainer hidden={isComposerOpen}>
             <AddCardButton onClick={() => onOpenComposer(id)}>
-              <Plus size={12} color="#42526e" />
+              <Plus size={12} color="#c2c6dc" />
               <AddCardButtonText>Add another card</AddCardButtonText>
             </AddCardButton>
           </AddCardContainer>

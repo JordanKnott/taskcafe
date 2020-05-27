@@ -1,11 +1,12 @@
 import React, { useState, useContext } from 'react';
 import Modal from 'shared/components/Modal';
 import TaskDetails from 'shared/components/TaskDetails';
-import PopupMenu from 'shared/components/PopupMenu';
+import PopupMenu, { Popup, usePopup } from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
 import { useRouteMatch, useHistory } from 'react-router';
 import { useFindTaskQuery, useAssignTaskMutation, useUnassignTaskMutation } from 'shared/generated/graphql';
 import UserIDContext from 'App/context';
+import MiniProfile from 'shared/components/MiniProfile';
 
 type DetailsProps = {
   taskID: string;
@@ -13,7 +14,7 @@ type DetailsProps = {
   onTaskNameChange: (task: Task, newName: string) => void;
   onTaskDescriptionChange: (task: Task, newDescription: string) => void;
   onDeleteTask: (task: Task) => void;
-  onOpenAddLabelPopup: (task: Task, bounds: ElementBounds) => void;
+  onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   availableMembers: Array<TaskUser>;
   refreshCache: () => void;
 };
@@ -31,8 +32,10 @@ const Details: React.FC<DetailsProps> = ({
   refreshCache,
 }) => {
   const { userID } = useContext(UserIDContext);
+  const { showPopup } = usePopup();
   const history = useHistory();
   const match = useRouteMatch();
+  const [currentMemberTask, setCurrentMemberTask] = useState('');
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
   const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
   const [assignTask] = useAssignTaskMutation({
@@ -55,7 +58,7 @@ const Details: React.FC<DetailsProps> = ({
   }
   const taskMembers = data.findTask.assigned.map(assigned => {
     return {
-      userID: assigned.userID,
+      userID: assigned.id,
       displayName: `${assigned.firstName} ${assigned.lastName}`,
       profileIcon: {
         url: null,
@@ -76,6 +79,8 @@ const Details: React.FC<DetailsProps> = ({
             <TaskDetails
               task={{
                 ...data.findTask,
+                taskID: data.findTask.id,
+                taskGroup: { taskGroupID: data.findTask.taskGroup.id },
                 members: taskMembers,
                 description: data.findTask.description ?? '',
                 labels: [],
@@ -84,42 +89,48 @@ const Details: React.FC<DetailsProps> = ({
               onTaskDescriptionChange={onTaskDescriptionChange}
               onDeleteTask={onDeleteTask}
               onCloseModal={() => history.push(projectURL)}
-              onOpenAddMemberPopup={(task, bounds) => {
-                console.log(task, bounds);
-                setMemberPopupData({
-                  isOpen: true,
-                  taskID: task.taskID,
-                  top: bounds.position.top + bounds.size.height + 10,
-                  left: bounds.position.left,
-                });
+              onMemberProfile={($targetRef, memberID) => {
+                showPopup(
+                  $targetRef,
+                  <Popup title={null} onClose={() => {}} tab={0}>
+                    <MiniProfile
+                      profileIcon={taskMembers[0].profileIcon}
+                      displayName="Jordan Knott"
+                      username="@jordanthedev"
+                      bio="None"
+                      onRemoveFromTask={() => {
+                        unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                      }}
+                    />
+                  </Popup>,
+                );
+              }}
+              onOpenAddMemberPopup={(task, $targetRef) => {
+                console.log(`task: ${task.taskID}`);
+                showPopup(
+                  $targetRef,
+                  <Popup title="Members" tab={0} onClose={() => {}}>
+                    <MemberManager
+                      availableMembers={availableMembers}
+                      activeMembers={taskMembers}
+                      onMemberChange={(member, isActive) => {
+                        console.log(`is active ${member.userID} - ${isActive}`);
+                        if (isActive) {
+                          assignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                        } else {
+                          unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                        }
+                        console.log(member, isActive);
+                      }}
+                    />
+                  </Popup>,
+                );
               }}
               onOpenAddLabelPopup={onOpenAddLabelPopup}
             />
           );
         }}
       />
-      {memberPopupData.isOpen && (
-        <PopupMenu
-          title="Members"
-          top={memberPopupData.top}
-          onClose={() => setMemberPopupData(initialMemberPopupState)}
-          left={memberPopupData.left}
-        >
-          <MemberManager
-            availableMembers={availableMembers}
-            activeMembers={taskMembers}
-            onMemberChange={(member, isActive) => {
-              console.log(`is active ${member.userID} - ${isActive}`);
-              if (isActive) {
-                assignTask({ variables: { taskID: data.findTask.taskID, userID: userID ?? '' } });
-              } else {
-                unassignTask({ variables: { taskID: data.findTask.taskID, userID: userID ?? '' } });
-              }
-              console.log(member, isActive);
-            }}
-          />
-        </PopupMenu>
-      )}
     </>
   );
 };

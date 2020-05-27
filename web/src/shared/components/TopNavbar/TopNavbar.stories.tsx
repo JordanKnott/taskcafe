@@ -38,6 +38,7 @@ export const Default = () => {
       <NormalizeStyles />
       <BaseStyles />
       <TopNavbar
+        projectName="Projects"
         bgColor="#7367F0"
         firstName="Jordan"
         lastName="Knott"

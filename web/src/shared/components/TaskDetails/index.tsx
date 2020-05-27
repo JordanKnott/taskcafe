@@ -93,13 +93,27 @@ const DetailsEditor: React.FC<DetailsEditorProps> = ({
   );
 };
 
+type TaskAssigneeProps = {
+  member: TaskUser;
+  onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
+};
+const TaskAssignee: React.FC<TaskAssigneeProps> = ({ member, onMemberProfile }) => {
+  const $memberRef = useRef<HTMLDivElement>(null);
+  return (
+    <TaskDetailAssignee ref={$memberRef} onClick={() => onMemberProfile($memberRef, member.userID)} key={member.userID}>
+      <ProfileIcon>{member.profileIcon.initials ?? ''}</ProfileIcon>
+    </TaskDetailAssignee>
+  );
+};
+
 type TaskDetailsProps = {
   task: Task;
   onTaskNameChange: (task: Task, newName: string) => void;
   onTaskDescriptionChange: (task: Task, newDescription: string) => void;
   onDeleteTask: (task: Task) => void;
-  onOpenAddMemberPopup: (task: Task, bounds: ElementBounds) => void;
-  onOpenAddLabelPopup: (task: Task, bounds: ElementBounds) => void;
+  onOpenAddMemberPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
+  onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
+  onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
   onCloseModal: () => void;
 };
 
@@ -111,6 +125,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onCloseModal,
   onOpenAddMemberPopup,
   onOpenAddLabelPopup,
+  onMemberProfile,
 }) => {
   const [editorOpen, setEditorOpen] = useState(false);
   const [description, setDescription] = useState(task.description ?? '');
@@ -130,23 +145,14 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const $unassignedRef = useRef<HTMLDivElement>(null);
   const $addMemberRef = useRef<HTMLDivElement>(null);
   const onUnassignedClick = () => {
-    const bounds = convertDivElementRefToBounds($unassignedRef);
-    if (bounds) {
-      onOpenAddMemberPopup(task, bounds);
-    }
+    onOpenAddMemberPopup(task, $unassignedRef);
   };
   const onAddMember = () => {
-    const bounds = convertDivElementRefToBounds($addMemberRef);
-    if (bounds) {
-      onOpenAddMemberPopup(task, bounds);
-    }
+    onOpenAddMemberPopup(task, $addMemberRef);
   };
   const $addLabelRef = useRef<HTMLDivElement>(null);
   const onAddLabel = () => {
-    const bounds = convertDivElementRefToBounds($addLabelRef);
-    if (bounds) {
-      onOpenAddLabelPopup(task, bounds);
-    }
+    onOpenAddLabelPopup(task, $addLabelRef);
   };
   console.log(task);
   return (
@@ -204,14 +210,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             ) : (
               <>
                 {task.members &&
-                  task.members.map(member => {
-                    console.log(member);
-                    return (
-                      <TaskDetailAssignee key={member.userID}>
-                        <ProfileIcon>{member.profileIcon.initials ?? ''}</ProfileIcon>
-                      </TaskDetailAssignee>
-                    );
-                  })}
+                  task.members.map(member => <TaskAssignee member={member} onMemberProfile={onMemberProfile} />)}
                 <TaskDetailsAddMember ref={$addMemberRef} onClick={onAddMember}>
                   <TaskDetailsAddMemberIcon>
                     <Plus size={16} color="#c2c6dc" />

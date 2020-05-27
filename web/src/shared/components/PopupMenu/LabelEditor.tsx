@@ -4,25 +4,51 @@ import { Checkmark } from 'shared/icons';
 import { SaveButton, DeleteButton, LabelBox, EditLabelForm, FieldLabel, FieldName } from './Styles';
 
 type Props = {
-  label: Label;
-  onLabelEdit: (labelId: string, labelName: string, color: string) => void;
+  label: Label | null;
+  onLabelEdit: (labelId: string | null, labelName: string, color: string) => void;
 };
+
 const LabelManager = ({ label, onLabelEdit }: Props) => {
-  const [currentLabel, setCurrentLabel] = useState('');
+  console.log(label);
+  const [currentLabel, setCurrentLabel] = useState(label ? label.name : '');
+  const [currentColor, setCurrentColor] = useState<string | null>(label ? label.color : null);
   return (
     <EditLabelForm>
       <FieldLabel>Name</FieldLabel>
-      <FieldName id="labelName" type="text" name="name" value={currentLabel} />
+      <FieldName
+        id="labelName"
+        type="text"
+        name="name"
+        onChange={e => {
+          setCurrentLabel(e.currentTarget.value);
+        }}
+        value={currentLabel}
+      />
       <FieldLabel>Select a color</FieldLabel>
       <div>
         {Object.values(LabelColors).map(labelColor => (
-          <LabelBox color={labelColor}>
-            <Checkmark color="#fff" size={12} />
+          <LabelBox
+            color={labelColor}
+            onClick={() => {
+              setCurrentColor(labelColor);
+            }}
+          >
+            {labelColor === currentColor && <Checkmark color="#fff" size={12} />}
           </LabelBox>
         ))}
       </div>
       <div>
-        <SaveButton type="submit" value="Save" />
+        <SaveButton
+          onClick={e => {
+            e.preventDefault();
+            console.log(currentColor);
+            if (currentColor) {
+              onLabelEdit(label ? label.labelId : null, currentLabel, currentColor);
+            }
+          }}
+          type="submit"
+          value="Save"
+        />
         <DeleteButton type="submit" value="Delete" />
       </div>
     </EditLabelForm>

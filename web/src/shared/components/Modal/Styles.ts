@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 
 export const ScrollOverlay = styled.div`
-  z-index: 1000000;
+  z-index: 3000;
   position: fixed;
   top: 0;
   left: 0;

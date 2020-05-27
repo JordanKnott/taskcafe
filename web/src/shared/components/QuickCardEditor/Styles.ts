@@ -2,7 +2,7 @@ import styled, { keyframes } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
 
 export const Wrapper = styled.div<{ open: boolean }>`
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
   bottom: 0;
   color: #fff;
   left: 0;

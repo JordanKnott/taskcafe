@@ -6,7 +6,7 @@ import { Board } from './Styles';
 
 type KanbanBoardProps = {
   listsData: BoardState;
-  onOpenListActionsPopup: (isOpen: boolean, left: number, top: number, taskGroupID: string) => void;
+  onOpenListActionsPopup: ($targetRef: React.RefObject<HTMLElement>, taskGroupID: string) => void;
   onCardDrop: (task: Task) => void;
   onListDrop: (taskGroup: TaskGroup) => void;
   onCardCreate: (taskGroupID: string, name: string) => void;
@@ -31,8 +31,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
         onCardClick={task => {
           history.push(`${match.url}/c/${task.taskID}`);
         }}
-        onExtraMenuOpen={(taskGroupID, pos, size) => {
-          onOpenListActionsPopup(true, pos.left, pos.top + size.height + 5, taskGroupID);
+        onExtraMenuOpen={(taskGroupID, $targetRef) => {
+          onOpenListActionsPopup($targetRef, taskGroupID);
         }}
         onQuickEditorOpen={onQuickEditorOpen}
         onCardCreate={onCardCreate}

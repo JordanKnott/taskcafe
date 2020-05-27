@@ -5,7 +5,10 @@ import { useHistory } from 'react-router';
 import UserIDContext from 'App/context';
 import { useMeQuery } from 'shared/generated/graphql';
 
-const GlobalTopNavbar: React.FC = () => {
+type GlobalTopNavbarProps = {
+  name: string;
+};
+const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name }) => {
   const { loading, data } = useMeQuery();
   const history = useHistory();
   const { userID, setUserID } = useContext(UserIDContext);
@@ -41,6 +44,7 @@ const GlobalTopNavbar: React.FC = () => {
   return (
     <>
       <TopNavbar
+        projectName={name}
         bgColor={data ? data.me.profileIcon.bgColor ?? '#7367F0' : '#7367F0'}
         firstName={data ? data.me.firstName : ''}
         lastName={data ? data.me.lastName : ''}

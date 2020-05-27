@@ -2,7 +2,7 @@ query findProject($projectId: String!) {
   findProject(input: { projectId: $projectId }) {
     name
     members {
-      userID
+      id
       firstName
       lastName
       profileIcon {
@@ -11,17 +11,23 @@ query findProject($projectId: String!) {
         bgColor
       }
     }
+    labels {
+      id
+      createdDate
+      colorHex
+      name
+    }
     taskGroups {
-      taskGroupID
+      id
       name
       position
       tasks {
-        taskID
+        id
         name
         position
         description
         assigned {
-          userID
+          id
           firstName
           lastName
           profileIcon {

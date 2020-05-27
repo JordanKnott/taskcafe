@@ -2,7 +2,7 @@ import produce from 'immer';
 
 export const addTask = (currentState: BoardState, newTask: Task) => {
   return produce(currentState, (draftState: BoardState) => {
-    currentState.tasks[newTask.taskID] = newTask;
+    draftState.tasks[newTask.taskID] = newTask;
   });
 };
 

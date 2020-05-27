@@ -1,4 +1,5 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import { mixin } from 'shared/utils/styles';
 
 export const NavbarWrapper = styled.div`
   width: 100%;
@@ -76,8 +77,10 @@ export const ProfileIcon = styled.div<{ bgColor: string }>`
 `;
 
 export const ProjectMeta = styled.div`
-  align-items: center;
   display: flex;
+  padding-top: 9px;
+  margin-left: -14px;
+  align-items: center;
   max-width: 100%;
   min-height: 51px;
 `;
@@ -91,11 +94,11 @@ export const ProjectTabs = styled.div`
   max-width: 100%;
 `;
 
-export const ProjectTab = styled.span`
+export const ProjectTab = styled.span<{ active?: boolean }>`
   font-size: 80%;
   color: #c2c6dc;
   font-size: 15px;
-  cursor: default;
+  cursor: pointer;
   display: flex;
   line-height: normal;
   min-width: 1px;
@@ -103,16 +106,71 @@ export const ProjectTab = styled.span`
   transition-property: box-shadow, color;
   white-space: nowrap;
   flex: 0 1 auto;
-
   padding-bottom: 12px;
 
-  box-shadow: inset 0 -2px #d85dd8;
-  color: #d85dd8;
+  &:not(:last-child) {
+    margin-right: 20px;
+  }
+
+  ${props =>
+    props.active
+      ? css`
+          box-shadow: inset 0 -2px #d85dd8;
+          color: #d85dd8;
+        `
+      : css`
+          &:hover {
+            box-shadow: inset 0 -2px #cbd4db;
+            color: ${mixin.lighten('#c2c6dc', 0.25)};
+          }
+        `}
 `;
 
 export const ProjectName = styled.h1`
   color: #c2c6dc;
-  margin-top: 9px;
   font-weight: 600;
   font-size: 20px;
+  padding: 6px 10px 6px 8px;
+`;
+
+export const ProjectSwitcher = styled.button`
+  font-size: 20px;
+
+  outline: none;
+  border: none;
+  width: 100px;
+  border-radius: 3px;
+  line-height: 20px;
+  padding: 6px 4px;
+  background-color: none;
+  text-align: center;
+  color: #c2c6dc;
+  cursor: pointer;
+  &:hover {
+    background: rgb(115, 103, 240);
+  }
+`;
+
+export const Separator = styled.div`
+  color: #c2c6dc;
+  font-size: 16px;
+  padding-left: 4px;
+  padding-right: 4px;
+`;
+
+export const ProjectSettingsButton = styled.button`
+  outline: none;
+  border: none;
+  border-radius: 3px;
+  line-height: 20px;
+  width: 28px;
+  height: 28px;
+  background-color: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  &:hover {
+    background: rgb(115, 103, 240);
+  }
 `;
