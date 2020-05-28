@@ -269,6 +269,26 @@ export type NewProjectLabel = {
   name?: Maybe<Scalars['String']>;
 };
 
+export type DeleteProjectLabel = {
+  projectLabelID: Scalars['UUID'];
+};
+
+export type UpdateProjectLabelName = {
+  projectLabelID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+export type UpdateProjectLabel = {
+  projectLabelID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+export type UpdateProjectLabelColor = {
+  projectLabelID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
@@ -276,6 +296,10 @@ export type Mutation = {
   createTeam: Team;
   createProject: Project;
   createProjectLabel: ProjectLabel;
+  deleteProjectLabel: ProjectLabel;
+  updateProjectLabel: ProjectLabel;
+  updateProjectLabelName: ProjectLabel;
+  updateProjectLabelColor: ProjectLabel;
   createTaskGroup: TaskGroup;
   updateTaskGroupLocation: TaskGroup;
   deleteTaskGroup: DeleteTaskGroupPayload;
@@ -314,6 +338,26 @@ export type MutationCreateProjectArgs = {
 
 export type MutationCreateProjectLabelArgs = {
   input: NewProjectLabel;
+};
+
+
+export type MutationDeleteProjectLabelArgs = {
+  input: DeleteProjectLabel;
+};
+
+
+export type MutationUpdateProjectLabelArgs = {
+  input: UpdateProjectLabel;
+};
+
+
+export type MutationUpdateProjectLabelNameArgs = {
+  input: UpdateProjectLabelName;
+};
+
+
+export type MutationUpdateProjectLabelColorArgs = {
+  input: UpdateProjectLabelColor;
 };
 
 
@@ -413,7 +457,7 @@ export type CreateProjectLabelMutation = (
     & Pick<ProjectLabel, 'id' | 'createdDate' | 'name'>
     & { labelColor: (
       { __typename?: 'LabelColor' }
-      & Pick<LabelColor, 'id' | 'colorHex'>
+      & Pick<LabelColor, 'id' | 'colorHex' | 'name' | 'position'>
     ) }
   ) }
 );
@@ -456,6 +500,19 @@ export type CreateTaskGroupMutation = (
   & { createTaskGroup: (
     { __typename?: 'TaskGroup' }
     & Pick<TaskGroup, 'id' | 'name' | 'position'>
+  ) }
+);
+
+export type DeleteProjectLabelMutationVariables = {
+  projectLabelID: Scalars['UUID'];
+};
+
+
+export type DeleteProjectLabelMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteProjectLabel: (
+    { __typename?: 'ProjectLabel' }
+    & Pick<ProjectLabel, 'id'>
   ) }
 );
 
@@ -611,6 +668,25 @@ export type UnassignTaskMutation = (
   ) }
 );
 
+export type UpdateProjectLabelMutationVariables = {
+  projectLabelID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+
+export type UpdateProjectLabelMutation = (
+  { __typename?: 'Mutation' }
+  & { updateProjectLabel: (
+    { __typename?: 'ProjectLabel' }
+    & Pick<ProjectLabel, 'id' | 'createdDate' | 'name'>
+    & { labelColor: (
+      { __typename?: 'LabelColor' }
+      & Pick<LabelColor, 'id' | 'colorHex' | 'name' | 'position'>
+    ) }
+  ) }
+);
+
 export type UpdateTaskDescriptionMutationVariables = {
   taskID: Scalars['UUID'];
   description: Scalars['String'];
@@ -715,6 +791,8 @@ export const CreateProjectLabelDocument = gql`
     labelColor {
       id
       colorHex
+      name
+      position
     }
     name
   }
@@ -833,6 +911,38 @@ export function useCreateTaskGroupMutation(baseOptions?: ApolloReactHooks.Mutati
 export type CreateTaskGroupMutationHookResult = ReturnType<typeof useCreateTaskGroupMutation>;
 export type CreateTaskGroupMutationResult = ApolloReactCommon.MutationResult<CreateTaskGroupMutation>;
 export type CreateTaskGroupMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateTaskGroupMutation, CreateTaskGroupMutationVariables>;
+export const DeleteProjectLabelDocument = gql`
+    mutation deleteProjectLabel($projectLabelID: UUID!) {
+  deleteProjectLabel(input: {projectLabelID: $projectLabelID}) {
+    id
+  }
+}
+    `;
+export type DeleteProjectLabelMutationFn = ApolloReactCommon.MutationFunction<DeleteProjectLabelMutation, DeleteProjectLabelMutationVariables>;
+
+/**
+ * __useDeleteProjectLabelMutation__
+ *
+ * To run a mutation, you first call `useDeleteProjectLabelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteProjectLabelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteProjectLabelMutation, { data, loading, error }] = useDeleteProjectLabelMutation({
+ *   variables: {
+ *      projectLabelID: // value for 'projectLabelID'
+ *   },
+ * });
+ */
+export function useDeleteProjectLabelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteProjectLabelMutation, DeleteProjectLabelMutationVariables>) {
+        return ApolloReactHooks.useMutation<DeleteProjectLabelMutation, DeleteProjectLabelMutationVariables>(DeleteProjectLabelDocument, baseOptions);
+      }
+export type DeleteProjectLabelMutationHookResult = ReturnType<typeof useDeleteProjectLabelMutation>;
+export type DeleteProjectLabelMutationResult = ApolloReactCommon.MutationResult<DeleteProjectLabelMutation>;
+export type DeleteProjectLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteProjectLabelMutation, DeleteProjectLabelMutationVariables>;
 export const DeleteTaskDocument = gql`
     mutation deleteTask($taskID: String!) {
   deleteTask(input: {taskID: $taskID}) {
@@ -1147,6 +1257,48 @@ export function useUnassignTaskMutation(baseOptions?: ApolloReactHooks.MutationH
 export type UnassignTaskMutationHookResult = ReturnType<typeof useUnassignTaskMutation>;
 export type UnassignTaskMutationResult = ApolloReactCommon.MutationResult<UnassignTaskMutation>;
 export type UnassignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<UnassignTaskMutation, UnassignTaskMutationVariables>;
+export const UpdateProjectLabelDocument = gql`
+    mutation updateProjectLabel($projectLabelID: UUID!, $labelColorID: UUID!, $name: String!) {
+  updateProjectLabel(input: {projectLabelID: $projectLabelID, labelColorID: $labelColorID, name: $name}) {
+    id
+    createdDate
+    labelColor {
+      id
+      colorHex
+      name
+      position
+    }
+    name
+  }
+}
+    `;
+export type UpdateProjectLabelMutationFn = ApolloReactCommon.MutationFunction<UpdateProjectLabelMutation, UpdateProjectLabelMutationVariables>;
+
+/**
+ * __useUpdateProjectLabelMutation__
+ *
+ * To run a mutation, you first call `useUpdateProjectLabelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateProjectLabelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateProjectLabelMutation, { data, loading, error }] = useUpdateProjectLabelMutation({
+ *   variables: {
+ *      projectLabelID: // value for 'projectLabelID'
+ *      labelColorID: // value for 'labelColorID'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpdateProjectLabelMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateProjectLabelMutation, UpdateProjectLabelMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateProjectLabelMutation, UpdateProjectLabelMutationVariables>(UpdateProjectLabelDocument, baseOptions);
+      }
+export type UpdateProjectLabelMutationHookResult = ReturnType<typeof useUpdateProjectLabelMutation>;
+export type UpdateProjectLabelMutationResult = ApolloReactCommon.MutationResult<UpdateProjectLabelMutation>;
+export type UpdateProjectLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateProjectLabelMutation, UpdateProjectLabelMutationVariables>;
 export const UpdateTaskDescriptionDocument = gql`
     mutation updateTaskDescription($taskID: UUID!, $description: String!) {
   updateTaskDescription(input: {taskID: $taskID, description: $description}) {

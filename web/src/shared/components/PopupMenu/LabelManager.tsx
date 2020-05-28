@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pencil, Checkmark } from 'shared/icons';
 
 import {
@@ -20,12 +20,19 @@ type Props = {
   onLabelCreate: () => void;
 };
 const LabelManager: React.FC<Props> = ({ labels, onLabelToggle, onLabelEdit, onLabelCreate }) => {
+  const $fieldName = useRef<HTMLInputElement>(null);
   const [currentLabel, setCurrentLabel] = useState('');
   const [currentSearch, setCurrentSearch] = useState('');
+  useEffect(() => {
+    if ($fieldName.current) {
+      $fieldName.current.focus();
+    }
+  }, []);
   return (
     <>
       <LabelSearch
         type="text"
+        ref={$fieldName}
         placeholder="search labels..."
         onChange={e => {
           setCurrentSearch(e.currentTarget.value);

@@ -41,7 +41,6 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers 
   if (!userID) {
     return null;
   }
-  console.log(data);
   return (
     <>
       <TopNavbar
@@ -50,7 +49,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers 
         firstName={data ? data.me.firstName : ''}
         lastName={data ? data.me.lastName : ''}
         initials={!data ? '' : data.me.profileIcon.initials ?? ''}
-        onNotificationClick={() => console.log('beep')}
+        onNotificationClick={() => {}}
         projectMembers={projectMembers}
         onProfileClick={onProfileClick}
       />

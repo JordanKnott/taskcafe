@@ -5,6 +5,8 @@ mutation createProjectLabel($projectID: UUID!, $labelColorID: UUID!, $name: Stri
     labelColor {
       id
       colorHex
+      name
+      position
     }
     name
   }

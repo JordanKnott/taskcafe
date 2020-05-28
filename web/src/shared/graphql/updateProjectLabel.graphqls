@@ -1,0 +1,13 @@
+mutation updateProjectLabel($projectLabelID: UUID!, $labelColorID: UUID!, $name: String!) {
+  updateProjectLabel(input:{projectLabelID:$projectLabelID, labelColorID: $labelColorID, name: $name}) {
+    id
+    createdDate
+    labelColor {
+      id
+      colorHex
+      name
+      position
+    }
+    name
+  }
+}

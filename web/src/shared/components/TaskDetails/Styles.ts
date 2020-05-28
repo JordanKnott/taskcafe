@@ -146,6 +146,14 @@ export const TaskDetailsMarkdown = styled.div`
   width: 100%;
   cursor: pointer;
   color: #c2c6dc;
+
+  p {
+    margin: 0 0 8px;
+  }
+
+  strong {
+    font-weight: 700;
+  }
 `;
 
 export const TaskDetailsControls = styled.div`

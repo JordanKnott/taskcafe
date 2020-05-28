@@ -50,7 +50,6 @@ const NavBar: React.FC<NavBarProps> = ({
 }) => {
   const $profileRef: any = useRef(null);
   const handleProfileClick = () => {
-    console.log('click');
     const boundingRect = $profileRef.current.getBoundingClientRect();
     onProfileClick(boundingRect.bottom, boundingRect.right);
   };
@@ -95,7 +94,7 @@ const NavBar: React.FC<NavBarProps> = ({
           {projectMembers && (
             <ProjectMembers>
               {projectMembers.map(member => (
-                <TaskAssignee size={28} member={member} onMemberProfile={onMemberProfile} />
+                <TaskAssignee key={member.userID} size={28} member={member} onMemberProfile={onMemberProfile} />
               ))}
               <InviteButton>Invite</InviteButton>
             </ProjectMembers>

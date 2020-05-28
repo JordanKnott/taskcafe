@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bin, Cross, Plus } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+import ReactMarkdown from 'react-markdown';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
 import {
@@ -48,7 +49,9 @@ const TaskContent: React.FC<TaskContentProps> = ({ description, onEditContent })
   return description === '' ? (
     <TaskDetailsAddDetailsButton onClick={onEditContent}>Add a more detailed description</TaskDetailsAddDetailsButton>
   ) : (
-    <TaskDetailsMarkdown onClick={onEditContent}>{description}</TaskDetailsMarkdown>
+    <TaskDetailsMarkdown onClick={onEditContent}>
+      <ReactMarkdown source={description} />
+    </TaskDetailsMarkdown>
   );
 };
 
@@ -142,7 +145,6 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const onAddLabel = () => {
     onOpenAddLabelPopup(task, $addLabelRef);
   };
-  console.log(task);
   return (
     <>
       <TaskActions>

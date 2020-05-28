@@ -8,7 +8,9 @@ import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from
 import {
   useFindProjectQuery,
   useUpdateTaskNameMutation,
+  useUpdateProjectLabelMutation,
   useCreateTaskMutation,
+  useDeleteProjectLabelMutation,
   useDeleteTaskMutation,
   useUpdateTaskLocationMutation,
   useUpdateTaskGroupLocationMutation,
@@ -31,8 +33,28 @@ import { mixin } from 'shared/utils/styles';
 import LabelManager from 'shared/components/PopupMenu/LabelManager';
 import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 import produce from 'immer';
-import Details from './Details';
 import MiniProfile from 'shared/components/MiniProfile';
+import Details from './Details';
+
+const getCacheData = (client: any, projectID: string) => {
+  const cacheData: any = client.readQuery({
+    query: FindProjectDocument,
+    variables: {
+      projectId: projectID,
+    },
+  });
+  return cacheData;
+};
+
+const writeCacheData = (client: any, projectID: string, cacheData: any, newData: any) => {
+  client.writeQuery({
+    query: FindProjectDocument,
+    variables: {
+      projectId: projectID,
+    },
+    data: { ...cacheData, findProject: newData },
+  });
+};
 
 type TaskRouteProps = {
   taskID: string;
@@ -63,15 +85,37 @@ const ProjectMembers = styled.div`
 `;
 
 type LabelManagerEditorProps = {
-  labels: Array<Label>;
+  labels: React.RefObject<Array<Label>>;
   projectID: string;
   labelColors: Array<LabelColor>;
 };
 
-const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initialLabels, projectID, labelColors }) => {
-  const [labels, setLabels] = useState<Array<Label>>(initialLabels);
+const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: labelsRef, projectID, labelColors }) => {
   const [currentLabel, setCurrentLabel] = useState('');
-  const [createProjectLabel] = useCreateProjectLabelMutation();
+  const [createProjectLabel] = useCreateProjectLabelMutation({
+    update: (client, newLabelData) => {
+      const cacheData = getCacheData(client, projectID);
+      const newData = {
+        ...cacheData.findProject,
+        labels: [...cacheData.findProject.labels, { ...newLabelData.data.createProjectLabel }],
+      };
+      writeCacheData(client, projectID, cacheData, newData);
+    },
+  });
+  const [updateProjectLabel] = useUpdateProjectLabelMutation();
+  const [deleteProjectLabel] = useDeleteProjectLabelMutation({
+    update: (client, newLabelData) => {
+      const cacheData = getCacheData(client, projectID);
+      const newData = {
+        ...cacheData.findProject,
+        labels: cacheData.findProject.labels.filter(
+          (label: any) => label.id !== newLabelData.data.deleteProjectLabel.id,
+        ),
+      };
+      writeCacheData(client, projectID, cacheData, newData);
+    },
+  });
+  const labels = labelsRef.current ? labelsRef.current : [];
   const { setTab } = usePopup();
   return (
     <>
@@ -95,15 +139,14 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initial
         <LabelEditor
           labelColors={labelColors}
           label={labels.find(label => label.labelId === currentLabel) ?? null}
-          onLabelEdit={(_labelId, name, color) => {
-            setLabels(
-              produce(labels, draftState => {
-                const idx = labels.findIndex(label => label.labelId === currentLabel);
-                if (idx !== -1) {
-                  draftState[idx] = { ...draftState[idx], name, labelColor: color };
-                }
-              }),
-            );
+          onLabelEdit={(projectLabelID, name, color) => {
+            if (projectLabelID) {
+              updateProjectLabel({ variables: { projectLabelID, labelColorID: color.id, name } });
+            }
+            setTab(0);
+          }}
+          onLabelDelete={labelID => {
+            deleteProjectLabel({ variables: { projectLabelID: labelID } });
             setTab(0);
           }}
         />
@@ -113,8 +156,6 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initial
           labelColors={labelColors}
           label={null}
           onLabelEdit={(_labelId, name, color) => {
-            console.log(name, color);
-            setLabels([...labels, { labelId: name, name, labelColor: color, active: false }]);
             createProjectLabel({ variables: { projectID, labelColorID: color.id, name } });
             setTab(0);
           }}
@@ -125,13 +166,12 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: initial
 };
 
 interface ProjectParams {
-  projectId: string;
+  projectID: string;
 }
 
 const initialState: BoardState = { tasks: {}, columns: {} };
 const initialPopupState = { left: 0, top: 0, isOpen: false, taskGroupID: '' };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
-const initialLabelsPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
 const initialTaskDetailsState = { isOpen: false, taskID: '' };
 
 const ProjectBar = styled.div`
@@ -168,14 +208,11 @@ const ProjectActionText = styled.span`
 `;
 
 const Project = () => {
-  const { projectId } = useParams<ProjectParams>();
+  const { projectID } = useParams<ProjectParams>();
   const match = useRouteMatch();
-  const history = useHistory();
 
   const [updateTaskDescription] = useUpdateTaskDescriptionMutation();
   const [listsData, setListsData] = useState(initialState);
-  const [popupData, setPopupData] = useState(initialPopupState);
-  const [taskDetails, setTaskDetails] = useState(initialTaskDetailsState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation();
@@ -183,6 +220,17 @@ const Project = () => {
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
     onCompleted: deletedTaskGroupData => {
       setListsData(BoardStateUtils.deleteTaskGroup(listsData, deletedTaskGroupData.deleteTaskGroup.taskGroup.id));
+    },
+    update: (client, deletedTaskGroupData) => {
+      const cacheData = getCacheData(client, projectID);
+      const newData = {
+        ...cacheData.findProject,
+        taskGroups: cacheData.findProject.taskGroups.filter(
+          (taskGroup: any) => taskGroup.id !== deletedTaskGroupData.data.deleteTaskGroup.taskGroup.id,
+        ),
+      };
+
+      writeCacheData(client, projectID, cacheData, newData);
     },
   });
 
@@ -194,6 +242,15 @@ const Project = () => {
         ...newTaskGroupData.createTaskGroup,
       };
       setListsData(BoardStateUtils.addTaskGroup(listsData, newTaskGroup));
+    },
+    update: (client, newTaskGroupData) => {
+      const cacheData = getCacheData(client, projectID);
+      const newData = {
+        ...cacheData.findProject,
+        taskGroups: [...cacheData.findProject.taskGroups, { ...newTaskGroupData.data.createTaskGroup, tasks: [] }],
+      };
+
+      writeCacheData(client, projectID, cacheData, newData);
     },
   });
 
@@ -208,14 +265,7 @@ const Project = () => {
       setListsData(BoardStateUtils.addTask(listsData, newTask));
     },
     update: (client, newTaskData) => {
-      const cacheData: any = client.readQuery({
-        query: FindProjectDocument,
-        variables: {
-          projectId: projectId,
-        },
-      });
-      console.log(cacheData);
-      console.log(newTaskData);
+      const cacheData = getCacheData(client, projectID);
       const newTaskGroups = produce(cacheData.findProject.taskGroups, (draftState: any) => {
         const targetIndex = draftState.findIndex(
           (taskGroup: any) => taskGroup.id === newTaskData.data.createTask.taskGroup.id,
@@ -225,18 +275,11 @@ const Project = () => {
           tasks: [...draftState[targetIndex].tasks, { ...newTaskData.data.createTask }],
         };
       });
-      console.log(newTaskGroups);
       const newData = {
         ...cacheData.findProject,
         taskGroups: newTaskGroups,
       };
-      client.writeQuery({
-        query: FindProjectDocument,
-        variables: {
-          projectId: projectId,
-        },
-        data: { findProject: newData },
-      });
+      writeCacheData(client, projectID, cacheData, newData);
     },
   });
 
@@ -254,9 +297,8 @@ const Project = () => {
     },
   });
   const { loading, data, refetch } = useFindProjectQuery({
-    variables: { projectId },
+    variables: { projectId: projectID },
   });
-  console.log(`loading ${loading} - ${data}`);
 
   const onCardCreate = (taskGroupID: string, name: string) => {
     const taskGroupTasks = Object.values(listsData.tasks).filter(
@@ -278,14 +320,29 @@ const Project = () => {
         taskGroupID: droppedTask.taskGroup.taskGroupID,
         position: droppedTask.position,
       },
+      optimisticResponse: {
+        updateTaskLocation: {
+          name: droppedTask.name,
+          id: droppedTask.taskID,
+          position: droppedTask.position,
+          createdAt: '',
+        },
+      },
     });
     setListsData(BoardStateUtils.updateTask(listsData, droppedTask));
   };
   const onListDrop = (droppedColumn: TaskGroup) => {
+    console.log(`list drop ${droppedColumn.taskGroupID}`);
     updateTaskGroupLocation({
       variables: { taskGroupID: droppedColumn.taskGroupID, position: droppedColumn.position },
+      optimisticResponse: {
+        updateTaskGroupLocation: {
+          id: droppedColumn.taskGroupID,
+          position: droppedColumn.position,
+        },
+      },
     });
-    setListsData(BoardStateUtils.updateTaskGroup(listsData, droppedColumn));
+    // setListsData(BoardStateUtils.updateTaskGroup(listsData, droppedColumn));
   };
 
   const onCreateList = (listName: string) => {
@@ -296,13 +353,14 @@ const Project = () => {
     if (lastColumn) {
       position = lastColumn.position * 2 + 1;
     }
-    createTaskGroup({ variables: { projectID: projectId, name: listName, position } });
+    createTaskGroup({ variables: { projectID, name: listName, position } });
   };
 
   const [assignTask] = useAssignTaskMutation();
 
-  const { showPopup } = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const $labelsRef = useRef<HTMLDivElement>(null);
+  const labelsRef = useRef<Array<Label>>([]);
   if (loading) {
     return (
       <>
@@ -312,6 +370,7 @@ const Project = () => {
     );
   }
   if (data) {
+    console.log(data);
     const currentListsData: BoardState = { tasks: {}, columns: {} };
     data.findProject.taskGroups.forEach(taskGroup => {
       currentListsData.columns[taskGroup.id] = {
@@ -358,7 +417,6 @@ const Project = () => {
     });
     const onQuickEditorOpen = (e: ContextMenuEvent) => {
       const currentTask = Object.values(currentListsData.tasks).find(task => task.taskID === e.taskID);
-      console.log(`currentTask: ${currentTask?.taskID}`);
       setQuickCardEditor({
         top: e.top,
         left: e.left,
@@ -367,6 +425,14 @@ const Project = () => {
       });
     };
 
+    labelsRef.current = data.findProject.labels.map(label => {
+      return {
+        labelId: label.id,
+        name: label.name ?? '',
+        labelColor: label.labelColor,
+        active: false,
+      };
+    });
     return (
       <>
         <GlobalTopNavbar projectMembers={availableMembers} name={data.findProject.name} />
@@ -377,18 +443,7 @@ const Project = () => {
               onClick={() => {
                 showPopup(
                   $labelsRef,
-                  <LabelManagerEditor
-                    labelColors={data.labelColors}
-                    labels={data.findProject.labels.map(label => {
-                      return {
-                        labelId: label.id,
-                        name: label.name ?? '',
-                        labelColor: label.labelColor,
-                        active: false,
-                      };
-                    })}
-                    projectID={projectId}
-                  />,
+                  <LabelManagerEditor labelColors={data.labelColors} labels={labelsRef} projectID={projectID} />,
                 );
               }}
             >
@@ -436,7 +491,7 @@ const Project = () => {
                   taskGroupID={taskGroupID}
                   onArchiveTaskGroup={tgID => {
                     deleteTaskGroup({ variables: { taskGroupID: tgID } });
-                    setPopupData(initialPopupState);
+                    hidePopup();
                   }}
                 />
               </Popup>,
@@ -453,17 +508,12 @@ const Project = () => {
             onEditCard={(_listId: string, cardId: string, cardName: string) => {
               updateTaskName({ variables: { taskID: cardId, name: cardName } });
             }}
-            onOpenPopup={() => console.log()}
+            onOpenPopup={() => {}}
             onArchiveCard={(_listId: string, cardId: string) =>
               deleteTask({
                 variables: { taskID: cardId },
                 update: client => {
-                  const cacheData: any = client.readQuery({
-                    query: FindProjectDocument,
-                    variables: {
-                      projectId: projectId,
-                    },
-                  });
+                  const cacheData = getCacheData(client, projectID);
                   const newData = {
                     ...cacheData.findProject,
                     taskGroups: cacheData.findProject.taskGroups.map((taskGroup: any) => {
@@ -473,13 +523,7 @@ const Project = () => {
                       };
                     }),
                   };
-                  client.writeQuery({
-                    query: FindProjectDocument,
-                    variables: {
-                      projectId: projectId,
-                    },
-                    data: { findProject: newData },
-                  });
+                  writeCacheData(client, projectID, cacheData, newData);
                 },
               })
             }
@@ -492,10 +536,7 @@ const Project = () => {
           path={`${match.path}/c/:taskID`}
           render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
             <Details
-              refreshCache={() => {
-                console.log('beep 2!');
-                // refetch();
-              }}
+              refreshCache={() => {}}
               availableMembers={availableMembers}
               projectURL={match.url}
               taskID={routeProps.match.params.taskID}
@@ -506,7 +547,6 @@ const Project = () => {
                 updateTaskDescription({ variables: { taskID: updatedTask.taskID, description: newDescription } });
               }}
               onDeleteTask={deletedTask => {
-                setTaskDetails(initialTaskDetailsState);
                 deleteTask({ variables: { taskID: deletedTask.taskID } });
               }}
               onOpenAddLabelPopup={(task, $targetRef) => {}}

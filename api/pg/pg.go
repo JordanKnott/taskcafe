@@ -25,6 +25,10 @@ type Repository interface {
 	CreateProjectLabel(ctx context.Context, arg CreateProjectLabelParams) (ProjectLabel, error)
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
+	DeleteProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) error
+	UpdateProjectLabelColor(ctx context.Context, arg UpdateProjectLabelColorParams) (ProjectLabel, error)
+	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)
+	UpdateProjectLabel(ctx context.Context, arg UpdateProjectLabelParams) (ProjectLabel, error)
 
 	GetLabelColors(ctx context.Context) ([]LabelColor, error)
 	CreateLabelColor(ctx context.Context, arg CreateLabelColorParams) (LabelColor, error)

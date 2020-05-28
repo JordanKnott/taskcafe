@@ -1,0 +1,5 @@
+mutation deleteProjectLabel($projectLabelID: UUID!) {
+  deleteProjectLabel(input: { projectLabelID:$projectLabelID }) {
+    id
+  }
+}

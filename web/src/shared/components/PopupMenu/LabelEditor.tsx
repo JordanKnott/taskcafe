@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import LabelColors from 'shared/constants/labelColors';
 import { Checkmark } from 'shared/icons';
 import { SaveButton, DeleteButton, LabelBox, EditLabelForm, FieldLabel, FieldName } from './Styles';
@@ -7,16 +7,25 @@ type Props = {
   labelColors: Array<LabelColor>;
   label: Label | null;
   onLabelEdit: (labelId: string | null, labelName: string, labelColor: LabelColor) => void;
+  onLabelDelete?: (labelId: string) => void;
 };
 
-const LabelManager = ({ labelColors, label, onLabelEdit }: Props) => {
-  console.log(label);
+const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props) => {
+  const $fieldName = useRef<HTMLInputElement>(null);
   const [currentLabel, setCurrentLabel] = useState(label ? label.name : '');
   const [currentColor, setCurrentColor] = useState<LabelColor | null>(label ? label.labelColor : null);
+
+  useEffect(() => {
+    if ($fieldName.current) {
+      $fieldName.current.focus();
+    }
+  }, []);
+
   return (
     <EditLabelForm>
       <FieldLabel>Name</FieldLabel>
       <FieldName
+        ref={$fieldName}
         id="labelName"
         type="text"
         name="name"
@@ -29,6 +38,7 @@ const LabelManager = ({ labelColors, label, onLabelEdit }: Props) => {
       <div>
         {labelColors.map((labelColor: LabelColor) => (
           <LabelBox
+            key={labelColor.id}
             color={labelColor.colorHex}
             onClick={() => {
               setCurrentColor(labelColor);
@@ -40,6 +50,8 @@ const LabelManager = ({ labelColors, label, onLabelEdit }: Props) => {
       </div>
       <div>
         <SaveButton
+          value="Save"
+          type="submit"
           onClick={e => {
             e.preventDefault();
             console.log(currentColor);
@@ -47,10 +59,17 @@ const LabelManager = ({ labelColors, label, onLabelEdit }: Props) => {
               onLabelEdit(label ? label.labelId : null, currentLabel, currentColor);
             }
           }}
-          type="submit"
-          value="Save"
         />
-        <DeleteButton type="submit" value="Delete" />
+        {label && onLabelDelete && (
+          <DeleteButton
+            value="Delete"
+            type="submit"
+            onClick={e => {
+              e.preventDefault();
+              onLabelDelete(label.labelId);
+            }}
+          />
+        )}
       </div>
     </EditLabelForm>
   );

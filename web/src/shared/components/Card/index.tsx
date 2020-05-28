@@ -168,7 +168,9 @@ const Card = React.forwardRef(
             </ListCardBadges>
             <CardMembers>
               {members &&
-                members.map(member => <Member taskID={taskID} member={member} onCardMemberClick={onCardMemberClick} />)}
+                members.map(member => (
+                  <Member key={member.userID} taskID={taskID} member={member} onCardMemberClick={onCardMemberClick} />
+                ))}
             </CardMembers>
           </ListCardDetails>
         </ListCardInnerContainer>

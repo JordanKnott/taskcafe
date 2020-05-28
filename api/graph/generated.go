@@ -81,11 +81,15 @@ type ComplexityRoot struct {
 		CreateTaskGroup         func(childComplexity int, input NewTaskGroup) int
 		CreateTeam              func(childComplexity int, input NewTeam) int
 		CreateUserAccount       func(childComplexity int, input NewUserAccount) int
+		DeleteProjectLabel      func(childComplexity int, input DeleteProjectLabel) int
 		DeleteTask              func(childComplexity int, input DeleteTaskInput) int
 		DeleteTaskGroup         func(childComplexity int, input DeleteTaskGroupInput) int
 		LogoutUser              func(childComplexity int, input LogoutUser) int
 		RemoveTaskLabel         func(childComplexity int, input *RemoveTaskLabelInput) int
 		UnassignTask            func(childComplexity int, input *UnassignTaskInput) int
+		UpdateProjectLabel      func(childComplexity int, input UpdateProjectLabel) int
+		UpdateProjectLabelColor func(childComplexity int, input UpdateProjectLabelColor) int
+		UpdateProjectLabelName  func(childComplexity int, input UpdateProjectLabelName) int
 		UpdateTaskDescription   func(childComplexity int, input UpdateTaskDescriptionInput) int
 		UpdateTaskGroupLocation func(childComplexity int, input NewTaskGroupLocation) int
 		UpdateTaskLocation      func(childComplexity int, input NewTaskLocation) int
@@ -195,6 +199,10 @@ type MutationResolver interface {
 	CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error)
 	CreateProject(ctx context.Context, input NewProject) (*pg.Project, error)
 	CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*pg.ProjectLabel, error)
+	DeleteProjectLabel(ctx context.Context, input DeleteProjectLabel) (*pg.ProjectLabel, error)
+	UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*pg.ProjectLabel, error)
+	UpdateProjectLabelName(ctx context.Context, input UpdateProjectLabelName) (*pg.ProjectLabel, error)
+	UpdateProjectLabelColor(ctx context.Context, input UpdateProjectLabelColor) (*pg.ProjectLabel, error)
 	CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*pg.TaskGroup, error)
 	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*pg.TaskGroup, error)
 	DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error)
@@ -445,6 +453,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateUserAccount(childComplexity, args["input"].(NewUserAccount)), true
 
+	case "Mutation.deleteProjectLabel":
+		if e.complexity.Mutation.DeleteProjectLabel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteProjectLabel_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteProjectLabel(childComplexity, args["input"].(DeleteProjectLabel)), true
+
 	case "Mutation.deleteTask":
 		if e.complexity.Mutation.DeleteTask == nil {
 			break
@@ -504,6 +524,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UnassignTask(childComplexity, args["input"].(*UnassignTaskInput)), true
+
+	case "Mutation.updateProjectLabel":
+		if e.complexity.Mutation.UpdateProjectLabel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProjectLabel_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProjectLabel(childComplexity, args["input"].(UpdateProjectLabel)), true
+
+	case "Mutation.updateProjectLabelColor":
+		if e.complexity.Mutation.UpdateProjectLabelColor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProjectLabelColor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProjectLabelColor(childComplexity, args["input"].(UpdateProjectLabelColor)), true
+
+	case "Mutation.updateProjectLabelName":
+		if e.complexity.Mutation.UpdateProjectLabelName == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProjectLabelName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProjectLabelName(childComplexity, args["input"].(UpdateProjectLabelName)), true
 
 	case "Mutation.updateTaskDescription":
 		if e.complexity.Mutation.UpdateTaskDescription == nil {
@@ -1277,6 +1333,26 @@ input NewProjectLabel {
   name: String
 }
 
+input DeleteProjectLabel {
+  projectLabelID: UUID!
+}
+
+input UpdateProjectLabelName {
+  projectLabelID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabel {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabelColor {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -1285,7 +1361,12 @@ type Mutation {
   createTeam(input: NewTeam!): Team!
 
   createProject(input: NewProject!): Project!
+
   createProjectLabel(input: NewProjectLabel!): ProjectLabel!
+  deleteProjectLabel(input: DeleteProjectLabel!): ProjectLabel!
+  updateProjectLabel(input: UpdateProjectLabel!): ProjectLabel!
+  updateProjectLabelName(input: UpdateProjectLabelName!): ProjectLabel!
+  updateProjectLabelColor(input: UpdateProjectLabelColor!): ProjectLabel!
 
   createTaskGroup(input: NewTaskGroup!): TaskGroup!
   updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
@@ -1438,6 +1519,20 @@ func (ec *executionContext) field_Mutation_createUserAccount_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteProjectLabel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DeleteProjectLabel
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDeleteProjectLabel2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteProjectLabel(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1500,6 +1595,48 @@ func (ec *executionContext) field_Mutation_unassignTask_args(ctx context.Context
 	var arg0 *UnassignTaskInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalOUnassignTaskInput2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUnassignTaskInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProjectLabelColor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateProjectLabelColor
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateProjectLabelColor2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabelColor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProjectLabelName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateProjectLabelName
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateProjectLabelName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabelName(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProjectLabel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateProjectLabel
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateProjectLabel2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabel(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2131,6 +2268,170 @@ func (ec *executionContext) _Mutation_createProjectLabel(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateProjectLabel(rctx, args["input"].(NewProjectLabel))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.ProjectLabel)
+	fc.Result = res
+	return ec.marshalNProjectLabel2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectLabel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteProjectLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteProjectLabel_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteProjectLabel(rctx, args["input"].(DeleteProjectLabel))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.ProjectLabel)
+	fc.Result = res
+	return ec.marshalNProjectLabel2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectLabel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateProjectLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateProjectLabel_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProjectLabel(rctx, args["input"].(UpdateProjectLabel))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.ProjectLabel)
+	fc.Result = res
+	return ec.marshalNProjectLabel2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectLabel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateProjectLabelName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateProjectLabelName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProjectLabelName(rctx, args["input"].(UpdateProjectLabelName))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.ProjectLabel)
+	fc.Result = res
+	return ec.marshalNProjectLabel2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectLabel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateProjectLabelColor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateProjectLabelColor_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProjectLabelColor(rctx, args["input"].(UpdateProjectLabelColor))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5902,6 +6203,24 @@ func (ec *executionContext) unmarshalInputAssignTaskInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeleteProjectLabel(ctx context.Context, obj interface{}) (DeleteProjectLabel, error) {
+	var it DeleteProjectLabel
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectLabelID":
+			var err error
+			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDeleteTaskGroupInput(ctx context.Context, obj interface{}) (DeleteTaskGroupInput, error) {
 	var it DeleteTaskGroupInput
 	var asMap = obj.(map[string]interface{})
@@ -6334,6 +6653,84 @@ func (ec *executionContext) unmarshalInputUnassignTaskInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateProjectLabel(ctx context.Context, obj interface{}) (UpdateProjectLabel, error) {
+	var it UpdateProjectLabel
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectLabelID":
+			var err error
+			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "labelColorID":
+			var err error
+			it.LabelColorID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateProjectLabelColor(ctx context.Context, obj interface{}) (UpdateProjectLabelColor, error) {
+	var it UpdateProjectLabelColor
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectLabelID":
+			var err error
+			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "labelColorID":
+			var err error
+			it.LabelColorID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateProjectLabelName(ctx context.Context, obj interface{}) (UpdateProjectLabelName, error) {
+	var it UpdateProjectLabelName
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectLabelID":
+			var err error
+			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateTaskDescriptionInput(ctx context.Context, obj interface{}) (UpdateTaskDescriptionInput, error) {
 	var it UpdateTaskDescriptionInput
 	var asMap = obj.(map[string]interface{})
@@ -6542,6 +6939,26 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createProjectLabel":
 			out.Values[i] = ec._Mutation_createProjectLabel(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteProjectLabel":
+			out.Values[i] = ec._Mutation_deleteProjectLabel(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateProjectLabel":
+			out.Values[i] = ec._Mutation_updateProjectLabel(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateProjectLabelName":
+			out.Values[i] = ec._Mutation_updateProjectLabelName(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateProjectLabelColor":
+			out.Values[i] = ec._Mutation_updateProjectLabelColor(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7700,6 +8117,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNDeleteProjectLabel2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteProjectLabel(ctx context.Context, v interface{}) (DeleteProjectLabel, error) {
+	return ec.unmarshalInputDeleteProjectLabel(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNDeleteTaskGroupInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupInput(ctx context.Context, v interface{}) (DeleteTaskGroupInput, error) {
 	return ec.unmarshalInputDeleteTaskGroupInput(ctx, v)
 }
@@ -8259,6 +8680,18 @@ func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdateProjectLabel2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabel(ctx context.Context, v interface{}) (UpdateProjectLabel, error) {
+	return ec.unmarshalInputUpdateProjectLabel(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateProjectLabelColor2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabelColor(ctx context.Context, v interface{}) (UpdateProjectLabelColor, error) {
+	return ec.unmarshalInputUpdateProjectLabelColor(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateProjectLabelName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabelName(ctx context.Context, v interface{}) (UpdateProjectLabelName, error) {
+	return ec.unmarshalInputUpdateProjectLabelName(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskDescriptionInput(ctx context.Context, v interface{}) (UpdateTaskDescriptionInput, error) {

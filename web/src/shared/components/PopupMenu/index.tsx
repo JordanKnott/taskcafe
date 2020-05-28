@@ -18,6 +18,7 @@ type PopupContextState = {
   show: (target: RefObject<HTMLElement>, content: JSX.Element) => void;
   setTab: (newTab: number) => void;
   getCurrentTab: () => number;
+  hide: () => void;
 };
 
 type PopupProps = {
@@ -46,11 +47,12 @@ const PopupContext = createContext<PopupContextState>({
   show: () => {},
   setTab: () => {},
   getCurrentTab: () => 0,
+  hide: () => {},
 });
 
 export const usePopup = () => {
   const ctx = useContext<PopupContextState>(PopupContext);
-  return { showPopup: ctx.show, setTab: ctx.setTab, getCurrentTab: ctx.getCurrentTab };
+  return { showPopup: ctx.show, setTab: ctx.setTab, getCurrentTab: ctx.getCurrentTab, hidePopup: ctx.hide };
 };
 
 type PopupState = {
@@ -80,11 +82,9 @@ const defaultState = {
 export const PopupProvider: React.FC = ({ children }) => {
   const [currentState, setState] = useState<PopupState>(defaultState);
   const show = (target: RefObject<HTMLElement>, content: JSX.Element) => {
-    console.log(target);
     if (target && target.current) {
       const bounds = target.current.getBoundingClientRect();
       if (bounds.left + 304 + 30 > window.innerWidth) {
-        console.log('open!');
         setState({
           isOpen: true,
           left: bounds.left + bounds.width,
@@ -95,7 +95,6 @@ export const PopupProvider: React.FC = ({ children }) => {
           content,
         });
       } else {
-        console.log('open NOT INVERT!');
         setState({
           isOpen: true,
           left: bounds.left,
@@ -107,6 +106,17 @@ export const PopupProvider: React.FC = ({ children }) => {
         });
       }
     }
+  };
+  const hide = () => {
+    setState({
+      isOpen: false,
+      left: 0,
+      top: 0,
+      invert: true,
+      currentTab: 0,
+      previousTab: 0,
+      content: null,
+    });
   };
   const portalTarget = canUseDOM ? document.body : null; // appease flow
 
@@ -125,7 +135,7 @@ export const PopupProvider: React.FC = ({ children }) => {
   };
 
   return (
-    <Provider value={{ show, setTab, getCurrentTab }}>
+    <Provider value={{ hide, show, setTab, getCurrentTab }}>
       {portalTarget &&
         currentState.isOpen &&
         createPortal(

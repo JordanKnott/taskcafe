@@ -248,36 +248,47 @@ export const LabelBox = styled.span<{ color: string }>`
 `;
 
 export const SaveButton = styled.input`
-  cursor: pointer;
-  background-color: #5aac44;
+  background: rgb(115, 103, 240);
   box-shadow: none;
   border: none;
   color: #fff;
-  padding-left: 24px;
-  padding-right: 24px;
-  ursor: pointer;
+  cursor: pointer;
   display: inline-block;
   font-weight: 400;
   line-height: 20px;
-  margin: 8px 4px 0 0;
+  margin-right: 4px;
   padding: 6px 12px;
   text-align: center;
   border-radius: 3px;
 `;
 
 export const DeleteButton = styled.input`
-  background-color: #cf513d;
-  box-shadow: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  type="submit"font-weight: 400;
-  line-height: 20px;
-  margin: 8px 4px 0 0;
-  padding: 6px 12px;
-  text-align: center;
-  border-radius: 3px;
   float: right;
+  outline: none;
+  border: none;
+  line-height: 20px;
+  padding: 6px 12px;
+  background-color: transparent;
+  text-align: center;
+  color: #c2c6dc;
+  font-weight: 400;
+  line-height: 20px;
+  cursor: pointer;
+
+  margin: 0 0 0 8px;
+
+  border-radius: 3px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-color: #414561;
+
+  &:hover {
+    color: #fff;
+    background: rgb(115, 103, 240);
+    border-color: transparent;
+  }
 `;
 
 export const CreateLabelButton = styled.button`

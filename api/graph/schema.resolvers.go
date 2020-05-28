@@ -69,6 +69,30 @@ func (r *mutationResolver) CreateProjectLabel(ctx context.Context, input NewProj
 	return &projectLabel, err
 }
 
+func (r *mutationResolver) DeleteProjectLabel(ctx context.Context, input DeleteProjectLabel) (*pg.ProjectLabel, error) {
+	label, err := r.Repository.GetProjectLabelByID(ctx, input.ProjectLabelID)
+	if err != nil {
+		return &pg.ProjectLabel{}, err
+	}
+	err = r.Repository.DeleteProjectLabelByID(ctx, input.ProjectLabelID)
+	return &label, err
+}
+
+func (r *mutationResolver) UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*pg.ProjectLabel, error) {
+	label, err := r.Repository.UpdateProjectLabel(ctx, pg.UpdateProjectLabelParams{ProjectLabelID: input.ProjectLabelID, LabelColorID: input.LabelColorID, Name: sql.NullString{String: input.Name, Valid: true}})
+	return &label, err
+}
+
+func (r *mutationResolver) UpdateProjectLabelName(ctx context.Context, input UpdateProjectLabelName) (*pg.ProjectLabel, error) {
+	label, err := r.Repository.UpdateProjectLabelName(ctx, pg.UpdateProjectLabelNameParams{ProjectLabelID: input.ProjectLabelID, Name: sql.NullString{String: input.Name, Valid: true}})
+	return &label, err
+}
+
+func (r *mutationResolver) UpdateProjectLabelColor(ctx context.Context, input UpdateProjectLabelColor) (*pg.ProjectLabel, error) {
+	label, err := r.Repository.UpdateProjectLabelColor(ctx, pg.UpdateProjectLabelColorParams{ProjectLabelID: input.ProjectLabelID, LabelColorID: input.LabelColorID})
+	return &label, err
+}
+
 func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*pg.TaskGroup, error) {
 	createdAt := time.Now().UTC()
 	projectID, err := uuid.Parse(input.ProjectID)

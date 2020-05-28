@@ -21,6 +21,7 @@ type Querier interface {
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error)
 	DeleteExpiredTokens(ctx context.Context) error
+	DeleteProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) error
 	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error
 	DeleteRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteTaskAssignedByID(ctx context.Context, arg DeleteTaskAssignedByIDParams) (TaskAssigned, error)
@@ -51,6 +52,9 @@ type Querier interface {
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 	GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)
+	UpdateProjectLabel(ctx context.Context, arg UpdateProjectLabelParams) (ProjectLabel, error)
+	UpdateProjectLabelColor(ctx context.Context, arg UpdateProjectLabelColorParams) (ProjectLabel, error)
+	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)
 	UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescriptionParams) (Task, error)
 	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)
 	UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocationParams) (Task, error)

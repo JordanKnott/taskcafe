@@ -74,8 +74,6 @@ const Lists: React.FC<Props> = ({
             }),
         );
 
-    console.log(beforeDropDraggables);
-    console.log(destination);
     const afterDropDraggables = getAfterDropDraggableList(
       beforeDropDraggables,
       droppedDraggable,
@@ -83,19 +81,16 @@ const Lists: React.FC<Props> = ({
       isSameList,
       destination,
     );
-    console.log(afterDropDraggables);
     const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
 
     if (isList) {
       const droppedList = columns[droppedDraggable.id];
-      console.log(`is list ${droppedList}`);
       onListDrop({
         ...droppedList,
         position: newPosition,
       });
     } else {
       const droppedCard = tasks[droppedDraggable.id];
-      console.log(`is card ${droppedCard}`);
       const newCard = {
         ...droppedCard,
         position: newPosition,
@@ -112,6 +107,7 @@ const Lists: React.FC<Props> = ({
       return { id: column.taskGroupID, position: column.position };
     }),
   );
+  console.log(orderedColumns);
 
   const [currentComposer, setCurrentComposer] = useState('');
   return (
@@ -134,7 +130,7 @@ const Lists: React.FC<Props> = ({
                             name={column.name}
                             onOpenComposer={id => setCurrentComposer(id)}
                             isComposerOpen={currentComposer === column.taskGroupID}
-                            onSaveName={name => console.log(name)}
+                            onSaveName={name => {}}
                             tasks={columnCards}
                             ref={columnDragProvided.innerRef}
                             wrapperProps={columnDragProvided.draggableProps}

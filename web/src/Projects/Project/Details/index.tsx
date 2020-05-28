@@ -106,7 +106,6 @@ const Details: React.FC<DetailsProps> = ({
                 );
               }}
               onOpenAddMemberPopup={(task, $targetRef) => {
-                console.log(`task: ${task.taskID}`);
                 showPopup(
                   $targetRef,
                   <Popup title="Members" tab={0} onClose={() => {}}>
@@ -114,13 +113,11 @@ const Details: React.FC<DetailsProps> = ({
                       availableMembers={availableMembers}
                       activeMembers={taskMembers}
                       onMemberChange={(member, isActive) => {
-                        console.log(`is active ${member.userID} - ${isActive}`);
                         if (isActive) {
                           assignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
                         } else {
                           unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
                         }
-                        console.log(member, isActive);
                       }}
                     />
                   </Popup>,

@@ -17,6 +17,10 @@ type AssignTaskInput struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
+type DeleteProjectLabel struct {
+	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+}
+
 type DeleteTaskGroupInput struct {
 	TaskGroupID uuid.UUID `json:"taskGroupID"`
 }
@@ -128,6 +132,22 @@ type RemoveTaskLabelInput struct {
 type UnassignTaskInput struct {
 	TaskID uuid.UUID `json:"taskID"`
 	UserID uuid.UUID `json:"userID"`
+}
+
+type UpdateProjectLabel struct {
+	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+	LabelColorID   uuid.UUID `json:"labelColorID"`
+	Name           string    `json:"name"`
+}
+
+type UpdateProjectLabelColor struct {
+	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+	LabelColorID   uuid.UUID `json:"labelColorID"`
+}
+
+type UpdateProjectLabelName struct {
+	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+	Name           string    `json:"name"`
 }
 
 type UpdateTaskDescriptionInput struct {

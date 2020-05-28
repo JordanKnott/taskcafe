@@ -30,7 +30,6 @@ const ProjectLink = styled(Link)`
 
 const Projects = () => {
   const { loading, data } = useGetProjectsQuery();
-  console.log(loading, data);
   if (loading) {
     return (
       <>
