@@ -6,7 +6,7 @@ import UserIDContext from 'App/context';
 import { useMeQuery } from 'shared/generated/graphql';
 
 type GlobalTopNavbarProps = {
-  name: string;
+  name: string | null;
   projectMembers?: null | Array<TaskUser>;
   onSaveProjectName?: (projectName: string) => void;
 };

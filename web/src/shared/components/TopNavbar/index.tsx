@@ -87,12 +87,18 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({ projectName: initialPro
           {projectName}
         </ProjectName>
       )}
+      <ProjectSettingsButton>
+        <AngleDown color="#c2c6dc" />
+      </ProjectSettingsButton>
+      <ProjectSettingsButton>
+        <Star width={16} height={16} color="#c2c6dc" />
+      </ProjectSettingsButton>
     </>
   );
 };
 
 type NavBarProps = {
-  projectName: string;
+  projectName: string | null;
   onProfileClick: (bottom: number, right: number) => void;
   onSaveProjectName?: (projectName: string) => void;
   onNotificationClick: () => void;
@@ -141,20 +147,16 @@ const NavBar: React.FC<NavBarProps> = ({
         <ProjectActions>
           <ProjectMeta>
             <ProjectSwitcher>Projects</ProjectSwitcher>
-            <ProjectHeading projectName={projectName} onSaveProjectName={onSaveProjectName} />
-            <ProjectSettingsButton>
-              <AngleDown color="#c2c6dc" />
-            </ProjectSettingsButton>
-            <ProjectSettingsButton>
-              <Star width={16} height={16} color="#c2c6dc" />
-            </ProjectSettingsButton>
+            {projectName && <ProjectHeading projectName={projectName} onSaveProjectName={onSaveProjectName} />}
           </ProjectMeta>
-          <ProjectTabs>
-            <ProjectTab active>Board</ProjectTab>
-            <ProjectTab>Calender</ProjectTab>
-            <ProjectTab>Timeline</ProjectTab>
-            <ProjectTab>Wiki</ProjectTab>
-          </ProjectTabs>
+          {projectName && (
+            <ProjectTabs>
+              <ProjectTab active>Board</ProjectTab>
+              <ProjectTab>Calender</ProjectTab>
+              <ProjectTab>Timeline</ProjectTab>
+              <ProjectTab>Wiki</ProjectTab>
+            </ProjectTabs>
+          )}
         </ProjectActions>
         <GlobalActions>
           {projectMembers && (

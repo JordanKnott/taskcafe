@@ -411,7 +411,7 @@ const Project = () => {
   if (loading) {
     return (
       <>
-        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="Loading..." />
+        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" />
       </>
     );
   }
