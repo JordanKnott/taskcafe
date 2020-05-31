@@ -244,11 +244,11 @@ export const TaskDetailLabels = styled.div`
   flex-wrap: wrap;
 `;
 
-export const TaskDetailLabel = styled.div`
+export const TaskDetailLabel = styled.div<{ color: string }>`
   &:hover {
     opacity: 0.8;
   }
-  background-color: #00c2e0;
+  background-color: ${props => props.color};
   color: #fff;
 
   cursor: pointer;

@@ -17,28 +17,17 @@ export default {
   },
 };
 
-const labelData = [
+const labelData: Array<ProjectLabel> = [
   {
-    labelId: 'development',
+    id: 'development',
     name: 'Development',
+    createdDate: 'date',
     labelColor: {
-      id: '1',
-      name: 'white',
+      id: 'label-color-blue',
       colorHex: LabelColors.BLUE,
+      name: 'blue',
       position: 1,
     },
-    active: false,
-  },
-  {
-    labelId: 'general',
-    name: 'General',
-    labelColor: {
-      id: '1',
-      name: 'white',
-      colorHex: LabelColors.PINK,
-      position: 1,
-    },
-    active: false,
   },
 ];
 
@@ -70,7 +59,6 @@ export const Default = () => {
         isComposerOpen={false}
         onSaveName={action('on save name')}
         onOpenComposer={action('on open composer')}
-        tasks={[]}
         onExtraMenuOpen={(taskGroupID, $targetRef) => console.log(taskGroupID, $targetRef)}
       >
         <ListCards>

@@ -39,16 +39,18 @@ const MemberManager: React.FC<MemberManagerProps> = ({
       <BoardMembersList>
         {availableMembers
           .filter(
-            member => currentSearch === '' || member.displayName.toLowerCase().startsWith(currentSearch.toLowerCase()),
+            member =>
+              currentSearch === '' ||
+              `${member.firstName} ${member.lastName}`.toLowerCase().startsWith(currentSearch.toLowerCase()),
           )
           .map(member => {
             return (
-              <BoardMembersListItem key={member.userID}>
+              <BoardMembersListItem key={member.id}>
                 <BoardMemberListItemContent
                   onClick={() => {
-                    const isActive = activeMembers.findIndex(m => m.userID === member.userID) !== -1;
+                    const isActive = activeMembers.findIndex(m => m.id === member.id) !== -1;
                     if (isActive) {
-                      setActiveMembers(activeMembers.filter(m => m.userID !== member.userID));
+                      setActiveMembers(activeMembers.filter(m => m.id !== member.id));
                     } else {
                       setActiveMembers([...activeMembers, member]);
                     }
@@ -56,8 +58,8 @@ const MemberManager: React.FC<MemberManagerProps> = ({
                   }}
                 >
                   <ProfileIcon>JK</ProfileIcon>
-                  <MemberName>{member.displayName}</MemberName>
-                  {activeMembers.findIndex(m => m.userID === member.userID) !== -1 && (
+                  <MemberName>{`${member.firstName} ${member.lastName}`}</MemberName>
+                  {activeMembers.findIndex(m => m.id === member.id) !== -1 && (
                     <ActiveIconWrapper>
                       <Checkmark size={16} color="#42526e" />
                     </ActiveIconWrapper>

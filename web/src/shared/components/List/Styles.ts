@@ -97,9 +97,7 @@ export const Header = styled.div<{ isEditing: boolean }>`
     props.isEditing &&
     css`
       & ${HeaderName} {
-        background: #fff;
-        border: none;
-        box-shadow: inset 0 0 0 2px #0079bf;
+        box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
       }
     `}
 `;

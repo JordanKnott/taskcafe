@@ -13,37 +13,29 @@ import {
 
 import { Container, BoardWrapper } from './Styles';
 
-interface Columns {
-  [key: string]: TaskGroup;
-}
-interface Tasks {
-  [key: string]: Task;
-}
+interface SimpleProps {
+  taskGroups: Array<TaskGroup>;
+  onTaskDrop: (task: Task) => void;
+  onTaskGroupDrop: (taskGroup: TaskGroup) => void;
 
-type Props = {
-  columns: Columns;
-  tasks: Tasks;
-  onCardClick: (task: Task) => void;
-  onCardDrop: (task: Task) => void;
-  onListDrop: (taskGroup: TaskGroup) => void;
-  onCardCreate: (taskGroupID: string, name: string) => void;
+  onTaskClick: (task: Task) => void;
+  onCreateTask: (taskGroupID: string, name: string) => void;
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
-  onCreateList: (listName: string) => void;
+  onCreateTaskGroup: (listName: string) => void;
   onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
   onCardMemberClick: OnCardMemberClick;
-};
+}
 
-const Lists: React.FC<Props> = ({
-  columns,
-  tasks,
-  onCardClick,
-  onCardDrop,
-  onListDrop,
-  onCardCreate,
+const SimpleLists: React.FC<SimpleProps> = ({
+  taskGroups,
+  onTaskDrop,
+  onTaskGroupDrop,
+  onTaskClick,
+  onCreateTask,
   onQuickEditorOpen,
-  onCreateList,
-  onCardMemberClick,
+  onCreateTaskGroup,
   onExtraMenuOpen,
+  onCardMemberClick,
 }) => {
   const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
     if (typeof destination === 'undefined') return;
@@ -51,63 +43,77 @@ const Lists: React.FC<Props> = ({
 
     const isList = type === 'column';
     const isSameList = destination.droppableId === source.droppableId;
-    const droppedDraggable: DraggableElement = isList
-      ? {
-          id: draggableId,
-          position: columns[draggableId].position,
-        }
-      : {
-          id: draggableId,
-          position: tasks[draggableId].position,
-        };
-    const beforeDropDraggables = isList
-      ? getSortedDraggables(
-          Object.values(columns).map(column => {
-            return { id: column.taskGroupID, position: column.position };
-          }),
-        )
-      : getSortedDraggables(
-          Object.values(tasks)
-            .filter((t: any) => t.taskGroup.taskGroupID === destination.droppableId)
-            .map(task => {
-              return { id: task.taskID, position: task.position };
-            }),
-        );
-
-    const afterDropDraggables = getAfterDropDraggableList(
-      beforeDropDraggables,
-      droppedDraggable,
-      isList,
-      isSameList,
-      destination,
-    );
-    const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
+    let droppedDraggable: DraggableElement | null = null;
+    let beforeDropDraggables: Array<DraggableElement> | null = null;
 
     if (isList) {
-      const droppedList = columns[droppedDraggable.id];
-      onListDrop({
-        ...droppedList,
-        position: newPosition,
-      });
+      const droppedGroup = taskGroups.find(taskGroup => taskGroup.id === draggableId);
+      if (droppedGroup) {
+        droppedDraggable = {
+          id: draggableId,
+          position: droppedGroup.position,
+        };
+        beforeDropDraggables = getSortedDraggables(
+          taskGroups.map(taskGroup => {
+            return { id: taskGroup.id, position: taskGroup.position };
+          }),
+        );
+        if (droppedDraggable === null || beforeDropDraggables === null) {
+          throw new Error('before drop draggables is null');
+        }
+        const afterDropDraggables = getAfterDropDraggableList(
+          beforeDropDraggables,
+          droppedDraggable,
+          isList,
+          isSameList,
+          destination,
+        );
+        const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
+        onTaskGroupDrop({
+          ...droppedGroup,
+          position: newPosition,
+        });
+      } else {
+        throw { error: 'task group can not be found' };
+      }
     } else {
-      const droppedCard = tasks[droppedDraggable.id];
-      const newCard = {
-        ...droppedCard,
-        position: newPosition,
-        taskGroup: {
-          taskGroupID: destination.droppableId,
-        },
-      };
-      onCardDrop(newCard);
+      const targetGroup = taskGroups.findIndex(
+        taskGroup => taskGroup.tasks.findIndex(task => task.id === draggableId) !== -1,
+      );
+      const droppedTask = taskGroups[targetGroup].tasks.find(task => task.id === draggableId);
+
+      if (droppedTask) {
+        droppedDraggable = {
+          id: draggableId,
+          position: droppedTask.position,
+        };
+        beforeDropDraggables = getSortedDraggables(
+          taskGroups[targetGroup].tasks.map(task => {
+            return { id: task.id, position: task.position };
+          }),
+        );
+        if (droppedDraggable === null || beforeDropDraggables === null) {
+          throw new Error('before drop draggables is null');
+        }
+        const afterDropDraggables = getAfterDropDraggableList(
+          beforeDropDraggables,
+          droppedDraggable,
+          isList,
+          isSameList,
+          destination,
+        );
+        const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
+        const newTask = {
+          ...droppedTask,
+          position: newPosition,
+          taskGroup: {
+            id: destination.droppableId,
+          },
+        };
+        onTaskDrop(newTask);
+      }
     }
   };
-
-  const orderedColumns = getSortedDraggables(
-    Object.values(columns).map(column => {
-      return { id: column.taskGroupID, position: column.position };
-    }),
-  );
-  console.log(orderedColumns);
 
   const [currentComposer, setCurrentComposer] = useState('');
   return (
@@ -116,85 +122,92 @@ const Lists: React.FC<Props> = ({
         <Droppable direction="horizontal" type="column" droppableId="root">
           {provided => (
             <Container {...provided.droppableProps} ref={provided.innerRef}>
-              {orderedColumns.map((columnDraggable, index: number) => {
-                const column = columns[columnDraggable.id];
-                const columnCards = Object.values(tasks)
-                  .filter((t: Task) => t.taskGroup.taskGroupID === column.taskGroupID)
-                  .sort((a, b) => a.position - b.position);
-                return (
-                  <Draggable draggableId={column.taskGroupID} key={column.taskGroupID} index={index}>
-                    {columnDragProvided => (
-                      <Droppable type="tasks" droppableId={column.taskGroupID}>
-                        {(columnDropProvided, snapshot) => (
-                          <List
-                            name={column.name}
-                            onOpenComposer={id => setCurrentComposer(id)}
-                            isComposerOpen={currentComposer === column.taskGroupID}
-                            onSaveName={name => {}}
-                            tasks={columnCards}
-                            ref={columnDragProvided.innerRef}
-                            wrapperProps={columnDragProvided.draggableProps}
-                            headerProps={columnDragProvided.dragHandleProps}
-                            onExtraMenuOpen={onExtraMenuOpen}
-                            id={column.taskGroupID}
-                            key={column.taskGroupID}
-                            index={index}
-                          >
-                            <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
-                              {columnCards.map((task: Task, taskIndex: any) => {
-                                return (
-                                  <Draggable key={task.taskID} draggableId={task.taskID} index={taskIndex}>
-                                    {taskProvided => {
-                                      return (
-                                        <Card
-                                          wrapperProps={{
-                                            ...taskProvided.draggableProps,
-                                            ...taskProvided.dragHandleProps,
-                                          }}
-                                          ref={taskProvided.innerRef}
-                                          taskID={task.taskID}
-                                          taskGroupID={column.taskGroupID}
-                                          description=""
-                                          title={task.name}
-                                          labels={task.labels}
-                                          members={task.members}
-                                          onClick={() => onCardClick(task)}
-                                          onCardMemberClick={onCardMemberClick}
-                                          onContextMenu={onQuickEditorOpen}
-                                        />
-                                      );
+              {taskGroups
+                .slice()
+                .sort((a: any, b: any) => a.position - b.position)
+                .map((taskGroup: TaskGroup, index: number) => {
+                  return (
+                    <Draggable draggableId={taskGroup.id} key={taskGroup.id} index={index}>
+                      {columnDragProvided => (
+                        <Droppable type="tasks" droppableId={taskGroup.id}>
+                          {(columnDropProvided, snapshot) => (
+                            <List
+                              name={taskGroup.name}
+                              onOpenComposer={id => setCurrentComposer(id)}
+                              isComposerOpen={currentComposer === taskGroup.id}
+                              onSaveName={name => {}}
+                              ref={columnDragProvided.innerRef}
+                              wrapperProps={columnDragProvided.draggableProps}
+                              headerProps={columnDragProvided.dragHandleProps}
+                              onExtraMenuOpen={onExtraMenuOpen}
+                              id={taskGroup.id}
+                              key={taskGroup.id}
+                              index={index}
+                            >
+                              <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
+                                {taskGroup.tasks
+                                  .slice()
+                                  .sort((a: any, b: any) => a.position - b.position)
+                                  .map((task: Task, taskIndex: any) => {
+                                    return (
+                                      <Draggable key={task.id} draggableId={task.id} index={taskIndex}>
+                                        {taskProvided => {
+                                          return (
+                                            <Card
+                                              wrapperProps={{
+                                                ...taskProvided.draggableProps,
+                                                ...taskProvided.dragHandleProps,
+                                              }}
+                                              ref={taskProvided.innerRef}
+                                              taskID={task.id}
+                                              taskGroupID={taskGroup.id}
+                                              description=""
+                                              labels={task.labels.map(label => label.projectLabel)}
+                                              title={task.name}
+                                              members={task.assigned}
+                                              onClick={() => {
+                                                onTaskClick(task);
+                                              }}
+                                              onCardMemberClick={onCardMemberClick}
+                                              onContextMenu={onQuickEditorOpen}
+                                            />
+                                          );
+                                        }}
+                                      </Draggable>
+                                    );
+                                  })}
+                                {columnDropProvided.placeholder}
+                                {currentComposer === taskGroup.id && (
+                                  <CardComposer
+                                    onClose={() => {
+                                      setCurrentComposer('');
                                     }}
-                                  </Draggable>
-                                );
-                              })}
-                              {columnDropProvided.placeholder}
-                              {currentComposer === column.taskGroupID && (
-                                <CardComposer
-                                  onClose={() => {
-                                    setCurrentComposer('');
-                                  }}
-                                  onCreateCard={name => {
-                                    onCardCreate(column.taskGroupID, name);
-                                  }}
-                                  isOpen
-                                />
-                              )}
-                            </ListCards>
-                          </List>
-                        )}
-                      </Droppable>
-                    )}
-                  </Draggable>
-                );
-              })}
+                                    onCreateCard={name => {
+                                      onCreateTask(taskGroup.id, name);
+                                    }}
+                                    isOpen
+                                  />
+                                )}
+                              </ListCards>
+                            </List>
+                          )}
+                        </Droppable>
+                      )}
+                    </Draggable>
+                  );
+                })}
               {provided.placeholder}
             </Container>
           )}
         </Droppable>
       </DragDropContext>
-      <AddList onSave={onCreateList} />
+      <AddList
+        onSave={listName => {
+          onCreateTaskGroup(listName);
+        }}
+      />
     </BoardWrapper>
   );
 };
 
-export default Lists;
+export default SimpleLists;

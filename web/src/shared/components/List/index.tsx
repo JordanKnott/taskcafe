@@ -22,7 +22,6 @@ type Props = {
   onSaveName: (name: string) => void;
   isComposerOpen: boolean;
   onOpenComposer: (id: string) => void;
-  tasks: Task[];
   wrapperProps?: any;
   headerProps?: any;
   index?: number;

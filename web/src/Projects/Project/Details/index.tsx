@@ -56,17 +56,6 @@ const Details: React.FC<DetailsProps> = ({
   if (!data) {
     return <div>loading</div>;
   }
-  const taskMembers = data.findTask.assigned.map(assigned => {
-    return {
-      userID: assigned.id,
-      displayName: `${assigned.firstName} ${assigned.lastName}`,
-      profileIcon: {
-        url: null,
-        initials: assigned.profileIcon.initials ?? null,
-        bgColor: assigned.profileIcon.bgColor ?? null,
-      },
-    };
-  });
   return (
     <>
       <Modal
@@ -77,24 +66,19 @@ const Details: React.FC<DetailsProps> = ({
         renderContent={() => {
           return (
             <TaskDetails
-              task={{
-                ...data.findTask,
-                taskID: data.findTask.id,
-                taskGroup: { taskGroupID: data.findTask.taskGroup.id },
-                members: taskMembers,
-                description: data.findTask.description ?? '',
-                labels: [],
-              }}
+              task={data.findTask}
               onTaskNameChange={onTaskNameChange}
               onTaskDescriptionChange={onTaskDescriptionChange}
               onDeleteTask={onDeleteTask}
               onCloseModal={() => history.push(projectURL)}
               onMemberProfile={($targetRef, memberID) => {
+                const member = data.findTask.assigned.find(m => m.id === memberID);
+                const profileIcon = member ? member.profileIcon : null;
                 showPopup(
                   $targetRef,
                   <Popup title={null} onClose={() => {}} tab={0}>
                     <MiniProfile
-                      profileIcon={taskMembers[0].profileIcon}
+                      profileIcon={profileIcon}
                       displayName="Jordan Knott"
                       username="@jordanthedev"
                       bio="None"
@@ -111,7 +95,7 @@ const Details: React.FC<DetailsProps> = ({
                   <Popup title="Members" tab={0} onClose={() => {}}>
                     <MemberManager
                       availableMembers={availableMembers}
-                      activeMembers={taskMembers}
+                      activeMembers={data.findTask.assigned}
                       onMemberChange={(member, isActive) => {
                         if (isActive) {
                           assignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });

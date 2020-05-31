@@ -5,7 +5,7 @@ import { SaveButton, DeleteButton, LabelBox, EditLabelForm, FieldLabel, FieldNam
 
 type Props = {
   labelColors: Array<LabelColor>;
-  label: Label | null;
+  label: ProjectLabel | null;
   onLabelEdit: (labelId: string | null, labelName: string, labelColor: LabelColor) => void;
   onLabelDelete?: (labelId: string) => void;
 };
@@ -32,7 +32,7 @@ const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props)
         onChange={e => {
           setCurrentLabel(e.currentTarget.value);
         }}
-        value={currentLabel}
+        value={currentLabel ?? ''}
       />
       <FieldLabel>Select a color</FieldLabel>
       <div>
@@ -56,7 +56,7 @@ const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props)
             e.preventDefault();
             console.log(currentColor);
             if (currentColor) {
-              onLabelEdit(label ? label.labelId : null, currentLabel, currentColor);
+              onLabelEdit(label ? label.id : null, currentLabel ?? '', currentColor);
             }
           }}
         />
@@ -66,7 +66,7 @@ const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props)
             type="submit"
             onClick={e => {
               e.preventDefault();
-              onLabelDelete(label.labelId);
+              onLabelDelete(label.id);
             }}
           />
         )}

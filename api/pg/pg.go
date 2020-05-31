@@ -22,6 +22,13 @@ type Repository interface {
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 
+	GetTaskLabelByID(ctx context.Context, taskLabelID uuid.UUID) (TaskLabel, error)
+
+	DeleteTaskLabelForTaskByProjectLabelID(ctx context.Context, arg DeleteTaskLabelForTaskByProjectLabelIDParams) error
+	GetTaskLabelForTaskByProjectLabelID(ctx context.Context, arg GetTaskLabelForTaskByProjectLabelIDParams) (TaskLabel, error)
+	UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNameByIDParams) (Project, error)
+
+	DeleteTaskLabelByID(ctx context.Context, taskLabelID uuid.UUID) error
 	CreateProjectLabel(ctx context.Context, arg CreateProjectLabelParams) (ProjectLabel, error)
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)

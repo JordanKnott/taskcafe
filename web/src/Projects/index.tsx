@@ -41,7 +41,7 @@ const Projects = () => {
     const { projects } = data;
     return (
       <>
-        <GlobalTopNavbar name="Projects" />
+        <GlobalTopNavbar onSaveProjectName={() => {}} name="Projects" />
         <ProjectGrid>
           {projects.map(project => (
             <ProjectLink key={project.id} to={`/projects/${project.id}`}>

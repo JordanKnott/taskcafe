@@ -1,0 +1,6 @@
+mutation updateProjectName($projectID: UUID!, $name: String!) {
+  updateProjectName(input: {projectID: $projectID, name: $name}) {
+    id
+    name
+  }
+}

@@ -14,13 +14,13 @@ query findProject($projectId: String!) {
     labels {
       id
       createdDate
+      name
       labelColor {
         id
         name
         colorHex
         position
       }
-      name
     }
     taskGroups {
       id
@@ -31,6 +31,26 @@ query findProject($projectId: String!) {
         name
         position
         description
+        taskGroup {
+          id
+          name
+          position
+        }
+        labels {
+          id
+          assignedDate
+          projectLabel {
+            id
+            name
+            createdDate
+            labelColor {
+              id
+              colorHex
+              position
+              name
+            }
+          }
+        }
         assigned {
           id
           firstName

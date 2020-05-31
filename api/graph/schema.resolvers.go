@@ -49,6 +49,14 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) 
 	return &project, err
 }
 
+func (r *mutationResolver) UpdateProjectName(ctx context.Context, input *UpdateProjectName) (*pg.Project, error) {
+	project, err := r.Repository.UpdateProjectNameByID(ctx, pg.UpdateProjectNameByIDParams{ProjectID: input.ProjectID, Name: input.Name})
+	if err != nil {
+		return &pg.Project{}, err
+	}
+	return &project, nil
+}
+
 func (r *mutationResolver) CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*pg.ProjectLabel, error) {
 	createdAt := time.Now().UTC()
 
@@ -130,7 +138,7 @@ func (r *mutationResolver) DeleteTaskGroup(ctx context.Context, input DeleteTask
 
 func (r *mutationResolver) AddTaskLabel(ctx context.Context, input *AddTaskLabelInput) (*pg.Task, error) {
 	assignedDate := time.Now().UTC()
-	_, err := r.Repository.CreateTaskLabelForTask(ctx, pg.CreateTaskLabelForTaskParams{input.TaskID, input.LabelColorID, assignedDate})
+	_, err := r.Repository.CreateTaskLabelForTask(ctx, pg.CreateTaskLabelForTaskParams{input.TaskID, input.ProjectLabelID, assignedDate})
 	if err != nil {
 		return &pg.Task{}, err
 	}
@@ -139,7 +147,56 @@ func (r *mutationResolver) AddTaskLabel(ctx context.Context, input *AddTaskLabel
 }
 
 func (r *mutationResolver) RemoveTaskLabel(ctx context.Context, input *RemoveTaskLabelInput) (*pg.Task, error) {
-	panic(fmt.Errorf("not implemented"))
+	taskLabel, err := r.Repository.GetTaskLabelByID(ctx, input.TaskLabelID)
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	task, err := r.Repository.GetTaskByID(ctx, taskLabel.TaskID)
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	err = r.Repository.DeleteTaskLabelByID(ctx, input.TaskLabelID)
+	return &task, err
+}
+
+func (r *mutationResolver) ToggleTaskLabel(ctx context.Context, input ToggleTaskLabelInput) (*ToggleTaskLabelPayload, error) {
+	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	if err != nil {
+		return &ToggleTaskLabelPayload{}, err
+	}
+
+	_, err = r.Repository.GetTaskLabelForTaskByProjectLabelID(ctx, pg.GetTaskLabelForTaskByProjectLabelIDParams{TaskID: input.TaskID, ProjectLabelID: input.ProjectLabelID})
+	createdAt := time.Now().UTC()
+
+	if err == sql.ErrNoRows {
+		log.WithFields(log.Fields{"err": err}).Warning("no rows")
+		_, err := r.Repository.CreateTaskLabelForTask(ctx, pg.CreateTaskLabelForTaskParams{
+			TaskID:         input.TaskID,
+			ProjectLabelID: input.ProjectLabelID,
+			AssignedDate:   createdAt,
+		})
+		if err != nil {
+			return &ToggleTaskLabelPayload{}, err
+		}
+		payload := ToggleTaskLabelPayload{Active: true, Task: &task}
+		return &payload, nil
+	}
+
+	if err != nil {
+		return &ToggleTaskLabelPayload{}, err
+	}
+
+	err = r.Repository.DeleteTaskLabelForTaskByProjectLabelID(ctx, pg.DeleteTaskLabelForTaskByProjectLabelIDParams{
+		TaskID:         input.TaskID,
+		ProjectLabelID: input.ProjectLabelID,
+	})
+
+	if err != nil {
+		return &ToggleTaskLabelPayload{}, err
+	}
+
+	payload := ToggleTaskLabelPayload{Active: false, Task: &task}
+	return &payload, nil
 }
 
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*pg.Task, error) {
@@ -434,28 +491,9 @@ func (r *taskLabelResolver) ID(ctx context.Context, obj *pg.TaskLabel) (uuid.UUI
 	return obj.TaskLabelID, nil
 }
 
-func (r *taskLabelResolver) ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error) {
+func (r *taskLabelResolver) ProjectLabel(ctx context.Context, obj *pg.TaskLabel) (*pg.ProjectLabel, error) {
 	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
-	if err != nil {
-		return "", err
-	}
-	labelColor, err := r.Repository.GetLabelColorByID(ctx, projectLabel.LabelColorID)
-	if err != nil {
-		return "", err
-	}
-	return labelColor.ColorHex, nil
-}
-
-func (r *taskLabelResolver) Name(ctx context.Context, obj *pg.TaskLabel) (*string, error) {
-	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
-	if err != nil {
-		return nil, err
-	}
-	name := projectLabel.Name
-	if !name.Valid {
-		return nil, err
-	}
-	return &name.String, err
+	return &projectLabel, err
 }
 
 func (r *teamResolver) ID(ctx context.Context, obj *pg.Team) (uuid.UUID, error) {
@@ -523,6 +561,28 @@ type userAccountResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *taskLabelResolver) ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error) {
+	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
+	if err != nil {
+		return "", err
+	}
+	labelColor, err := r.Repository.GetLabelColorByID(ctx, projectLabel.LabelColorID)
+	if err != nil {
+		return "", err
+	}
+	return labelColor.ColorHex, nil
+}
+func (r *taskLabelResolver) Name(ctx context.Context, obj *pg.TaskLabel) (*string, error) {
+	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
+	if err != nil {
+		return nil, err
+	}
+	name := projectLabel.Name
+	if !name.Valid {
+		return nil, err
+	}
+	return &name.String, err
+}
 func (r *projectLabelResolver) ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error) {
 	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
 	if err != nil {

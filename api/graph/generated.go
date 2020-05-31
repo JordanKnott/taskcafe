@@ -86,10 +86,12 @@ type ComplexityRoot struct {
 		DeleteTaskGroup         func(childComplexity int, input DeleteTaskGroupInput) int
 		LogoutUser              func(childComplexity int, input LogoutUser) int
 		RemoveTaskLabel         func(childComplexity int, input *RemoveTaskLabelInput) int
+		ToggleTaskLabel         func(childComplexity int, input ToggleTaskLabelInput) int
 		UnassignTask            func(childComplexity int, input *UnassignTaskInput) int
 		UpdateProjectLabel      func(childComplexity int, input UpdateProjectLabel) int
 		UpdateProjectLabelColor func(childComplexity int, input UpdateProjectLabelColor) int
 		UpdateProjectLabelName  func(childComplexity int, input UpdateProjectLabelName) int
+		UpdateProjectName       func(childComplexity int, input *UpdateProjectName) int
 		UpdateTaskDescription   func(childComplexity int, input UpdateTaskDescriptionInput) int
 		UpdateTaskGroupLocation func(childComplexity int, input NewTaskGroupLocation) int
 		UpdateTaskLocation      func(childComplexity int, input NewTaskLocation) int
@@ -166,17 +168,20 @@ type ComplexityRoot struct {
 	}
 
 	TaskLabel struct {
-		AssignedDate   func(childComplexity int) int
-		ColorHex       func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		ProjectLabelID func(childComplexity int) int
+		AssignedDate func(childComplexity int) int
+		ID           func(childComplexity int) int
+		ProjectLabel func(childComplexity int) int
 	}
 
 	Team struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
+	}
+
+	ToggleTaskLabelPayload struct {
+		Active func(childComplexity int) int
+		Task   func(childComplexity int) int
 	}
 
 	UserAccount struct {
@@ -198,6 +203,7 @@ type MutationResolver interface {
 	CreateUserAccount(ctx context.Context, input NewUserAccount) (*pg.UserAccount, error)
 	CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error)
 	CreateProject(ctx context.Context, input NewProject) (*pg.Project, error)
+	UpdateProjectName(ctx context.Context, input *UpdateProjectName) (*pg.Project, error)
 	CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*pg.ProjectLabel, error)
 	DeleteProjectLabel(ctx context.Context, input DeleteProjectLabel) (*pg.ProjectLabel, error)
 	UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*pg.ProjectLabel, error)
@@ -208,6 +214,7 @@ type MutationResolver interface {
 	DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error)
 	AddTaskLabel(ctx context.Context, input *AddTaskLabelInput) (*pg.Task, error)
 	RemoveTaskLabel(ctx context.Context, input *RemoveTaskLabelInput) (*pg.Task, error)
+	ToggleTaskLabel(ctx context.Context, input ToggleTaskLabelInput) (*ToggleTaskLabelPayload, error)
 	CreateTask(ctx context.Context, input NewTask) (*pg.Task, error)
 	UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*pg.Task, error)
 	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*pg.Task, error)
@@ -261,9 +268,7 @@ type TaskGroupResolver interface {
 }
 type TaskLabelResolver interface {
 	ID(ctx context.Context, obj *pg.TaskLabel) (uuid.UUID, error)
-
-	ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error)
-	Name(ctx context.Context, obj *pg.TaskLabel) (*string, error)
+	ProjectLabel(ctx context.Context, obj *pg.TaskLabel) (*pg.ProjectLabel, error)
 }
 type TeamResolver interface {
 	ID(ctx context.Context, obj *pg.Team) (uuid.UUID, error)
@@ -513,6 +518,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveTaskLabel(childComplexity, args["input"].(*RemoveTaskLabelInput)), true
 
+	case "Mutation.toggleTaskLabel":
+		if e.complexity.Mutation.ToggleTaskLabel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_toggleTaskLabel_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ToggleTaskLabel(childComplexity, args["input"].(ToggleTaskLabelInput)), true
+
 	case "Mutation.unassignTask":
 		if e.complexity.Mutation.UnassignTask == nil {
 			break
@@ -560,6 +577,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateProjectLabelName(childComplexity, args["input"].(UpdateProjectLabelName)), true
+
+	case "Mutation.updateProjectName":
+		if e.complexity.Mutation.UpdateProjectName == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProjectName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProjectName(childComplexity, args["input"].(*UpdateProjectName)), true
 
 	case "Mutation.updateTaskDescription":
 		if e.complexity.Mutation.UpdateTaskDescription == nil {
@@ -951,13 +980,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TaskLabel.AssignedDate(childComplexity), true
 
-	case "TaskLabel.colorHex":
-		if e.complexity.TaskLabel.ColorHex == nil {
-			break
-		}
-
-		return e.complexity.TaskLabel.ColorHex(childComplexity), true
-
 	case "TaskLabel.id":
 		if e.complexity.TaskLabel.ID == nil {
 			break
@@ -965,19 +987,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TaskLabel.ID(childComplexity), true
 
-	case "TaskLabel.name":
-		if e.complexity.TaskLabel.Name == nil {
+	case "TaskLabel.projectLabel":
+		if e.complexity.TaskLabel.ProjectLabel == nil {
 			break
 		}
 
-		return e.complexity.TaskLabel.Name(childComplexity), true
-
-	case "TaskLabel.projectLabelID":
-		if e.complexity.TaskLabel.ProjectLabelID == nil {
-			break
-		}
-
-		return e.complexity.TaskLabel.ProjectLabelID(childComplexity), true
+		return e.complexity.TaskLabel.ProjectLabel(childComplexity), true
 
 	case "Team.createdAt":
 		if e.complexity.Team.CreatedAt == nil {
@@ -999,6 +1014,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Team.Name(childComplexity), true
+
+	case "ToggleTaskLabelPayload.active":
+		if e.complexity.ToggleTaskLabelPayload.Active == nil {
+			break
+		}
+
+		return e.complexity.ToggleTaskLabelPayload.Active(childComplexity), true
+
+	case "ToggleTaskLabelPayload.task":
+		if e.complexity.ToggleTaskLabelPayload.Task == nil {
+			break
+		}
+
+		return e.complexity.ToggleTaskLabelPayload.Task(childComplexity), true
 
 	case "UserAccount.createdAt":
 		if e.complexity.UserAccount.CreatedAt == nil {
@@ -1132,10 +1161,8 @@ type LabelColor {
 
 type TaskLabel {
   id: ID!
-  projectLabelID: UUID!
+  projectLabel: ProjectLabel!
   assignedDate: Time!
-  colorHex: String!
-  name: String
 }
 
 type ProfileIcon {
@@ -1319,11 +1346,10 @@ input UpdateTaskDescriptionInput {
 
 input AddTaskLabelInput {
   taskID: UUID!
-  labelColorID: UUID!
+  projectLabelID: UUID!
 }
 
 input RemoveTaskLabelInput {
-  taskID: UUID!
   taskLabelID: UUID!
 }
 
@@ -1353,6 +1379,21 @@ input UpdateProjectLabelColor {
   labelColorID: UUID!
 }
 
+input ToggleTaskLabelInput {
+  taskID: UUID!
+  projectLabelID: UUID!
+}
+
+type ToggleTaskLabelPayload {
+  active: Boolean!
+  task: Task!
+}
+
+input UpdateProjectName {
+  projectID: UUID!
+  name: String!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -1361,6 +1402,7 @@ type Mutation {
   createTeam(input: NewTeam!): Team!
 
   createProject(input: NewProject!): Project!
+  updateProjectName(input: UpdateProjectName): Project!
 
   createProjectLabel(input: NewProjectLabel!): ProjectLabel!
   deleteProjectLabel(input: DeleteProjectLabel!): ProjectLabel!
@@ -1374,6 +1416,7 @@ type Mutation {
 
   addTaskLabel(input: AddTaskLabelInput): Task!
   removeTaskLabel(input: RemoveTaskLabelInput): Task!
+  toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
 
   createTask(input: NewTask!): Task!
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
@@ -1589,6 +1632,20 @@ func (ec *executionContext) field_Mutation_removeTaskLabel_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_toggleTaskLabel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ToggleTaskLabelInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNToggleTaskLabelInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐToggleTaskLabelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_unassignTask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1637,6 +1694,20 @@ func (ec *executionContext) field_Mutation_updateProjectLabel_args(ctx context.C
 	var arg0 UpdateProjectLabel
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateProjectLabel2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectLabel(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProjectName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *UpdateProjectName
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOUpdateProjectName2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectName(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2243,6 +2314,47 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProject(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateProjectName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateProjectName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProjectName(rctx, args["input"].(*UpdateProjectName))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProject(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createProjectLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2651,6 +2763,47 @@ func (ec *executionContext) _Mutation_removeTaskLabel(ctx context.Context, field
 	res := resTmp.(*pg.Task)
 	fc.Result = res
 	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_toggleTaskLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_toggleTaskLabel_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ToggleTaskLabel(rctx, args["input"].(ToggleTaskLabelInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ToggleTaskLabelPayload)
+	fc.Result = res
+	return ec.marshalNToggleTaskLabelPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐToggleTaskLabelPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4627,7 +4780,7 @@ func (ec *executionContext) _TaskLabel_id(ctx context.Context, field graphql.Col
 	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TaskLabel_projectLabelID(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
+func (ec *executionContext) _TaskLabel_projectLabel(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4638,13 +4791,13 @@ func (ec *executionContext) _TaskLabel_projectLabelID(ctx context.Context, field
 		Object:   "TaskLabel",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ProjectLabelID, nil
+		return ec.resolvers.TaskLabel().ProjectLabel(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4656,9 +4809,9 @@ func (ec *executionContext) _TaskLabel_projectLabelID(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(uuid.UUID)
+	res := resTmp.(*pg.ProjectLabel)
 	fc.Result = res
-	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNProjectLabel2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectLabel(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TaskLabel_assignedDate(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
@@ -4693,71 +4846,6 @@ func (ec *executionContext) _TaskLabel_assignedDate(ctx context.Context, field g
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TaskLabel_colorHex(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "TaskLabel",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TaskLabel().ColorHex(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TaskLabel_name(ctx context.Context, field graphql.CollectedField, obj *pg.TaskLabel) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "TaskLabel",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TaskLabel().Name(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Team_id(ctx context.Context, field graphql.CollectedField, obj *pg.Team) (ret graphql.Marshaler) {
@@ -4860,6 +4948,74 @@ func (ec *executionContext) _Team_name(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ToggleTaskLabelPayload_active(ctx context.Context, field graphql.CollectedField, obj *ToggleTaskLabelPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ToggleTaskLabelPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Active, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ToggleTaskLabelPayload_task(ctx context.Context, field graphql.CollectedField, obj *ToggleTaskLabelPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ToggleTaskLabelPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Task, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTask(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserAccount_id(ctx context.Context, field graphql.CollectedField, obj *pg.UserAccount) (ret graphql.Marshaler) {
@@ -6167,9 +6323,9 @@ func (ec *executionContext) unmarshalInputAddTaskLabelInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "labelColorID":
+		case "projectLabelID":
 			var err error
-			it.LabelColorID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6611,15 +6767,33 @@ func (ec *executionContext) unmarshalInputRemoveTaskLabelInput(ctx context.Conte
 
 	for k, v := range asMap {
 		switch k {
+		case "taskLabelID":
+			var err error
+			it.TaskLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputToggleTaskLabelInput(ctx context.Context, obj interface{}) (ToggleTaskLabelInput, error) {
+	var it ToggleTaskLabelInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
 		case "taskID":
 			var err error
 			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "taskLabelID":
+		case "projectLabelID":
 			var err error
-			it.TaskLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6716,6 +6890,30 @@ func (ec *executionContext) unmarshalInputUpdateProjectLabelName(ctx context.Con
 		case "projectLabelID":
 			var err error
 			it.ProjectLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateProjectName(ctx context.Context, obj interface{}) (UpdateProjectName, error) {
+	var it UpdateProjectName
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectID":
+			var err error
+			it.ProjectID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6937,6 +7135,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateProjectName":
+			out.Values[i] = ec._Mutation_updateProjectName(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createProjectLabel":
 			out.Values[i] = ec._Mutation_createProjectLabel(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -6984,6 +7187,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "removeTaskLabel":
 			out.Values[i] = ec._Mutation_removeTaskLabel(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "toggleTaskLabel":
+			out.Values[i] = ec._Mutation_toggleTaskLabel(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7691,17 +7899,7 @@ func (ec *executionContext) _TaskLabel(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
-		case "projectLabelID":
-			out.Values[i] = ec._TaskLabel_projectLabelID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "assignedDate":
-			out.Values[i] = ec._TaskLabel_assignedDate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "colorHex":
+		case "projectLabel":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -7709,23 +7907,17 @@ func (ec *executionContext) _TaskLabel(ctx context.Context, sel ast.SelectionSet
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._TaskLabel_colorHex(ctx, field, obj)
+				res = ec._TaskLabel_projectLabel(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "name":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TaskLabel_name(ctx, field, obj)
-				return res
-			})
+		case "assignedDate":
+			out.Values[i] = ec._TaskLabel_assignedDate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7771,6 +7963,38 @@ func (ec *executionContext) _Team(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Team_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var toggleTaskLabelPayloadImplementors = []string{"ToggleTaskLabelPayload"}
+
+func (ec *executionContext) _ToggleTaskLabelPayload(ctx context.Context, sel ast.SelectionSet, obj *ToggleTaskLabelPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, toggleTaskLabelPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ToggleTaskLabelPayload")
+		case "active":
+			out.Values[i] = ec._ToggleTaskLabelPayload_active(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "task":
+			out.Values[i] = ec._ToggleTaskLabelPayload_task(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8668,6 +8892,24 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) unmarshalNToggleTaskLabelInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐToggleTaskLabelInput(ctx context.Context, v interface{}) (ToggleTaskLabelInput, error) {
+	return ec.unmarshalInputToggleTaskLabelInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNToggleTaskLabelPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐToggleTaskLabelPayload(ctx context.Context, sel ast.SelectionSet, v ToggleTaskLabelPayload) graphql.Marshaler {
+	return ec._ToggleTaskLabelPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNToggleTaskLabelPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐToggleTaskLabelPayload(ctx context.Context, sel ast.SelectionSet, v *ToggleTaskLabelPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ToggleTaskLabelPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
 	return UnmarshalUUID(v)
 }
@@ -9082,6 +9324,18 @@ func (ec *executionContext) unmarshalOUnassignTaskInput2ᚖgithubᚗcomᚋjordan
 		return nil, nil
 	}
 	res, err := ec.unmarshalOUnassignTaskInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUnassignTaskInput(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOUpdateProjectName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectName(ctx context.Context, v interface{}) (UpdateProjectName, error) {
+	return ec.unmarshalInputUpdateProjectName(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOUpdateProjectName2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectName(ctx context.Context, v interface{}) (*UpdateProjectName, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOUpdateProjectName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateProjectName(ctx, v)
 	return &res, err
 }
 

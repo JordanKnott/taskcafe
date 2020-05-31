@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 
 export const NavbarWrapper = styled.div`
@@ -135,7 +136,36 @@ export const ProjectName = styled.h1`
   color: #c2c6dc;
   font-weight: 600;
   font-size: 20px;
-  padding: 6px 10px 6px 8px;
+  padding: 3px 10px 3px 8px;
+  font-family: 'Droid Sans';
+  margin: -4px 0;
+`;
+export const ProjectNameTextarea = styled(TextareaAutosize)`
+  font-family: 'Droid Sans';
+  border: none;
+  resize: none;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  background: transparent;
+  border-radius: 3px;
+  box-shadow: none;
+  margin: -4px 0;
+
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  flex-direction: column;
+  text-align: start;
+
+  color: #c2c6dc;
+  font-weight: 600;
+  font-size: 20px;
+  padding: 3px 10px 3px 8px;
+  &:focus {
+    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+  }
 `;
 
 export const ProjectSwitcher = styled.button`

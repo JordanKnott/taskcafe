@@ -31,7 +31,7 @@ type TaskAssigneeProps = {
 const TaskAssignee: React.FC<TaskAssigneeProps> = ({ member, onMemberProfile, size }) => {
   const $memberRef = useRef<HTMLDivElement>(null);
   return (
-    <TaskDetailAssignee ref={$memberRef} onClick={() => onMemberProfile($memberRef, member.userID)} key={member.userID}>
+    <TaskDetailAssignee ref={$memberRef} onClick={() => onMemberProfile($memberRef, member.id)} key={member.id}>
       <ProfileIcon size={size}>{member.profileIcon.initials ?? ''}</ProfileIcon>
     </TaskDetailAssignee>
   );

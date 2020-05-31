@@ -17,10 +17,8 @@ type LabelColor {
 
 type TaskLabel {
   id: ID!
-  projectLabelID: UUID!
+  projectLabel: ProjectLabel!
   assignedDate: Time!
-  colorHex: String!
-  name: String
 }
 
 type ProfileIcon {
@@ -204,11 +202,10 @@ input UpdateTaskDescriptionInput {
 
 input AddTaskLabelInput {
   taskID: UUID!
-  labelColorID: UUID!
+  projectLabelID: UUID!
 }
 
 input RemoveTaskLabelInput {
-  taskID: UUID!
   taskLabelID: UUID!
 }
 
@@ -238,6 +235,21 @@ input UpdateProjectLabelColor {
   labelColorID: UUID!
 }
 
+input ToggleTaskLabelInput {
+  taskID: UUID!
+  projectLabelID: UUID!
+}
+
+type ToggleTaskLabelPayload {
+  active: Boolean!
+  task: Task!
+}
+
+input UpdateProjectName {
+  projectID: UUID!
+  name: String!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -246,6 +258,7 @@ type Mutation {
   createTeam(input: NewTeam!): Team!
 
   createProject(input: NewProject!): Project!
+  updateProjectName(input: UpdateProjectName): Project!
 
   createProjectLabel(input: NewProjectLabel!): ProjectLabel!
   deleteProjectLabel(input: DeleteProjectLabel!): ProjectLabel!
@@ -259,6 +272,7 @@ type Mutation {
 
   addTaskLabel(input: AddTaskLabelInput): Task!
   removeTaskLabel(input: RemoveTaskLabelInput): Task!
+  toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
 
   createTask(input: NewTask!): Task!
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!

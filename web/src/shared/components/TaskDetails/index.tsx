@@ -193,15 +193,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         <TaskDetailsSidebar>
           <TaskDetailSectionTitle>Assignees</TaskDetailSectionTitle>
           <TaskDetailAssignees>
-            {task.members && task.members.length === 0 ? (
+            {task.assigned && task.assigned.length === 0 ? (
               <UnassignedLabel ref={$unassignedRef} onClick={onUnassignedClick}>
                 Unassigned
               </UnassignedLabel>
             ) : (
               <>
-                {task.members &&
-                  task.members.map(member => (
-                    <TaskAssignee size={32} member={member} onMemberProfile={onMemberProfile} />
+                {task.assigned &&
+                  task.assigned.map(member => (
+                    <TaskAssignee key={member.id} size={32} member={member} onMemberProfile={onMemberProfile} />
                   ))}
                 <TaskDetailsAddMember ref={$addMemberRef} onClick={onAddMember}>
                   <TaskDetailsAddMemberIcon>
@@ -214,7 +214,11 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TaskDetailSectionTitle>Labels</TaskDetailSectionTitle>
           <TaskDetailLabels>
             {task.labels.map(label => {
-              return <TaskDetailLabel>{label.name}</TaskDetailLabel>;
+              return (
+                <TaskDetailLabel key={label.projectLabel.id} color={label.projectLabel.labelColor.colorHex}>
+                  {label.projectLabel.name}
+                </TaskDetailLabel>
+              );
             })}
             <TaskDetailsAddLabel ref={$addLabelRef} onClick={onAddLabel}>
               <TaskDetailsAddLabelIcon>

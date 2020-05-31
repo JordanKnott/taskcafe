@@ -1,0 +1,29 @@
+mutation toggleTaskLabel($taskID: UUID!, $projectLabelID: UUID!) {
+  toggleTaskLabel(
+    input: {
+      taskID: $taskID,
+      projectLabelID: $projectLabelID
+    }
+  ) {
+    active
+    task {
+      id
+      labels {
+        id
+        assignedDate
+        projectLabel {
+          id
+          createdDate
+          labelColor {
+            id
+            colorHex
+            name
+            position
+          }
+          name
+        }
+      }
+    }
+  }
+}
+

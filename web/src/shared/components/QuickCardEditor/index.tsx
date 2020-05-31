@@ -22,7 +22,7 @@ type Props = {
   onEditCard: (taskGroupID: string, taskID: string, cardName: string) => void;
   onOpenPopup: (popupType: number, top: number, left: number) => void;
   onArchiveCard: (taskGroupID: string, taskID: string) => void;
-  labels?: Label[];
+  labels?: Array<ProjectLabel>;
   isOpen: boolean;
   top: number;
   left: number;
@@ -72,7 +72,7 @@ const QuickCardEditor = ({
           <ListCardLabels>
             {labels &&
               labels.map(label => (
-                <ListCardLabel color={label.labelColor.colorHex} key={label.name}>
+                <ListCardLabel color={label.labelColor.colorHex} key={label.id}>
                   {label.name}
                 </ListCardLabel>
               ))}

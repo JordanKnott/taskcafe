@@ -16,28 +16,17 @@ export default {
   },
 };
 
-const labelData = [
+const labelData: Array<ProjectLabel> = [
   {
-    labelId: 'development',
+    id: 'development',
     name: 'Development',
+    createdDate: new Date().toString(),
     labelColor: {
       id: '1',
       colorHex: LabelColors.BLUE,
       name: 'blue',
       position: 1,
     },
-    active: false,
-  },
-  {
-    labelId: 'general',
-    name: 'General',
-    labelColor: {
-      id: '2',
-      colorHex: LabelColors.PINK,
-      name: 'pink',
-      position: 2,
-    },
-    active: false,
   },
 ];
 
@@ -68,7 +57,6 @@ export const Default = () => {
       isComposerOpen={false}
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
-      tasks={[]}
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
@@ -94,7 +82,6 @@ export const WithCardComposer = () => {
       isComposerOpen
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
-      tasks={[]}
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
@@ -121,7 +108,6 @@ export const WithCard = () => {
       isComposerOpen={false}
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
-      tasks={[]}
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
@@ -160,7 +146,6 @@ export const WithCardAndComposer = () => {
       isComposerOpen
       onSaveName={action('on save name')}
       onOpenComposer={action('on open composer')}
-      tasks={[]}
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>

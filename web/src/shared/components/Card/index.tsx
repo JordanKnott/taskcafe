@@ -47,10 +47,10 @@ const Member: React.FC<MemberProps> = ({ onCardMemberClick, taskID, member }) =>
       onClick={e => {
         if (onCardMemberClick) {
           e.stopPropagation();
-          onCardMemberClick($targetRef, taskID, member.userID);
+          onCardMemberClick($targetRef, taskID, member.id);
         }
       }}
-      key={member.userID}
+      key={member.id}
       bgColor={member.profileIcon.bgColor ?? '#7367F0'}
     >
       <CardMemberInitials>{member.profileIcon.initials}</CardMemberInitials>
@@ -68,7 +68,7 @@ type Props = {
   dueDate?: DueDate;
   checklists?: Checklist;
   watched?: boolean;
-  labels?: Label[];
+  labels?: Array<ProjectLabel>;
   wrapperProps?: any;
   members?: Array<TaskUser> | null;
   onCardMemberClick?: OnCardMemberClick;
@@ -136,7 +136,7 @@ const Card = React.forwardRef(
             <ListCardLabels>
               {labels &&
                 labels.map(label => (
-                  <ListCardLabel color={label.labelColor.colorHex} key={label.name}>
+                  <ListCardLabel color={label.labelColor.colorHex} key={label.id}>
                     {label.name}
                   </ListCardLabel>
                 ))}
@@ -169,7 +169,7 @@ const Card = React.forwardRef(
             <CardMembers>
               {members &&
                 members.map(member => (
-                  <Member key={member.userID} taskID={taskID} member={member} onCardMemberClick={onCardMemberClick} />
+                  <Member key={member.id} taskID={taskID} member={member} onCardMemberClick={onCardMemberClick} />
                 ))}
             </CardMembers>
           </ListCardDetails>

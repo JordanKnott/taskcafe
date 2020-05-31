@@ -16,14 +16,14 @@ type MiniProfileProps = {
   displayName: string;
   username: string;
   bio: string;
-  profileIcon: ProfileIcon;
+  profileIcon: ProfileIcon | null;
   onRemoveFromTask: () => void;
 };
 const MiniProfile: React.FC<MiniProfileProps> = ({ displayName, username, bio, profileIcon, onRemoveFromTask }) => {
   return (
     <>
       <Profile>
-        <ProfileIcon bgColor={profileIcon.bgColor ?? ''}>{profileIcon.initials}</ProfileIcon>
+        {profileIcon && <ProfileIcon bgColor={profileIcon.bgColor ?? ''}>{profileIcon.initials}</ProfileIcon>}
         <ProfileInfo>
           <InfoTitle>{displayName}</InfoTitle>
           <InfoUsername>{username}</InfoUsername>

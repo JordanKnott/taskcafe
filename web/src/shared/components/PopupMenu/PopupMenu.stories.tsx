@@ -7,12 +7,13 @@ import ListActions from 'shared/components/ListActions';
 import MemberManager from 'shared/components/MemberManager';
 import DueDateManager from 'shared/components/DueDateManager';
 import MiniProfile from 'shared/components/MiniProfile';
-import styled from 'styled-components';
 
-import PopupMenu, { PopupProvider, usePopup, Popup } from '.';
+import styled from 'styled-components';
+import produce from 'immer';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
-import produce from 'immer';
+
+import PopupMenu, { PopupProvider, usePopup, Popup } from '.';
 
 export default {
   component: PopupMenu,
@@ -24,28 +25,17 @@ export default {
     ],
   },
 };
-const labelData = [
+const labelData: Array<ProjectLabel> = [
   {
-    labelId: 'development',
+    id: 'development',
     name: 'Development',
+    createdDate: new Date().toString(),
     labelColor: {
       id: '1',
-      name: 'white',
       colorHex: LabelColors.BLUE,
+      name: 'blue',
       position: 1,
     },
-    active: false,
-  },
-  {
-    labelId: 'general',
-    name: 'General',
-    labelColor: {
-      id: '1',
-      name: 'white',
-      colorHex: LabelColors.PINK,
-      position: 1,
-    },
-    active: false,
   },
 ];
 
@@ -74,9 +64,9 @@ const LabelManagerEditor = () => {
           onLabelToggle={labelId => {
             setLabels(
               produce(labels, draftState => {
-                const idx = labels.findIndex(label => label.labelId === labelId);
+                const idx = labels.findIndex(label => label.id === labelId);
                 if (idx !== -1) {
-                  draftState[idx] = { ...draftState[idx], active: !labels[idx].active };
+                  draftState[idx] = { ...draftState[idx] };
                 }
               }),
             );
@@ -86,13 +76,21 @@ const LabelManagerEditor = () => {
       <Popup onClose={action('on close')} title="Edit label" tab={1}>
         <LabelEditor
           labelColors={[{ id: '1', colorHex: '#c2c6dc', position: 1, name: 'gray' }]}
-          label={labels.find(label => label.labelId === currentLabel) ?? null}
+          label={labels.find(label => label.id === currentLabel) ?? null}
           onLabelEdit={(_labelId, name, color) => {
             setLabels(
               produce(labels, draftState => {
-                const idx = labels.findIndex(label => label.labelId === currentLabel);
+                const idx = labels.findIndex(label => label.id === currentLabel);
                 if (idx !== -1) {
-                  draftState[idx] = { ...draftState[idx], name, labelColor: color };
+                  draftState[idx] = {
+                    ...draftState[idx],
+                    name,
+                    labelColor: {
+                      ...draftState[idx].labelColor,
+                      name: color.name ?? '',
+                      colorHex: color.colorHex,
+                    },
+                  };
                 }
               }),
             );
@@ -105,7 +103,20 @@ const LabelManagerEditor = () => {
           label={null}
           labelColors={[{ id: '1', colorHex: '#c2c6dc', position: 1, name: 'gray' }]}
           onLabelEdit={(_labelId, name, color) => {
-            setLabels([...labels, { labelId: name, name, labelColor: color, active: false }]);
+            setLabels([
+              ...labels,
+              {
+                id: name,
+                name,
+                createdDate: new Date().toString(),
+                labelColor: {
+                  id: color.id,
+                  colorHex: color.colorHex,
+                  name: color.name ?? '',
+                  position: 1,
+                },
+              },
+            ]);
             setTab(0);
           }}
         />
@@ -214,7 +225,12 @@ export const MemberManagerPopup = () => {
         <PopupMenu title="Members" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
           <MemberManager
             availableMembers={[
-              { userID: '1', displayName: 'Jordan Knott', profileIcon: { bgColor: null, url: null, initials: null } },
+              {
+                id: '1',
+                firstName: 'Jordan',
+                lastName: 'Knott',
+                profileIcon: { bgColor: null, url: null, initials: null },
+              },
             ]}
             activeMembers={[]}
             onMemberChange={action('member change')}
@@ -251,26 +267,35 @@ export const DueDateManagerPopup = () => {
         <PopupMenu title="Due Date" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
           <DueDateManager
             task={{
-              taskID: '1',
-              taskGroup: { name: 'General', taskGroupID: '1' },
+              id: '1',
+              taskGroup: { name: 'General', id: '1', position: 1 },
               name: 'Hello, world',
               position: 1,
               labels: [
                 {
-                  labelId: 'soft-skills',
-                  labelColor: {
-                    id: '1',
-                    name: 'white',
-                    colorHex: '#fff',
-                    position: 1,
+                  id: 'soft-skills',
+                  assignedDate: new Date().toString(),
+                  projectLabel: {
+                    createdDate: new Date().toString(),
+                    id: 'label-soft-skills',
+                    name: 'Soft Skills',
+                    labelColor: {
+                      id: '1',
+                      name: 'white',
+                      colorHex: '#fff',
+                      position: 1,
+                    },
                   },
-                  active: true,
-                  name: 'Soft Skills',
                 },
               ],
               description: 'hello!',
-              members: [
-                { userID: '1', profileIcon: { bgColor: null, url: null, initials: null }, displayName: 'Jordan Knott' },
+              assigned: [
+                {
+                  id: '1',
+                  profileIcon: { bgColor: null, url: null, initials: null },
+                  firstName: 'Jordan',
+                  lastName: 'Knott',
+                },
               ],
             }}
             onCancel={action('cancel')}

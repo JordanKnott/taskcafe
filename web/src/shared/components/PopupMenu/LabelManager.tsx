@@ -14,12 +14,14 @@ import {
 } from './Styles';
 
 type Props = {
-  labels?: Label[];
+  labels?: Array<ProjectLabel>;
+  taskLabels?: Array<TaskLabel>;
   onLabelToggle: (labelId: string) => void;
   onLabelEdit: (labelId: string) => void;
   onLabelCreate: () => void;
 };
-const LabelManager: React.FC<Props> = ({ labels, onLabelToggle, onLabelEdit, onLabelCreate }) => {
+
+const LabelManager: React.FC<Props> = ({ labels, taskLabels, onLabelToggle, onLabelEdit, onLabelCreate }) => {
   const $fieldName = useRef<HTMLInputElement>(null);
   const [currentLabel, setCurrentLabel] = useState('');
   const [currentSearch, setCurrentSearch] = useState('');
@@ -44,27 +46,31 @@ const LabelManager: React.FC<Props> = ({ labels, onLabelToggle, onLabelEdit, onL
         <Labels>
           {labels &&
             labels
-              .filter(label => currentSearch === '' || label.name.toLowerCase().startsWith(currentSearch.toLowerCase()))
+              .filter(
+                label =>
+                  currentSearch === '' ||
+                  (label.name && label.name.toLowerCase().startsWith(currentSearch.toLowerCase())),
+              )
               .map(label => (
-                <Label key={label.labelId}>
+                <Label key={label.id}>
                   <LabelIcon
                     onClick={() => {
-                      onLabelEdit(label.labelId);
+                      onLabelEdit(label.id);
                     }}
                   >
                     <Pencil color="#c2c6dc" />
                   </LabelIcon>
                   <CardLabel
-                    key={label.labelId}
+                    key={label.id}
                     color={label.labelColor.colorHex}
-                    active={currentLabel === label.labelId}
+                    active={currentLabel === label.id}
                     onMouseEnter={() => {
-                      setCurrentLabel(label.labelId);
+                      setCurrentLabel(label.id);
                     }}
-                    onClick={() => onLabelToggle(label.labelId)}
+                    onClick={() => onLabelToggle(label.id)}
                   >
                     {label.name}
-                    {label.active && (
+                    {taskLabels && taskLabels.find(t => t.projectLabel.id === label.id) && (
                       <ActiveIcon>
                         <Checkmark color="#fff" />
                       </ActiveIcon>

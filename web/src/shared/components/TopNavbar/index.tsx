@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
-import { Star, Bell, Cog, AngleDown } from 'shared/icons';
+import React, { useRef, useState, useEffect } from 'react';
+import { Star, Ellipsis, Bell, Cog, AngleDown } from 'shared/icons';
 
 import {
   NotificationContainer,
+  ProjectNameTextarea,
   InviteButton,
   GlobalActions,
   ProjectActions,
@@ -28,9 +29,72 @@ import TaskAssignee from 'shared/components/TaskAssignee';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import MiniProfile from 'shared/components/MiniProfile';
 
+type ProjectHeadingProps = {
+  projectName: string;
+  onSaveProjectName?: (projectName: string) => void;
+};
+
+const ProjectHeading: React.FC<ProjectHeadingProps> = ({ projectName: initialProjectName, onSaveProjectName }) => {
+  const [isEditProjectName, setEditProjectName] = useState(false);
+  const [projectName, setProjectName] = useState(initialProjectName);
+  const $projectName = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (isEditProjectName && $projectName && $projectName.current) {
+      $projectName.current.focus();
+      $projectName.current.select();
+    }
+  }, [isEditProjectName]);
+  useEffect(() => {
+    setProjectName(initialProjectName);
+  }, [initialProjectName]);
+
+  const onProjectNameChange = (event: React.FormEvent<HTMLTextAreaElement>): void => {
+    setProjectName(event.currentTarget.value);
+  };
+  const onProjectNameBlur = () => {
+    if (onSaveProjectName) {
+      onSaveProjectName(projectName);
+    }
+    setEditProjectName(false);
+  };
+  const onProjectNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if ($projectName && $projectName.current) {
+        $projectName.current.blur();
+      }
+    }
+  };
+
+  return (
+    <>
+      <Separator>»</Separator>
+      {isEditProjectName ? (
+        <ProjectNameTextarea
+          ref={$projectName}
+          onChange={onProjectNameChange}
+          onKeyDown={onProjectNameKeyDown}
+          onBlur={onProjectNameBlur}
+          spellCheck={false}
+          value={projectName}
+        />
+      ) : (
+        <ProjectName
+          onClick={() => {
+            setEditProjectName(true);
+          }}
+        >
+          {projectName}
+        </ProjectName>
+      )}
+    </>
+  );
+};
+
 type NavBarProps = {
   projectName: string;
   onProfileClick: (bottom: number, right: number) => void;
+  onSaveProjectName?: (projectName: string) => void;
   onNotificationClick: () => void;
   bgColor: string;
   firstName: string;
@@ -38,8 +102,10 @@ type NavBarProps = {
   initials: string;
   projectMembers?: Array<TaskUser> | null;
 };
+
 const NavBar: React.FC<NavBarProps> = ({
   projectName,
+  onSaveProjectName,
   onProfileClick,
   onNotificationClick,
   firstName,
@@ -68,14 +134,14 @@ const NavBar: React.FC<NavBarProps> = ({
       </Popup>,
     );
   };
+
   return (
     <NavbarWrapper>
       <NavbarHeader>
         <ProjectActions>
           <ProjectMeta>
             <ProjectSwitcher>Projects</ProjectSwitcher>
-            <Separator>»</Separator>
-            <ProjectName>{projectName}</ProjectName>
+            <ProjectHeading projectName={projectName} onSaveProjectName={onSaveProjectName} />
             <ProjectSettingsButton>
               <AngleDown color="#c2c6dc" />
             </ProjectSettingsButton>
@@ -94,7 +160,7 @@ const NavBar: React.FC<NavBarProps> = ({
           {projectMembers && (
             <ProjectMembers>
               {projectMembers.map(member => (
-                <TaskAssignee key={member.userID} size={28} member={member} onMemberProfile={onMemberProfile} />
+                <TaskAssignee key={member.id} size={28} member={member} onMemberProfile={onMemberProfile} />
               ))}
               <InviteButton>Invite</InviteButton>
             </ProjectMembers>
@@ -104,9 +170,7 @@ const NavBar: React.FC<NavBarProps> = ({
           </NotificationContainer>
           <ProfileContainer>
             <ProfileNameWrapper>
-              <ProfileNamePrimary>
-                {firstName} {lastName}
-              </ProfileNamePrimary>
+              <ProfileNamePrimary>{`${firstName} ${lastName}`}</ProfileNamePrimary>
               <ProfileNameSecondary>Manager</ProfileNameSecondary>
             </ProfileNameWrapper>
             <ProfileIcon ref={$profileRef} onClick={handleProfileClick} bgColor={bgColor}>

@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import * as BoardStateUtils from 'shared/utils/boardState';
 import GlobalTopNavbar from 'App/TopNavbar';
 import styled from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
 import {
+  useToggleTaskLabelMutation,
+  useUpdateProjectNameMutation,
   useFindProjectQuery,
   useUpdateTaskNameMutation,
   useUpdateProjectLabelMutation,
@@ -29,12 +30,14 @@ import ListActions from 'shared/components/ListActions';
 import MemberManager from 'shared/components/MemberManager';
 import { LabelsPopup } from 'shared/components/PopupMenu/PopupMenu.stories';
 import KanbanBoard from 'Projects/Project/KanbanBoard';
+import SimpleLists from 'shared/components/Lists';
 import { mixin } from 'shared/utils/styles';
 import LabelManager from 'shared/components/PopupMenu/LabelManager';
 import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import Details from './Details';
+import { useApolloClient } from '@apollo/react-hooks';
 
 const getCacheData = (client: any, projectID: string) => {
   const cacheData: any = client.readQuery({
@@ -85,12 +88,20 @@ const ProjectMembers = styled.div`
 `;
 
 type LabelManagerEditorProps = {
-  labels: React.RefObject<Array<Label>>;
+  labels: React.RefObject<Array<ProjectLabel>>;
+  taskLabels: null | React.RefObject<Array<TaskLabel>>;
   projectID: string;
   labelColors: Array<LabelColor>;
+  onLabelToggle?: (labelId: string) => void;
 };
 
-const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: labelsRef, projectID, labelColors }) => {
+const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
+  labels: labelsRef,
+  projectID,
+  labelColors,
+  onLabelToggle,
+  taskLabels: taskLabelsRef,
+}) => {
   const [currentLabel, setCurrentLabel] = useState('');
   const [createProjectLabel] = useCreateProjectLabelMutation({
     update: (client, newLabelData) => {
@@ -116,12 +127,16 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: labelsR
     },
   });
   const labels = labelsRef.current ? labelsRef.current : [];
+  const taskLabels = taskLabelsRef && taskLabelsRef.current ? taskLabelsRef.current : [];
+  const [currentTaskLabels, setCurrentTaskLabels] = useState(taskLabels);
+  console.log(taskLabels);
   const { setTab } = usePopup();
   return (
     <>
       <Popup title="Labels" tab={0} onClose={() => {}}>
         <LabelManager
           labels={labels}
+          taskLabels={currentTaskLabels}
           onLabelCreate={() => {
             setTab(2);
           }}
@@ -130,18 +145,34 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: labelsR
             setTab(1);
           }}
           onLabelToggle={labelId => {
-            setCurrentLabel(labelId);
-            setTab(1);
+            if (onLabelToggle) {
+              if (currentTaskLabels.find(t => t.projectLabel.id === labelId)) {
+                setCurrentTaskLabels(currentTaskLabels.filter(t => t.projectLabel.id !== labelId));
+              } else {
+                const newProjectLabel = labels.find(l => l.id === labelId);
+                if (newProjectLabel) {
+                  setCurrentTaskLabels([
+                    ...currentTaskLabels,
+                    { id: '', assignedDate: '', projectLabel: { ...newProjectLabel } },
+                  ]);
+                }
+              }
+              setCurrentLabel(labelId);
+              onLabelToggle(labelId);
+            } else {
+              setCurrentLabel(labelId);
+              setTab(1);
+            }
           }}
         />
       </Popup>
       <Popup onClose={() => {}} title="Edit label" tab={1}>
         <LabelEditor
           labelColors={labelColors}
-          label={labels.find(label => label.labelId === currentLabel) ?? null}
+          label={labels.find(label => label.id === currentLabel) ?? null}
           onLabelEdit={(projectLabelID, name, color) => {
             if (projectLabelID) {
-              updateProjectLabel({ variables: { projectLabelID, labelColorID: color.id, name } });
+              updateProjectLabel({ variables: { projectLabelID, labelColorID: color.id, name: name ?? '' } });
             }
             setTab(0);
           }}
@@ -156,7 +187,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({ labels: labelsR
           labelColors={labelColors}
           label={null}
           onLabelEdit={(_labelId, name, color) => {
-            createProjectLabel({ variables: { projectID, labelColorID: color.id, name } });
+            createProjectLabel({ variables: { projectID, labelColorID: color.id, name: name ?? '' } });
             setTab(0);
           }}
         />
@@ -169,10 +200,7 @@ interface ProjectParams {
   projectID: string;
 }
 
-const initialState: BoardState = { tasks: {}, columns: {} };
-const initialPopupState = { left: 0, top: 0, isOpen: false, taskGroupID: '' };
 const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
-const initialTaskDetailsState = { isOpen: false, taskID: '' };
 
 const ProjectBar = styled.div`
   display: flex;
@@ -209,18 +237,16 @@ const ProjectActionText = styled.span`
 
 const Project = () => {
   const { projectID } = useParams<ProjectParams>();
+  const history = useHistory();
   const match = useRouteMatch();
 
   const [updateTaskDescription] = useUpdateTaskDescriptionMutation();
-  const [listsData, setListsData] = useState(initialState);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation();
-  const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation();
+  const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation({});
 
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
-    onCompleted: deletedTaskGroupData => {
-      setListsData(BoardStateUtils.deleteTaskGroup(listsData, deletedTaskGroupData.deleteTaskGroup.taskGroup.id));
-    },
+    onCompleted: deletedTaskGroupData => {},
     update: (client, deletedTaskGroupData) => {
       const cacheData = getCacheData(client, projectID);
       const newData = {
@@ -235,14 +261,7 @@ const Project = () => {
   });
 
   const [createTaskGroup] = useCreateTaskGroupMutation({
-    onCompleted: newTaskGroupData => {
-      const newTaskGroup = {
-        taskGroupID: newTaskGroupData.createTaskGroup.id,
-        tasks: [],
-        ...newTaskGroupData.createTaskGroup,
-      };
-      setListsData(BoardStateUtils.addTaskGroup(listsData, newTaskGroup));
-    },
+    onCompleted: newTaskGroupData => {},
     update: (client, newTaskGroupData) => {
       const cacheData = getCacheData(client, projectID);
       const newData = {
@@ -255,15 +274,7 @@ const Project = () => {
   });
 
   const [createTask] = useCreateTaskMutation({
-    onCompleted: newTaskData => {
-      const newTask = {
-        ...newTaskData.createTask,
-        taskID: newTaskData.createTask.id,
-        taskGroup: { taskGroupID: newTaskData.createTask.taskGroup.id },
-        labels: [],
-      };
-      setListsData(BoardStateUtils.addTask(listsData, newTask));
-    },
+    onCompleted: newTaskData => {},
     update: (client, newTaskData) => {
       const cacheData = getCacheData(client, projectID);
       const newTaskGroups = produce(cacheData.findProject.taskGroups, (draftState: any) => {
@@ -284,158 +295,144 @@ const Project = () => {
   });
 
   const [deleteTask] = useDeleteTaskMutation({
-    onCompleted: deletedTask => {
-      setListsData(BoardStateUtils.deleteTask(listsData, deletedTask.deleteTask.taskID));
-    },
+    onCompleted: deletedTask => {},
   });
 
   const [updateTaskName] = useUpdateTaskNameMutation({
-    onCompleted: newTaskData => {
-      setListsData(
-        BoardStateUtils.updateTaskName(listsData, newTaskData.updateTaskName.id, newTaskData.updateTaskName.name),
-      );
+    onCompleted: newTaskData => {},
+  });
+  const [toggleTaskLabel] = useToggleTaskLabelMutation({
+    onCompleted: newTaskLabel => {
+      taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
+      console.log(taskLabelsRef.current);
     },
   });
   const { loading, data, refetch } = useFindProjectQuery({
     variables: { projectId: projectID },
+    onCompleted: newData => {},
   });
 
   const onCardCreate = (taskGroupID: string, name: string) => {
-    const taskGroupTasks = Object.values(listsData.tasks).filter(
-      (task: Task) => task.taskGroup.taskGroupID === taskGroupID,
-    );
-    let position = 65535;
-    if (taskGroupTasks.length !== 0) {
-      const [lastTask] = taskGroupTasks.sort((a: any, b: any) => a.position - b.position).slice(-1);
-      position = Math.ceil(lastTask.position) * 2 + 1;
-    }
+    if (data) {
+      const taskGroupTasks = data.findProject.taskGroups.filter(t => t.id === taskGroupID);
+      if (taskGroupTasks) {
+        let position = 65535;
+        if (taskGroupTasks.length !== 0) {
+          const [lastTask] = taskGroupTasks.sort((a: any, b: any) => a.position - b.position).slice(-1);
+          position = Math.ceil(lastTask.position) * 2 + 1;
+        }
 
-    createTask({ variables: { taskGroupID, name, position } });
+        createTask({ variables: { taskGroupID, name, position } });
+      }
+    }
+  };
+
+  const onCreateTask = (taskGroupID: string, name: string) => {
+    if (data) {
+      const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
+      console.log(`taskGroup ${taskGroup}`);
+      if (taskGroup) {
+        let position = 65535;
+        if (taskGroup.tasks.length !== 0) {
+          const [lastTask] = taskGroup.tasks.sort((a: any, b: any) => a.position - b.position).slice(-1);
+          position = Math.ceil(lastTask.position) * 2 + 1;
+        }
+
+        console.log(`position ${position}`);
+        createTask({ variables: { taskGroupID, name, position } });
+      }
+    }
   };
 
   const onCardDrop = (droppedTask: Task) => {
     updateTaskLocation({
       variables: {
-        taskID: droppedTask.taskID,
-        taskGroupID: droppedTask.taskGroup.taskGroupID,
+        taskID: droppedTask.id,
+        taskGroupID: droppedTask.taskGroup.id,
         position: droppedTask.position,
       },
       optimisticResponse: {
         updateTaskLocation: {
           name: droppedTask.name,
-          id: droppedTask.taskID,
+          id: droppedTask.id,
           position: droppedTask.position,
           createdAt: '',
         },
       },
     });
-    setListsData(BoardStateUtils.updateTask(listsData, droppedTask));
   };
   const onListDrop = (droppedColumn: TaskGroup) => {
-    console.log(`list drop ${droppedColumn.taskGroupID}`);
+    console.log(`list drop ${droppedColumn.id}`);
+    const cacheData = getCacheData(client, projectID);
+    const newData = produce(cacheData, (draftState: any) => {
+      const taskGroupIdx = cacheData.findProject.taskGroups.findIndex((t: any) => t.id === droppedColumn.id);
+      cacheData.findProject.taskGroups[taskGroupIdx].position = droppedColumn.position;
+    });
+    writeCacheData(client, projectID, cacheData, newData);
     updateTaskGroupLocation({
-      variables: { taskGroupID: droppedColumn.taskGroupID, position: droppedColumn.position },
+      variables: { taskGroupID: droppedColumn.id, position: droppedColumn.position },
       optimisticResponse: {
         updateTaskGroupLocation: {
-          id: droppedColumn.taskGroupID,
+          id: droppedColumn.id,
           position: droppedColumn.position,
         },
       },
     });
-    // setListsData(BoardStateUtils.updateTaskGroup(listsData, droppedColumn));
   };
 
   const onCreateList = (listName: string) => {
-    const [lastColumn] = Object.values(listsData.columns)
-      .sort((a, b) => a.position - b.position)
-      .slice(-1);
-    let position = 65535;
-    if (lastColumn) {
-      position = lastColumn.position * 2 + 1;
+    if (data) {
+      const [lastColumn] = data.findProject.taskGroups.sort((a, b) => a.position - b.position).slice(-1);
+      let position = 65535;
+      if (lastColumn) {
+        position = lastColumn.position * 2 + 1;
+      }
+      createTaskGroup({ variables: { projectID, name: listName, position } });
     }
-    createTaskGroup({ variables: { projectID, name: listName, position } });
   };
 
   const [assignTask] = useAssignTaskMutation();
 
+  const [updateProjectName] = useUpdateProjectNameMutation();
+
+  const client = useApolloClient();
+
   const { showPopup, hidePopup } = usePopup();
   const $labelsRef = useRef<HTMLDivElement>(null);
-  const labelsRef = useRef<Array<Label>>([]);
+  const labelsRef = useRef<Array<ProjectLabel>>([]);
+  const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   if (loading) {
     return (
       <>
-        <GlobalTopNavbar name="Project" />
-        <Title>Error Loading</Title>
+        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="Loading..." />
       </>
     );
   }
   if (data) {
-    console.log(data);
-    const currentListsData: BoardState = { tasks: {}, columns: {} };
-    data.findProject.taskGroups.forEach(taskGroup => {
-      currentListsData.columns[taskGroup.id] = {
-        taskGroupID: taskGroup.id,
-        name: taskGroup.name,
-        position: taskGroup.position,
-        tasks: [],
-      };
-      taskGroup.tasks.forEach(task => {
-        const taskMembers = task.assigned.map(assigned => {
-          return {
-            userID: assigned.id,
-            displayName: `${assigned.firstName} ${assigned.lastName}`,
-            profileIcon: {
-              url: null,
-              initials: assigned.profileIcon.initials ?? '',
-              bgColor: assigned.profileIcon.bgColor ?? '#7367F0',
-            },
-          };
-        });
-        currentListsData.tasks[task.id] = {
-          taskID: task.id,
-          taskGroup: {
-            taskGroupID: taskGroup.id,
-          },
-          name: task.name,
-          labels: [],
-          position: task.position,
-          description: task.description ?? undefined,
-          members: taskMembers,
-        };
-      });
-    });
-    const availableMembers = data.findProject.members.map(member => {
-      return {
-        displayName: `${member.firstName} ${member.lastName}`,
-        profileIcon: {
-          url: null,
-          initials: member.profileIcon.initials ?? null,
-          bgColor: member.profileIcon.bgColor ?? null,
-        },
-        userID: member.id,
-      };
-    });
     const onQuickEditorOpen = (e: ContextMenuEvent) => {
-      const currentTask = Object.values(currentListsData.tasks).find(task => task.taskID === e.taskID);
-      setQuickCardEditor({
-        top: e.top,
-        left: e.left,
-        isOpen: true,
-        task: currentTask,
-      });
+      const taskGroup = data.findProject.taskGroups.find(t => t.id === e.taskGroupID);
+      const currentTask = taskGroup ? taskGroup.tasks.find(t => t.id === e.taskID) : null;
+      if (currentTask) {
+        setQuickCardEditor({
+          top: e.top,
+          left: e.left,
+          isOpen: true,
+          task: currentTask,
+        });
+      }
     };
 
-    labelsRef.current = data.findProject.labels.map(label => {
-      return {
-        labelId: label.id,
-        name: label.name ?? '',
-        labelColor: label.labelColor,
-        active: false,
-      };
-    });
+    labelsRef.current = data.findProject.labels;
+
     return (
       <>
-        <GlobalTopNavbar projectMembers={availableMembers} name={data.findProject.name} />
+        <GlobalTopNavbar
+          onSaveProjectName={projectName => {
+            updateProjectName({ variables: { projectID, name: projectName } });
+          }}
+          projectMembers={data.findProject.members}
+          name={data.findProject.name}
+        />
         <ProjectBar>
           <ProjectActions>
             <ProjectAction
@@ -443,7 +440,12 @@ const Project = () => {
               onClick={() => {
                 showPopup(
                   $labelsRef,
-                  <LabelManagerEditor labelColors={data.labelColors} labels={labelsRef} projectID={projectID} />,
+                  <LabelManagerEditor
+                    taskLabels={null}
+                    labelColors={data.labelColors}
+                    labels={labelsRef}
+                    projectID={projectID}
+                  />,
                 );
               }}
             >
@@ -460,18 +462,53 @@ const Project = () => {
             </ProjectAction>
           </ProjectActions>
         </ProjectBar>
-        <KanbanBoard
-          listsData={currentListsData}
-          onCardDrop={onCardDrop}
-          onListDrop={onListDrop}
-          onCardCreate={onCardCreate}
-          onCreateList={onCreateList}
+        <SimpleLists
+          onTaskClick={task => {
+            history.push(`${match.url}/c/${task.id}`);
+          }}
+          onTaskDrop={droppedTask => {
+            updateTaskLocation({
+              variables: {
+                taskID: droppedTask.id,
+                taskGroupID: droppedTask.taskGroup.id,
+                position: droppedTask.position,
+              },
+              optimisticResponse: {
+                __typename: 'Mutation',
+                updateTaskLocation: {
+                  name: droppedTask.name,
+                  id: droppedTask.id,
+                  position: droppedTask.position,
+                  createdAt: '',
+                  __typename: 'Task',
+                },
+              },
+            });
+          }}
+          onTaskGroupDrop={droppedTaskGroup => {
+            updateTaskGroupLocation({
+              variables: { taskGroupID: droppedTaskGroup.id, position: droppedTaskGroup.position },
+              optimisticResponse: {
+                __typename: 'Mutation',
+                updateTaskGroupLocation: {
+                  id: droppedTaskGroup.id,
+                  position: droppedTaskGroup.position,
+                  __typename: 'TaskGroup',
+                },
+              },
+            });
+          }}
+          taskGroups={data.findProject.taskGroups}
+          onCreateTask={onCreateTask}
+          onCreateTaskGroup={onCreateList}
           onCardMemberClick={($targetRef, taskID, memberID) => {
+            const member = data.findProject.members.find(m => m.id === memberID);
+            const profileIcon = member ? member.profileIcon : null;
             showPopup(
               $targetRef,
               <Popup title={null} onClose={() => {}} tab={0}>
                 <MiniProfile
-                  profileIcon={availableMembers[0].profileIcon}
+                  profileIcon={profileIcon}
                   displayName="Jordan Knott"
                   username="@jordanthedev"
                   bio="None"
@@ -483,7 +520,7 @@ const Project = () => {
             );
           }}
           onQuickEditorOpen={onQuickEditorOpen}
-          onOpenListActionsPopup={($targetRef, taskGroupID) => {
+          onExtraMenuOpen={(taskGroupID: string, $targetRef: any) => {
             showPopup(
               $targetRef,
               <Popup title="List actions" tab={0} onClose={() => {}}>
@@ -501,8 +538,8 @@ const Project = () => {
         {quickCardEditor.isOpen && (
           <QuickCardEditor
             isOpen
-            taskID={quickCardEditor.task ? quickCardEditor.task.taskID : ''}
-            taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroup.taskGroupID : ''}
+            taskID={quickCardEditor.task ? quickCardEditor.task.id : ''}
+            taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroup.id : ''}
             cardTitle={quickCardEditor.task ? quickCardEditor.task.name : ''}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
             onEditCard={(_listId: string, cardId: string, cardName: string) => {
@@ -537,19 +574,33 @@ const Project = () => {
           render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
             <Details
               refreshCache={() => {}}
-              availableMembers={availableMembers}
+              availableMembers={data.findProject.members}
               projectURL={match.url}
               taskID={routeProps.match.params.taskID}
               onTaskNameChange={(updatedTask, newName) => {
-                updateTaskName({ variables: { taskID: updatedTask.taskID, name: newName } });
+                updateTaskName({ variables: { taskID: updatedTask.id, name: newName } });
               }}
               onTaskDescriptionChange={(updatedTask, newDescription) => {
-                updateTaskDescription({ variables: { taskID: updatedTask.taskID, description: newDescription } });
+                updateTaskDescription({ variables: { taskID: updatedTask.id, description: newDescription } });
               }}
               onDeleteTask={deletedTask => {
-                deleteTask({ variables: { taskID: deletedTask.taskID } });
+                deleteTask({ variables: { taskID: deletedTask.id } });
               }}
-              onOpenAddLabelPopup={(task, $targetRef) => {}}
+              onOpenAddLabelPopup={(task, $targetRef) => {
+                taskLabelsRef.current = task.labels;
+                showPopup(
+                  $targetRef,
+                  <LabelManagerEditor
+                    onLabelToggle={labelID => {
+                      toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
+                    }}
+                    labelColors={data.labelColors}
+                    labels={labelsRef}
+                    taskLabels={taskLabelsRef}
+                    projectID={projectID}
+                  />,
+                );
+              }}
             />
           )}
         />

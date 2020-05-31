@@ -17,21 +17,35 @@ export const Default = () => {
   return (
     <DueDateManager
       task={{
-        taskID: '1',
-        taskGroup: { name: 'General', taskGroupID: '1' },
+        id: '1',
+        taskGroup: { name: 'General', id: '1', position: 1 },
         name: 'Hello, world',
         position: 1,
         labels: [
           {
-            labelId: 'soft-skills',
-            labelColor: { id: '1', colorHex: '#fff', name: 'white', position: 1 },
-            active: true,
-            name: 'Soft Skills',
+            id: 'soft-skills',
+            assignedDate: new Date().toString(),
+            projectLabel: {
+              createdDate: new Date().toString(),
+              id: 'label-soft-skills',
+              name: 'Soft Skills',
+              labelColor: {
+                id: '1',
+                name: 'white',
+                colorHex: '#fff',
+                position: 1,
+              },
+            },
           },
         ],
         description: 'hello!',
-        members: [
-          { userID: '1', profileIcon: { url: null, initials: null, bgColor: null }, displayName: 'Jordan Knott' },
+        assigned: [
+          {
+            id: '1',
+            profileIcon: { url: null, initials: null, bgColor: null },
+            firstName: 'Jordan',
+            lastName: 'Knott',
+          },
         ],
       }}
       onCancel={action('cancel')}

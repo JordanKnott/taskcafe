@@ -8,8 +8,9 @@ import { useMeQuery } from 'shared/generated/graphql';
 type GlobalTopNavbarProps = {
   name: string;
   projectMembers?: null | Array<TaskUser>;
+  onSaveProjectName?: (projectName: string) => void;
 };
-const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers }) => {
+const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers, onSaveProjectName }) => {
   const { loading, data } = useMeQuery();
   const history = useHistory();
   const { userID, setUserID } = useContext(UserIDContext);
@@ -52,6 +53,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers 
         onNotificationClick={() => {}}
         projectMembers={projectMembers}
         onProfileClick={onProfileClick}
+        onSaveProjectName={onSaveProjectName}
       />
       {menu.isOpen && (
         <DropdownMenu

@@ -14,28 +14,17 @@ export default {
   },
 };
 
-const labelData = [
+const labelData: Array<ProjectLabel> = [
   {
-    labelId: 'development',
+    id: 'development',
     name: 'Development',
+    createdDate: new Date().toString(),
     labelColor: {
       id: '1',
       colorHex: LabelColors.BLUE,
       name: 'blue',
       position: 1,
     },
-    active: false,
-  },
-  {
-    labelId: 'general',
-    name: 'General',
-    labelColor: {
-      id: '2',
-      colorHex: LabelColors.PINK,
-      name: 'pink',
-      position: 2,
-    },
-    active: false,
   },
 ];
 

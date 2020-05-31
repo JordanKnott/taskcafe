@@ -11,5 +11,7 @@ export const Container = styled.div`
 
 export const BoardWrapper = styled.div`
   display: flex;
+  margin-top: 12px;
+  margin-left: 8px;
 `;
 export default Container;

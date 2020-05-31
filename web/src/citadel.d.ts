@@ -3,18 +3,6 @@ interface JWTToken {
   iat: string;
   exp: string;
 }
-interface ColumnState {
-  [key: string]: TaskGroup;
-}
-
-interface TaskState {
-  [key: string]: Task;
-}
-
-interface BoardState {
-  columns: ColumnState;
-  tasks: TaskState;
-}
 
 interface DraggableElement {
   id: string;
@@ -28,64 +16,11 @@ type ContextMenuEvent = {
   taskGroupID: string;
 };
 
-type InnerTaskGroup = {
-  taskGroupID: string;
-  name?: string;
-  position?: number;
-};
-
-type ProfileIcon = {
-  url: string | null;
-  initials: string | null;
-  bgColor: string | null;
-};
-
 type TaskUser = {
-  userID: string;
-  displayName: string;
+  id: string;
+  firstName: string;
+  lastName: string;
   profileIcon: ProfileIcon;
-};
-
-type Task = {
-  taskID: string;
-  taskGroup: InnerTaskGroup;
-  name: string;
-  position: number;
-  labels: Label[];
-  description?: string | null;
-  members?: Array<TaskUser>;
-};
-
-type TaskGroup = {
-  taskGroupID: string;
-  name: string;
-  position: number;
-  tasks: Task[];
-};
-
-type Project = {
-  projectID: string;
-  name: string;
-  color?: string;
-  teamTitle?: string;
-  taskGroups: TaskGroup[];
-};
-
-type Organization = {
-  name: string;
-  teams: Team[];
-};
-
-type Team = {
-  name: string;
-  projects: Project[];
-};
-
-type Label = {
-  labelId: string;
-  name: string;
-  labelColor: LabelColor;
-  active: boolean;
 };
 
 type RefreshTokenResponse = {
@@ -117,17 +52,9 @@ type ElementSize = {
   height: number;
 };
 
-type LabelColor = {
-  id: string;
-  name: string;
-  colorHex: string;
-  position: number;
-};
-
 type OnCardMemberClick = ($targetRef: RefObject<HTMLElement>, taskID: string, memberID: string) => void;
 
 type ElementBounds = {
   size: ElementSize;
   position: ElementPosition;
 };
-

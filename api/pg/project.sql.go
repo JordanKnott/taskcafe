@@ -121,3 +121,25 @@ func (q *Queries) GetProjectByID(ctx context.Context, projectID uuid.UUID) (Proj
 	)
 	return i, err
 }
+
+const updateProjectNameByID = `-- name: UpdateProjectNameByID :one
+UPDATE project SET name = $2 WHERE project_id = $1 RETURNING project_id, team_id, created_at, name, owner
+`
+
+type UpdateProjectNameByIDParams struct {
+	ProjectID uuid.UUID `json:"project_id"`
+	Name      string    `json:"name"`
+}
+
+func (q *Queries) UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNameByIDParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, updateProjectNameByID, arg.ProjectID, arg.Name)
+	var i Project
+	err := row.Scan(
+		&i.ProjectID,
+		&i.TeamID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Owner,
+	)
+	return i, err
+}

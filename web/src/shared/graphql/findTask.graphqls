@@ -7,6 +7,21 @@ query findTask($taskID: UUID!) {
     taskGroup {
       id
     }
+    labels {
+      id
+      assignedDate
+      projectLabel {
+        id
+        name
+        createdDate
+        labelColor {
+          id
+          colorHex
+          position
+          name
+        }
+      }
+    }
     assigned {
       id
       firstName

@@ -6,6 +6,23 @@ mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
     description
     taskGroup {
       id
+      name
+      position
+    }
+    labels {
+      id
+      assignedDate
+      projectLabel {
+        id
+        name
+        createdDate
+        labelColor {
+          id
+          colorHex
+          position
+          name
+        }
+      }
     }
     assigned {
       id

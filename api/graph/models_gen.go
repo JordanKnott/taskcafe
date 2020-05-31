@@ -8,8 +8,8 @@ import (
 )
 
 type AddTaskLabelInput struct {
-	TaskID       uuid.UUID `json:"taskID"`
-	LabelColorID uuid.UUID `json:"labelColorID"`
+	TaskID         uuid.UUID `json:"taskID"`
+	ProjectLabelID uuid.UUID `json:"projectLabelID"`
 }
 
 type AssignTaskInput struct {
@@ -125,8 +125,17 @@ type ProjectsFilter struct {
 }
 
 type RemoveTaskLabelInput struct {
-	TaskID      uuid.UUID `json:"taskID"`
 	TaskLabelID uuid.UUID `json:"taskLabelID"`
+}
+
+type ToggleTaskLabelInput struct {
+	TaskID         uuid.UUID `json:"taskID"`
+	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+}
+
+type ToggleTaskLabelPayload struct {
+	Active bool     `json:"active"`
+	Task   *pg.Task `json:"task"`
 }
 
 type UnassignTaskInput struct {
@@ -148,6 +157,11 @@ type UpdateProjectLabelColor struct {
 type UpdateProjectLabelName struct {
 	ProjectLabelID uuid.UUID `json:"projectLabelID"`
 	Name           string    `json:"name"`
+}
+
+type UpdateProjectName struct {
+	ProjectID uuid.UUID `json:"projectID"`
+	Name      string    `json:"name"`
 }
 
 type UpdateTaskDescriptionInput struct {

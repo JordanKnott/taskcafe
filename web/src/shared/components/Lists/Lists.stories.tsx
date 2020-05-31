@@ -70,14 +70,12 @@ export const Default = () => {
       ...listsData,
       tasks: {
         ...listsData.tasks,
-        [droppedTask.taskID]: droppedTask,
+        [droppedTask.id]: droppedTask,
       },
     };
-    console.log(newState);
     setListsData(newState);
   };
   const onListDrop = (droppedColumn: any) => {
-    console.log(droppedColumn);
     const newState = {
       ...listsData,
       columns: {
@@ -85,44 +83,9 @@ export const Default = () => {
         [droppedColumn.taskGroupID]: droppedColumn,
       },
     };
-    console.log(newState);
     setListsData(newState);
   };
-  return (
-    <Lists
-      {...listsData}
-      onCardClick={action('card click')}
-      onExtraMenuOpen={action('extra menu open')}
-      onQuickEditorOpen={action('card composer open')}
-      onCardDrop={onCardDrop}
-      onListDrop={onListDrop}
-      onCardMemberClick={action('card member click')}
-      onCardCreate={action('card create')}
-      onCreateList={listName => {
-        const [lastColumn] = Object.values(listsData.columns)
-          .sort((a, b) => a.position - b.position)
-          .slice(-1);
-        let position = 1;
-        if (lastColumn) {
-          position = lastColumn.position + 1;
-        }
-        const taskGroupID = Math.random().toString();
-        const newListsData = {
-          ...listsData,
-          columns: {
-            ...listsData.columns,
-            [taskGroupID]: {
-              taskGroupID,
-              name: listName,
-              position,
-              tasks: [],
-            },
-          },
-        };
-        setListsData(newListsData);
-      }}
-    />
-  );
+  return <span />;
 };
 
 const createColumn = (id: any, name: any, position: any) => {
@@ -202,13 +165,13 @@ export const ListsWithManyList = () => {
   };
   return (
     <Lists
-      {...listsData}
-      onCardClick={action('card click')}
+      taskGroups={[]}
+      onTaskClick={action('card click')}
       onQuickEditorOpen={action('card composer open')}
-      onCardCreate={action('card create')}
-      onCardDrop={onCardDrop}
-      onListDrop={onListDrop}
-      onCreateList={action('create list')}
+      onCreateTask={action('card create')}
+      onTaskDrop={onCardDrop}
+      onTaskGroupDrop={onListDrop}
+      onCreateTaskGroup={action('create list')}
       onExtraMenuOpen={action('extra menu open')}
       onCardMemberClick={action('card member click')}
     />

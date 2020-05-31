@@ -29,29 +29,34 @@ export const Default = () => {
           return (
             <TaskDetails
               task={{
-                taskID: '1',
-                taskGroup: { name: 'General', taskGroupID: '1' },
+                id: '1',
+                taskGroup: { name: 'General', id: '1' },
                 name: 'Hello, world',
                 position: 1,
                 labels: [
                   {
-                    labelId: 'soft-skills',
-                    labelColor: {
-                      id: '1',
-                      name: 'white',
-                      colorHex: '#fff',
-                      position: 1,
+                    id: 'soft-skills',
+                    assignedDate: new Date().toString(),
+                    projectLabel: {
+                      createdDate: new Date().toString(),
+                      id: 'label-soft-skills',
+                      name: 'Soft Skills',
+                      labelColor: {
+                        id: '1',
+                        name: 'white',
+                        colorHex: '#fff',
+                        position: 1,
+                      },
                     },
-                    active: true,
-                    name: 'Soft Skills',
                   },
                 ],
                 description,
-                members: [
+                assigned: [
                   {
-                    userID: '1',
+                    id: '1',
                     profileIcon: { bgColor: null, url: null, initials: null },
-                    displayName: 'Jordan Knott',
+                    firstName: 'Jordan',
+                    lastName: 'Knott',
                   },
                 ],
               }}
