@@ -102,7 +102,7 @@ export const EditorButton = styled.div`
   background: rgba(0, 0, 0, 0.6);
   border-radius: 3px;
   clear: both;
-  color: #e6e6e6;
+  color: #c2c6dc;
   display: block;
   float: left;
   margin: 0 0 4px 8px;

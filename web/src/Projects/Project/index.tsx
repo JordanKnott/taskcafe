@@ -576,7 +576,7 @@ const Project = () => {
             onArchiveCard={(_listId: string, cardId: string) =>
               deleteTask({
                 variables: { taskID: cardId },
-                update: client => {
+                update: () => {
                   const cacheData = getCacheData(client, projectID);
                   const newData = {
                     ...cacheData.findProject,
