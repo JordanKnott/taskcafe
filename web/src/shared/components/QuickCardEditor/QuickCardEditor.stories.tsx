@@ -17,16 +17,20 @@ export default {
   },
 };
 
-const labelData: Array<ProjectLabel> = [
+const labelData: Array<TaskLabel> = [
   {
     id: 'development',
-    name: 'Development',
-    createdDate: 'date',
-    labelColor: {
-      id: 'label-color-blue',
-      colorHex: LabelColors.BLUE,
-      name: 'blue',
-      position: 1,
+    assignedDate: new Date().toString(),
+    projectLabel: {
+      id: 'development',
+      name: 'Development',
+      createdDate: 'date',
+      labelColor: {
+        id: 'label-color-blue',
+        colorHex: LabelColors.BLUE,
+        name: 'blue',
+        position: 1,
+      },
     },
   },
 ];
@@ -40,15 +44,19 @@ export const Default = () => {
     <>
       {isEditorOpen && (
         <QuickCardEditor
-          isOpen={isEditorOpen}
-          taskGroupID="1"
-          taskID="1"
-          cardTitle="Hello, world"
+          task={{
+            id: 'task',
+            name: 'General',
+            taskGroup: {
+              id: '1',
+            },
+            position: 1,
+            labels: labelData,
+          }}
           onCloseEditor={() => setEditorOpen(false)}
           onEditCard={action('edit card')}
-          onOpenPopup={action('open popup')}
+          onOpenLabelsPopup={action('open popup')}
           onArchiveCard={action('archive card')}
-          labels={labelData}
           top={top}
           left={left}
         />
@@ -75,7 +83,7 @@ export const Default = () => {
               setEditorOpen(true);
             }}
             watched
-            labels={labelData}
+            labels={labelData.map(l => l.projectLabel)}
             checklists={{ complete: 1, total: 4 }}
             dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
           />

@@ -67,8 +67,8 @@ type Props = {
   onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   dueDate?: DueDate;
   checklists?: Checklist;
-  watched?: boolean;
   labels?: Array<ProjectLabel>;
+  watched?: boolean;
   wrapperProps?: any;
   members?: Array<TaskUser> | null;
   onCardMemberClick?: OnCardMemberClick;

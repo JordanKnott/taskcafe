@@ -1,5 +1,6 @@
 import styled, { keyframes } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
+import { mixin } from 'shared/utils/styles';
 
 export const Wrapper = styled.div<{ open: boolean }>`
   background: rgba(0, 0, 0, 0.4);
@@ -21,9 +22,10 @@ export const Container = styled.div<{ top: number; left: number }>`
 `;
 
 export const Editor = styled.div`
-  background-color: #fff;
+  background-color: ${props => mixin.lighten('#262c49', 0.05)};
   border-radius: 3px;
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
+  color: #c2c6dc;
   padding: 6px 8px 2px;
   cursor: default;
   display: block;
@@ -59,6 +61,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   padding: 0;
   font-size: 16px;
   line-height: 20px;
+  color: #fff;
   &:focus {
     border: none;
     outline: none;
@@ -67,7 +70,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
 
 export const SaveButton = styled.button`
   cursor: pointer;
-  background-color: #5aac44;
+  background: rgb(115, 103, 240);
   box-shadow: none;
   border: none;
   color: #fff;
@@ -79,10 +82,12 @@ export const SaveButton = styled.button`
   text-align: center;
   border-radius: 3px;
 `;
+
 export const FadeInAnimation = keyframes`
 from { opacity: 0; transform: translateX(-20px); }
 to { opacity: 1; transform: translateX(0); }
 `;
+
 export const EditorButtons = styled.div`
   left: 100%;
   position: absolute;

@@ -67,7 +67,8 @@ interface QuickCardEditorState {
   isOpen: boolean;
   left: number;
   top: number;
-  task?: Task;
+  taskID: string | null;
+  taskGroupID: string | null;
 }
 
 const TitleWrapper = styled.div`
@@ -200,7 +201,13 @@ interface ProjectParams {
   projectID: string;
 }
 
-const initialQuickCardEditorState: QuickCardEditorState = { isOpen: false, top: 0, left: 0 };
+const initialQuickCardEditorState: QuickCardEditorState = {
+  taskID: null,
+  taskGroupID: null,
+  isOpen: false,
+  top: 0,
+  left: 0,
+};
 
 const ProjectBar = styled.div`
   display: flex;
@@ -417,12 +424,21 @@ const Project = () => {
           top: e.top,
           left: e.left,
           isOpen: true,
-          task: currentTask,
+          taskID: currentTask.id,
+          taskGroupID: currentTask.taskGroup.id,
         });
       }
     };
 
     labelsRef.current = data.findProject.labels;
+
+    let currentQuickTask = null;
+    if (quickCardEditor.taskID && quickCardEditor.taskGroupID) {
+      const targetGroup = data.findProject.taskGroups.find(t => t.id === quickCardEditor.taskGroupID);
+      if (targetGroup) {
+        currentQuickTask = targetGroup.tasks.find(t => t.id === quickCardEditor.taskID);
+      }
+    }
 
     return (
       <>
@@ -535,17 +551,28 @@ const Project = () => {
             );
           }}
         />
-        {quickCardEditor.isOpen && (
+        {quickCardEditor.isOpen && currentQuickTask && (
           <QuickCardEditor
-            isOpen
-            taskID={quickCardEditor.task ? quickCardEditor.task.id : ''}
-            taskGroupID={quickCardEditor.task ? quickCardEditor.task.taskGroup.id : ''}
-            cardTitle={quickCardEditor.task ? quickCardEditor.task.name : ''}
+            task={currentQuickTask}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
             onEditCard={(_listId: string, cardId: string, cardName: string) => {
               updateTaskName({ variables: { taskID: cardId, name: cardName } });
             }}
-            onOpenPopup={() => {}}
+            onOpenLabelsPopup={($targetRef, task) => {
+              taskLabelsRef.current = task.labels;
+              showPopup(
+                $targetRef,
+                <LabelManagerEditor
+                  onLabelToggle={labelID => {
+                    toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
+                  }}
+                  labelColors={data.labelColors}
+                  labels={labelsRef}
+                  taskLabels={taskLabelsRef}
+                  projectID={projectID}
+                />,
+              );
+            }}
             onArchiveCard={(_listId: string, cardId: string) =>
               deleteTask({
                 variables: { taskID: cardId },
@@ -564,7 +591,6 @@ const Project = () => {
                 },
               })
             }
-            labels={[]}
             top={quickCardEditor.top}
             left={quickCardEditor.left}
           />
