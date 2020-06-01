@@ -1,4 +1,9 @@
 query getProjects {
+  teams {
+    id
+    name
+    createdAt
+  }
   projects {
     id
     name

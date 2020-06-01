@@ -110,6 +110,7 @@ type Query {
   findProject(input: FindProject!): Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
+  teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
   me: UserAccount!
@@ -153,8 +154,8 @@ input NewTask {
   position: Float!
 }
 input NewTaskLocation {
-  taskID: String!
-  taskGroupID: String!
+  taskID: UUID!
+  taskGroupID: UUID!
   position: Float!
 }
 
@@ -250,6 +251,10 @@ input UpdateProjectName {
   name: String!
 }
 
+type UpdateTaskLocationPayload {
+  previousTaskGroupID: UUID!
+  task: Task!
+}
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -276,7 +281,7 @@ type Mutation {
 
   createTask(input: NewTask!): Task!
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
-  updateTaskLocation(input: NewTaskLocation!): Task!
+  updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
   updateTaskName(input: UpdateTaskName!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
   assignTask(input: AssignTaskInput): Task!

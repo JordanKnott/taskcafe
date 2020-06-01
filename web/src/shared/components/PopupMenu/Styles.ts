@@ -1,12 +1,12 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 
-export const Container = styled.div<{ invert: boolean; top: number; left: number; ref: any }>`
+export const Container = styled.div<{ invert: boolean; top: number; left: number; ref: any; width: number | string }>`
   left: ${props => props.left}px;
   top: ${props => props.top}px;
   display: block;
   position: absolute;
-  width: 316px;
+  width: ${props => props.width}px;
   padding-top: 10px;
   height: auto;
   z-index: 40000;

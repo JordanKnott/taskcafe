@@ -1,5 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Cross from 'shared/icons/Cross';
+import styled from 'styled-components';
+import Member from 'shared/components/Member';
 import {
   Wrapper,
   Container,
@@ -14,20 +16,39 @@ import {
   ListCardLabel,
 } from './Styles';
 
+export const CardMembers = styled.div`
+  position: absolute;
+  right: 0;
+  bottom: 0;
+`;
+
 type Props = {
   task: Task;
   onCloseEditor: () => void;
   onEditCard: (taskGroupID: string, taskID: string, cardName: string) => void;
   onOpenLabelsPopup: ($targetRef: React.RefObject<HTMLElement>, task: Task) => void;
+  onOpenMembersPopup: ($targetRef: React.RefObject<HTMLElement>, task: Task) => void;
   onArchiveCard: (taskGroupID: string, taskID: string) => void;
+  onCardMemberClick?: OnCardMemberClick;
   top: number;
   left: number;
 };
 
-const QuickCardEditor = ({ task, onCloseEditor, onOpenLabelsPopup, onArchiveCard, onEditCard, top, left }: Props) => {
+const QuickCardEditor = ({
+  task,
+  onCloseEditor,
+  onOpenLabelsPopup,
+  onOpenMembersPopup,
+  onCardMemberClick,
+  onArchiveCard,
+  onEditCard,
+  top,
+  left,
+}: Props) => {
   const [currentCardTitle, setCardTitle] = useState(task.name);
   const $editorRef: any = useRef();
   const $labelsRef: any = useRef();
+  const $membersRef: any = useRef();
   useEffect(() => {
     $editorRef.current.focus();
     $editorRef.current.select();
@@ -71,10 +92,25 @@ const QuickCardEditor = ({ task, onCloseEditor, onOpenLabelsPopup, onArchiveCard
               value={currentCardTitle}
               ref={$editorRef}
             />
+            <CardMembers>
+              {task.assigned &&
+                task.assigned.map(member => (
+                  <Member key={member.id} taskID={task.id} member={member} onCardMemberClick={onCardMemberClick} />
+                ))}
+            </CardMembers>
           </EditorDetails>
         </Editor>
         <SaveButton onClick={e => onEditCard(task.taskGroup.id, task.id, currentCardTitle)}>Save</SaveButton>
         <EditorButtons>
+          <EditorButton
+            ref={$membersRef}
+            onClick={e => {
+              e.stopPropagation();
+              onOpenMembersPopup($membersRef, task);
+            }}
+          >
+            Edit Assigned
+          </EditorButton>
           <EditorButton
             ref={$labelsRef}
             onClick={e => {

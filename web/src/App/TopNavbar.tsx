@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
 import TopNavbar from 'shared/components/TopNavbar';
 import DropdownMenu from 'shared/components/DropdownMenu';
+import ProjectSettings from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
 import UserIDContext from 'App/context';
 import { useMeQuery } from 'shared/generated/graphql';
+import { usePopup, Popup } from 'shared/components/PopupMenu';
 
 type GlobalTopNavbarProps = {
   name: string | null;
@@ -12,6 +14,7 @@ type GlobalTopNavbarProps = {
 };
 const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers, onSaveProjectName }) => {
   const { loading, data } = useMeQuery();
+  const { showPopup } = usePopup();
   const history = useHistory();
   const { userID, setUserID } = useContext(UserIDContext);
   const [menu, setMenu] = useState({
@@ -25,6 +28,16 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers,
       left: right,
       top: bottom,
     });
+  };
+
+  const onOpenSettings = ($target: React.RefObject<HTMLElement>) => {
+    showPopup(
+      $target,
+      <Popup title={null} tab={0}>
+        <ProjectSettings />
+      </Popup>,
+      185,
+    );
   };
 
   const onLogout = () => {
@@ -54,6 +67,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({ name, projectMembers,
         projectMembers={projectMembers}
         onProfileClick={onProfileClick}
         onSaveProjectName={onSaveProjectName}
+        onOpenSettings={onOpenSettings}
       />
       {menu.isOpen && (
         <DropdownMenu

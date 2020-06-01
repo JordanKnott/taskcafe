@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { DraggableProvidedDraggableProps } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Member from 'shared/components/Member';
 import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
 import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
 import {
@@ -19,8 +20,6 @@ import {
   ListCardOperation,
   CardTitle,
   CardMembers,
-  CardMember,
-  CardMemberInitials,
 } from './Styles';
 
 type DueDate = {
@@ -31,31 +30,6 @@ type DueDate = {
 type Checklist = {
   complete: number;
   total: number;
-};
-
-type MemberProps = {
-  onCardMemberClick?: OnCardMemberClick;
-  taskID: string;
-  member: TaskUser;
-};
-
-const Member: React.FC<MemberProps> = ({ onCardMemberClick, taskID, member }) => {
-  const $targetRef = useRef<HTMLDivElement>();
-  return (
-    <CardMember
-      ref={$targetRef}
-      onClick={e => {
-        if (onCardMemberClick) {
-          e.stopPropagation();
-          onCardMemberClick($targetRef, taskID, member.id);
-        }
-      }}
-      key={member.id}
-      bgColor={member.profileIcon.bgColor ?? '#7367F0'}
-    >
-      <CardMemberInitials>{member.profileIcon.initials}</CardMemberInitials>
-    </CardMember>
-  );
 };
 
 type Props = {

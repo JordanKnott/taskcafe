@@ -15,7 +15,7 @@ import { Container, BoardWrapper } from './Styles';
 
 interface SimpleProps {
   taskGroups: Array<TaskGroup>;
-  onTaskDrop: (task: Task) => void;
+  onTaskDrop: (task: Task, previousTaskGroupID: string) => void;
   onTaskGroupDrop: (taskGroup: TaskGroup) => void;
 
   onTaskClick: (task: Task) => void;
@@ -110,7 +110,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
             id: destination.droppableId,
           },
         };
-        onTaskDrop(newTask);
+        onTaskDrop(newTask, droppedTask.taskGroup.id);
       }
     }
   };

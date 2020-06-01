@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import GlobalTopNavbar from 'App/TopNavbar';
 import styled from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags } from 'shared/icons';
@@ -22,6 +22,7 @@ import {
   DeleteTaskDocument,
   FindProjectDocument,
   useCreateProjectLabelMutation,
+  useUnassignTaskMutation,
 } from 'shared/generated/graphql';
 
 import TaskAssignee from 'shared/components/TaskAssignee';
@@ -38,6 +39,7 @@ import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import Details from './Details';
 import { useApolloClient } from '@apollo/react-hooks';
+import UserIDContext from 'App/context';
 
 const getCacheData = (client: any, projectID: string) => {
   const cacheData: any = client.readQuery({
@@ -249,7 +251,31 @@ const Project = () => {
 
   const [updateTaskDescription] = useUpdateTaskDescriptionMutation();
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
-  const [updateTaskLocation] = useUpdateTaskLocationMutation();
+  const [updateTaskLocation] = useUpdateTaskLocationMutation({
+    update: (client, newTask) => {
+      const cacheData = getCacheData(client, projectID);
+      console.log(cacheData);
+      console.log(newTask);
+
+      const newTaskGroups = produce(cacheData.findProject.taskGroups, (draftState: Array<TaskGroup>) => {
+        const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
+        if (previousTaskGroupID !== task.taskGroup.id) {
+          const oldTaskGroupIdx = draftState.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
+          const newTaskGroupIdx = draftState.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
+          if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
+            draftState[oldTaskGroupIdx].tasks = draftState[oldTaskGroupIdx].tasks.filter((t: Task) => t.id !== task.id);
+            draftState[newTaskGroupIdx].tasks = [...draftState[newTaskGroupIdx].tasks, { ...task }];
+          }
+        }
+      });
+
+      const newData = {
+        ...cacheData.findProject,
+        taskGroups: newTaskGroups,
+      };
+      writeCacheData(client, projectID, cacheData, newData);
+    },
+  });
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation({});
 
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
@@ -351,23 +377,6 @@ const Project = () => {
     }
   };
 
-  const onCardDrop = (droppedTask: Task) => {
-    updateTaskLocation({
-      variables: {
-        taskID: droppedTask.id,
-        taskGroupID: droppedTask.taskGroup.id,
-        position: droppedTask.position,
-      },
-      optimisticResponse: {
-        updateTaskLocation: {
-          name: droppedTask.name,
-          id: droppedTask.id,
-          position: droppedTask.position,
-          createdAt: '',
-        },
-      },
-    });
-  };
   const onListDrop = (droppedColumn: TaskGroup) => {
     console.log(`list drop ${droppedColumn.id}`);
     const cacheData = getCacheData(client, projectID);
@@ -399,10 +408,21 @@ const Project = () => {
   };
 
   const [assignTask] = useAssignTaskMutation();
+  const [unassignTask] = useUnassignTaskMutation();
 
-  const [updateProjectName] = useUpdateProjectNameMutation();
+  const [updateProjectName] = useUpdateProjectNameMutation({
+    update: (client, newName) => {
+      const cacheData = getCacheData(client, projectID);
+      const newData = {
+        ...cacheData.findProject,
+        name: newName.data.updateProjectName.name,
+      };
+      writeCacheData(client, projectID, cacheData, newData);
+    },
+  });
 
   const client = useApolloClient();
+  const { userID } = useContext(UserIDContext);
 
   const { showPopup, hidePopup } = usePopup();
   const $labelsRef = useRef<HTMLDivElement>(null);
@@ -482,7 +502,7 @@ const Project = () => {
           onTaskClick={task => {
             history.push(`${match.url}/c/${task.id}`);
           }}
-          onTaskDrop={droppedTask => {
+          onTaskDrop={(droppedTask, previousTaskGroupID) => {
             updateTaskLocation({
               variables: {
                 taskID: droppedTask.id,
@@ -492,11 +512,18 @@ const Project = () => {
               optimisticResponse: {
                 __typename: 'Mutation',
                 updateTaskLocation: {
-                  name: droppedTask.name,
-                  id: droppedTask.id,
-                  position: droppedTask.position,
-                  createdAt: '',
-                  __typename: 'Task',
+                  previousTaskGroupID,
+                  task: {
+                    name: droppedTask.name,
+                    id: droppedTask.id,
+                    position: droppedTask.position,
+                    taskGroup: {
+                      id: droppedTask.taskGroup.id,
+                      __typename: 'TaskGroup',
+                    },
+                    createdAt: '',
+                    __typename: 'Task',
+                  },
                 },
               },
             });
@@ -557,6 +584,42 @@ const Project = () => {
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
             onEditCard={(_listId: string, cardId: string, cardName: string) => {
               updateTaskName({ variables: { taskID: cardId, name: cardName } });
+            }}
+            onOpenMembersPopup={($targetRef, task) => {
+              showPopup(
+                $targetRef,
+                <Popup title="Members" tab={0} onClose={() => {}}>
+                  <MemberManager
+                    availableMembers={data.findProject.members}
+                    activeMembers={task.assigned ?? []}
+                    onMemberChange={(member, isActive) => {
+                      if (isActive) {
+                        assignTask({ variables: { taskID: task.id, userID: userID ?? '' } });
+                      } else {
+                        unassignTask({ variables: { taskID: task.id, userID: userID ?? '' } });
+                      }
+                    }}
+                  />
+                </Popup>,
+              );
+            }}
+            onCardMemberClick={($targetRef, taskID, memberID) => {
+              const member = data.findProject.members.find(m => m.id === memberID);
+              const profileIcon = member ? member.profileIcon : null;
+              showPopup(
+                $targetRef,
+                <Popup title={null} onClose={() => {}} tab={0}>
+                  <MiniProfile
+                    profileIcon={profileIcon}
+                    displayName="Jordan Knott"
+                    username="@jordanthedev"
+                    bio="None"
+                    onRemoveFromTask={() => {
+                      /* unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } }); */
+                    }}
+                  />
+                </Popup>,
+              );
             }}
             onOpenLabelsPopup={($targetRef, task) => {
               taskLabelsRef.current = task.labels;

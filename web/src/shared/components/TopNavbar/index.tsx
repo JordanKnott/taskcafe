@@ -32,9 +32,14 @@ import MiniProfile from 'shared/components/MiniProfile';
 type ProjectHeadingProps = {
   projectName: string;
   onSaveProjectName?: (projectName: string) => void;
+  onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
 };
 
-const ProjectHeading: React.FC<ProjectHeadingProps> = ({ projectName: initialProjectName, onSaveProjectName }) => {
+const ProjectHeading: React.FC<ProjectHeadingProps> = ({
+  projectName: initialProjectName,
+  onSaveProjectName,
+  onOpenSettings,
+}) => {
   const [isEditProjectName, setEditProjectName] = useState(false);
   const [projectName, setProjectName] = useState(initialProjectName);
   const $projectName = useRef<HTMLTextAreaElement>(null);
@@ -66,6 +71,7 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({ projectName: initialPro
     }
   };
 
+  const $settings = useRef<HTMLButtonElement>(null);
   return (
     <>
       <Separator>»</Separator>
@@ -87,7 +93,12 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({ projectName: initialPro
           {projectName}
         </ProjectName>
       )}
-      <ProjectSettingsButton>
+      <ProjectSettingsButton
+        onClick={() => {
+          onOpenSettings($settings);
+        }}
+        ref={$settings}
+      >
         <AngleDown color="#c2c6dc" />
       </ProjectSettingsButton>
       <ProjectSettingsButton>
@@ -103,6 +114,7 @@ type NavBarProps = {
   onSaveProjectName?: (projectName: string) => void;
   onNotificationClick: () => void;
   bgColor: string;
+  onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
   firstName: string;
   lastName: string;
   initials: string;
@@ -119,6 +131,7 @@ const NavBar: React.FC<NavBarProps> = ({
   initials,
   bgColor,
   projectMembers,
+  onOpenSettings,
 }) => {
   const $profileRef: any = useRef(null);
   const handleProfileClick = () => {
@@ -147,7 +160,13 @@ const NavBar: React.FC<NavBarProps> = ({
         <ProjectActions>
           <ProjectMeta>
             <ProjectSwitcher>Projects</ProjectSwitcher>
-            {projectName && <ProjectHeading projectName={projectName} onSaveProjectName={onSaveProjectName} />}
+            {projectName && (
+              <ProjectHeading
+                onOpenSettings={onOpenSettings}
+                projectName={projectName}
+                onSaveProjectName={onSaveProjectName}
+              />
+            )}
           </ProjectMeta>
           {projectName && (
             <ProjectTabs>

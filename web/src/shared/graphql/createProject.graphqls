@@ -1,0 +1,10 @@
+mutation createProject($teamID: UUID!, $userID: UUID!, $name: String!) {
+  createProject(input: {teamID: $teamID, userID: $userID, name: $name}) {
+    id
+    name
+    team {
+      id
+      name
+    }
+  }
+}

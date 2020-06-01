@@ -1,7 +1,23 @@
 import React from 'react';
 
-import { ProjectWrapper, ProjectContent, ProjectTitle, TeamTitle } from './Styles';
+import { Plus } from 'shared/icons';
+import { AddProjectWrapper, AddProjectLabel, ProjectWrapper, ProjectContent, ProjectTitle, TeamTitle } from './Styles';
 
+type AddProjectItemProps = {
+  onAddProject: () => void;
+};
+export const AddProjectItem: React.FC<AddProjectItemProps> = ({ onAddProject }) => {
+  return (
+    <AddProjectWrapper
+      onClick={() => {
+        onAddProject();
+      }}
+    >
+      <Plus size={20} color="#c2c6dc" />
+      <AddProjectLabel>New Project</AddProjectLabel>
+    </AddProjectWrapper>
+  );
+};
 type Props = {
   project: Project;
 };

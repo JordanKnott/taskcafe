@@ -137,6 +137,7 @@ type ComplexityRoot struct {
 		Me          func(childComplexity int) int
 		Projects    func(childComplexity int, input *ProjectsFilter) int
 		TaskGroups  func(childComplexity int) int
+		Teams       func(childComplexity int) int
 		Users       func(childComplexity int) int
 	}
 
@@ -184,6 +185,11 @@ type ComplexityRoot struct {
 		Task   func(childComplexity int) int
 	}
 
+	UpdateTaskLocationPayload struct {
+		PreviousTaskGroupID func(childComplexity int) int
+		Task                func(childComplexity int) int
+	}
+
 	UserAccount struct {
 		CreatedAt   func(childComplexity int) int
 		Email       func(childComplexity int) int
@@ -217,7 +223,7 @@ type MutationResolver interface {
 	ToggleTaskLabel(ctx context.Context, input ToggleTaskLabelInput) (*ToggleTaskLabelPayload, error)
 	CreateTask(ctx context.Context, input NewTask) (*pg.Task, error)
 	UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*pg.Task, error)
-	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*pg.Task, error)
+	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error)
 	UpdateTaskName(ctx context.Context, input UpdateTaskName) (*pg.Task, error)
 	DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error)
 	AssignTask(ctx context.Context, input *AssignTaskInput) (*pg.Task, error)
@@ -245,6 +251,7 @@ type QueryResolver interface {
 	FindProject(ctx context.Context, input FindProject) (*pg.Project, error)
 	FindTask(ctx context.Context, input FindTask) (*pg.Task, error)
 	Projects(ctx context.Context, input *ProjectsFilter) ([]pg.Project, error)
+	Teams(ctx context.Context) ([]pg.Team, error)
 	LabelColors(ctx context.Context) ([]pg.LabelColor, error)
 	TaskGroups(ctx context.Context) ([]pg.TaskGroup, error)
 	Me(ctx context.Context) (*pg.UserAccount, error)
@@ -840,6 +847,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.TaskGroups(childComplexity), true
 
+	case "Query.teams":
+		if e.complexity.Query.Teams == nil {
+			break
+		}
+
+		return e.complexity.Query.Teams(childComplexity), true
+
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
 			break
@@ -1028,6 +1042,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ToggleTaskLabelPayload.Task(childComplexity), true
+
+	case "UpdateTaskLocationPayload.previousTaskGroupID":
+		if e.complexity.UpdateTaskLocationPayload.PreviousTaskGroupID == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskLocationPayload.PreviousTaskGroupID(childComplexity), true
+
+	case "UpdateTaskLocationPayload.task":
+		if e.complexity.UpdateTaskLocationPayload.Task == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskLocationPayload.Task(childComplexity), true
 
 	case "UserAccount.createdAt":
 		if e.complexity.UserAccount.CreatedAt == nil {
@@ -1254,6 +1282,7 @@ type Query {
   findProject(input: FindProject!): Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
+  teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
   me: UserAccount!
@@ -1297,8 +1326,8 @@ input NewTask {
   position: Float!
 }
 input NewTaskLocation {
-  taskID: String!
-  taskGroupID: String!
+  taskID: UUID!
+  taskGroupID: UUID!
   position: Float!
 }
 
@@ -1394,6 +1423,10 @@ input UpdateProjectName {
   name: String!
 }
 
+type UpdateTaskLocationPayload {
+  previousTaskGroupID: UUID!
+  task: Task!
+}
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -1420,7 +1453,7 @@ type Mutation {
 
   createTask(input: NewTask!): Task!
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
-  updateTaskLocation(input: NewTaskLocation!): Task!
+  updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
   updateTaskName(input: UpdateTaskName!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
   assignTask(input: AssignTaskInput): Task!
@@ -2924,9 +2957,9 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*pg.Task)
+	res := resTmp.(*UpdateTaskLocationPayload)
 	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTask(ctx, field.Selections, res)
+	return ec.marshalNUpdateTaskLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskLocationPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3966,6 +3999,40 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_teams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Teams(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]pg.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTeamᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_labelColors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4993,6 +5060,74 @@ func (ec *executionContext) _ToggleTaskLabelPayload_task(ctx context.Context, fi
 	}()
 	fc := &graphql.FieldContext{
 		Object:   "ToggleTaskLabelPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Task, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskLocationPayload_previousTaskGroupID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskLocationPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskLocationPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PreviousTaskGroupID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskLocationPayload_task(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskLocationPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskLocationPayload",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -6655,13 +6790,13 @@ func (ec *executionContext) unmarshalInputNewTaskLocation(ctx context.Context, o
 		switch k {
 		case "taskID":
 			var err error
-			it.TaskID, err = ec.unmarshalNString2string(ctx, v)
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "taskGroupID":
 			var err error
-			it.TaskGroupID, err = ec.unmarshalNString2string(ctx, v)
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7583,6 +7718,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "teams":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_teams(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "labelColors":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7993,6 +8142,38 @@ func (ec *executionContext) _ToggleTaskLabelPayload(ctx context.Context, sel ast
 			}
 		case "task":
 			out.Values[i] = ec._ToggleTaskLabelPayload_task(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateTaskLocationPayloadImplementors = []string{"UpdateTaskLocationPayload"}
+
+func (ec *executionContext) _UpdateTaskLocationPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskLocationPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateTaskLocationPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateTaskLocationPayload")
+		case "previousTaskGroupID":
+			out.Values[i] = ec._UpdateTaskLocationPayload_previousTaskGroupID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "task":
+			out.Values[i] = ec._UpdateTaskLocationPayload_task(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -8868,6 +9049,43 @@ func (ec *executionContext) marshalNTeam2githubᚗcomᚋjordanknottᚋprojectᚑ
 	return ec._Team(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNTeam2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTeamᚄ(ctx context.Context, sel ast.SelectionSet, v []pg.Team) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTeam2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTeam(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNTeam2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTeam(ctx context.Context, sel ast.SelectionSet, v *pg.Team) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -8938,6 +9156,20 @@ func (ec *executionContext) unmarshalNUpdateProjectLabelName2githubᚗcomᚋjord
 
 func (ec *executionContext) unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskDescriptionInput(ctx context.Context, v interface{}) (UpdateTaskDescriptionInput, error) {
 	return ec.unmarshalInputUpdateTaskDescriptionInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskLocationPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskLocationPayload(ctx context.Context, sel ast.SelectionSet, v UpdateTaskLocationPayload) graphql.Marshaler {
+	return ec._UpdateTaskLocationPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskLocationPayload(ctx context.Context, sel ast.SelectionSet, v *UpdateTaskLocationPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateTaskLocationPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateTaskName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskName(ctx context.Context, v interface{}) (UpdateTaskName, error) {

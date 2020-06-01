@@ -136,6 +136,7 @@ export type Query = {
   findProject: Project;
   findTask: Task;
   projects: Array<Project>;
+  teams: Array<Team>;
   labelColors: Array<LabelColor>;
   taskGroups: Array<TaskGroup>;
   me: UserAccount;
@@ -201,8 +202,8 @@ export type NewTask = {
 };
 
 export type NewTaskLocation = {
-  taskID: Scalars['String'];
-  taskGroupID: Scalars['String'];
+  taskID: Scalars['UUID'];
+  taskGroupID: Scalars['UUID'];
   position: Scalars['Float'];
 };
 
@@ -302,6 +303,12 @@ export type UpdateProjectName = {
   name: Scalars['String'];
 };
 
+export type UpdateTaskLocationPayload = {
+   __typename?: 'UpdateTaskLocationPayload';
+  previousTaskGroupID: Scalars['UUID'];
+  task: Task;
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
@@ -322,7 +329,7 @@ export type Mutation = {
   toggleTaskLabel: ToggleTaskLabelPayload;
   createTask: Task;
   updateTaskDescription: Task;
-  updateTaskLocation: Task;
+  updateTaskLocation: UpdateTaskLocationPayload;
   updateTaskName: Task;
   deleteTask: DeleteTaskPayload;
   assignTask: Task;
@@ -465,6 +472,25 @@ export type AssignTaskMutation = (
       { __typename?: 'ProjectMember' }
       & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
     )> }
+  ) }
+);
+
+export type CreateProjectMutationVariables = {
+  teamID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+
+export type CreateProjectMutation = (
+  { __typename?: 'Mutation' }
+  & { createProject: (
+    { __typename?: 'Project' }
+    & Pick<Project, 'id' | 'name'>
+    & { team: (
+      { __typename?: 'Team' }
+      & Pick<Team, 'id' | 'name'>
+    ) }
   ) }
 );
 
@@ -686,7 +712,10 @@ export type GetProjectsQueryVariables = {};
 
 export type GetProjectsQuery = (
   { __typename?: 'Query' }
-  & { projects: Array<(
+  & { teams: Array<(
+    { __typename?: 'Team' }
+    & Pick<Team, 'id' | 'name' | 'createdAt'>
+  )>, projects: Array<(
     { __typename?: 'Project' }
     & Pick<Project, 'id' | 'name'>
     & { team: (
@@ -821,8 +850,8 @@ export type UpdateTaskGroupLocationMutation = (
 );
 
 export type UpdateTaskLocationMutationVariables = {
-  taskID: Scalars['String'];
-  taskGroupID: Scalars['String'];
+  taskID: Scalars['UUID'];
+  taskGroupID: Scalars['UUID'];
   position: Scalars['Float'];
 };
 
@@ -830,8 +859,16 @@ export type UpdateTaskLocationMutationVariables = {
 export type UpdateTaskLocationMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskLocation: (
-    { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'createdAt' | 'name' | 'position'>
+    { __typename?: 'UpdateTaskLocationPayload' }
+    & Pick<UpdateTaskLocationPayload, 'previousTaskGroupID'>
+    & { task: (
+      { __typename?: 'Task' }
+      & Pick<Task, 'id' | 'createdAt' | 'name' | 'position'>
+      & { taskGroup: (
+        { __typename?: 'TaskGroup' }
+        & Pick<TaskGroup, 'id'>
+      ) }
+    ) }
   ) }
 );
 
@@ -888,6 +925,45 @@ export function useAssignTaskMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type AssignTaskMutationHookResult = ReturnType<typeof useAssignTaskMutation>;
 export type AssignTaskMutationResult = ApolloReactCommon.MutationResult<AssignTaskMutation>;
 export type AssignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<AssignTaskMutation, AssignTaskMutationVariables>;
+export const CreateProjectDocument = gql`
+    mutation createProject($teamID: UUID!, $userID: UUID!, $name: String!) {
+  createProject(input: {teamID: $teamID, userID: $userID, name: $name}) {
+    id
+    name
+    team {
+      id
+      name
+    }
+  }
+}
+    `;
+export type CreateProjectMutationFn = ApolloReactCommon.MutationFunction<CreateProjectMutation, CreateProjectMutationVariables>;
+
+/**
+ * __useCreateProjectMutation__
+ *
+ * To run a mutation, you first call `useCreateProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateProjectMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createProjectMutation, { data, loading, error }] = useCreateProjectMutation({
+ *   variables: {
+ *      teamID: // value for 'teamID'
+ *      userID: // value for 'userID'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useCreateProjectMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateProjectMutation, CreateProjectMutationVariables>) {
+        return ApolloReactHooks.useMutation<CreateProjectMutation, CreateProjectMutationVariables>(CreateProjectDocument, baseOptions);
+      }
+export type CreateProjectMutationHookResult = ReturnType<typeof useCreateProjectMutation>;
+export type CreateProjectMutationResult = ApolloReactCommon.MutationResult<CreateProjectMutation>;
+export type CreateProjectMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateProjectMutation, CreateProjectMutationVariables>;
 export const CreateProjectLabelDocument = gql`
     mutation createProjectLabel($projectID: UUID!, $labelColorID: UUID!, $name: String!) {
   createProjectLabel(input: {projectID: $projectID, labelColorID: $labelColorID, name: $name}) {
@@ -1304,6 +1380,11 @@ export type FindTaskLazyQueryHookResult = ReturnType<typeof useFindTaskLazyQuery
 export type FindTaskQueryResult = ApolloReactCommon.QueryResult<FindTaskQuery, FindTaskQueryVariables>;
 export const GetProjectsDocument = gql`
     query getProjects {
+  teams {
+    id
+    name
+    createdAt
+  }
   projects {
     id
     name
@@ -1609,12 +1690,18 @@ export type UpdateTaskGroupLocationMutationHookResult = ReturnType<typeof useUpd
 export type UpdateTaskGroupLocationMutationResult = ApolloReactCommon.MutationResult<UpdateTaskGroupLocationMutation>;
 export type UpdateTaskGroupLocationMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskGroupLocationMutation, UpdateTaskGroupLocationMutationVariables>;
 export const UpdateTaskLocationDocument = gql`
-    mutation updateTaskLocation($taskID: String!, $taskGroupID: String!, $position: Float!) {
+    mutation updateTaskLocation($taskID: UUID!, $taskGroupID: UUID!, $position: Float!) {
   updateTaskLocation(input: {taskID: $taskID, taskGroupID: $taskGroupID, position: $position}) {
-    id
-    createdAt
-    name
-    position
+    previousTaskGroupID
+    task {
+      id
+      createdAt
+      name
+      position
+      taskGroup {
+        id
+      }
+    }
   }
 }
     `;

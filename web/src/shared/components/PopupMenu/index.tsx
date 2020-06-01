@@ -15,7 +15,7 @@ import {
 } from './Styles';
 
 type PopupContextState = {
-  show: (target: RefObject<HTMLElement>, content: JSX.Element) => void;
+  show: (target: RefObject<HTMLElement>, content: JSX.Element, width?: string | number) => void;
   setTab: (newTab: number) => void;
   getCurrentTab: () => number;
   hide: () => void;
@@ -23,7 +23,7 @@ type PopupContextState = {
 
 type PopupProps = {
   title: string | null;
-  onClose: () => void;
+  onClose?: () => void;
   tab: number;
 };
 
@@ -32,17 +32,23 @@ type PopupContainerProps = {
   left: number;
   invert: boolean;
   onClose: () => void;
+  width?: string | number;
 };
 
-const PopupContainer: React.FC<PopupContainerProps> = ({ top, left, onClose, children, invert }) => {
+const PopupContainer: React.FC<PopupContainerProps> = ({ width, top, left, onClose, children, invert }) => {
   const $containerRef = useRef();
   useOnOutsideClick($containerRef, true, onClose, null);
   return (
-    <Container left={left} top={top} ref={$containerRef} invert={invert}>
+    <Container width={width ?? 316} left={left} top={top} ref={$containerRef} invert={invert}>
       {children}
     </Container>
   );
 };
+
+PopupContainer.defaultProps = {
+  width: 316,
+};
+
 const PopupContext = createContext<PopupContextState>({
   show: () => {},
   setTab: () => {},
@@ -63,6 +69,7 @@ type PopupState = {
   currentTab: number;
   previousTab: number;
   content: JSX.Element | null;
+  width?: string | number;
 };
 
 const { Provider, Consumer } = PopupContext;
@@ -81,7 +88,7 @@ const defaultState = {
 
 export const PopupProvider: React.FC = ({ children }) => {
   const [currentState, setState] = useState<PopupState>(defaultState);
-  const show = (target: RefObject<HTMLElement>, content: JSX.Element) => {
+  const show = (target: RefObject<HTMLElement>, content: JSX.Element, width?: number | string) => {
     if (target && target.current) {
       const bounds = target.current.getBoundingClientRect();
       if (bounds.left + 304 + 30 > window.innerWidth) {
@@ -93,6 +100,7 @@ export const PopupProvider: React.FC = ({ children }) => {
           currentTab: 0,
           previousTab: 0,
           content,
+          width: width ?? 316,
         });
       } else {
         setState({
@@ -103,6 +111,7 @@ export const PopupProvider: React.FC = ({ children }) => {
           currentTab: 0,
           previousTab: 0,
           content,
+          width: width ?? 316,
         });
       }
     }
@@ -144,6 +153,7 @@ export const PopupProvider: React.FC = ({ children }) => {
             top={currentState.top}
             left={currentState.left}
             onClose={() => setState(defaultState)}
+            width={currentState.width ?? 316}
           >
             {currentState.content}
             <ContainerDiamond invert={currentState.invert} />
@@ -162,14 +172,15 @@ type Props = {
   onClose: () => void;
   onPrevious?: () => void | null;
   noHeader?: boolean | null;
+  width?: string | number;
 };
 
-const PopupMenu: React.FC<Props> = ({ title, top, left, onClose, noHeader, children, onPrevious }) => {
+const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader, children, onPrevious }) => {
   const $containerRef = useRef();
   useOnOutsideClick($containerRef, true, onClose, null);
 
   return (
-    <Container invert={false} left={left} top={top} ref={$containerRef}>
+    <Container width={width ?? 316} invert={false} left={left} top={top} ref={$containerRef}>
       <Wrapper>
         {onPrevious && (
           <PreviousButton onClick={onPrevious}>
@@ -217,9 +228,11 @@ export const Popup: React.FC<PopupProps> = ({ title, onClose, tab, children }) =
             <HeaderTitle>{title}</HeaderTitle>
           </Header>
         )}
-        <CloseButton onClick={() => onClose()}>
-          <Cross color="#c2c6dc" />
-        </CloseButton>
+        {onClose && (
+          <CloseButton onClick={() => onClose()}>
+            <Cross color="#c2c6dc" />
+          </CloseButton>
+        )}
         <Content>{children}</Content>
       </Wrapper>
     </>

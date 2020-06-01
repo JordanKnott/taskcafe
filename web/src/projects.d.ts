@@ -54,8 +54,9 @@ type Organization = {
 };
 
 type Team = {
+  id: string;
   name: string;
-  projects: Project[];
+  createdAt: string;
 };
 
 type ProjectLabel = {

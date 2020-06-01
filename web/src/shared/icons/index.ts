@@ -1,5 +1,6 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import ArrowLeft from './ArrowLeft';
 import Bolt from './Bolt';
 import Plus from './Plus';
 import Bell from './Bell';
@@ -43,5 +44,6 @@ export {
   User,
   Users,
   Lock,
+  ArrowLeft,
   ToggleOn,
 };

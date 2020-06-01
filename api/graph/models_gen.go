@@ -89,9 +89,9 @@ type NewTaskGroupLocation struct {
 }
 
 type NewTaskLocation struct {
-	TaskID      string  `json:"taskID"`
-	TaskGroupID string  `json:"taskGroupID"`
-	Position    float64 `json:"position"`
+	TaskID      uuid.UUID `json:"taskID"`
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Position    float64   `json:"position"`
 }
 
 type NewTeam struct {
@@ -167,6 +167,11 @@ type UpdateProjectName struct {
 type UpdateTaskDescriptionInput struct {
 	TaskID      uuid.UUID `json:"taskID"`
 	Description string    `json:"description"`
+}
+
+type UpdateTaskLocationPayload struct {
+	PreviousTaskGroupID uuid.UUID `json:"previousTaskGroupID"`
+	Task                *pg.Task  `json:"task"`
 }
 
 type UpdateTaskName struct {

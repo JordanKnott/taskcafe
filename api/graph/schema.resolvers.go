@@ -215,18 +215,14 @@ func (r *mutationResolver) UpdateTaskDescription(ctx context.Context, input Upda
 	return &task, err
 }
 
-func (r *mutationResolver) UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*pg.Task, error) {
-	taskID, err := uuid.Parse(input.TaskID)
+func (r *mutationResolver) UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error) {
+	previousTask, err := r.Repository.GetTaskByID(ctx, input.TaskID)
 	if err != nil {
-		return &pg.Task{}, err
+		return &UpdateTaskLocationPayload{}, err
 	}
-	taskGroupID, err := uuid.Parse(input.TaskGroupID)
-	if err != nil {
-		return &pg.Task{}, err
-	}
-	task, err := r.Repository.UpdateTaskLocation(ctx, pg.UpdateTaskLocationParams{taskID, taskGroupID, input.Position})
+	task, err := r.Repository.UpdateTaskLocation(ctx, pg.UpdateTaskLocationParams{input.TaskID, input.TaskGroupID, input.Position})
 
-	return &task, err
+	return &UpdateTaskLocationPayload{Task: &task, PreviousTaskGroupID: previousTask.TaskGroupID}, err
 }
 
 func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskName) (*pg.Task, error) {
@@ -403,6 +399,10 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 		return r.Repository.GetAllProjectsForTeam(ctx, teamID)
 	}
 	return r.Repository.GetAllProjects(ctx)
+}
+
+func (r *queryResolver) Teams(ctx context.Context) ([]pg.Team, error) {
+	return r.Repository.GetAllTeams(ctx)
 }
 
 func (r *queryResolver) LabelColors(ctx context.Context) ([]pg.LabelColor, error) {

@@ -1,6 +1,12 @@
 import styled from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 
+export const AddProjectLabel = styled.span`
+  padding-top: 4px;
+  font-size: 14px;
+  color: #c2c6dc;
+`;
+
 export const ProjectContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -20,8 +26,7 @@ export const TeamTitle = styled.span`
 
 export const ProjectWrapper = styled.div<{ color: string }>`
   display: flex;
-  padding: 15px 25px;
-  border-radius: 20px;
+  padding: 15px 25px; border-radius: 20px;
   ${mixin.boxShadowCard}
   background: ${props => mixin.darken(props.color, 0.35)};
   color: #fff;
@@ -31,7 +36,29 @@ export const ProjectWrapper = styled.div<{ color: string }>`
   height: 100px;
   transition: transform 0.25s ease;
   align-items: center;
+  justify-content: center;
 
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+export const AddProjectWrapper = styled.div`
+  display: flex;
+  padding: 15px 25px;
+  border-radius: 20px;
+  ${mixin.boxShadowCard}
+  border: 1px dashed;
+  border-color: #c2c6dc;
+  color: #fff;
+  cursor: pointer;
+  margin: 0 10px;
+  width: 240px;
+  flex-direction: column;
+  height: 100px;
+  transition: transform 0.25s ease;
+  align-items: center;
+  justify-content: center;
   &:hover {
     transform: translateY(-5px);
   }

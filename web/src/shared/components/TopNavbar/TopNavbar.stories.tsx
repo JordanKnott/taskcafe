@@ -44,6 +44,7 @@ export const Default = () => {
         lastName="Knott"
         initials="JK"
         onNotificationClick={action('notifications click')}
+        onOpenSettings={action('open settings')}
         onProfileClick={onClick}
       />
       {menu.isOpen && (

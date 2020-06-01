@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
-import { useGetProjectsQuery } from 'shared/generated/graphql';
+import { useGetProjectsQuery, useCreateProjectMutation, GetProjectsDocument } from 'shared/generated/graphql';
 
-import ProjectGridItem from 'shared/components/ProjectGridItem';
+import ProjectGridItem, { AddProjectItem } from 'shared/components/ProjectGridItem';
 import { Link } from 'react-router-dom';
 import Navbar from 'App/Navbar';
+import NewProject from 'shared/components/NewProject';
+import UserIDContext from 'App/context';
 
 const MainContent = styled.div`
   padding: 0 0 50px 80px;
@@ -17,19 +19,37 @@ const ProjectGrid = styled.div`
   width: 60%;
   max-width: 780px;
   margin: 25px auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 240px 240px 240px;
+  gap: 20px 10px;
 `;
 
-const ProjectLink = styled(Link)`
-  flex: 1 0 33%;
-  margin-bottom: 20px;
-`;
+const ProjectLink = styled(Link)``;
 
 const Projects = () => {
   const { loading, data } = useGetProjectsQuery();
+  const [createProject] = useCreateProjectMutation({
+    update: (client, newProject) => {
+      const cacheData: any = client.readQuery({
+        query: GetProjectsDocument,
+      });
+
+      console.log(cacheData);
+      console.log(newProject);
+
+      const newData = {
+        ...cacheData,
+        projects: [...cacheData.projects, { ...newProject.data.createProject }],
+      };
+      console.log(newData);
+      client.writeQuery({
+        query: GetProjectsDocument,
+        data: newData,
+      });
+    },
+  });
+  const [showNewProject, setShowNewProject] = useState(false);
+  const { userID, setUserID } = useContext(UserIDContext);
   if (loading) {
     return (
       <>
@@ -38,7 +58,7 @@ const Projects = () => {
     );
   }
   if (data) {
-    const { projects } = data;
+    const { projects, teams } = data;
     return (
       <>
         <GlobalTopNavbar onSaveProjectName={() => {}} name={null} />
@@ -50,7 +70,26 @@ const Projects = () => {
               />
             </ProjectLink>
           ))}
+          <AddProjectItem
+            onAddProject={() => {
+              setShowNewProject(true);
+            }}
+          />
         </ProjectGrid>
+        {showNewProject && (
+          <NewProject
+            onCreateProject={(name, teamID) => {
+              if (userID) {
+                createProject({ variables: { teamID, name, userID } });
+                setShowNewProject(false);
+              }
+            }}
+            onClose={() => {
+              setShowNewProject(false);
+            }}
+            teams={teams}
+          />
+        )}
       </>
     );
   }
