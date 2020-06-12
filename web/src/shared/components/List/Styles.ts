@@ -64,6 +64,7 @@ export const HeaderEditTarget = styled.div<{ isHidden: boolean }>`
 
 export const HeaderName = styled(TextareaAutosize)`
   font-family: 'Droid Sans';
+  font-size: 14px;
   border: none;
   resize: none;
   overflow: hidden;

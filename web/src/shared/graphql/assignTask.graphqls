@@ -3,8 +3,7 @@ mutation assignTask($taskID: UUID!, $userID: UUID!) {
     id
     assigned {
       id
-      firstName
-      lastName
+      fullName
     }
   }
 }

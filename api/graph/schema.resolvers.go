@@ -29,7 +29,14 @@ func (r *mutationResolver) CreateRefreshToken(ctx context.Context, input NewRefr
 
 func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserAccount) (*pg.UserAccount, error) {
 	createdAt := time.Now().UTC()
-	userAccount, err := r.Repository.CreateUserAccount(ctx, pg.CreateUserAccountParams{input.FirstName, input.LastName, input.Email, input.Username, createdAt, input.Password})
+	userAccount, err := r.Repository.CreateUserAccount(ctx, pg.CreateUserAccountParams{
+		FullName:     input.FullName,
+		Initials:     input.Initials,
+		Email:        input.Email,
+		Username:     input.Username,
+		CreatedAt:    createdAt,
+		PasswordHash: input.Password,
+	})
 	return &userAccount, err
 }
 
@@ -41,6 +48,21 @@ func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*pg.T
 	createdAt := time.Now().UTC()
 	team, err := r.Repository.CreateTeam(ctx, pg.CreateTeamParams{organizationID, createdAt, input.Name})
 	return &team, err
+}
+
+func (r *mutationResolver) ClearProfileAvatar(ctx context.Context) (*pg.UserAccount, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		return &pg.UserAccount{}, fmt.Errorf("internal server error")
+	}
+	log.WithFields(log.Fields{
+		"userID": userID,
+	}).Info("getting user account")
+	user, err := r.Repository.UpdateUserAccountProfileAvatarURL(ctx, pg.UpdateUserAccountProfileAvatarURLParams{UserID: userID, ProfileAvatarUrl: sql.NullString{Valid: false, String: ""}})
+	if err != nil {
+		return &pg.UserAccount{}, err
+	}
+	return &user, nil
 }
 
 func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) (*pg.Project, error) {
@@ -118,6 +140,10 @@ func (r *mutationResolver) UpdateTaskGroupLocation(ctx context.Context, input Ne
 		input.Position,
 	})
 	return &taskGroup, err
+}
+
+func (r *mutationResolver) UpdateTaskGroupName(ctx context.Context, input UpdateTaskGroupName) (*pg.TaskGroup, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error) {
@@ -301,9 +327,12 @@ func (r *projectResolver) Owner(ctx context.Context, obj *pg.Project) (*ProjectM
 	if err != nil {
 		return &ProjectMember{}, err
 	}
-	initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
-	profileIcon := &ProfileIcon{nil, &initials, &user.ProfileBgColor}
-	return &ProjectMember{obj.Owner, user.FirstName, user.LastName, profileIcon}, nil
+	var url *string
+	if user.ProfileAvatarUrl.Valid {
+		url = &user.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	return &ProjectMember{obj.Owner, user.FullName, profileIcon}, nil
 }
 
 func (r *projectResolver) TaskGroups(ctx context.Context, obj *pg.Project) ([]pg.TaskGroup, error) {
@@ -316,9 +345,12 @@ func (r *projectResolver) Members(ctx context.Context, obj *pg.Project) ([]Proje
 	if err != nil {
 		return members, err
 	}
-	initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
-	profileIcon := &ProfileIcon{nil, &initials, &user.ProfileBgColor}
-	members = append(members, ProjectMember{obj.Owner, user.FirstName, user.LastName, profileIcon})
+	var url *string
+	if user.ProfileAvatarUrl.Valid {
+		url = &user.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	members = append(members, ProjectMember{obj.Owner, user.FullName, profileIcon})
 	return members, nil
 }
 
@@ -463,9 +495,12 @@ func (r *taskResolver) Assigned(ctx context.Context, obj *pg.Task) ([]ProjectMem
 		if err != nil {
 			return taskMembers, err
 		}
-		initials := string([]rune(user.FirstName)[0]) + string([]rune(user.LastName)[0])
-		profileIcon := &ProfileIcon{nil, &initials, &user.ProfileBgColor}
-		taskMembers = append(taskMembers, ProjectMember{taskMemberLink.UserID, user.FirstName, user.LastName, profileIcon})
+		var url *string
+		if user.ProfileAvatarUrl.Valid {
+			url = &user.ProfileAvatarUrl.String
+		}
+		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+		taskMembers = append(taskMembers, ProjectMember{taskMemberLink.UserID, user.FullName, profileIcon})
 	}
 	return taskMembers, nil
 }
@@ -505,8 +540,11 @@ func (r *userAccountResolver) ID(ctx context.Context, obj *pg.UserAccount) (uuid
 }
 
 func (r *userAccountResolver) ProfileIcon(ctx context.Context, obj *pg.UserAccount) (*ProfileIcon, error) {
-	initials := string([]rune(obj.FirstName)[0]) + string([]rune(obj.LastName)[0])
-	profileIcon := &ProfileIcon{nil, &initials, &obj.ProfileBgColor}
+	var url *string
+	if obj.ProfileAvatarUrl.Valid {
+		url = &obj.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &obj.Initials, &obj.ProfileBgColor}
 	return profileIcon, nil
 }
 
@@ -554,39 +592,3 @@ type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }
 type userAccountResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *taskLabelResolver) ColorHex(ctx context.Context, obj *pg.TaskLabel) (string, error) {
-	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
-	if err != nil {
-		return "", err
-	}
-	labelColor, err := r.Repository.GetLabelColorByID(ctx, projectLabel.LabelColorID)
-	if err != nil {
-		return "", err
-	}
-	return labelColor.ColorHex, nil
-}
-func (r *taskLabelResolver) Name(ctx context.Context, obj *pg.TaskLabel) (*string, error) {
-	projectLabel, err := r.Repository.GetProjectLabelByID(ctx, obj.ProjectLabelID)
-	if err != nil {
-		return nil, err
-	}
-	name := projectLabel.Name
-	if !name.Valid {
-		return nil, err
-	}
-	return &name.String, err
-}
-func (r *projectLabelResolver) ColorHex(ctx context.Context, obj *pg.ProjectLabel) (string, error) {
-	labelColor, err := r.Repository.GetLabelColorByID(ctx, obj.LabelColorID)
-	if err != nil {
-		return "", err
-	}
-	return labelColor.ColorHex, nil
-}

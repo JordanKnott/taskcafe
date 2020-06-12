@@ -5,20 +5,20 @@ package pg
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 const createUserAccount = `-- name: CreateUserAccount :one
-INSERT INTO user_account(first_name, last_name, email, username, created_at, password_hash)
-  VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color
+INSERT INTO user_account(full_name, initials, email, username, created_at, password_hash)
+  VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url
 `
 
 type CreateUserAccountParams struct {
-	FirstName    string    `json:"first_name"`
-	LastName     string    `json:"last_name"`
+	FullName     string    `json:"full_name"`
+	Initials     string    `json:"initials"`
 	Email        string    `json:"email"`
 	Username     string    `json:"username"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -27,8 +27,8 @@ type CreateUserAccountParams struct {
 
 func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error) {
 	row := q.db.QueryRowContext(ctx, createUserAccount,
-		arg.FirstName,
-		arg.LastName,
+		arg.FullName,
+		arg.Initials,
 		arg.Email,
 		arg.Username,
 		arg.CreatedAt,
@@ -38,18 +38,19 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 	err := row.Scan(
 		&i.UserID,
 		&i.CreatedAt,
-		&i.FirstName,
-		&i.LastName,
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
 		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
 	)
 	return i, err
 }
 
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
-SELECT user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color FROM user_account
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url FROM user_account
 `
 
 func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error) {
@@ -64,12 +65,13 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 		if err := rows.Scan(
 			&i.UserID,
 			&i.CreatedAt,
-			&i.FirstName,
-			&i.LastName,
 			&i.Email,
 			&i.Username,
 			&i.PasswordHash,
 			&i.ProfileBgColor,
+			&i.FullName,
+			&i.Initials,
+			&i.ProfileAvatarUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -85,7 +87,7 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 }
 
 const getUserAccountByID = `-- name: GetUserAccountByID :one
-SELECT user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color FROM user_account WHERE user_id = $1
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url FROM user_account WHERE user_id = $1
 `
 
 func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error) {
@@ -94,18 +96,19 @@ func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (Use
 	err := row.Scan(
 		&i.UserID,
 		&i.CreatedAt,
-		&i.FirstName,
-		&i.LastName,
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
 		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
 	)
 	return i, err
 }
 
 const getUserAccountByUsername = `-- name: GetUserAccountByUsername :one
-SELECT user_id, created_at, first_name, last_name, email, username, password_hash, profile_bg_color FROM user_account WHERE username = $1
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url FROM user_account WHERE username = $1
 `
 
 func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error) {
@@ -114,12 +117,40 @@ func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string)
 	err := row.Scan(
 		&i.UserID,
 		&i.CreatedAt,
-		&i.FirstName,
-		&i.LastName,
 		&i.Email,
 		&i.Username,
 		&i.PasswordHash,
 		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
+	)
+	return i, err
+}
+
+const updateUserAccountProfileAvatarURL = `-- name: UpdateUserAccountProfileAvatarURL :one
+UPDATE user_account SET profile_avatar_url = $2 WHERE user_id = $1
+  RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url
+`
+
+type UpdateUserAccountProfileAvatarURLParams struct {
+	UserID           uuid.UUID      `json:"user_id"`
+	ProfileAvatarUrl sql.NullString `json:"profile_avatar_url"`
+}
+
+func (q *Queries) UpdateUserAccountProfileAvatarURL(ctx context.Context, arg UpdateUserAccountProfileAvatarURLParams) (UserAccount, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAccountProfileAvatarURL, arg.UserID, arg.ProfileAvatarUrl)
+	var i UserAccount
+	err := row.Scan(
+		&i.UserID,
+		&i.CreatedAt,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
 	)
 	return i, err
 }

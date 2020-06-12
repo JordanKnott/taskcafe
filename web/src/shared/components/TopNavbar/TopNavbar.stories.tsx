@@ -21,42 +21,25 @@ export default {
 };
 
 export const Default = () => {
-  const [menu, setMenu] = useState({
-    top: 0,
-    left: 0,
-    isOpen: false,
-  });
-  const onClick = (bottom: number, right: number) => {
-    setMenu({
-      isOpen: !menu.isOpen,
-      left: right,
-      top: bottom,
-    });
-  };
   return (
     <>
       <NormalizeStyles />
       <BaseStyles />
       <TopNavbar
         projectName="Projects"
-        bgColor="#7367F0"
-        firstName="Jordan"
-        lastName="Knott"
-        initials="JK"
+        user={{
+          id: '1',
+          fullName: 'Jordan Knott',
+          profileIcon: {
+            url: null,
+            initials: 'JK',
+            bgColor: '#000',
+          },
+        }}
         onNotificationClick={action('notifications click')}
         onOpenSettings={action('open settings')}
-        onProfileClick={onClick}
+        onProfileClick={action('profile click')}
       />
-      {menu.isOpen && (
-        <DropdownMenu
-          onCloseDropdown={() => {
-            setMenu({ left: 0, top: 0, isOpen: false });
-          }}
-          onLogout={action('on logout')}
-          left={menu.left}
-          top={menu.top}
-        />
-      )}
     </>
   );
 };

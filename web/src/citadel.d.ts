@@ -18,8 +18,7 @@ type ContextMenuEvent = {
 
 type TaskUser = {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   profileIcon: ProfileIcon;
 };
 
@@ -30,6 +29,11 @@ type RefreshTokenResponse = {
 type LoginFormData = {
   username: string;
   password: string;
+};
+
+type DueDateFormData = {
+  endDate: Date;
+  endTime: string | null;
 };
 
 type LoginProps = {

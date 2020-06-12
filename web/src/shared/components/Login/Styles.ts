@@ -101,3 +101,24 @@ export const RegisterButton = styled.button`
   color: rgba(115, 103, 240);
   cursor: pointer;
 `;
+
+export const LogoTitle = styled.div`
+  font-size: 24px;
+  font-weight: 600;
+  margin-left: 12px;
+  transition: visibility, opacity, transform 0.25s ease;
+  color: #7367f0;
+`;
+
+export const LogoWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  position: relative;
+  width: 100%;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  color: rgb(222, 235, 255);
+  border-bottom: 1px solid rgba(65, 69, 97, 0.65);
+`;

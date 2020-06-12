@@ -3,14 +3,14 @@ import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 
 export const Wrapper = styled.div<{ open: boolean }>`
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.55);
   bottom: 0;
   color: #fff;
   left: 0;
   position: fixed;
   right: 0;
   top: 0;
-  z-index: 30;
+  z-index: 100;
   visibility: ${props => (props.open ? 'show' : 'hidden')};
 `;
 

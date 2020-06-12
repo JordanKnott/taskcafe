@@ -171,6 +171,7 @@ export const ListsWithManyList = () => {
       onCreateTask={action('card create')}
       onTaskDrop={onCardDrop}
       onTaskGroupDrop={onListDrop}
+      onChangeTaskGroupName={action('change group name')}
       onCreateTaskGroup={action('create list')}
       onExtraMenuOpen={action('extra menu open')}
       onCardMemberClick={action('card member click')}

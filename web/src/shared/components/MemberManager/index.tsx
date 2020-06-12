@@ -39,9 +39,7 @@ const MemberManager: React.FC<MemberManagerProps> = ({
       <BoardMembersList>
         {availableMembers
           .filter(
-            member =>
-              currentSearch === '' ||
-              `${member.firstName} ${member.lastName}`.toLowerCase().startsWith(currentSearch.toLowerCase()),
+            member => currentSearch === '' || member.fullName.toLowerCase().startsWith(currentSearch.toLowerCase()),
           )
           .map(member => {
             return (
@@ -58,7 +56,7 @@ const MemberManager: React.FC<MemberManagerProps> = ({
                   }}
                 >
                   <ProfileIcon>JK</ProfileIcon>
-                  <MemberName>{`${member.firstName} ${member.lastName}`}</MemberName>
+                  <MemberName>{member.fullName}</MemberName>
                   {activeMembers.findIndex(m => m.id === member.id) !== -1 && (
                     <ActiveIconWrapper>
                       <Checkmark size={16} color="#42526e" />

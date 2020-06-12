@@ -85,12 +85,13 @@ type Team struct {
 }
 
 type UserAccount struct {
-	UserID         uuid.UUID `json:"user_id"`
-	CreatedAt      time.Time `json:"created_at"`
-	FirstName      string    `json:"first_name"`
-	LastName       string    `json:"last_name"`
-	Email          string    `json:"email"`
-	Username       string    `json:"username"`
-	PasswordHash   string    `json:"password_hash"`
-	ProfileBgColor string    `json:"profile_bg_color"`
+	UserID           uuid.UUID      `json:"user_id"`
+	CreatedAt        time.Time      `json:"created_at"`
+	Email            string         `json:"email"`
+	Username         string         `json:"username"`
+	PasswordHash     string         `json:"password_hash"`
+	ProfileBgColor   string         `json:"profile_bg_color"`
+	FullName         string         `json:"full_name"`
+	Initials         string         `json:"initials"`
+	ProfileAvatarUrl sql.NullString `json:"profile_avatar_url"`
 }

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Star, Ellipsis, Bell, Cog, AngleDown } from 'shared/icons';
-
+import ProfileIcon from 'shared/components/ProfileIcon';
 import {
   NotificationContainer,
   ProjectNameTextarea,
@@ -18,7 +18,6 @@ import {
   Breadcrumbs,
   BreadcrumpSeparator,
   ProjectSettingsButton,
-  ProfileIcon,
   ProfileContainer,
   ProfileNameWrapper,
   ProfileNamePrimary,
@@ -110,14 +109,11 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
 
 type NavBarProps = {
   projectName: string | null;
-  onProfileClick: (bottom: number, right: number) => void;
+  onProfileClick: ($target: React.RefObject<HTMLElement>) => void;
   onSaveProjectName?: (projectName: string) => void;
   onNotificationClick: () => void;
-  bgColor: string;
+  user: TaskUser | null;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
-  firstName: string;
-  lastName: string;
-  initials: string;
   projectMembers?: Array<TaskUser> | null;
 };
 
@@ -126,17 +122,14 @@ const NavBar: React.FC<NavBarProps> = ({
   onSaveProjectName,
   onProfileClick,
   onNotificationClick,
-  firstName,
-  lastName,
-  initials,
-  bgColor,
+  user,
   projectMembers,
   onOpenSettings,
 }) => {
-  const $profileRef: any = useRef(null);
-  const handleProfileClick = () => {
-    const boundingRect = $profileRef.current.getBoundingClientRect();
-    onProfileClick(boundingRect.bottom, boundingRect.right);
+  const handleProfileClick = ($target: React.RefObject<HTMLElement>) => {
+    if ($target && $target.current) {
+      onProfileClick($target);
+    }
   };
   const { showPopup } = usePopup();
   const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
@@ -189,15 +182,16 @@ const NavBar: React.FC<NavBarProps> = ({
           <NotificationContainer onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />
           </NotificationContainer>
-          <ProfileContainer>
-            <ProfileNameWrapper>
-              <ProfileNamePrimary>{`${firstName} ${lastName}`}</ProfileNamePrimary>
-              <ProfileNameSecondary>Manager</ProfileNameSecondary>
-            </ProfileNameWrapper>
-            <ProfileIcon ref={$profileRef} onClick={handleProfileClick} bgColor={bgColor}>
-              {initials}
-            </ProfileIcon>
-          </ProfileContainer>
+
+          {user && (
+            <ProfileContainer>
+              <ProfileNameWrapper>
+                <ProfileNamePrimary>{user.fullName}</ProfileNamePrimary>
+                <ProfileNameSecondary>Manager</ProfileNameSecondary>
+              </ProfileNameWrapper>
+              <ProfileIcon user={user} size={40} onProfileClick={handleProfileClick} />}
+            </ProfileContainer>
+          )}
         </GlobalActions>
       </NavbarHeader>
     </NavbarWrapper>

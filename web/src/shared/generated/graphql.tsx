@@ -11,7 +11,9 @@ export type Scalars = {
   Float: number;
   Time: any;
   UUID: string;
+  Upload: any;
 };
+
 
 
 
@@ -48,8 +50,7 @@ export type ProfileIcon = {
 export type ProjectMember = {
    __typename?: 'ProjectMember';
   id: Scalars['ID'];
-  firstName: Scalars['String'];
-  lastName: Scalars['String'];
+  fullName: Scalars['String'];
   profileIcon: ProfileIcon;
 };
 
@@ -66,8 +67,8 @@ export type UserAccount = {
   id: Scalars['ID'];
   email: Scalars['String'];
   createdAt: Scalars['Time'];
-  firstName: Scalars['String'];
-  lastName: Scalars['String'];
+  fullName: Scalars['String'];
+  initials: Scalars['String'];
   username: Scalars['String'];
   profileIcon: ProfileIcon;
 };
@@ -169,8 +170,8 @@ export type NewRefreshToken = {
 export type NewUserAccount = {
   username: Scalars['String'];
   email: Scalars['String'];
-  firstName: Scalars['String'];
-  lastName: Scalars['String'];
+  fullName: Scalars['String'];
+  initials: Scalars['String'];
   password: Scalars['String'];
 };
 
@@ -314,6 +315,7 @@ export type Mutation = {
   createRefreshToken: RefreshToken;
   createUserAccount: UserAccount;
   createTeam: Team;
+  clearProfileAvatar: UserAccount;
   createProject: Project;
   updateProjectName: Project;
   createProjectLabel: ProjectLabel;
@@ -470,8 +472,23 @@ export type AssignTaskMutation = (
     & Pick<Task, 'id'>
     & { assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'fullName'>
     )> }
+  ) }
+);
+
+export type ClearProfileAvatarMutationVariables = {};
+
+
+export type ClearProfileAvatarMutation = (
+  { __typename?: 'Mutation' }
+  & { clearProfileAvatar: (
+    { __typename?: 'UserAccount' }
+    & Pick<UserAccount, 'id' | 'fullName'>
+    & { profileIcon: (
+      { __typename?: 'ProfileIcon' }
+      & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+    ) }
   ) }
 );
 
@@ -541,7 +558,7 @@ export type CreateTaskMutation = (
       ) }
     )>, assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'fullName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -624,7 +641,7 @@ export type FindProjectQuery = (
     & Pick<Project, 'name'>
     & { members: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'fullName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -658,7 +675,7 @@ export type FindProjectQuery = (
           ) }
         )>, assigned: Array<(
           { __typename?: 'ProjectMember' }
-          & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+          & Pick<ProjectMember, 'id' | 'fullName'>
           & { profileIcon: (
             { __typename?: 'ProfileIcon' }
             & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -698,7 +715,7 @@ export type FindTaskQuery = (
       ) }
     )>, assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'fullName'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -732,10 +749,10 @@ export type MeQuery = (
   { __typename?: 'Query' }
   & { me: (
     { __typename?: 'UserAccount' }
-    & Pick<UserAccount, 'firstName' | 'lastName'>
+    & Pick<UserAccount, 'id' | 'fullName'>
     & { profileIcon: (
       { __typename?: 'ProfileIcon' }
-      & Pick<ProfileIcon, 'initials' | 'bgColor'>
+      & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
     ) }
   ) }
 );
@@ -783,7 +800,7 @@ export type UnassignTaskMutation = (
     & Pick<Task, 'id'>
     & { assigned: Array<(
       { __typename?: 'ProjectMember' }
-      & Pick<ProjectMember, 'id' | 'firstName' | 'lastName'>
+      & Pick<ProjectMember, 'id' | 'fullName'>
     )> }
   ) }
 );
@@ -831,7 +848,7 @@ export type UpdateTaskDescriptionMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskDescription: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id'>
+    & Pick<Task, 'id' | 'description'>
   ) }
 );
 
@@ -893,8 +910,7 @@ export const AssignTaskDocument = gql`
     id
     assigned {
       id
-      firstName
-      lastName
+      fullName
     }
   }
 }
@@ -925,6 +941,43 @@ export function useAssignTaskMutation(baseOptions?: ApolloReactHooks.MutationHoo
 export type AssignTaskMutationHookResult = ReturnType<typeof useAssignTaskMutation>;
 export type AssignTaskMutationResult = ApolloReactCommon.MutationResult<AssignTaskMutation>;
 export type AssignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<AssignTaskMutation, AssignTaskMutationVariables>;
+export const ClearProfileAvatarDocument = gql`
+    mutation clearProfileAvatar {
+  clearProfileAvatar {
+    id
+    fullName
+    profileIcon {
+      initials
+      bgColor
+      url
+    }
+  }
+}
+    `;
+export type ClearProfileAvatarMutationFn = ApolloReactCommon.MutationFunction<ClearProfileAvatarMutation, ClearProfileAvatarMutationVariables>;
+
+/**
+ * __useClearProfileAvatarMutation__
+ *
+ * To run a mutation, you first call `useClearProfileAvatarMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useClearProfileAvatarMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [clearProfileAvatarMutation, { data, loading, error }] = useClearProfileAvatarMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useClearProfileAvatarMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<ClearProfileAvatarMutation, ClearProfileAvatarMutationVariables>) {
+        return ApolloReactHooks.useMutation<ClearProfileAvatarMutation, ClearProfileAvatarMutationVariables>(ClearProfileAvatarDocument, baseOptions);
+      }
+export type ClearProfileAvatarMutationHookResult = ReturnType<typeof useClearProfileAvatarMutation>;
+export type ClearProfileAvatarMutationResult = ApolloReactCommon.MutationResult<ClearProfileAvatarMutation>;
+export type ClearProfileAvatarMutationOptions = ApolloReactCommon.BaseMutationOptions<ClearProfileAvatarMutation, ClearProfileAvatarMutationVariables>;
 export const CreateProjectDocument = gql`
     mutation createProject($teamID: UUID!, $userID: UUID!, $name: String!) {
   createProject(input: {teamID: $teamID, userID: $userID, name: $name}) {
@@ -1035,8 +1088,7 @@ export const CreateTaskDocument = gql`
     }
     assigned {
       id
-      firstName
-      lastName
+      fullName
       profileIcon {
         url
         initials
@@ -1219,8 +1271,7 @@ export const FindProjectDocument = gql`
     name
     members {
       id
-      firstName
-      lastName
+      fullName
       profileIcon {
         url
         initials
@@ -1269,8 +1320,7 @@ export const FindProjectDocument = gql`
         }
         assigned {
           id
-          firstName
-          lastName
+          fullName
           profileIcon {
             url
             initials
@@ -1341,8 +1391,7 @@ export const FindTaskDocument = gql`
     }
     assigned {
       id
-      firstName
-      lastName
+      fullName
       profileIcon {
         url
         initials
@@ -1423,11 +1472,12 @@ export type GetProjectsQueryResult = ApolloReactCommon.QueryResult<GetProjectsQu
 export const MeDocument = gql`
     query me {
   me {
-    firstName
-    lastName
+    id
+    fullName
     profileIcon {
       initials
       bgColor
+      url
     }
   }
 }
@@ -1513,8 +1563,7 @@ export const UnassignTaskDocument = gql`
   unassignTask(input: {taskID: $taskID, userID: $userID}) {
     assigned {
       id
-      firstName
-      lastName
+      fullName
     }
     id
   }
@@ -1626,6 +1675,7 @@ export const UpdateTaskDescriptionDocument = gql`
     mutation updateTaskDescription($taskID: UUID!, $description: String!) {
   updateTaskDescription(input: {taskID: $taskID, description: $description}) {
     id
+    description
   }
 }
     `;

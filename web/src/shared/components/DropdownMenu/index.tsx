@@ -33,4 +33,29 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout, onClos
   );
 };
 
+type ProfileMenuProps = {
+  onProfile: () => void;
+  onLogout: () => void;
+};
+
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfile, onLogout }) => {
+  return (
+    <>
+      <ActionItem onClick={onProfile}>
+        <User size={16} color="#c2c6dc" />
+        <ActionTitle>Profile</ActionTitle>
+      </ActionItem>
+      <Separator />
+      <ActionsList>
+        <ActionItem onClick={onLogout}>
+          <Exit size={16} color="#c2c6dc" />
+          <ActionTitle>Logout</ActionTitle>
+        </ActionItem>
+      </ActionsList>
+    </>
+  );
+};
+
+export { ProfileMenu };
+
 export default DropdownMenu;

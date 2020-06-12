@@ -227,8 +227,7 @@ export const MemberManagerPopup = () => {
             availableMembers={[
               {
                 id: '1',
-                firstName: 'Jordan',
-                lastName: 'Knott',
+                fullName: 'Jordan Knott',
                 profileIcon: { bgColor: null, url: null, initials: null },
               },
             ]}
@@ -293,8 +292,7 @@ export const DueDateManagerPopup = () => {
                 {
                   id: '1',
                   profileIcon: { bgColor: null, url: null, initials: null },
-                  firstName: 'Jordan',
-                  lastName: 'Knott',
+                  fullName: 'Jordan Knott',
                 },
               ],
             }}

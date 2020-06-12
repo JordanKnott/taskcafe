@@ -1,5 +1,6 @@
 scalar Time
 scalar UUID
+scalar Upload
 
 type ProjectLabel {
   id: ID!
@@ -29,8 +30,7 @@ type ProfileIcon {
 
 type ProjectMember {
   id: ID!
-  firstName: String!
-  lastName: String!
+  fullName: String!
   profileIcon: ProfileIcon!
 }
 
@@ -45,8 +45,8 @@ type UserAccount {
   id: ID!
   email: String!
   createdAt: Time!
-  firstName: String!
-  lastName: String!
+  fullName: String!
+  initials: String!
   username: String!
   profileIcon: ProfileIcon!
 }
@@ -123,8 +123,8 @@ input NewRefreshToken {
 input NewUserAccount {
   username: String!
   email: String!
-  firstName: String!
-  lastName: String!
+  fullName: String!
+  initials: String!
   password: String!
 }
 
@@ -255,12 +255,19 @@ type UpdateTaskLocationPayload {
   previousTaskGroupID: UUID!
   task: Task!
 }
+
+input UpdateTaskGroupName  {
+  taskGroupID: UUID!
+  name: String!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
   createUserAccount(input: NewUserAccount!): UserAccount!
 
   createTeam(input: NewTeam!): Team!
+  clearProfileAvatar:  UserAccount!
 
   createProject(input: NewProject!): Project!
   updateProjectName(input: UpdateProjectName): Project!
@@ -273,6 +280,7 @@ type Mutation {
 
   createTaskGroup(input: NewTaskGroup!): TaskGroup!
   updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
+  updateTaskGroupName(input: UpdateTaskGroupName!): TaskGroup!
   deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
 
   addTaskLabel(input: AddTaskLabelInput): Task!

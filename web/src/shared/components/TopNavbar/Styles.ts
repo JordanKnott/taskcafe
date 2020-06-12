@@ -68,7 +68,7 @@ export const ProfileNameSecondary = styled.small`
   color: #c2c6dc;
 `;
 
-export const ProfileIcon = styled.div<{ bgColor: string }>`
+export const ProfileIcon = styled.div<{ bgColor: string | null; backgroundURL: string | null }>`
   margin-left: 10px;
   width: 40px;
   height: 40px;
@@ -78,8 +78,9 @@ export const ProfileIcon = styled.div<{ bgColor: string }>`
   justify-content: center;
   color: #fff;
   font-weight: 700;
-  background: ${props => props.bgColor};
-  cursor: pointer;
+  background: ${props => (props.backgroundURL ? `url(${props.backgroundURL})` : props.bgColor)};
+  background-position: center;
+  background-size: contain;
 `;
 
 export const ProjectMeta = styled.div`

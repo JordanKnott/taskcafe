@@ -2,8 +2,7 @@ mutation unassignTask($taskID: UUID!, $userID: UUID!) {
   unassignTask(input: {taskID: $taskID, userID: $userID}) {
     assigned {
       id
-      firstName
-      lastName
+      fullName
     }
     id
   }

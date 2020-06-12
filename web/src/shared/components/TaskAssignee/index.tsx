@@ -8,7 +8,7 @@ const TaskDetailAssignee = styled.div`
   margin-right: 4px;
 `;
 
-const ProfileIcon = styled.div<{ size: string | number }>`
+export const Wrapper = styled.div<{ size: number | string; bgColor: string | null; backgroundURL: string | null }>`
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 9999px;
@@ -16,10 +16,10 @@ const ProfileIcon = styled.div<{ size: string | number }>`
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-weight: 400;
-  background: rgb(115, 103, 240);
-  font-size: 14px;
-  cursor: pointer;
+  font-weight: 700;
+  background: ${props => (props.backgroundURL ? `url(${props.backgroundURL})` : props.bgColor)};
+  background-position: center;
+  background-size: contain;
 `;
 
 type TaskAssigneeProps = {
@@ -31,8 +31,17 @@ type TaskAssigneeProps = {
 const TaskAssignee: React.FC<TaskAssigneeProps> = ({ member, onMemberProfile, size }) => {
   const $memberRef = useRef<HTMLDivElement>(null);
   return (
-    <TaskDetailAssignee ref={$memberRef} onClick={() => onMemberProfile($memberRef, member.id)} key={member.id}>
-      <ProfileIcon size={size}>{member.profileIcon.initials ?? ''}</ProfileIcon>
+    <TaskDetailAssignee
+      ref={$memberRef}
+      onClick={e => {
+        e.stopPropagation();
+        onMemberProfile($memberRef, member.id);
+      }}
+      key={member.id}
+    >
+      <Wrapper backgroundURL={member.profileIcon.url ?? null} bgColor={member.profileIcon.bgColor ?? null} size={size}>
+        {(!member.profileIcon.url && member.profileIcon.initials) ?? ''}
+      </Wrapper>
     </TaskDetailAssignee>
   );
 };

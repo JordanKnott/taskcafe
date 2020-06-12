@@ -1,5 +1,6 @@
 mutation updateTaskDescription($taskID: UUID!, $description: String!) {
   updateTaskDescription(input: {taskID: $taskID, description: $description}) {
     id
+    description
   }
 }

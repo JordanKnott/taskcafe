@@ -21,6 +21,7 @@ import {
   CardTitle,
   CardMembers,
 } from './Styles';
+import TaskAssignee from 'shared/components/TaskAssignee';
 
 type DueDate = {
   isPastDue: boolean;
@@ -143,7 +144,16 @@ const Card = React.forwardRef(
             <CardMembers>
               {members &&
                 members.map(member => (
-                  <Member key={member.id} taskID={taskID} member={member} onCardMemberClick={onCardMemberClick} />
+                  <TaskAssignee
+                    key={member.id}
+                    size={28}
+                    member={member}
+                    onMemberProfile={$target => {
+                      if (onCardMemberClick) {
+                        onCardMemberClick($target, taskID, member.id);
+                      }
+                    }}
+                  />
                 ))}
             </CardMembers>
           </ListCardDetails>

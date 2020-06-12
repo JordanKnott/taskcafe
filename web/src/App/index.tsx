@@ -13,12 +13,6 @@ import { PopupProvider } from 'shared/components/PopupMenu';
 
 const history = createBrowserHistory();
 
-const MainContent = styled.div`
-  padding: 0 0 50px 80px;
-  background: #262c49;
-  height: 100%;
-`;
-
 const App = () => {
   const [loading, setLoading] = useState(true);
   const [userID, setUserID] = useState<string | null>(null);
@@ -54,9 +48,7 @@ const App = () => {
             ) : (
               <>
                 <Navbar />
-                <MainContent>
-                  <Routes history={history} />
-                </MainContent>
+                <Routes history={history} />
               </>
             )}
           </Router>

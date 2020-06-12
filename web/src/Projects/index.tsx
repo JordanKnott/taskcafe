@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
 import { useGetProjectsQuery, useCreateProjectMutation, GetProjectsDocument } from 'shared/generated/graphql';
@@ -28,6 +28,9 @@ const ProjectLink = styled(Link)``;
 
 const Projects = () => {
   const { loading, data } = useGetProjectsQuery();
+  useEffect(() => {
+    document.title = 'Citadel';
+  }, []);
   const [createProject] = useCreateProjectMutation({
     update: (client, newProject) => {
       const cacheData: any = client.readQuery({

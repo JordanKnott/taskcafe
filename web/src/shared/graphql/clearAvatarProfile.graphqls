@@ -1,0 +1,11 @@
+mutation clearProfileAvatar {
+  clearProfileAvatar {
+    id
+    fullName
+    profileIcon {
+      initials
+      bgColor
+      url
+    }
+  }
+}

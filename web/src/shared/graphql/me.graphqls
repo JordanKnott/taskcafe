@@ -1,10 +1,11 @@
 query me {
   me {
-    firstName
-    lastName
+    id
+    fullName
     profileIcon {
       initials
       bgColor
+      url
     }
   }
 }

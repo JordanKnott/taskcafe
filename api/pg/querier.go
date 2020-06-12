@@ -64,6 +64,7 @@ type Querier interface {
 	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)
 	UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocationParams) (Task, error)
 	UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error)
+	UpdateUserAccountProfileAvatarURL(ctx context.Context, arg UpdateUserAccountProfileAvatarURLParams) (UserAccount, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -30,3 +30,8 @@ type LogoutResponseData struct {
 type RefreshTokenResponseData struct {
 	AccessToken string `json:"accessToken"`
 }
+
+type AvatarUploadResponseData struct {
+	UserID string `json:"userID"`
+	URL    string `json:"url"`
+}

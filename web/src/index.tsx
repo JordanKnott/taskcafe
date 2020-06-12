@@ -9,8 +9,20 @@ import { onError } from 'apollo-link-error';
 import { ApolloLink, Observable, fromPromise } from 'apollo-link';
 
 import { getAccessToken, getNewToken, setAccessToken } from 'shared/utils/accessToken';
+import axios from 'axios';
+import createAuthRefreshInterceptor from 'axios-auth-refresh';
 
 import App from './App';
+
+// Function that will be called to refresh authorization
+const refreshAuthLogic = (failedRequest: any) =>
+  axios.post('http://localhost:3333/auth/refresh_token', {}, { withCredentials: true }).then(tokenRefreshResponse => {
+    setAccessToken(tokenRefreshResponse.data.accessToken);
+    failedRequest.response.config.headers.Authorization = `Bearer ${tokenRefreshResponse.data.accessToken}`;
+    return Promise.resolve();
+  });
+
+createAuthRefreshInterceptor(axios, refreshAuthLogic);
 
 // https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
 

@@ -3,8 +3,7 @@ query findProject($projectId: String!) {
     name
     members {
       id
-      firstName
-      lastName
+      fullName
       profileIcon {
         url
         initials
@@ -53,8 +52,7 @@ query findProject($projectId: String!) {
         }
         assigned {
           id
-          firstName
-          lastName
+          fullName
           profileIcon {
             url
             initials

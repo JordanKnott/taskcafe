@@ -43,6 +43,10 @@ func ValidateAccessToken(accessTokenString string) (AccessTokenClaims, error) {
 		return jwtKey, nil
 	})
 
+	if err != nil {
+		return *accessClaims, nil
+	}
+
 	if accessToken.Valid {
 		log.WithFields(log.Fields{
 			"token":        accessTokenString,

@@ -26,8 +26,7 @@ mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
     }
     assigned {
       id
-      firstName
-      lastName
+      fullName
       profileIcon {
         url
         initials

@@ -24,6 +24,7 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 		accessClaims, err := ValidateAccessToken(accessTokenString)
 		if err != nil {
 			if _, ok := err.(*ErrExpiredToken); ok {
+				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte(`{
 	"data": {},
 	"errors": [

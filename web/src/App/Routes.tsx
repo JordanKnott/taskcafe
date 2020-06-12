@@ -6,7 +6,14 @@ import Dashboard from 'Dashboard';
 import Projects from 'Projects';
 import Project from 'Projects/Project';
 import Login from 'Auth';
+import Profile from 'Profile';
+import styled from 'styled-components';
 
+const MainContent = styled.div`
+  padding: 0 0 50px 80px;
+  background: #262c49;
+  height: 100%;
+`;
 type RoutesProps = {
   history: H.History;
 };
@@ -14,9 +21,12 @@ type RoutesProps = {
 const Routes = ({ history }: RoutesProps) => (
   <Switch>
     <Route exact path="/login" component={Login} />
-    <Route exact path="/" component={Dashboard} />
-    <Route exact path="/projects" component={Projects} />
-    <Route path="/projects/:projectID" component={Project} />
+    <MainContent>
+      <Route exact path="/" component={Dashboard} />
+      <Route exact path="/projects" component={Projects} />
+      <Route path="/projects/:projectID" component={Project} />
+      <Route path="/profile" component={Profile} />
+    </MainContent>
   </Switch>
 );
 

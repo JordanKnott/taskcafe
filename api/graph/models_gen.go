@@ -100,11 +100,11 @@ type NewTeam struct {
 }
 
 type NewUserAccount struct {
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Password  string `json:"password"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	FullName string `json:"fullName"`
+	Initials string `json:"initials"`
+	Password string `json:"password"`
 }
 
 type ProfileIcon struct {
@@ -115,8 +115,7 @@ type ProfileIcon struct {
 
 type ProjectMember struct {
 	ID          uuid.UUID    `json:"id"`
-	FirstName   string       `json:"firstName"`
-	LastName    string       `json:"lastName"`
+	FullName    string       `json:"fullName"`
 	ProfileIcon *ProfileIcon `json:"profileIcon"`
 }
 
@@ -167,6 +166,11 @@ type UpdateProjectName struct {
 type UpdateTaskDescriptionInput struct {
 	TaskID      uuid.UUID `json:"taskID"`
 	Description string    `json:"description"`
+}
+
+type UpdateTaskGroupName struct {
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Name        string    `json:"name"`
 }
 
 type UpdateTaskLocationPayload struct {

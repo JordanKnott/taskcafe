@@ -24,8 +24,7 @@ query findTask($taskID: UUID!) {
     }
     assigned {
       id
-      firstName
-      lastName
+      fullName
       profileIcon {
         url
         initials

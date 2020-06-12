@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import GlobalTopNavbar from 'App/TopNavbar';
 import styled from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags } from 'shared/icons';
@@ -428,6 +428,11 @@ const Project = () => {
   const $labelsRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<Array<ProjectLabel>>([]);
   const taskLabelsRef = useRef<Array<TaskLabel>>([]);
+  useEffect(() => {
+    if (data) {
+      document.title = `${data.findProject.name} | Citadel`;
+    }
+  }, [data]);
   if (loading) {
     return (
       <>
@@ -562,6 +567,7 @@ const Project = () => {
               </Popup>,
             );
           }}
+          onChangeTaskGroupName={(taskGroupID, name) => {}}
           onQuickEditorOpen={onQuickEditorOpen}
           onExtraMenuOpen={(taskGroupID: string, $targetRef: any) => {
             showPopup(

@@ -55,8 +55,7 @@ export const Default = () => {
                   {
                     id: '1',
                     profileIcon: { bgColor: null, url: null, initials: null },
-                    firstName: 'Jordan',
-                    lastName: 'Knott',
+                    fullName: 'Jordan Knott',
                   },
                 ],
               }}

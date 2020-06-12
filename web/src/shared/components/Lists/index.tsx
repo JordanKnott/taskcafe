@@ -20,6 +20,7 @@ interface SimpleProps {
 
   onTaskClick: (task: Task) => void;
   onCreateTask: (taskGroupID: string, name: string) => void;
+  onChangeTaskGroupName: (taskGroupID: string, name: string) => void;
   onQuickEditorOpen: (e: ContextMenuEvent) => void;
   onCreateTaskGroup: (listName: string) => void;
   onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
@@ -29,6 +30,7 @@ interface SimpleProps {
 const SimpleLists: React.FC<SimpleProps> = ({
   taskGroups,
   onTaskDrop,
+  onChangeTaskGroupName,
   onTaskGroupDrop,
   onTaskClick,
   onCreateTask,
@@ -135,7 +137,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                               name={taskGroup.name}
                               onOpenComposer={id => setCurrentComposer(id)}
                               isComposerOpen={currentComposer === taskGroup.id}
-                              onSaveName={name => {}}
+                              onSaveName={name => onChangeTaskGroupName(taskGroup.id, name)}
                               ref={columnDragProvided.innerRef}
                               wrapperProps={columnDragProvided.draggableProps}
                               headerProps={columnDragProvided.dragHandleProps}
