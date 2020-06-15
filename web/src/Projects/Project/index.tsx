@@ -229,14 +229,14 @@ const ProjectAction = styled.div`
   display: flex;
   align-items: center;
   font-size: 15px;
-  color: var(--color-text);
+  color: rgba(${props => props.theme.colors.text.primary});
 
   &:not(:last-child) {
     margin-right: 16px;
   }
 
   &:hover {
-    color: var(--color-text-hover);
+    color: rgba(${props => props.theme.colors.text.secondary});
   }
 `;
 
@@ -490,15 +490,15 @@ const Project = () => {
                 );
               }}
             >
-              <Tags size={13} color="var(--color-icon)" />
+              <Tags width={13} height={13} />
               <ProjectActionText>Labels</ProjectActionText>
             </ProjectAction>
             <ProjectAction>
-              <ToggleOn size={13} color="var(--color-icon)" />
+              <ToggleOn width={13} height={13} />
               <ProjectActionText>Fields</ProjectActionText>
             </ProjectAction>
             <ProjectAction>
-              <Bolt size={13} color="var(--color-icon)" />
+              <Bolt width={13} height={13} />
               <ProjectActionText>Rules</ProjectActionText>
             </ProjectAction>
           </ProjectActions>

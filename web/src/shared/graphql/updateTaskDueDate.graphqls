@@ -1,0 +1,12 @@
+mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time) {
+  updateTaskDueDate (
+    input: {
+      taskID: $taskID
+      dueDate: $dueDate
+    }
+  ) {
+    id
+    dueDate
+  }
+}
+

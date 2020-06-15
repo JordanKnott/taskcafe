@@ -66,6 +66,7 @@ export const Default = () => {
               onMemberProfile={action('profile')}
               onOpenAddMemberPopup={action('open add member popup')}
               onOpenAddLabelPopup={action('open add label popup')}
+              onOpenDueDatePopop={action('open due date popup')}
             />
           );
         }}

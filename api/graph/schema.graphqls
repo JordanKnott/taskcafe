@@ -84,6 +84,7 @@ type Task {
   name: String!
   position: Float!
   description: String
+  dueDate: Time
   assigned: [ProjectMember!]!
   labels: [TaskLabel!]!
 }
@@ -261,6 +262,11 @@ input UpdateTaskGroupName  {
   name: String!
 }
 
+input UpdateTaskDueDate  {
+  taskID: UUID!
+  dueDate: Time
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -291,6 +297,7 @@ type Mutation {
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
   updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
   updateTaskName(input: UpdateTaskName!): Task!
+  updateTaskDueDate(input: UpdateTaskDueDate!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
   assignTask(input: AssignTaskInput): Task!
   unassignTask(input: UnassignTaskInput): Task!

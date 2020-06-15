@@ -1,5 +1,7 @@
 import styled from 'styled-components';
+import Button from 'shared/components/Button';
 import { mixin } from 'shared/utils/styles';
+import Input from 'shared/components/Input';
 
 export const Wrapper = styled.div`
 display: flex
@@ -8,7 +10,37 @@ display: flex
     background: #262c49;
     font-family: 'Droid Sans', sans-serif;
     border: none;
+  }
+  & .react-datepicker__triangle {
+    display: none;
+  }
+  & .react-datepicker-popper {
+    z-index: 10000;
+    margin-top: 0;
+  }
 
+  & .react-datepicker-time__header {
+    color: rgba(${props => props.theme.colors.text.primary});
+  }
+  & .react-datepicker__time-list-item {
+    color: rgba(${props => props.theme.colors.text.primary});
+  }
+  & .react-datepicker__time-container .react-datepicker__time
+  .react-datepicker__time-box ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item:hover {
+    color: rgba(${props => props.theme.colors.text.secondary});
+    background: rgba(${props => props.theme.colors.bg.secondary});
+  }
+  & .react-datepicker__time-container .react-datepicker__time {
+    background: rgba(${props => props.theme.colors.bg.primary});
+  }
+  & .react-datepicker--time-only {
+    background: rgba(${props => props.theme.colors.bg.primary});
+    border: 1px solid rgba(${props => props.theme.colors.border});
+  }
+
+  & .react-datepicker * {
+    box-sizing: content-box;
   }
   & .react-datepicker__day-name {
     color: #c2c6dc;
@@ -56,6 +88,9 @@ display: flex
     background: none;
     border: none;
   }
+  & .react-datepicker__header--time {
+    border-bottom: 1px solid rgba(${props => props.theme.colors.border});
+  }
 
 `;
 
@@ -66,21 +101,10 @@ export const DueDatePickerWrapper = styled.div`
   justify-content: center;
 `;
 
-export const ConfirmAddDueDate = styled.div`
-  background-color: #5aac44;
-  box-shadow: none;
-  border: none;
-  color: #fff;
+export const ConfirmAddDueDate = styled(Button)`
   float: left;
   margin: 0 4px 0 0;
-  cursor: pointer;
-  display: inline-block;
-  font-weight: 400;
-  line-height: 20px;
   padding: 6px 12px;
-  text-align: center;
-  border-radius: 3px;
-  font-size: 14px;
 `;
 
 export const CancelDueDate = styled.div`
@@ -90,6 +114,12 @@ export const CancelDueDate = styled.div`
   height: 32px;
   width: 32px;
   cursor: pointer;
+`;
+
+export const DueDateInput = styled(Input)`
+  margin-top: 15px;
+  margin-bottom: 5px;
+  padding-right: 10px;
 `;
 
 export const ActionWrapper = styled.div`

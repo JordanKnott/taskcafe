@@ -30,6 +30,7 @@ query findProject($projectId: String!) {
         name
         position
         description
+        dueDate
         taskGroup {
           id
           name

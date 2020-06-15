@@ -4,9 +4,15 @@ import TaskDetails from 'shared/components/TaskDetails';
 import PopupMenu, { Popup, usePopup } from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
 import { useRouteMatch, useHistory } from 'react-router';
-import { useFindTaskQuery, useAssignTaskMutation, useUnassignTaskMutation } from 'shared/generated/graphql';
+import {
+  useFindTaskQuery,
+  useUpdateTaskDueDateMutation,
+  useAssignTaskMutation,
+  useUnassignTaskMutation,
+} from 'shared/generated/graphql';
 import UserIDContext from 'App/context';
 import MiniProfile from 'shared/components/MiniProfile';
+import DueDateManager from 'shared/components/DueDateManager';
 
 type DetailsProps = {
   taskID: string;
@@ -32,12 +38,18 @@ const Details: React.FC<DetailsProps> = ({
   refreshCache,
 }) => {
   const { userID } = useContext(UserIDContext);
-  const { showPopup } = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
   const match = useRouteMatch();
   const [currentMemberTask, setCurrentMemberTask] = useState('');
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
   const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
+  const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
+    onCompleted: () => {
+      refetch();
+      refreshCache();
+    },
+  });
   const [assignTask] = useAssignTaskMutation({
     onCompleted: () => {
       refetch();
@@ -56,6 +68,7 @@ const Details: React.FC<DetailsProps> = ({
   if (!data) {
     return <div>loading</div>;
   }
+  console.log(data.findTask);
   return (
     <>
       <Modal
@@ -108,6 +121,29 @@ const Details: React.FC<DetailsProps> = ({
                 );
               }}
               onOpenAddLabelPopup={onOpenAddLabelPopup}
+              onOpenDueDatePopop={(task, $targetRef) => {
+                showPopup(
+                  $targetRef,
+
+                  <Popup
+                    title={'Change Due Date'}
+                    tab={0}
+                    onClose={() => {
+                      hidePopup();
+                    }}
+                  >
+                    <DueDateManager
+                      task={task}
+                      onDueDateChange={(t, newDueDate) => {
+                        console.log(`${newDueDate}`);
+                        updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
+                        hidePopup();
+                      }}
+                      onCancel={() => {}}
+                    />
+                  </Popup>,
+                );
+              }}
             />
           );
         }}

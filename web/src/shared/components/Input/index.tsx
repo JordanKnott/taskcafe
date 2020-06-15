@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from 'styled-components/macro';
+import React, { useState, useEffect } from 'react';
+import styled, { css } from 'styled-components/macro';
 
 const InputWrapper = styled.div<{ width: string }>`
   position: relative;
@@ -32,7 +32,13 @@ const InputLabel = styled.span<{ width: string }>`
 }
 `;
 
-const InputInput = styled.input<{ hasIcon: boolean; width: string; focusBg: string; borderColor: string }>`
+const InputInput = styled.input<{
+  hasValue: boolean;
+  hasIcon: boolean;
+  width: string;
+  focusBg: string;
+  borderColor: string;
+}>`
   width: ${props => props.width};
   font-size: 14px;
   border: 1px solid rgba(0, 0, 0, 0.2);
@@ -54,6 +60,14 @@ const InputInput = styled.input<{ hasIcon: boolean; width: string; focusBg: stri
     color: rgba(115, 103, 240);
     transform: translate(-3px, -90%);
   }
+  ${props =>
+    props.hasValue &&
+    css`
+      & ~ ${InputLabel} {
+        color: rgba(115, 103, 240);
+        transform: translate(-3px, -90%);
+      }
+    `}
 `;
 
 const Icon = styled.div`
@@ -68,24 +82,66 @@ type InputProps = {
   width?: string;
   placeholder?: string;
   icon?: JSX.Element;
+  id?: string;
+  name?: string;
+  className?: string;
+  value?: string;
+  onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-const Input: React.FC<InputProps> = ({ width = 'auto', variant = 'normal', label, placeholder, icon }) => {
-  const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
-  const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
-  return (
-    <InputWrapper width={width}>
-      <InputInput
-        hasIcon={typeof icon !== 'undefined'}
-        width={width}
-        placeholder={placeholder}
-        focusBg={focusBg}
-        borderColor={borderColor}
-      />
-      {label && <InputLabel width={width}>{label}</InputLabel>}
-      <Icon>{icon && icon}</Icon>
-    </InputWrapper>
-  );
-};
+const Input = React.forwardRef(
+  (
+    {
+      width = 'auto',
+      variant = 'normal',
+      label,
+      placeholder,
+      icon,
+      name,
+      onChange,
+      className,
+      onClick,
+      value: initialValue,
+      id,
+    }: InputProps,
+    $ref: any,
+  ) => {
+    const [value, setValue] = useState(initialValue ?? '');
+    useEffect(() => {
+      if (initialValue) {
+        setValue(initialValue);
+      }
+    }, [initialValue]);
+    const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
+    const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(e.currentTarget.value);
+      if (onChange) {
+        onChange(e);
+      }
+    };
+    return (
+      <InputWrapper className={className} width={width}>
+        <InputInput
+          hasValue={value !== ''}
+          ref={$ref}
+          id={id}
+          name={name}
+          onClick={onClick}
+          onChange={handleChange}
+          value={value}
+          hasIcon={typeof icon !== 'undefined'}
+          width={width}
+          placeholder={placeholder}
+          focusBg={focusBg}
+          borderColor={borderColor}
+        />
+        {label && <InputLabel width={width}>{label}</InputLabel>}
+        <Icon>{icon && icon}</Icon>
+      </InputWrapper>
+    );
+  },
+);
 
 export default Input;

@@ -1,12 +1,16 @@
 import React, { useRef } from 'react';
 import { action } from '@storybook/addon-actions';
-import DueDateManager from '.';
+import BaseStyles from 'App/BaseStyles';
+import NormalizeStyles from 'App/NormalizeStyles';
+import { theme } from 'App/ThemeStyles';
+import styled, { ThemeProvider } from 'styled-components';
 import { Popup } from '../PopupMenu';
-import styled from 'styled-components';
+import DueDateManager from '.';
 
 const PopupWrapper = styled.div`
-  width: 300px;
+  width: 310px;
 `;
+
 export default {
   component: DueDateManager,
   title: 'DueDateManager',
@@ -20,44 +24,50 @@ export default {
 
 export const Default = () => {
   return (
-    <PopupWrapper>
-      <Popup title={null} tab={0}>
-        <DueDateManager
-          task={{
-            id: '1',
-            taskGroup: { name: 'General', id: '1', position: 1 },
-            name: 'Hello, world',
-            position: 1,
-            labels: [
-              {
-                id: 'soft-skills',
-                assignedDate: new Date().toString(),
-                projectLabel: {
-                  createdDate: new Date().toString(),
-                  id: 'label-soft-skills',
-                  name: 'Soft Skills',
-                  labelColor: {
-                    id: '1',
-                    name: 'white',
-                    colorHex: '#fff',
-                    position: 1,
-                  },
-                },
-              },
-            ],
-            description: 'hello!',
-            assigned: [
-              {
+    <>
+      <NormalizeStyles />
+      <BaseStyles />
+      <ThemeProvider theme={theme}>
+        <PopupWrapper>
+          <Popup title={null} tab={0}>
+            <DueDateManager
+              task={{
                 id: '1',
-                profileIcon: { url: null, initials: null, bgColor: null },
-                fullName: 'Jordan Knott',
-              },
-            ],
-          }}
-          onCancel={action('cancel')}
-          onDueDateChange={action('due date change')}
-        />
-      </Popup>
-    </PopupWrapper>
+                taskGroup: { name: 'General', id: '1', position: 1 },
+                name: 'Hello, world',
+                position: 1,
+                labels: [
+                  {
+                    id: 'soft-skills',
+                    assignedDate: new Date().toString(),
+                    projectLabel: {
+                      createdDate: new Date().toString(),
+                      id: 'label-soft-skills',
+                      name: 'Soft Skills',
+                      labelColor: {
+                        id: '1',
+                        name: 'white',
+                        colorHex: '#fff',
+                        position: 1,
+                      },
+                    },
+                  },
+                ],
+                description: 'hello!',
+                assigned: [
+                  {
+                    id: '1',
+                    profileIcon: { url: null, initials: null, bgColor: null },
+                    fullName: 'Jordan Knott',
+                  },
+                ],
+              }}
+              onCancel={action('cancel')}
+              onDueDateChange={action('due date change')}
+            />
+          </Popup>
+        </PopupWrapper>
+      </ThemeProvider>
+    </>
   );
 };

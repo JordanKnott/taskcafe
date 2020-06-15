@@ -135,6 +135,28 @@ func (q *Queries) GetTaskGroupsForProject(ctx context.Context, projectID uuid.UU
 	return items, nil
 }
 
+const setTaskGroupName = `-- name: SetTaskGroupName :one
+UPDATE task_group SET name = $2 WHERE task_group_id = $1 RETURNING task_group_id, project_id, created_at, name, position
+`
+
+type SetTaskGroupNameParams struct {
+	TaskGroupID uuid.UUID `json:"task_group_id"`
+	Name        string    `json:"name"`
+}
+
+func (q *Queries) SetTaskGroupName(ctx context.Context, arg SetTaskGroupNameParams) (TaskGroup, error) {
+	row := q.db.QueryRowContext(ctx, setTaskGroupName, arg.TaskGroupID, arg.Name)
+	var i TaskGroup
+	err := row.Scan(
+		&i.TaskGroupID,
+		&i.ProjectID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+	)
+	return i, err
+}
+
 const updateTaskGroupLocation = `-- name: UpdateTaskGroupLocation :one
 UPDATE task_group SET position = $2 WHERE task_group_id = $1 RETURNING task_group_id, project_id, created_at, name, position
 `

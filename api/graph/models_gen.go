@@ -3,6 +3,8 @@
 package graph
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jordanknott/project-citadel/api/pg"
 )
@@ -166,6 +168,11 @@ type UpdateProjectName struct {
 type UpdateTaskDescriptionInput struct {
 	TaskID      uuid.UUID `json:"taskID"`
 	Description string    `json:"description"`
+}
+
+type UpdateTaskDueDate struct {
+	TaskID  uuid.UUID  `json:"taskID"`
+	DueDate *time.Time `json:"dueDate"`
 }
 
 type UpdateTaskGroupName struct {

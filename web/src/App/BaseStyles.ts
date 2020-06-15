@@ -111,5 +111,19 @@ export default createGlobalStyle`
     resize: none;
   }
 
+   ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+   ::-webkit-scrollbar-track {
+    background: #262c49;
+    border-radius: 20px;
+  }
+
+   ::-webkit-scrollbar-thumb {
+    background: #7367f0;
+    border-radius: 20px;
+  }
+
   ${mixin.placeholderColor(color.textLight)}
 `;

@@ -17,6 +17,7 @@ const theme: DefaultTheme = {
       primary: '194, 198, 220',
       secondary: '255, 255, 255',
     },
+    border: '65, 69, 97',
     bg: {
       primary: '16, 22, 58',
       secondary: '38, 44, 73',

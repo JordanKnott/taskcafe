@@ -35,6 +35,7 @@ type Task = {
   taskGroup: InnerTaskGroup;
   name: string;
   position: number;
+  dueDate?: string;
   labels: TaskLabel[];
   description?: string | null;
   assigned?: Array<TaskUser>;

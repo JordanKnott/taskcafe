@@ -107,6 +107,7 @@ type ButtonProps = {
   variant?: 'filled' | 'outline' | 'flat' | 'lineDown' | 'gradient' | 'relief';
   color?: 'primary' | 'danger' | 'success' | 'warning' | 'dark';
   disabled?: boolean;
+  type?: 'button' | 'submit';
   className?: string;
   onClick?: () => void;
 };
@@ -116,6 +117,7 @@ const Button: React.FC<ButtonProps> = ({
   fontSize = '14px',
   color = 'primary',
   variant = 'filled',
+  type = 'button',
   onClick,
   className,
   children,
@@ -128,38 +130,38 @@ const Button: React.FC<ButtonProps> = ({
   switch (variant) {
     case 'filled':
       return (
-        <Filled onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Filled type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Filled>
       );
     case 'outline':
       return (
-        <Outline onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Outline type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Outline>
       );
     case 'flat':
       return (
-        <Flat onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Flat type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Flat>
       );
     case 'lineDown':
       return (
-        <LineDown onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <LineDown type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
           <LineX color={color} />
         </LineDown>
       );
     case 'gradient':
       return (
-        <Gradient onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Gradient type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Gradient>
       );
     case 'relief':
       return (
-        <Relief onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Relief type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Relief>
       );

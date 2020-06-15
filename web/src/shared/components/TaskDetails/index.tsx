@@ -39,6 +39,7 @@ import {
 } from './Styles';
 
 import convertDivElementRefToBounds from 'shared/utils/boundingRect';
+import moment from 'moment';
 
 type TaskContentProps = {
   onEditContent: () => void;
@@ -106,6 +107,7 @@ type TaskDetailsProps = {
   onDeleteTask: (task: Task) => void;
   onOpenAddMemberPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
+  onOpenDueDatePopop: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
   onCloseModal: () => void;
 };
@@ -118,6 +120,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onCloseModal,
   onOpenAddMemberPopup,
   onOpenAddLabelPopup,
+  onOpenDueDatePopop,
   onMemberProfile,
 }) => {
   const [editorOpen, setEditorOpen] = useState(false);
@@ -143,6 +146,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const onAddMember = () => {
     onOpenAddMemberPopup(task, $addMemberRef);
   };
+  const $dueDateLabel = useRef<HTMLDivElement>(null);
   const $addLabelRef = useRef<HTMLDivElement>(null);
   const onAddLabel = () => {
     onOpenAddLabelPopup(task, $addLabelRef);
@@ -229,7 +233,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </TaskDetailsAddLabel>
           </TaskDetailLabels>
           <TaskDetailSectionTitle>Due Date</TaskDetailSectionTitle>
-          <NoDueDateLabel>No due date</NoDueDateLabel>
+          {task.dueDate ? (
+            <NoDueDateLabel ref={$dueDateLabel} onClick={() => onOpenDueDatePopop(task, $dueDateLabel)}>
+              {moment(task.dueDate).format('MMM D [at] h:mm A')}
+            </NoDueDateLabel>
+          ) : (
+            <NoDueDateLabel ref={$dueDateLabel} onClick={() => onOpenDueDatePopop(task, $dueDateLabel)}>
+              No due date
+            </NoDueDateLabel>
+          )}
         </TaskDetailsSidebar>
       </TaskDetailsWrapper>
     </>

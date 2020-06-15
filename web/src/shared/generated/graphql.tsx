@@ -110,6 +110,7 @@ export type Task = {
   name: Scalars['String'];
   position: Scalars['Float'];
   description?: Maybe<Scalars['String']>;
+  dueDate?: Maybe<Scalars['Time']>;
   assigned: Array<ProjectMember>;
   labels: Array<TaskLabel>;
 };
@@ -310,6 +311,16 @@ export type UpdateTaskLocationPayload = {
   task: Task;
 };
 
+export type UpdateTaskGroupName = {
+  taskGroupID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+export type UpdateTaskDueDate = {
+  taskID: Scalars['UUID'];
+  dueDate?: Maybe<Scalars['Time']>;
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createRefreshToken: RefreshToken;
@@ -325,6 +336,7 @@ export type Mutation = {
   updateProjectLabelColor: ProjectLabel;
   createTaskGroup: TaskGroup;
   updateTaskGroupLocation: TaskGroup;
+  updateTaskGroupName: TaskGroup;
   deleteTaskGroup: DeleteTaskGroupPayload;
   addTaskLabel: Task;
   removeTaskLabel: Task;
@@ -333,6 +345,7 @@ export type Mutation = {
   updateTaskDescription: Task;
   updateTaskLocation: UpdateTaskLocationPayload;
   updateTaskName: Task;
+  updateTaskDueDate: Task;
   deleteTask: DeleteTaskPayload;
   assignTask: Task;
   unassignTask: Task;
@@ -400,6 +413,11 @@ export type MutationUpdateTaskGroupLocationArgs = {
 };
 
 
+export type MutationUpdateTaskGroupNameArgs = {
+  input: UpdateTaskGroupName;
+};
+
+
 export type MutationDeleteTaskGroupArgs = {
   input: DeleteTaskGroupInput;
 };
@@ -437,6 +455,11 @@ export type MutationUpdateTaskLocationArgs = {
 
 export type MutationUpdateTaskNameArgs = {
   input: UpdateTaskName;
+};
+
+
+export type MutationUpdateTaskDueDateArgs = {
+  input: UpdateTaskDueDate;
 };
 
 
@@ -658,7 +681,7 @@ export type FindProjectQuery = (
       & Pick<TaskGroup, 'id' | 'name' | 'position'>
       & { tasks: Array<(
         { __typename?: 'Task' }
-        & Pick<Task, 'id' | 'name' | 'position' | 'description'>
+        & Pick<Task, 'id' | 'name' | 'position' | 'description' | 'dueDate'>
         & { taskGroup: (
           { __typename?: 'TaskGroup' }
           & Pick<TaskGroup, 'id' | 'name' | 'position'>
@@ -698,7 +721,7 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'name' | 'description' | 'position'>
+    & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id'>
@@ -849,6 +872,20 @@ export type UpdateTaskDescriptionMutation = (
   & { updateTaskDescription: (
     { __typename?: 'Task' }
     & Pick<Task, 'id' | 'description'>
+  ) }
+);
+
+export type UpdateTaskDueDateMutationVariables = {
+  taskID: Scalars['UUID'];
+  dueDate?: Maybe<Scalars['Time']>;
+};
+
+
+export type UpdateTaskDueDateMutation = (
+  { __typename?: 'Mutation' }
+  & { updateTaskDueDate: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'id' | 'dueDate'>
   ) }
 );
 
@@ -1298,6 +1335,7 @@ export const FindProjectDocument = gql`
         name
         position
         description
+        dueDate
         taskGroup {
           id
           name
@@ -1370,6 +1408,7 @@ export const FindTaskDocument = gql`
     id
     name
     description
+    dueDate
     position
     taskGroup {
       id
@@ -1705,6 +1744,40 @@ export function useUpdateTaskDescriptionMutation(baseOptions?: ApolloReactHooks.
 export type UpdateTaskDescriptionMutationHookResult = ReturnType<typeof useUpdateTaskDescriptionMutation>;
 export type UpdateTaskDescriptionMutationResult = ApolloReactCommon.MutationResult<UpdateTaskDescriptionMutation>;
 export type UpdateTaskDescriptionMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>;
+export const UpdateTaskDueDateDocument = gql`
+    mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time) {
+  updateTaskDueDate(input: {taskID: $taskID, dueDate: $dueDate}) {
+    id
+    dueDate
+  }
+}
+    `;
+export type UpdateTaskDueDateMutationFn = ApolloReactCommon.MutationFunction<UpdateTaskDueDateMutation, UpdateTaskDueDateMutationVariables>;
+
+/**
+ * __useUpdateTaskDueDateMutation__
+ *
+ * To run a mutation, you first call `useUpdateTaskDueDateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTaskDueDateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTaskDueDateMutation, { data, loading, error }] = useUpdateTaskDueDateMutation({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *      dueDate: // value for 'dueDate'
+ *   },
+ * });
+ */
+export function useUpdateTaskDueDateMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateTaskDueDateMutation, UpdateTaskDueDateMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateTaskDueDateMutation, UpdateTaskDueDateMutationVariables>(UpdateTaskDueDateDocument, baseOptions);
+      }
+export type UpdateTaskDueDateMutationHookResult = ReturnType<typeof useUpdateTaskDueDateMutation>;
+export type UpdateTaskDueDateMutationResult = ApolloReactCommon.MutationResult<UpdateTaskDueDateMutation>;
+export type UpdateTaskDueDateMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskDueDateMutation, UpdateTaskDueDateMutationVariables>;
 export const UpdateTaskGroupLocationDocument = gql`
     mutation updateTaskGroupLocation($taskGroupID: UUID!, $position: Float!) {
   updateTaskGroupLocation(input: {taskGroupID: $taskGroupID, position: $position}) {

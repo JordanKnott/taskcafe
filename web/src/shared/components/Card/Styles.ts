@@ -22,7 +22,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   padding: 0;
   font-size: 16px;
   line-height: 20px;
-  color: var(--color-input-text-focus);
+  color: rgba(${props => props.theme.colors.text.secondary});
   &:focus {
     border: none;
     outline: none;
@@ -84,7 +84,7 @@ export const ListCardContainer = styled.div<{ isActive: boolean; editable: boole
   position: relative;
 
   background-color: ${props =>
-    props.isActive && !props.editable ? mixin.darken('#262c49', 0.1) : 'var(--color-background)'};
+    props.isActive && !props.editable ? mixin.darken('#262c49', 0.1) : `rgba(${props.theme.colors.bg.secondary})`};
 `;
 
 export const ListCardInnerContainer = styled.div`
@@ -145,7 +145,7 @@ export const CardTitle = styled.span`
   overflow: hidden;
   text-decoration: none;
   word-wrap: break-word;
-  color: var(--color-text);
+  color: rgba(${props => props.theme.colors.text.primary});
 `;
 
 export const CardMembers = styled.div`

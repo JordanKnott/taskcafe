@@ -94,6 +94,7 @@ type ComplexityRoot struct {
 		UpdateProjectLabelName  func(childComplexity int, input UpdateProjectLabelName) int
 		UpdateProjectName       func(childComplexity int, input *UpdateProjectName) int
 		UpdateTaskDescription   func(childComplexity int, input UpdateTaskDescriptionInput) int
+		UpdateTaskDueDate       func(childComplexity int, input UpdateTaskDueDate) int
 		UpdateTaskGroupLocation func(childComplexity int, input NewTaskGroupLocation) int
 		UpdateTaskGroupName     func(childComplexity int, input UpdateTaskGroupName) int
 		UpdateTaskLocation      func(childComplexity int, input NewTaskLocation) int
@@ -153,6 +154,7 @@ type ComplexityRoot struct {
 		Assigned    func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
+		DueDate     func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Labels      func(childComplexity int) int
 		Name        func(childComplexity int) int
@@ -228,6 +230,7 @@ type MutationResolver interface {
 	UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*pg.Task, error)
 	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error)
 	UpdateTaskName(ctx context.Context, input UpdateTaskName) (*pg.Task, error)
+	UpdateTaskDueDate(ctx context.Context, input UpdateTaskDueDate) (*pg.Task, error)
 	DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error)
 	AssignTask(ctx context.Context, input *AssignTaskInput) (*pg.Task, error)
 	UnassignTask(ctx context.Context, input *UnassignTaskInput) (*pg.Task, error)
@@ -267,6 +270,7 @@ type TaskResolver interface {
 	TaskGroup(ctx context.Context, obj *pg.Task) (*pg.TaskGroup, error)
 
 	Description(ctx context.Context, obj *pg.Task) (*string, error)
+	DueDate(ctx context.Context, obj *pg.Task) (*time.Time, error)
 	Assigned(ctx context.Context, obj *pg.Task) ([]ProjectMember, error)
 	Labels(ctx context.Context, obj *pg.Task) ([]pg.TaskLabel, error)
 }
@@ -619,6 +623,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateTaskDescription(childComplexity, args["input"].(UpdateTaskDescriptionInput)), true
 
+	case "Mutation.updateTaskDueDate":
+		if e.complexity.Mutation.UpdateTaskDueDate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskDueDate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskDueDate(childComplexity, args["input"].(UpdateTaskDueDate)), true
+
 	case "Mutation.updateTaskGroupLocation":
 		if e.complexity.Mutation.UpdateTaskGroupLocation == nil {
 			break
@@ -924,6 +940,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Task.Description(childComplexity), true
+
+	case "Task.dueDate":
+		if e.complexity.Task.DueDate == nil {
+			break
+		}
+
+		return e.complexity.Task.DueDate(childComplexity), true
 
 	case "Task.id":
 		if e.complexity.Task.ID == nil {
@@ -1271,6 +1294,7 @@ type Task {
   name: String!
   position: Float!
   description: String
+  dueDate: Time
   assigned: [ProjectMember!]!
   labels: [TaskLabel!]!
 }
@@ -1448,6 +1472,11 @@ input UpdateTaskGroupName  {
   name: String!
 }
 
+input UpdateTaskDueDate  {
+  taskID: UUID!
+  dueDate: Time
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -1478,6 +1507,7 @@ type Mutation {
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
   updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
   updateTaskName(input: UpdateTaskName!): Task!
+  updateTaskDueDate(input: UpdateTaskDueDate!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
   assignTask(input: AssignTaskInput): Task!
   unassignTask(input: UnassignTaskInput): Task!
@@ -1778,6 +1808,20 @@ func (ec *executionContext) field_Mutation_updateTaskDescription_args(ctx contex
 	var arg0 UpdateTaskDescriptionInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskDescriptionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTaskDueDate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateTaskDueDate
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateTaskDueDate2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskDueDate(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3099,6 +3143,47 @@ func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateTaskName(rctx, args["input"].(UpdateTaskName))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskDueDate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTaskDueDate(rctx, args["input"].(UpdateTaskDueDate))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4617,6 +4702,37 @@ func (ec *executionContext) _Task_description(ctx context.Context, field graphql
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Task_dueDate(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Task",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Task().DueDate(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Task_assigned(ctx context.Context, field graphql.CollectedField, obj *pg.Task) (ret graphql.Marshaler) {
@@ -7166,6 +7282,30 @@ func (ec *executionContext) unmarshalInputUpdateTaskDescriptionInput(ctx context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateTaskDueDate(ctx context.Context, obj interface{}) (UpdateTaskDueDate, error) {
+	var it UpdateTaskDueDate
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskID":
+			var err error
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "dueDate":
+			var err error
+			it.DueDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateTaskGroupName(ctx context.Context, obj interface{}) (UpdateTaskGroupName, error) {
 	var it UpdateTaskGroupName
 	var asMap = obj.(map[string]interface{})
@@ -7459,6 +7599,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateTaskName":
 			out.Values[i] = ec._Mutation_updateTaskName(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskDueDate":
+			out.Values[i] = ec._Mutation_updateTaskDueDate(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -8010,6 +8155,17 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Task_description(ctx, field, obj)
+				return res
+			})
+		case "dueDate":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Task_dueDate(ctx, field, obj)
 				return res
 			})
 		case "assigned":
@@ -9265,6 +9421,10 @@ func (ec *executionContext) unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋ
 	return ec.unmarshalInputUpdateTaskDescriptionInput(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNUpdateTaskDueDate2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskDueDate(ctx context.Context, v interface{}) (UpdateTaskDueDate, error) {
+	return ec.unmarshalInputUpdateTaskDueDate(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNUpdateTaskGroupName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskGroupName(ctx context.Context, v interface{}) (UpdateTaskGroupName, error) {
 	return ec.unmarshalInputUpdateTaskGroupName(ctx, v)
 }
@@ -9656,6 +9816,29 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	return graphql.UnmarshalTime(v)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOTime2timeᚐTime(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOTime2timeᚐTime(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOUnassignTaskInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUnassignTaskInput(ctx context.Context, v interface{}) (UnassignTaskInput, error) {

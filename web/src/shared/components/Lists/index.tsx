@@ -12,6 +12,7 @@ import {
 } from 'shared/utils/draggables';
 
 import { Container, BoardWrapper } from './Styles';
+import moment from 'moment';
 
 interface SimpleProps {
   taskGroups: Array<TaskGroup>;
@@ -165,6 +166,14 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                               taskGroupID={taskGroup.id}
                                               description=""
                                               labels={task.labels.map(label => label.projectLabel)}
+                                              dueDate={
+                                                task.dueDate
+                                                  ? {
+                                                      isPastDue: false,
+                                                      formattedDate: moment(task.dueDate).format('MMM D, YYYY'),
+                                                    }
+                                                  : undefined
+                                              }
                                               title={task.name}
                                               members={task.assigned}
                                               onClick={() => {

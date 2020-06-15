@@ -177,6 +177,30 @@ func (q *Queries) UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescr
 	return i, err
 }
 
+const updateTaskDueDate = `-- name: UpdateTaskDueDate :one
+UPDATE task SET due_date = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date
+`
+
+type UpdateTaskDueDateParams struct {
+	TaskID  uuid.UUID    `json:"task_id"`
+	DueDate sql.NullTime `json:"due_date"`
+}
+
+func (q *Queries) UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDateParams) (Task, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskDueDate, arg.TaskID, arg.DueDate)
+	var i Task
+	err := row.Scan(
+		&i.TaskID,
+		&i.TaskGroupID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+		&i.Description,
+		&i.DueDate,
+	)
+	return i, err
+}
+
 const updateTaskLocation = `-- name: UpdateTaskLocation :one
 UPDATE task SET task_group_id = $2, position = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date
 `

@@ -32,8 +32,8 @@ type LoginFormData = {
 };
 
 type DueDateFormData = {
-  endDate: Date;
-  endTime: string | null;
+  endDate: string;
+  endTime: string;
 };
 
 type LoginProps = {

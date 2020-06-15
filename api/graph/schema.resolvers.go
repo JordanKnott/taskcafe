@@ -260,6 +260,21 @@ func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskN
 	return &task, err
 }
 
+func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTaskDueDate) (*pg.Task, error) {
+	var dueDate sql.NullTime
+	if input.DueDate == nil {
+		dueDate = sql.NullTime{Valid: false, Time: time.Now()}
+	} else {
+		dueDate = sql.NullTime{Valid: true, Time: *input.DueDate}
+	}
+	task, err := r.Repository.UpdateTaskDueDate(ctx, pg.UpdateTaskDueDateParams{
+		TaskID:  input.TaskID,
+		DueDate: dueDate,
+	})
+
+	return &task, err
+}
+
 func (r *mutationResolver) DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error) {
 	taskID, err := uuid.Parse(input.TaskID)
 	if err != nil {
@@ -482,6 +497,13 @@ func (r *taskResolver) Description(ctx context.Context, obj *pg.Task) (*string, 
 		return nil, nil
 	}
 	return &task.Description.String, nil
+}
+
+func (r *taskResolver) DueDate(ctx context.Context, obj *pg.Task) (*time.Time, error) {
+	if obj.DueDate.Valid {
+		return &obj.DueDate.Time, nil
+	}
+	return nil, nil
 }
 
 func (r *taskResolver) Assigned(ctx context.Context, obj *pg.Task) ([]ProjectMember, error) {
