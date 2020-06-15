@@ -1,20 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import Cross from 'shared/icons/Cross';
 import styled from 'styled-components';
-import Member from 'shared/components/Member';
-import {
-  Wrapper,
-  Container,
-  Editor,
-  EditorDetails,
-  EditorTextarea,
-  EditorButtons,
-  SaveButton,
-  EditorButton,
-  CloseButton,
-  ListCardLabels,
-  ListCardLabel,
-} from './Styles';
+import { Wrapper, Container, EditorButtons, SaveButton, EditorButton, CloseButton } from './Styles';
+import Card from '../Card';
 
 export const CardMembers = styled.div`
   position: absolute;
@@ -46,25 +34,12 @@ const QuickCardEditor = ({
   left,
 }: Props) => {
   const [currentCardTitle, setCardTitle] = useState(task.name);
-  const $editorRef: any = useRef();
   const $labelsRef: any = useRef();
   const $membersRef: any = useRef();
-  useEffect(() => {
-    $editorRef.current.focus();
-    $editorRef.current.select();
-  }, []);
 
   const handleCloseEditor = (e: any) => {
     e.stopPropagation();
     onCloseEditor();
-  };
-
-  const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onEditCard(task.taskGroup.id, task.id, currentCardTitle);
-      onCloseEditor();
-    }
   };
 
   return (
@@ -73,34 +48,20 @@ const QuickCardEditor = ({
         <Cross size={16} color="#000" />
       </CloseButton>
       <Container left={left} top={top}>
-        <Editor>
-          <ListCardLabels>
-            {task.labels &&
-              task.labels.map(label => (
-                <ListCardLabel color={label.projectLabel.labelColor.colorHex} key={label.id}>
-                  {label.projectLabel.name}
-                </ListCardLabel>
-              ))}
-          </ListCardLabels>
-          <EditorDetails>
-            <EditorTextarea
-              onChange={e => setCardTitle(e.currentTarget.value)}
-              onClick={e => {
-                e.stopPropagation();
-              }}
-              onKeyDown={handleKeyDown}
-              value={currentCardTitle}
-              ref={$editorRef}
-            />
-            <CardMembers>
-              {task.assigned &&
-                task.assigned.map(member => (
-                  <Member key={member.id} taskID={task.id} member={member} onCardMemberClick={onCardMemberClick} />
-                ))}
-            </CardMembers>
-          </EditorDetails>
-        </Editor>
-        <SaveButton onClick={e => onEditCard(task.taskGroup.id, task.id, currentCardTitle)}>Save</SaveButton>
+        <Card
+          editable
+          onCardMemberClick={onCardMemberClick}
+          title={currentCardTitle}
+          onEditCard={(taskGroupID, taskID, name) => {
+            onEditCard(taskGroupID, taskID, name);
+            onCloseEditor();
+          }}
+          members={task.assigned}
+          taskID={task.id}
+          taskGroupID={task.taskGroup.id}
+          labels={task.labels.map(l => l.projectLabel)}
+        />
+        <SaveButton onClick={() => onEditCard(task.taskGroup.id, task.id, currentCardTitle)}>Save</SaveButton>
         <EditorButtons>
           <EditorButton
             ref={$membersRef}

@@ -16,10 +16,11 @@ export const Wrapper = styled.div<{ size: number | string; bgColor: string | nul
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-weight: 700;
   background: ${props => (props.backgroundURL ? `url(${props.backgroundURL})` : props.bgColor)};
   background-position: center;
   background-size: contain;
+  font-size: 14px;
+  font-weight: 400;
 `;
 
 type TaskAssigneeProps = {

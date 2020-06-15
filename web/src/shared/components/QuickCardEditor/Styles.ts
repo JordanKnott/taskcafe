@@ -21,53 +21,6 @@ export const Container = styled.div<{ top: number; left: number }>`
   left: ${props => props.left}px;
 `;
 
-export const Editor = styled.div`
-  background-color: ${props => mixin.lighten('#262c49', 0.05)};
-  border-radius: 3px;
-  box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
-  color: #c2c6dc;
-  padding: 6px 8px 2px;
-  cursor: default;
-  display: block;
-  margin-bottom: 8px;
-  max-width: 300px;
-  min-height: 20px;
-  position: relative;
-  text-decoration: none;
-  z-index: 1;
-`;
-
-export const EditorDetails = styled.div`
-  overflow: hidden;
-  padding: 0;
-  position: relative;
-  z-index: 10;
-`;
-
-export const EditorTextarea = styled(TextareaAutosize)`
-  font-family: 'Droid Sans';
-  overflow: hidden;
-  overflow-wrap: break-word;
-  resize: none;
-  height: 54px;
-  width: 100%;
-
-  background: none;
-  border: none;
-  box-shadow: none;
-  margin-bottom: 4px;
-  max-height: 162px;
-  min-height: 54px;
-  padding: 0;
-  font-size: 16px;
-  line-height: 20px;
-  color: #fff;
-  &:focus {
-    border: none;
-    outline: none;
-  }
-`;
-
 export const SaveButton = styled.button`
   cursor: pointer;
   background: rgb(115, 103, 240);
@@ -124,26 +77,4 @@ export const CloseButton = styled.div`
   opacity: 0.8;
   z-index: 40;
   cursor: pointer;
-`;
-
-export const ListCardLabels = styled.div`
-  overflow: auto;
-  position: relative;
-`;
-
-export const ListCardLabel = styled.span`
-  height: 16px;
-  line-height: 16px;
-  padding: 0 8px;
-  max-width: 198px;
-  float: left;
-  font-size: 12px;
-  font-weight: 700;
-  margin: 0 4px 4px 0;
-  width: auto;
-  border-radius: 4px;
-  color: #fff;
-  display: block;
-  position: relative;
-  background-color: ${props => props.color};
 `;

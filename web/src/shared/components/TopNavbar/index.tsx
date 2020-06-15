@@ -176,7 +176,7 @@ const NavBar: React.FC<NavBarProps> = ({
               {projectMembers.map(member => (
                 <TaskAssignee key={member.id} size={28} member={member} onMemberProfile={onMemberProfile} />
               ))}
-              <InviteButton>Invite</InviteButton>
+              <InviteButton variant="outline">Invite</InviteButton>
             </ProjectMembers>
           )}
           <NotificationContainer onClick={onNotificationClick}>

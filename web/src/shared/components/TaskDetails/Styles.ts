@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
 import { mixin } from 'shared/utils/styles';
+import Button from 'shared/components/Button';
 
 export const TaskHeader = styled.div`
   padding: 21px 30px 0px;
@@ -159,23 +160,13 @@ export const TaskDetailsMarkdown = styled.div`
 export const TaskDetailsControls = styled.div`
   clear: both;
   margin-top: 8px;
+  display: flex;
 `;
 
-export const ConfirmSave = styled.div`
-  background-color: #5aac44;
-  box-shadow: none;
-  border: none;
-  color: #fff;
-  float: left;
-  margin: 0 4px 0 0;
-  cursor: pointer;
-  display: inline-block;
-  font-weight: 400;
-  line-height: 20px;
+export const ConfirmSave = styled(Button)`
   padding: 6px 12px;
-  text-align: center;
   border-radius: 3px;
-  font-size: 14px;
+  margin-right: 6px;
 `;
 
 export const CancelEdit = styled.div`

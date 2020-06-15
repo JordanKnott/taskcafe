@@ -50,6 +50,7 @@ const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
       </ListNameEditorWrapper>
       <ListAddControls>
         <AddListButton
+          variant="relief"
           onClick={() => {
             onSave(listName);
             setListName('');

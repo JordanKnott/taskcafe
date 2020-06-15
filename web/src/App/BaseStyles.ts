@@ -70,7 +70,7 @@ export default createGlobalStyle`
       outline: none;
     }
     &:disabled {
-      opacity: 1;
+      opacity: 0.5;
     }
   }
   [role="button"], button, input, textarea {

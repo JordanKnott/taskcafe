@@ -107,9 +107,68 @@ export const Everything = () => {
       onClick={action('on click')}
       onContextMenu={action('on context click')}
       watched
+      members={[
+        {
+          id: '1',
+          fullName: 'Jordan Knott',
+          profileIcon: {
+            bgColor: '#0079bf',
+            initials: 'JK',
+            url: null,
+          },
+        },
+      ]}
       labels={labelData}
       checklists={{ complete: 1, total: 4 }}
       dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
+    />
+  );
+};
+
+export const Members = () => {
+  const $ref = useRef<HTMLDivElement>(null);
+  return (
+    <Card
+      description={null}
+      taskID="1"
+      taskGroupID="1"
+      ref={$ref}
+      title="Hello, world"
+      onClick={action('on click')}
+      onContextMenu={action('on context click')}
+      members={[
+        {
+          id: '1',
+          fullName: 'Jordan Knott',
+          profileIcon: {
+            bgColor: '#0079bf',
+            initials: 'JK',
+            url: null,
+          },
+        },
+      ]}
+      labels={[]}
+    />
+  );
+};
+
+export const Editable = () => {
+  const $ref = useRef<HTMLDivElement>(null);
+  return (
+    <Card
+      taskID="1"
+      taskGroupID="1"
+      description="hello!"
+      ref={$ref}
+      title="Hello, world"
+      onClick={action('on click')}
+      onContextMenu={action('on context click')}
+      watched
+      labels={labelData}
+      checklists={{ complete: 1, total: 4 }}
+      dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
+      editable
+      onEditCard={action('edit card')}
     />
   );
 };

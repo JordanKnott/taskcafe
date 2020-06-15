@@ -1,20 +1,22 @@
 import React from 'react';
-
 import ReactDOM from 'react-dom';
+import axios from 'axios';
+import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
 import { ApolloLink, Observable, fromPromise } from 'apollo-link';
-
 import { getAccessToken, getNewToken, setAccessToken } from 'shared/utils/accessToken';
-import axios from 'axios';
-import createAuthRefreshInterceptor from 'axios-auth-refresh';
-
 import App from './App';
 
-// Function that will be called to refresh authorization
+// https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
+
+let forward$;
+let isRefreshing = false;
+let pendingRequests: any = [];
+
 const refreshAuthLogic = (failedRequest: any) =>
   axios.post('http://localhost:3333/auth/refresh_token', {}, { withCredentials: true }).then(tokenRefreshResponse => {
     setAccessToken(tokenRefreshResponse.data.accessToken);
@@ -23,12 +25,6 @@ const refreshAuthLogic = (failedRequest: any) =>
   });
 
 createAuthRefreshInterceptor(axios, refreshAuthLogic);
-
-// https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
-
-let forward$;
-let isRefreshing = false;
-let pendingRequests: any = [];
 
 const resolvePendingRequests = () => {
   pendingRequests.map((callback: any) => callback());

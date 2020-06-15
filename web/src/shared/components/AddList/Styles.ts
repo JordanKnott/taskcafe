@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
 import { mixin } from 'shared/utils/styles';
+import Button from 'shared/components/Button';
 
 export const Container = styled.div``;
 
@@ -90,22 +91,10 @@ export const ListAddControls = styled.div`
   margin: 4px 0 0;
 `;
 
-export const AddListButton = styled.button`
-  box-shadow: none;
-  border: none;
-  color: #c2c6dc;
+export const AddListButton = styled(Button)`
   float: left;
-  margin: 0 4px 0 0;
-  cursor: pointer;
-  display: inline-block;
-  font-weight: 400;
-  line-height: 20px;
   padding: 6px 12px;
-  text-align: center;
   border-radius: 3px;
-  font-size: 14px;
-
-  background: rgb(115, 103, 240);
 `;
 
 export const CancelAdd = styled.div`

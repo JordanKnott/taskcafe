@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
+import Button from 'shared/components/Button';
 
 export const NavbarWrapper = styled.div`
   width: 100%;
@@ -103,7 +104,7 @@ export const ProjectTabs = styled.div`
 
 export const ProjectTab = styled.span<{ active?: boolean }>`
   font-size: 80%;
-  color: #c2c6dc;
+  color: rgba(${props => props.theme.colors.text.primary});
   font-size: 15px;
   cursor: pointer;
   display: flex;
@@ -122,27 +123,25 @@ export const ProjectTab = styled.span<{ active?: boolean }>`
   ${props =>
     props.active
       ? css`
-          box-shadow: inset 0 -2px #d85dd8;
-          color: #d85dd8;
+          box-shadow: inset 0 -2px rgba(${props.theme.colors.secondary});
+          color: rgba(${props.theme.colors.secondary});
         `
       : css`
           &:hover {
-            box-shadow: inset 0 -2px #cbd4db;
-            color: ${mixin.lighten('#c2c6dc', 0.25)};
+            box-shadow: inset 0 -2px rgba(${props.theme.colors.text.secondary});
+            color: rgba(${props.theme.colors.text.secondary});
           }
         `}
 `;
 
 export const ProjectName = styled.h1`
-  color: #c2c6dc;
+  color: rgba(${props => props.theme.colors.text.primary});
   font-weight: 600;
   font-size: 20px;
   padding: 3px 10px 3px 8px;
-  font-family: 'Droid Sans';
   margin: -4px 0;
 `;
 export const ProjectNameTextarea = styled(TextareaAutosize)`
-  font-family: 'Droid Sans';
   border: none;
   resize: none;
   overflow: hidden;
@@ -211,28 +210,7 @@ export const ProjectSettingsButton = styled.button`
   }
 `;
 
-export const InviteButton = styled.button`
-  outline: none;
-  border: none;
-  width: 100%;
-  line-height: 20px;
-  padding: 6px 12px;
-  background-color: none;
-  text-align: center;
-  color: #c2c6dc;
-  font-size: 14px;
-  cursor: pointer;
-
+export const InviteButton = styled(Button)`
   margin: 0 0 0 8px;
-
-  border-radius: 3px;
-  border-width: 1px;
-  border-style: solid;
-  border-color: transparent;
-  border-image: initial;
-  border-color: #414561;
-
-  &:hover {
-    background: rgb(115, 103, 240);
-  }
+  padding: 6px 12px;
 `;

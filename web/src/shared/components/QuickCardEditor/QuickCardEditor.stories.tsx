@@ -37,6 +37,15 @@ const labelData: Array<TaskLabel> = [
 
 export const Default = () => {
   const $cardRef: any = createRef();
+  const task: Task = {
+    id: 'task',
+    name: 'Hello, world!',
+    position: 1,
+    labels: labelData,
+    taskGroup: {
+      id: '1',
+    },
+  };
   const [isEditorOpen, setEditorOpen] = useState(false);
   const [top, setTop] = useState(0);
   const [left, setLeft] = useState(0);
@@ -44,15 +53,7 @@ export const Default = () => {
     <>
       {isEditorOpen && (
         <QuickCardEditor
-          task={{
-            id: 'task',
-            name: 'General',
-            taskGroup: {
-              id: '1',
-            },
-            position: 1,
-            labels: labelData,
-          }}
+          task={task}
           onCloseEditor={() => setEditorOpen(false)}
           onEditCard={action('edit card')}
           onOpenLabelsPopup={action('open popup')}
@@ -76,7 +77,7 @@ export const Default = () => {
             taskGroupID="1"
             description="hello!"
             ref={$cardRef}
-            title="Hello, world"
+            title={task.name}
             onClick={action('on click')}
             onContextMenu={e => {
               setTop(e.top);

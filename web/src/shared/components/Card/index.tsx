@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { DraggableProvidedDraggableProps } from 'react-beautiful-dnd';
-import PropTypes from 'prop-types';
+import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Member from 'shared/components/Member';
+import TaskAssignee from 'shared/components/TaskAssignee';
 import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
 import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
 import {
+  EditorTextarea,
   DescriptionBadge,
   DueDateCardBadge,
   ListCardBadges,
@@ -21,7 +20,6 @@ import {
   CardTitle,
   CardMembers,
 } from './Styles';
-import TaskAssignee from 'shared/components/TaskAssignee';
 
 type DueDate = {
   isPastDue: boolean;
@@ -35,11 +33,11 @@ type Checklist = {
 
 type Props = {
   title: string;
-  description: string;
   taskID: string;
   taskGroupID: string;
-  onContextMenu: (e: ContextMenuEvent) => void;
-  onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onContextMenu?: (e: ContextMenuEvent) => void;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  description?: null | string;
   dueDate?: DueDate;
   checklists?: Checklist;
   labels?: Array<ProjectLabel>;
@@ -47,6 +45,9 @@ type Props = {
   wrapperProps?: any;
   members?: Array<TaskUser> | null;
   onCardMemberClick?: OnCardMemberClick;
+  editable?: boolean;
+  onEditCard?: (taskGroupID: string, taskID: string, cardName: string) => void;
+  onCardTitleChange?: (name: string) => void;
 };
 
 const Card = React.forwardRef(
@@ -65,20 +66,47 @@ const Card = React.forwardRef(
       watched,
       members,
       onCardMemberClick,
+      editable,
+      onEditCard,
+      onCardTitleChange,
     }: Props,
     $cardRef: any,
   ) => {
+    const [currentCardTitle, setCardTitle] = useState(title);
+    const $editorRef: any = useRef();
+
+    useEffect(() => {
+      setCardTitle(title);
+    }, [title]);
+
+    useEffect(() => {
+      if ($editorRef && $editorRef.current) {
+        $editorRef.current.focus();
+        $editorRef.current.select();
+      }
+    }, []);
+
+    const handleKeyDown = (e: any) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (onEditCard) {
+          onEditCard(taskGroupID, taskID, currentCardTitle);
+        }
+      }
+    };
     const [isActive, setActive] = useState(false);
     const $innerCardRef: any = useRef(null);
     const onOpenComposer = () => {
       if (typeof $innerCardRef.current !== 'undefined') {
         const pos = $innerCardRef.current.getBoundingClientRect();
-        onContextMenu({
-          top: pos.top,
-          left: pos.left,
-          taskGroupID,
-          taskID,
-        });
+        if (onContextMenu) {
+          onContextMenu({
+            top: pos.top,
+            left: pos.left,
+            taskGroupID,
+            taskID,
+          });
+        }
       }
     };
     const onTaskContext = (e: React.MouseEvent) => {
@@ -96,9 +124,14 @@ const Card = React.forwardRef(
         onMouseEnter={() => setActive(true)}
         onMouseLeave={() => setActive(false)}
         ref={$cardRef}
-        onClick={onClick}
+        onClick={e => {
+          if (onClick) {
+            onClick(e);
+          }
+        }}
         onContextMenu={onTaskContext}
         isActive={isActive}
+        editable={editable}
         {...wrapperProps}
       >
         <ListCardInnerContainer ref={$innerCardRef}>
@@ -116,7 +149,24 @@ const Card = React.forwardRef(
                   </ListCardLabel>
                 ))}
             </ListCardLabels>
-            <CardTitle>{title}</CardTitle>
+            {editable ? (
+              <EditorTextarea
+                onChange={e => {
+                  setCardTitle(e.currentTarget.value);
+                  if (onCardTitleChange) {
+                    onCardTitleChange(e.currentTarget.value);
+                  }
+                }}
+                onClick={e => {
+                  e.stopPropagation();
+                }}
+                onKeyDown={handleKeyDown}
+                value={currentCardTitle}
+                ref={$editorRef}
+              />
+            ) : (
+              <CardTitle>{title}</CardTitle>
+            )}
             <ListCardBadges>
               {watched && (
                 <ListCardBadge>

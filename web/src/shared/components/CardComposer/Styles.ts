@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import Button from 'shared/components/Button';
 import TextareaAutosize from 'react-autosize-textarea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
@@ -15,53 +16,6 @@ export const CardComposerWrapper = styled.div<{ isOpen: boolean }>`
   flex-direction: column;
 `;
 
-export const ListCard = styled.div`
-  background-color: ${props => mixin.lighten('#262c49', 0.05)};
-  border-radius: 3px;
-  ${mixin.boxShadowCard}
-  cursor: pointer;
-  display: block;
-  margin-bottom: 8px;
-  max-width: 300px;
-  min-height: 20px;
-  position: relative;
-  text-decoration: none;
-  z-index: 0;
-`;
-
-export const ListCardDetails = styled.div`
-  overflow: hidden;
-  padding: 6px 8px 2px;
-  position: relative;
-  z-index: 10;
-`;
-
-export const ListCardLabels = styled.div``;
-
-export const ListCardEditor = styled(TextareaAutosize)`
-  font-family: 'Droid Sans';
-  overflow: hidden;
-  overflow-wrap: break-word;
-  resize: none;
-  height: 54px;
-  width: 100%;
-
-  background: none;
-  border: none;
-  box-shadow: none;
-  margin-bottom: 4px;
-  max-height: 162px;
-  min-height: 54px;
-  padding: 0;
-  font-size: 14px;
-  line-height: 20px;
-
-  color: #c2c6dc;
-  l &:focus {
-    background-color: ${props => mixin.lighten('#262c49', 0.05)};
-  }
-`;
-
 export const ComposerControls = styled.div``;
 
 export const ComposerControlsSaveSection = styled.div`
@@ -73,18 +27,9 @@ export const ComposerControlsSaveSection = styled.div`
 export const ComposerControlsActionsSection = styled.div`
   float: right;
 `;
-
-export const AddCardButton = styled.button`
-  background: rgb(115, 103, 240);
-  box-shadow: none;
-  border: none;
-  color: #c2c6dc;
-  cursor: pointer;
-  display: inline-block;
-  font-weight: 400;
-  line-height: 20px;
+export const AddCardButton = styled(Button)`
   margin-right: 4px;
   padding: 6px 12px;
-  text-align: center;
   border-radius: 3px;
 `;
+

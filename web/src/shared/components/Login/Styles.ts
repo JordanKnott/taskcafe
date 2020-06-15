@@ -74,11 +74,11 @@ export const LoginButton = styled.input`
   padding: 0.75rem 2rem;
   font-size: 1rem;
   border-radius: 6px;
-  background: rgb(115, 103, 240);
+  background: var(--color-button-background);
   outline: none;
   border: none;
   cursor: pointer;
-  color: #fff;
+  color: var(--color-button-text-hover);
   &:disabled {
     opacity: 0.5;
     cursor: default;
@@ -98,7 +98,7 @@ export const RegisterButton = styled.button`
   border: 1px solid rgb(115, 103, 240);
   background: transparent;
   font-size: 1rem;
-  color: rgba(115, 103, 240);
+  color: var(--color-primary);
   cursor: pointer;
 `;
 

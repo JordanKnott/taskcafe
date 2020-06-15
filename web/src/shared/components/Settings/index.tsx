@@ -1,67 +1,8 @@
 import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { User } from 'shared/icons';
-
-const TextFieldWrapper = styled.div`
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  position: relative;
-  justify-content: center;
-
-  margin-bottom: 2.2rem;
-  margin-top: 17px;
-`;
-
-const TextFieldLabel = styled.span`
-  padding: 0.7rem !important;
-  color: #c2c6dc;
-  left: 0;
-  top: 0;
-  transition: all 0.2s ease;
-  position: absolute;
-  border-radius: 5px;
-  overflow: hidden;
-  font-size: 0.85rem;
-  cursor: text;
-  width: 100%;
-  font-size: 12px;
-      user-select: none;
-    pointer-events: none;
-}
-`;
-
-const TextFieldInput = styled.input`
-  font-size: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  background: #262c49;
-  padding: 0.7rem !important;
-  color: #c2c6dc;
-  position: relative;
-  border-radius: 5px;
-  transition: all 0.3s ease;
-  width: 100%;
-  &:focus {
-    box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(115, 103, 240);
-  }
-  &:focus ~ ${TextFieldLabel} {
-    color: rgba(115, 103, 240);
-    transform: translate(-3px, -90%);
-  }
-`;
-
-type TextFieldProps = {
-  label: string;
-};
-const TextField: React.FC<TextFieldProps> = ({ label }) => {
-  return (
-    <TextFieldWrapper>
-      <TextFieldInput />
-      <TextFieldLabel>{label}</TextFieldLabel>
-    </TextFieldWrapper>
-  );
-};
+import Input from 'shared/components/Input';
+import Button from 'shared/components/Button';
 
 const ProfileContainer = styled.div`
   display: flex;
@@ -103,30 +44,13 @@ const ActionButtons = styled.div`
   flex-wrap: wrap;
   align-items: center;
 `;
-const UploadButton = styled.div`
+const UploadButton = styled(Button)`
   margin-right: 1rem;
-  padding: 0.75rem 2rem;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  color: #fff;
   display: inline-block;
-  background: rgba(115, 103, 240);
 `;
 
-const RemoveButton = styled.button`
+const RemoveButton = styled(Button)`
   display: inline-block;
-  border: 1px solid rgba(234, 84, 85, 1);
-  background: transparent;
-  color: rgba(234, 84, 85, 1);
-  padding: 0.75rem 2rem;
-
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
 `;
 
 const ImgLabel = styled.p`
@@ -164,7 +88,9 @@ const AvatarSettings: React.FC<AvatarSettingsProps> = ({ profile, onProfileAvata
       </AvatarContainer>
       <ActionButtons>
         <UploadButton onClick={() => onProfileAvatarChange()}>Upload photo</UploadButton>
-        <RemoveButton onClick={() => onProfileAvatarRemove()}>Remove</RemoveButton>
+        <RemoveButton variant="outline" color="danger" onClick={() => onProfileAvatarRemove()}>
+          Remove
+        </RemoveButton>
         <ImgLabel>Allowed JPG, GIF or PNG. Max size of 800kB</ImgLabel>
       </ActionButtons>
     </ProfileContainer>
@@ -241,6 +167,7 @@ const TabNavLine = styled.span<{ top: number }>`
 `;
 
 const TabContentWrapper = styled.div`
+  margin-left: 1rem;
   position: relative;
   display: block;
   overflow: hidden;
@@ -254,7 +181,6 @@ const TabContent = styled.div`
   padding: 0;
   padding: 1.5rem;
   background-color: #10163a;
-  margin-left: 1rem !important;
   border-radius: 0.5rem;
 `;
 
@@ -294,17 +220,9 @@ const SettingActions = styled.div`
   justify-content: flex-end;
 `;
 
-const SaveButton = styled.div`
+const SaveButton = styled(Button)`
   margin-right: 1rem;
-  padding: 0.75rem 2rem;
-  border: 0;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  color: #fff;
   display: inline-block;
-  background: rgba(115, 103, 240);
 `;
 
 type SettingsProps = {
@@ -345,11 +263,11 @@ const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAva
             onProfileAvatarChange={onProfileAvatarChange}
             profile={profile}
           />
-          <TextField label="Name" />
-          <TextField label="Initials " />
-          <TextField label="Username " />
-          <TextField label="Email" />
-          <TextField label="Bio" />
+          <Input width="100%" label="Name" />
+          <Input width="100%" label="Initials " />
+          <Input width="100%" label="Username " />
+          <Input width="100%" label="Email" />
+          <Input width="100%" label="Bio" />
           <SettingActions>
             <SaveButton>Save Change</SaveButton>
           </SettingActions>

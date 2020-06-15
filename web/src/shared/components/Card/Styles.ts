@@ -1,9 +1,33 @@
 import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
+import TextareaAutosize from 'react-autosize-textarea';
 import { RefObject } from 'react';
 
 export const ClockIcon = styled(FontAwesomeIcon)``;
+
+export const EditorTextarea = styled(TextareaAutosize)`
+  overflow: hidden;
+  overflow-wrap: break-word;
+  resize: none;
+  height: 54px;
+  width: 100%;
+
+  background: none;
+  border: none;
+  box-shadow: none;
+  margin-bottom: 4px;
+  max-height: 162px;
+  min-height: 54px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 20px;
+  color: var(--color-input-text-focus);
+  &:focus {
+    border: none;
+    outline: none;
+  }
+`;
 
 export const ListCardBadges = styled.div`
   float: left;
@@ -17,6 +41,7 @@ export const ListCardBadge = styled.div`
   display: flex;
   align-items: center;
   margin: 0 6px 4px 0;
+  font-size: 12px;
   max-width: 100%;
   min-height: 20px;
   overflow: hidden;
@@ -32,6 +57,7 @@ export const DescriptionBadge = styled(ListCardBadge)`
 `;
 
 export const DueDateCardBadge = styled(ListCardBadge)<{ isPastDue: boolean }>`
+  font-size: 12px;
   ${props =>
     props.isPastDue &&
     css`
@@ -49,16 +75,16 @@ export const ListCardBadgeText = styled.span`
   white-space: nowrap;
 `;
 
-export const ListCardContainer = styled.div<{ isActive: boolean }>`
+export const ListCardContainer = styled.div<{ isActive: boolean; editable: boolean }>`
   max-width: 256px;
   margin-bottom: 8px;
-  background-color: #fff;
   border-radius: 3px;
   ${mixin.boxShadowCard}
   cursor: pointer !important;
   position: relative;
 
-  background-color: ${props => (props.isActive ? mixin.darken('#262c49', 0.1) : mixin.lighten('#262c49', 0.05))};
+  background-color: ${props =>
+    props.isActive && !props.editable ? mixin.darken('#262c49', 0.1) : 'var(--color-background)'};
 `;
 
 export const ListCardInnerContainer = styled.div`
@@ -113,18 +139,16 @@ export const ListCardOperation = styled.span`
 `;
 
 export const CardTitle = styled.span`
-  font-family: 'Droid Sans';
   clear: both;
   display: block;
   margin: 0 0 4px;
   overflow: hidden;
   text-decoration: none;
   word-wrap: break-word;
-  color: #c2c6dc;
+  color: var(--color-text);
 `;
 
 export const CardMembers = styled.div`
   float: right;
-  margin: 0 -2px 0 0;
+  margin: 0 -2px 4px 0;
 `;
-

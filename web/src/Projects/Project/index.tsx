@@ -229,14 +229,14 @@ const ProjectAction = styled.div`
   display: flex;
   align-items: center;
   font-size: 15px;
-  color: #c2c6dc;
+  color: var(--color-text);
 
   &:not(:last-child) {
     margin-right: 16px;
   }
 
   &:hover {
-    color: ${mixin.lighten('#c2c6dc', 0.25)};
+    color: var(--color-text-hover);
   }
 `;
 
@@ -490,15 +490,15 @@ const Project = () => {
                 );
               }}
             >
-              <Tags size={13} color="#c2c6dc" />
+              <Tags size={13} color="var(--color-icon)" />
               <ProjectActionText>Labels</ProjectActionText>
             </ProjectAction>
             <ProjectAction>
-              <ToggleOn size={13} color="#c2c6dc" />
+              <ToggleOn size={13} color="var(--color-icon)" />
               <ProjectActionText>Fields</ProjectActionText>
             </ProjectAction>
             <ProjectAction>
-              <Bolt size={13} color="#c2c6dc" />
+              <Bolt size={13} color="var(--color-icon)" />
               <ProjectActionText>Rules</ProjectActionText>
             </ProjectAction>
           </ProjectActions>
@@ -588,8 +588,8 @@ const Project = () => {
           <QuickCardEditor
             task={currentQuickTask}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
-            onEditCard={(_listId: string, cardId: string, cardName: string) => {
-              updateTaskName({ variables: { taskID: cardId, name: cardName } });
+            onEditCard={(_taskGroupID: string, taskID: string, cardName: string) => {
+              updateTaskName({ variables: { taskID, name: cardName } });
             }}
             onOpenMembersPopup={($targetRef, task) => {
               showPopup(

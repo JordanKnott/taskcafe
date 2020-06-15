@@ -88,7 +88,9 @@ const DetailsEditor: React.FC<DetailsEditorProps> = ({
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.currentTarget.value)}
       />
       <TaskDetailsControls>
-        <ConfirmSave onClick={handleOutsideClick}>Save</ConfirmSave>
+        <ConfirmSave variant="relief" onClick={handleOutsideClick}>
+          Save
+        </ConfirmSave>
         <CancelEdit onClick={onCancel}>
           <Plus size={16} color="#c2c6dc" />
         </CancelEdit>
