@@ -1,6 +1,13 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import Trash from './Trash';
+import CheckCircle from './CheckCircle';
+import Clock from './Clock';
+import AccountPlus from './AccountPlus';
+import CheckSquare from './CheckSquare';
 import ArrowLeft from './ArrowLeft';
+import CheckSquareOutline from './CheckSquareOutline';
+import Square from './Square';
 import Bolt from './Bolt';
 import Plus from './Plus';
 import Bell from './Bell';
@@ -42,8 +49,15 @@ export {
   Citadel,
   Checkmark,
   User,
+  Trash,
   Users,
   Lock,
   ArrowLeft,
+  CheckCircle,
+  AccountPlus,
+  Clock,
+  CheckSquareOutline,
+  CheckSquare,
+  Square,
   ToggleOn,
 };

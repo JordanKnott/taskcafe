@@ -57,7 +57,9 @@ export const Default = () => {
           onCloseEditor={() => setEditorOpen(false)}
           onEditCard={action('edit card')}
           onOpenLabelsPopup={action('open popup')}
+          onOpenDueDatePopup={action('open popup')}
           onOpenMembersPopup={action('open popup')}
+          onToggleComplete={action('complete')}
           onArchiveCard={action('archive card')}
           top={top}
           left={left}

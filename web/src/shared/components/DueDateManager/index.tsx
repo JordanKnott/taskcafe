@@ -5,7 +5,15 @@ import DatePicker from 'react-datepicker';
 import { Cross } from 'shared/icons';
 import _ from 'lodash';
 
-import { Wrapper, ActionWrapper, DueDateInput, DueDatePickerWrapper, ConfirmAddDueDate, CancelDueDate } from './Styles';
+import {
+  Wrapper,
+  ActionWrapper,
+  RemoveDueDate,
+  DueDateInput,
+  DueDatePickerWrapper,
+  ConfirmAddDueDate,
+  CancelDueDate,
+} from './Styles';
 
 import 'react-datepicker/dist/react-datepicker.css';
 import { getYear, getMonth } from 'date-fns';
@@ -14,6 +22,7 @@ import { useForm } from 'react-hook-form';
 type DueDateManagerProps = {
   task: Task;
   onDueDateChange: (task: Task, newDueDate: Date) => void;
+  onRemoveDueDate: (task: Task) => void;
   onCancel: () => void;
 };
 
@@ -109,7 +118,7 @@ const HeaderActions = styled.div`
   }
 `;
 
-const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onCancel }) => {
+const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate, onCancel }) => {
   const now = moment();
   const [textStartDate, setTextStartDate] = useState(now.format('YYYY-MM-DD'));
   const [startDate, setStartDate] = useState(new Date());
@@ -260,19 +269,18 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
           />
         </DueDatePickerWrapper>
         <ActionWrapper>
-          <ConfirmAddDueDate
-            type="submit"
-            onClick={() => {
-              // const newDate = moment(startDate).format('YYYY-MM-DD');
-              // const newTime = moment(endTime).format('h:mm A');
-              // onDueDateChange(task, moment(`${newDate} ${newTime}`, 'YYYY-MM-DD h:mm A').toDate());
-            }}
-          >
+          <ConfirmAddDueDate type="submit" onClick={() => {}}>
             Save
           </ConfirmAddDueDate>
-          <CancelDueDate onClick={onCancel}>
-            <Cross size={16} color="#c2c6dc" />
-          </CancelDueDate>
+          <RemoveDueDate
+            variant="outline"
+            color="danger"
+            onClick={() => {
+              onRemoveDueDate(task);
+            }}
+          >
+            Remove
+          </RemoveDueDate>
         </ActionWrapper>
       </Form>
     </Wrapper>

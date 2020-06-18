@@ -44,7 +44,7 @@ const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props)
               setCurrentColor(labelColor);
             }}
           >
-            {currentColor && labelColor.id === currentColor.id && <Checkmark color="#fff" size={12} />}
+            {currentColor && labelColor.id === currentColor.id && <Checkmark width={12} height={12} />}
           </LabelBox>
         ))}
       </div>

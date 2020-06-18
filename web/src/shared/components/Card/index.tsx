@@ -5,6 +5,8 @@ import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
 import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
 import {
   EditorTextarea,
+  EditorContent,
+  CompleteIcon,
   DescriptionBadge,
   DueDateCardBadge,
   ListCardBadges,
@@ -35,6 +37,7 @@ type Props = {
   title: string;
   taskID: string;
   taskGroupID: string;
+  complete?: boolean;
   onContextMenu?: (e: ContextMenuEvent) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   description?: null | string;
@@ -57,6 +60,7 @@ const Card = React.forwardRef(
       onContextMenu,
       taskID,
       taskGroupID,
+      complete,
       onClick,
       labels,
       title,
@@ -101,6 +105,7 @@ const Card = React.forwardRef(
         const pos = $innerCardRef.current.getBoundingClientRect();
         if (onContextMenu) {
           onContextMenu({
+            width: pos.width,
             top: pos.top,
             left: pos.left,
             taskGroupID,
@@ -140,7 +145,7 @@ const Card = React.forwardRef(
               <FontAwesomeIcon onClick={onOperationClick} color="#c2c6dc" size="xs" icon={faPencilAlt} />
             </ListCardOperation>
           )}
-          <ListCardDetails>
+          <ListCardDetails complete={complete ?? false}>
             <ListCardLabels>
               {labels &&
                 labels.map(label => (
@@ -150,22 +155,28 @@ const Card = React.forwardRef(
                 ))}
             </ListCardLabels>
             {editable ? (
-              <EditorTextarea
-                onChange={e => {
-                  setCardTitle(e.currentTarget.value);
-                  if (onCardTitleChange) {
-                    onCardTitleChange(e.currentTarget.value);
-                  }
-                }}
-                onClick={e => {
-                  e.stopPropagation();
-                }}
-                onKeyDown={handleKeyDown}
-                value={currentCardTitle}
-                ref={$editorRef}
-              />
+              <EditorContent>
+                {complete && <CompleteIcon width={16} height={16} />}
+                <EditorTextarea
+                  onChange={e => {
+                    setCardTitle(e.currentTarget.value);
+                    if (onCardTitleChange) {
+                      onCardTitleChange(e.currentTarget.value);
+                    }
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                  }}
+                  onKeyDown={handleKeyDown}
+                  value={currentCardTitle}
+                  ref={$editorRef}
+                />
+              </EditorContent>
             ) : (
-              <CardTitle>{title}</CardTitle>
+              <CardTitle>
+                {complete && <CompleteIcon width={16} height={16} />}
+                {title}
+              </CardTitle>
             )}
             <ListCardBadges>
               {watched && (

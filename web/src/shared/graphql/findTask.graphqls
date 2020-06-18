@@ -8,6 +8,18 @@ query findTask($taskID: UUID!) {
     taskGroup {
       id
     }
+    checklists {
+      id
+      name
+      position
+      items {
+        id
+        name
+        taskChecklistID
+        complete
+        position
+      }
+    }
     labels {
       id
       assignedDate

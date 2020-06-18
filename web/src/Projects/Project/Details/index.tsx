@@ -9,10 +9,16 @@ import {
   useUpdateTaskDueDateMutation,
   useAssignTaskMutation,
   useUnassignTaskMutation,
+  useSetTaskChecklistItemCompleteMutation,
+  useDeleteTaskChecklistItemMutation,
+  useUpdateTaskChecklistItemNameMutation,
+  useCreateTaskChecklistItemMutation,
+  FindTaskDocument,
 } from 'shared/generated/graphql';
 import UserIDContext from 'App/context';
 import MiniProfile from 'shared/components/MiniProfile';
 import DueDateManager from 'shared/components/DueDateManager';
+import produce from 'immer';
 
 type DetailsProps = {
   taskID: string;
@@ -43,6 +49,64 @@ const Details: React.FC<DetailsProps> = ({
   const match = useRouteMatch();
   const [currentMemberTask, setCurrentMemberTask] = useState('');
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
+  const [setTaskChecklistItemComplete] = useSetTaskChecklistItemCompleteMutation();
+  const [updateTaskChecklistItemName] = useUpdateTaskChecklistItemNameMutation();
+  const [deleteTaskChecklistItem] = useDeleteTaskChecklistItemMutation({
+    update: (client, deleteData) => {
+      const cacheData: any = client.readQuery({
+        query: FindTaskDocument,
+        variables: { taskID },
+      });
+      console.log(deleteData);
+      const newData = produce(cacheData.findTask, (draftState: any) => {
+        const idx = draftState.checklists.findIndex(
+          (checklist: TaskChecklist) =>
+            checklist.id === deleteData.data.deleteTaskChecklistItem.taskChecklistItem.taskChecklistID,
+        );
+        console.log(`idx ${idx}`);
+        if (idx !== -1) {
+          draftState.checklists[idx].items = cacheData.findTask.checklists[idx].items.filter(
+            (item: any) => item.id !== deleteData.data.deleteTaskChecklistItem.taskChecklistItem.id,
+          );
+        }
+      });
+      client.writeQuery({
+        query: FindTaskDocument,
+        variables: { taskID },
+        data: {
+          findTask: newData,
+        },
+      });
+    },
+  });
+  const [createTaskChecklistItem] = useCreateTaskChecklistItemMutation({
+    update: (client, newTaskItem) => {
+      const cacheData: any = client.readQuery({
+        query: FindTaskDocument,
+        variables: { taskID },
+      });
+      console.log(cacheData);
+      console.log(newTaskItem);
+      const newData = produce(cacheData.findTask, (draftState: any) => {
+        const idx = draftState.checklists.findIndex(
+          (checklist: TaskChecklist) => checklist.id === newTaskItem.data.createTaskChecklistItem.taskChecklistID,
+        );
+        if (idx !== -1) {
+          draftState.checklists[idx].items = [
+            ...cacheData.findTask.checklists[idx].items,
+            { ...newTaskItem.data.createTaskChecklistItem },
+          ];
+        }
+      });
+      client.writeQuery({
+        query: FindTaskDocument,
+        variables: { taskID },
+        data: {
+          findTask: newData,
+        },
+      });
+    },
+  });
   const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
     onCompleted: () => {
@@ -83,7 +147,19 @@ const Details: React.FC<DetailsProps> = ({
               onTaskNameChange={onTaskNameChange}
               onTaskDescriptionChange={onTaskDescriptionChange}
               onDeleteTask={onDeleteTask}
+              onChangeItemName={(itemID, itemName) => {
+                updateTaskChecklistItemName({ variables: { taskChecklistItemID: itemID, name: itemName } });
+              }}
               onCloseModal={() => history.push(projectURL)}
+              onDeleteItem={itemID => {
+                deleteTaskChecklistItem({ variables: { taskChecklistItemID: itemID } });
+              }}
+              onToggleChecklistItem={(itemID, complete) => {
+                setTaskChecklistItemComplete({ variables: { taskChecklistItemID: itemID, complete } });
+              }}
+              onAddItem={(taskChecklistID, name, position) => {
+                createTaskChecklistItem({ variables: { taskChecklistID, name, position } });
+              }}
               onMemberProfile={($targetRef, memberID) => {
                 const member = data.findTask.assigned.find(m => m.id === memberID);
                 const profileIcon = member ? member.profileIcon : null;
@@ -124,7 +200,6 @@ const Details: React.FC<DetailsProps> = ({
               onOpenDueDatePopop={(task, $targetRef) => {
                 showPopup(
                   $targetRef,
-
                   <Popup
                     title={'Change Due Date'}
                     tab={0}
@@ -134,8 +209,11 @@ const Details: React.FC<DetailsProps> = ({
                   >
                     <DueDateManager
                       task={task}
+                      onRemoveDueDate={t => {
+                        updateTaskDueDate({ variables: { taskID: t.id, dueDate: null } });
+                        hidePopup();
+                      }}
                       onDueDateChange={(t, newDueDate) => {
-                        console.log(`${newDueDate}`);
                         updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
                         hidePopup();
                       }}

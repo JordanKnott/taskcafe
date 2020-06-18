@@ -2,6 +2,7 @@ import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
+import { CheckCircle } from 'shared/icons';
 import { RefObject } from 'react';
 
 export const ClockIcon = styled(FontAwesomeIcon)``;
@@ -20,9 +21,9 @@ export const EditorTextarea = styled(TextareaAutosize)`
   max-height: 162px;
   min-height: 54px;
   padding: 0;
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(${props => props.theme.colors.text.secondary});
+  font-size: 14px;
+  line-height: 16px;
+  color: rgba(${props => props.theme.colors.text.primary});
   &:focus {
     border: none;
     outline: none;
@@ -92,11 +93,13 @@ export const ListCardInnerContainer = styled.div`
   height: 100%;
 `;
 
-export const ListCardDetails = styled.div`
+export const ListCardDetails = styled.div<{ complete: boolean }>`
   overflow: hidden;
   padding: 6px 8px 2px;
   position: relative;
   z-index: 10;
+
+  ${props => props.complete && 'opacity: 0.6;'}
 `;
 
 export const ListCardLabels = styled.div`
@@ -140,15 +143,28 @@ export const ListCardOperation = styled.span`
 
 export const CardTitle = styled.span`
   clear: both;
-  display: block;
   margin: 0 0 4px;
   overflow: hidden;
   text-decoration: none;
   word-wrap: break-word;
+  line-height: 16px;
+  font-size: 14px;
   color: rgba(${props => props.theme.colors.text.primary});
+
+  display: flex;
+  align-items: center;
 `;
 
 export const CardMembers = styled.div`
   float: right;
   margin: 0 -2px 4px 0;
+`;
+
+export const CompleteIcon = styled(CheckCircle)`
+  fill: rgba(${props => props.theme.colors.success});
+  margin-right: 4px;
+`;
+
+export const EditorContent = styled.div`
+  display: flex;
 `;

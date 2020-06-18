@@ -14,9 +14,9 @@ export const Wrapper = styled.div<{ open: boolean }>`
   visibility: ${props => (props.open ? 'show' : 'hidden')};
 `;
 
-export const Container = styled.div<{ top: number; left: number }>`
+export const Container = styled.div<{ width: number; top: number; left: number }>`
   position: absolute;
-  width: 256px;
+  width: ${props => props.width}px;
   top: ${props => props.top}px;
   left: ${props => props.left}px;
 `;

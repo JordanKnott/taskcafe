@@ -5,7 +5,7 @@ import { setAccessToken } from 'shared/utils/accessToken';
 import styled, { ThemeProvider } from 'styled-components';
 import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
-import ThemeStyles, { theme } from './ThemeStyles';
+import { theme } from './ThemeStyles';
 import Routes from './Routes';
 import { UserIDContext } from './context';
 import Navbar from './Navbar';
@@ -44,7 +44,6 @@ const App = () => {
           <PopupProvider>
             <NormalizeStyles />
             <BaseStyles />
-            <ThemeStyles />
             <Router history={history}>
               {loading ? (
                 <div>loading</div>

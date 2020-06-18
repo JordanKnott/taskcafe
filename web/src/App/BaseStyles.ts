@@ -112,7 +112,7 @@ export default createGlobalStyle`
   }
 
    ::-webkit-scrollbar {
-    width: 12px;
+    width: 10px;
   }
 
    ::-webkit-scrollbar-track {

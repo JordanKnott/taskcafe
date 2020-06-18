@@ -53,6 +53,7 @@ type Task struct {
 	Position    float64        `json:"position"`
 	Description sql.NullString `json:"description"`
 	DueDate     sql.NullTime   `json:"due_date"`
+	Complete    bool           `json:"complete"`
 }
 
 type TaskAssigned struct {
@@ -60,6 +61,24 @@ type TaskAssigned struct {
 	TaskID         uuid.UUID `json:"task_id"`
 	UserID         uuid.UUID `json:"user_id"`
 	AssignedDate   time.Time `json:"assigned_date"`
+}
+
+type TaskChecklist struct {
+	TaskChecklistID uuid.UUID `json:"task_checklist_id"`
+	TaskID          uuid.UUID `json:"task_id"`
+	CreatedAt       time.Time `json:"created_at"`
+	Name            string    `json:"name"`
+	Position        float64   `json:"position"`
+}
+
+type TaskChecklistItem struct {
+	TaskChecklistItemID uuid.UUID    `json:"task_checklist_item_id"`
+	TaskChecklistID     uuid.UUID    `json:"task_checklist_id"`
+	CreatedAt           time.Time    `json:"created_at"`
+	Complete            bool         `json:"complete"`
+	Name                string       `json:"name"`
+	Position            float64      `json:"position"`
+	DueDate             sql.NullTime `json:"due_date"`
 }
 
 type TaskGroup struct {

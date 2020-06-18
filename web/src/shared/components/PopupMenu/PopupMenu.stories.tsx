@@ -265,6 +265,7 @@ export const DueDateManagerPopup = () => {
       {popupData.isOpen && (
         <PopupMenu title="Due Date" top={popupData.top} onClose={() => setPopupData(initalState)} left={popupData.left}>
           <DueDateManager
+            onRemoveDueDate={action('remove due date')}
             task={{
               id: '1',
               taskGroup: { name: 'General', id: '1', position: 1 },

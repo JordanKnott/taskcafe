@@ -72,7 +72,7 @@ const LabelManager: React.FC<Props> = ({ labels, taskLabels, onLabelToggle, onLa
                     {label.name}
                     {taskLabels && taskLabels.find(t => t.projectLabel.id === label.id) && (
                       <ActiveIcon>
-                        <Checkmark color="#fff" />
+                        <Checkmark width={16} height={16} />
                       </ActiveIcon>
                     )}
                   </CardLabel>

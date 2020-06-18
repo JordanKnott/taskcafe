@@ -10,9 +10,9 @@ import {
   getNewDraggablePosition,
   getAfterDropDraggableList,
 } from 'shared/utils/draggables';
-
-import { Container, BoardWrapper } from './Styles';
 import moment from 'moment';
+
+import { Container, BoardContainer, BoardWrapper } from './Styles';
 
 interface SimpleProps {
   taskGroups: Array<TaskGroup>;
@@ -120,104 +120,107 @@ const SimpleLists: React.FC<SimpleProps> = ({
 
   const [currentComposer, setCurrentComposer] = useState('');
   return (
-    <BoardWrapper>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable direction="horizontal" type="column" droppableId="root">
-          {provided => (
-            <Container {...provided.droppableProps} ref={provided.innerRef}>
-              {taskGroups
-                .slice()
-                .sort((a: any, b: any) => a.position - b.position)
-                .map((taskGroup: TaskGroup, index: number) => {
-                  return (
-                    <Draggable draggableId={taskGroup.id} key={taskGroup.id} index={index}>
-                      {columnDragProvided => (
-                        <Droppable type="tasks" droppableId={taskGroup.id}>
-                          {(columnDropProvided, snapshot) => (
-                            <List
-                              name={taskGroup.name}
-                              onOpenComposer={id => setCurrentComposer(id)}
-                              isComposerOpen={currentComposer === taskGroup.id}
-                              onSaveName={name => onChangeTaskGroupName(taskGroup.id, name)}
-                              ref={columnDragProvided.innerRef}
-                              wrapperProps={columnDragProvided.draggableProps}
-                              headerProps={columnDragProvided.dragHandleProps}
-                              onExtraMenuOpen={onExtraMenuOpen}
-                              id={taskGroup.id}
-                              key={taskGroup.id}
-                              index={index}
-                            >
-                              <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
-                                {taskGroup.tasks
-                                  .slice()
-                                  .sort((a: any, b: any) => a.position - b.position)
-                                  .map((task: Task, taskIndex: any) => {
-                                    return (
-                                      <Draggable key={task.id} draggableId={task.id} index={taskIndex}>
-                                        {taskProvided => {
-                                          return (
-                                            <Card
-                                              wrapperProps={{
-                                                ...taskProvided.draggableProps,
-                                                ...taskProvided.dragHandleProps,
-                                              }}
-                                              ref={taskProvided.innerRef}
-                                              taskID={task.id}
-                                              taskGroupID={taskGroup.id}
-                                              description=""
-                                              labels={task.labels.map(label => label.projectLabel)}
-                                              dueDate={
-                                                task.dueDate
-                                                  ? {
-                                                      isPastDue: false,
-                                                      formattedDate: moment(task.dueDate).format('MMM D, YYYY'),
-                                                    }
-                                                  : undefined
-                                              }
-                                              title={task.name}
-                                              members={task.assigned}
-                                              onClick={() => {
-                                                onTaskClick(task);
-                                              }}
-                                              onCardMemberClick={onCardMemberClick}
-                                              onContextMenu={onQuickEditorOpen}
-                                            />
-                                          );
-                                        }}
-                                      </Draggable>
-                                    );
-                                  })}
-                                {columnDropProvided.placeholder}
-                                {currentComposer === taskGroup.id && (
-                                  <CardComposer
-                                    onClose={() => {
-                                      setCurrentComposer('');
-                                    }}
-                                    onCreateCard={name => {
-                                      onCreateTask(taskGroup.id, name);
-                                    }}
-                                    isOpen
-                                  />
-                                )}
-                              </ListCards>
-                            </List>
-                          )}
-                        </Droppable>
-                      )}
-                    </Draggable>
-                  );
-                })}
-              {provided.placeholder}
-            </Container>
-          )}
-        </Droppable>
-      </DragDropContext>
-      <AddList
-        onSave={listName => {
-          onCreateTaskGroup(listName);
-        }}
-      />
-    </BoardWrapper>
+    <BoardContainer>
+      <BoardWrapper>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable direction="horizontal" type="column" droppableId="root">
+            {provided => (
+              <Container {...provided.droppableProps} ref={provided.innerRef}>
+                {taskGroups
+                  .slice()
+                  .sort((a: any, b: any) => a.position - b.position)
+                  .map((taskGroup: TaskGroup, index: number) => {
+                    return (
+                      <Draggable draggableId={taskGroup.id} key={taskGroup.id} index={index}>
+                        {columnDragProvided => (
+                          <Droppable type="tasks" droppableId={taskGroup.id}>
+                            {(columnDropProvided, snapshot) => (
+                              <List
+                                name={taskGroup.name}
+                                onOpenComposer={id => setCurrentComposer(id)}
+                                isComposerOpen={currentComposer === taskGroup.id}
+                                onSaveName={name => onChangeTaskGroupName(taskGroup.id, name)}
+                                ref={columnDragProvided.innerRef}
+                                wrapperProps={columnDragProvided.draggableProps}
+                                headerProps={columnDragProvided.dragHandleProps}
+                                onExtraMenuOpen={onExtraMenuOpen}
+                                id={taskGroup.id}
+                                key={taskGroup.id}
+                                index={index}
+                              >
+                                <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
+                                  {taskGroup.tasks
+                                    .slice()
+                                    .sort((a: any, b: any) => a.position - b.position)
+                                    .map((task: Task, taskIndex: any) => {
+                                      return (
+                                        <Draggable key={task.id} draggableId={task.id} index={taskIndex}>
+                                          {taskProvided => {
+                                            return (
+                                              <Card
+                                                wrapperProps={{
+                                                  ...taskProvided.draggableProps,
+                                                  ...taskProvided.dragHandleProps,
+                                                }}
+                                                ref={taskProvided.innerRef}
+                                                taskID={task.id}
+                                                complete={task.complete ?? false}
+                                                taskGroupID={taskGroup.id}
+                                                description=""
+                                                labels={task.labels.map(label => label.projectLabel)}
+                                                dueDate={
+                                                  task.dueDate
+                                                    ? {
+                                                        isPastDue: false,
+                                                        formattedDate: moment(task.dueDate).format('MMM D, YYYY'),
+                                                      }
+                                                    : undefined
+                                                }
+                                                title={task.name}
+                                                members={task.assigned}
+                                                onClick={() => {
+                                                  onTaskClick(task);
+                                                }}
+                                                onCardMemberClick={onCardMemberClick}
+                                                onContextMenu={onQuickEditorOpen}
+                                              />
+                                            );
+                                          }}
+                                        </Draggable>
+                                      );
+                                    })}
+                                  {columnDropProvided.placeholder}
+                                  {currentComposer === taskGroup.id && (
+                                    <CardComposer
+                                      onClose={() => {
+                                        setCurrentComposer('');
+                                      }}
+                                      onCreateCard={name => {
+                                        onCreateTask(taskGroup.id, name);
+                                      }}
+                                      isOpen
+                                    />
+                                  )}
+                                </ListCards>
+                              </List>
+                            )}
+                          </Droppable>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                <AddList
+                  onSave={listName => {
+                    onCreateTaskGroup(listName);
+                  }}
+                />
+                {provided.placeholder}
+              </Container>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </BoardWrapper>
+    </BoardContainer>
   );
 };
 

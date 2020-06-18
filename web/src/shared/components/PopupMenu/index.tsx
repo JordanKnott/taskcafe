@@ -1,4 +1,4 @@
-import React, { useRef, createContext, RefObject, useState, useContext } from 'react';
+import React, { useRef, createContext, RefObject, useState, useContext, useEffect } from 'react';
 import { Cross, AngleLeft } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import { createPortal } from 'react-dom';
@@ -36,10 +36,19 @@ type PopupContainerProps = {
 };
 
 const PopupContainer: React.FC<PopupContainerProps> = ({ width, top, left, onClose, children, invert }) => {
-  const $containerRef = useRef();
+  const $containerRef = useRef<HTMLDivElement>(null);
+  const [currentTop, setCurrentTop] = useState(top);
   useOnOutsideClick($containerRef, true, onClose, null);
+  useEffect(() => {
+    if ($containerRef && $containerRef.current) {
+      const bounding = $containerRef.current.getBoundingClientRect();
+      if (bounding.bottom > (window.innerHeight || document.documentElement.clientHeight)) {
+        setCurrentTop(44);
+      }
+    }
+  }, []);
   return (
-    <Container width={width ?? 316} left={left} top={top} ref={$containerRef} invert={invert}>
+    <Container width={width ?? 316} left={left} top={currentTop} ref={$containerRef} invert={invert}>
       {children}
     </Container>
   );
@@ -91,11 +100,12 @@ export const PopupProvider: React.FC = ({ children }) => {
   const show = (target: RefObject<HTMLElement>, content: JSX.Element, width?: number | string) => {
     if (target && target.current) {
       const bounds = target.current.getBoundingClientRect();
+      const top = bounds.top + bounds.height;
       if (bounds.left + 304 + 30 > window.innerWidth) {
         setState({
           isOpen: true,
           left: bounds.left + bounds.width,
-          top: bounds.top + bounds.height,
+          top,
           invert: true,
           currentTab: 0,
           previousTab: 0,
@@ -106,7 +116,7 @@ export const PopupProvider: React.FC = ({ children }) => {
         setState({
           isOpen: true,
           left: bounds.left,
-          top: bounds.top + bounds.height,
+          top,
           invert: false,
           currentTab: 0,
           previousTab: 0,
@@ -176,7 +186,7 @@ type Props = {
 };
 
 const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader, children, onPrevious }) => {
-  const $containerRef = useRef();
+  const $containerRef = useRef<HTMLDivElement>(null);
   useOnOutsideClick($containerRef, true, onClose, null);
 
   return (
@@ -189,13 +199,13 @@ const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader
         )}
         {noHeader ? (
           <CloseButton onClick={() => onClose()}>
-            <Cross color="#c2c6dc" />
+            <Cross width={16} height={16} />
           </CloseButton>
         ) : (
           <Header>
             <HeaderTitle>{title}</HeaderTitle>
             <CloseButton onClick={() => onClose()}>
-              <Cross color="#c2c6dc" />
+              <Cross width={16} height={16} />
             </CloseButton>
           </Header>
         )}
@@ -230,7 +240,7 @@ export const Popup: React.FC<PopupProps> = ({ title, onClose, tab, children }) =
         )}
         {onClose && (
           <CloseButton onClick={() => onClose()}>
-            <Cross color="#c2c6dc" />
+            <Cross width={16} height={16} />
           </CloseButton>
         )}
         <Content>{children}</Content>

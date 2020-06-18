@@ -10,9 +10,12 @@ import Profile from 'Profile';
 import styled from 'styled-components';
 
 const MainContent = styled.div`
-  padding: 0 0 50px 80px;
+  padding: 0 0 0 80px;
   background: #262c49;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 `;
 type RoutesProps = {
   history: H.History;

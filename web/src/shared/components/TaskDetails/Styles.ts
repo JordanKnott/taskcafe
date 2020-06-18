@@ -148,12 +148,35 @@ export const TaskDetailsMarkdown = styled.div`
   cursor: pointer;
   color: #c2c6dc;
 
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 28px;
+    margin: 0 0 12px;
+  }
+
+  h2 {
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 24px;
+    margin: 16px 0 8px;
+  }
+
   p {
     margin: 0 0 8px;
   }
 
   strong {
     font-weight: 700;
+  }
+
+  ul {
+    margin: 8px 0;
+  }
+
+  ul > li {
+    margin: 8px 8px 8px 24px;
+    list-style: disc;
   }
 `;
 

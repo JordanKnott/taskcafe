@@ -64,6 +64,7 @@ export const Default = () => {
               }}
               onCancel={action('cancel')}
               onDueDateChange={action('due date change')}
+              onRemoveDueDate={action('remove due date')}
             />
           </Popup>
         </PopupWrapper>

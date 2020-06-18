@@ -28,3 +28,6 @@ DELETE FROM task where task_group_id = $1;
 
 -- name: UpdateTaskDueDate :one
 UPDATE task SET due_date = $2 WHERE task_id = $1 RETURNING *;
+
+-- name: SetTaskComplete :one
+UPDATE task SET complete = $2 WHERE task_id = $1 RETURNING *;

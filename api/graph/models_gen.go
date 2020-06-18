@@ -19,8 +19,34 @@ type AssignTaskInput struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
+type ChecklistBadge struct {
+	Complete int `json:"complete"`
+	Total    int `json:"total"`
+}
+
+type CreateTaskChecklist struct {
+	TaskID   uuid.UUID `json:"taskID"`
+	Name     string    `json:"name"`
+	Position float64   `json:"position"`
+}
+
+type CreateTaskChecklistItem struct {
+	TaskChecklistID uuid.UUID `json:"taskChecklistID"`
+	Name            string    `json:"name"`
+	Position        float64   `json:"position"`
+}
+
 type DeleteProjectLabel struct {
 	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+}
+
+type DeleteTaskChecklistItem struct {
+	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
+}
+
+type DeleteTaskChecklistItemPayload struct {
+	Ok                bool                  `json:"ok"`
+	TaskChecklistItem *pg.TaskChecklistItem `json:"taskChecklistItem"`
 }
 
 type DeleteTaskGroupInput struct {
@@ -129,6 +155,20 @@ type RemoveTaskLabelInput struct {
 	TaskLabelID uuid.UUID `json:"taskLabelID"`
 }
 
+type SetTaskChecklistItemComplete struct {
+	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
+	Complete            bool      `json:"complete"`
+}
+
+type SetTaskComplete struct {
+	TaskID   uuid.UUID `json:"taskID"`
+	Complete bool      `json:"complete"`
+}
+
+type TaskBadges struct {
+	Checklist *ChecklistBadge `json:"checklist"`
+}
+
 type ToggleTaskLabelInput struct {
 	TaskID         uuid.UUID `json:"taskID"`
 	ProjectLabelID uuid.UUID `json:"projectLabelID"`
@@ -163,6 +203,11 @@ type UpdateProjectLabelName struct {
 type UpdateProjectName struct {
 	ProjectID uuid.UUID `json:"projectID"`
 	Name      string    `json:"name"`
+}
+
+type UpdateTaskChecklistItemName struct {
+	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
+	Name                string    `json:"name"`
 }
 
 type UpdateTaskDescriptionInput struct {

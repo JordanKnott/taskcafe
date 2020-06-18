@@ -59,7 +59,7 @@ const MemberManager: React.FC<MemberManagerProps> = ({
                   <MemberName>{member.fullName}</MemberName>
                   {activeMembers.findIndex(m => m.id === member.id) !== -1 && (
                     <ActiveIconWrapper>
-                      <Checkmark size={16} color="#42526e" />
+                      <Checkmark width={16} height={16} />
                     </ActiveIconWrapper>
                   )}
                 </BoardMemberListItemContent>

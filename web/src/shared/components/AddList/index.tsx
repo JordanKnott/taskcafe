@@ -62,7 +62,7 @@ const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
           Save
         </AddListButton>
         <CancelAdd onClick={() => onCancel()}>
-          <Cross color="#c2c6dc" />
+          <Cross width={16} height={16} />
         </CancelAdd>
       </ListAddControls>
     </>

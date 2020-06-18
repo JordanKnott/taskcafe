@@ -232,7 +232,7 @@ const NewProject: React.FC<NewProjectProps> = ({ teams, onClose, onCreateProject
               onClose();
             }}
           >
-            <Cross color="#c2c6dc" />
+            <Cross width={16} height={16} />
           </HeaderRight>
         </Header>
         <Container>

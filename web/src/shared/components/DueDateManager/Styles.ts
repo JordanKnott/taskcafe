@@ -102,9 +102,13 @@ export const DueDatePickerWrapper = styled.div`
 `;
 
 export const ConfirmAddDueDate = styled(Button)`
-  float: left;
   margin: 0 4px 0 0;
   padding: 6px 12px;
+`;
+
+export const RemoveDueDate = styled(Button)`
+  padding: 6px 12px;
+  margin: 0 0 0 4px;
 `;
 
 export const CancelDueDate = styled.div`
@@ -126,4 +130,5 @@ export const ActionWrapper = styled.div`
   padding-top: 8px;
   width: 100%;
   display: flex;
+  justify-content: space-between;
 `;

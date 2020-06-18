@@ -12,6 +12,7 @@ interface DraggableElement {
 type ContextMenuEvent = {
   left: number;
   top: number;
+  width: number;
   taskID: string;
   taskGroupID: string;
 };

@@ -3,6 +3,7 @@ import { Bin, Cross, Plus } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import ReactMarkdown from 'react-markdown';
 import TaskAssignee from 'shared/components/TaskAssignee';
+import moment from 'moment';
 
 import {
   NoDueDateLabel,
@@ -37,13 +38,31 @@ import {
   TaskDetailAssignees,
   TaskDetailsAddMemberIcon,
 } from './Styles';
-
-import convertDivElementRefToBounds from 'shared/utils/boundingRect';
-import moment from 'moment';
+import Checklist from '../Checklist';
 
 type TaskContentProps = {
   onEditContent: () => void;
   description: string;
+};
+
+type TaskLabelProps = {
+  label: TaskLabel;
+  onClick: ($target: React.RefObject<HTMLElement>) => void;
+};
+
+const TaskLabelItem: React.FC<TaskLabelProps> = ({ label, onClick }) => {
+  const $label = useRef<HTMLDivElement>(null);
+  return (
+    <TaskDetailLabel
+      onClick={() => {
+        onClick($label);
+      }}
+      ref={$label}
+      color={label.projectLabel.labelColor.colorHex}
+    >
+      {label.projectLabel.name}
+    </TaskDetailLabel>
+  );
 };
 
 const TaskContent: React.FC<TaskContentProps> = ({ description, onEditContent }) => {
@@ -105,6 +124,10 @@ type TaskDetailsProps = {
   onTaskNameChange: (task: Task, newName: string) => void;
   onTaskDescriptionChange: (task: Task, newDescription: string) => void;
   onDeleteTask: (task: Task) => void;
+  onAddItem: (checklistID: string, name: string, position: number) => void;
+  onDeleteItem: (itemID: string) => void;
+  onChangeItemName: (itemID: string, itemName: string) => void;
+  onToggleChecklistItem: (itemID: string, complete: boolean) => void;
   onOpenAddMemberPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenDueDatePopop: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
@@ -116,11 +139,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   task,
   onTaskNameChange,
   onTaskDescriptionChange,
+  onChangeItemName,
+  onDeleteItem,
   onDeleteTask,
   onCloseModal,
   onOpenAddMemberPopup,
   onOpenAddLabelPopup,
   onOpenDueDatePopop,
+  onAddItem,
+  onToggleChecklistItem,
   onMemberProfile,
 }) => {
   const [editorOpen, setEditorOpen] = useState(false);
@@ -158,7 +185,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <Bin size={20} color="#c2c6dc" />
         </TaskAction>
         <TaskAction onClick={onCloseModal}>
-          <Cross size={20} color="#c2c6dc" />
+          <Cross width={16} height={16} />
         </TaskAction>
       </TaskActions>
       <TaskHeader>
@@ -195,6 +222,33 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           ) : (
             <TaskContent description={description} onEditContent={handleClick} />
           )}
+          {task.checklists &&
+            task.checklists
+              .slice()
+              .sort((a, b) => a.position - b.position)
+              .map(checklist => (
+                <Checklist
+                  key={checklist.id}
+                  name={checklist.name}
+                  checklistID={checklist.id}
+                  items={checklist.items}
+                  onDeleteChecklist={() => {}}
+                  onChangeName={() => {}}
+                  onToggleItem={onToggleChecklistItem}
+                  onDeleteItem={onDeleteItem}
+                  onAddItem={n => {
+                    if (task.checklists) {
+                      let position = 1;
+                      const lastChecklist = task.checklists.sort((a, b) => a.position - b.position)[-1];
+                      if (lastChecklist) {
+                        position = lastChecklist.position * 2 + 1;
+                      }
+                      onAddItem(checklist.id, n, position);
+                    }
+                  }}
+                  onChangeItemName={onChangeItemName}
+                />
+              ))}
         </TaskDetailsContent>
         <TaskDetailsSidebar>
           <TaskDetailSectionTitle>Assignees</TaskDetailSectionTitle>
@@ -221,9 +275,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TaskDetailLabels>
             {task.labels.map(label => {
               return (
-                <TaskDetailLabel key={label.projectLabel.id} color={label.projectLabel.labelColor.colorHex}>
-                  {label.projectLabel.name}
-                </TaskDetailLabel>
+                <TaskLabelItem
+                  key={label.projectLabel.id}
+                  label={label}
+                  onClick={$target => {
+                    onOpenAddLabelPopup(task, $target);
+                  }}
+                />
               );
             })}
             <TaskDetailsAddLabel ref={$addLabelRef} onClick={onAddLabel}>

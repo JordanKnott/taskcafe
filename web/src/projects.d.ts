@@ -30,15 +30,34 @@ type TaskLabel = {
   projectLabel: ProjectLabel;
 };
 
+type TaskChecklist = {
+  id: string;
+  position: number;
+  name: string;
+  items: Array<TaskChecklistItem>;
+};
+
+type TaskChecklistItem = {
+  id: string;
+  complete: boolean;
+  position: number;
+  name: string;
+  taskChecklistID: string;
+  assigned?: null | TaskUser;
+  dueDate?: null | string;
+};
+
 type Task = {
   id: string;
   taskGroup: InnerTaskGroup;
   name: string;
   position: number;
   dueDate?: string;
+  complete?: boolean;
   labels: TaskLabel[];
   description?: string | null;
   assigned?: Array<TaskUser>;
+  checklists?: Array<TaskChecklist> | null;
 };
 
 type Project = {

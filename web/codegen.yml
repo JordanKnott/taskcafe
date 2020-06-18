@@ -1,7 +1,9 @@
 overwrite: true
 schema:
   - '../api/graph/schema.graphqls'
-documents: 'src/shared/graphql/*.graphqls'
+documents:
+  - 'src/shared/graphql/*.graphqls'
+  - 'src/shared/graphql/**/*.ts'
 generates:
   src/shared/generated/graphql.tsx:
     plugins:

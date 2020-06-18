@@ -5,9 +5,11 @@ import { Bolt, ToggleOn, Tags } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
 import {
+  useSetTaskCompleteMutation,
   useToggleTaskLabelMutation,
   useUpdateProjectNameMutation,
   useFindProjectQuery,
+  useUpdateTaskGroupNameMutation,
   useUpdateTaskNameMutation,
   useUpdateProjectLabelMutation,
   useCreateTaskMutation,
@@ -23,6 +25,7 @@ import {
   FindProjectDocument,
   useCreateProjectLabelMutation,
   useUnassignTaskMutation,
+  useUpdateTaskDueDateMutation,
 } from 'shared/generated/graphql';
 
 import TaskAssignee from 'shared/components/TaskAssignee';
@@ -40,6 +43,7 @@ import MiniProfile from 'shared/components/MiniProfile';
 import Details from './Details';
 import { useApolloClient } from '@apollo/react-hooks';
 import UserIDContext from 'App/context';
+import DueDateManager from 'shared/components/DueDateManager';
 
 const getCacheData = (client: any, projectID: string) => {
   const cacheData: any = client.readQuery({
@@ -69,6 +73,7 @@ interface QuickCardEditorState {
   isOpen: boolean;
   left: number;
   top: number;
+  width: number;
   taskID: string | null;
   taskGroupID: string | null;
 }
@@ -209,6 +214,7 @@ const initialQuickCardEditorState: QuickCardEditorState = {
   isOpen: false,
   top: 0,
   left: 0,
+  width: 272,
 };
 
 const ProjectBar = styled.div`
@@ -367,12 +373,36 @@ const Project = () => {
       if (taskGroup) {
         let position = 65535;
         if (taskGroup.tasks.length !== 0) {
-          const [lastTask] = taskGroup.tasks.sort((a: any, b: any) => a.position - b.position).slice(-1);
+          const [lastTask] = taskGroup.tasks
+            .slice()
+            .sort((a: any, b: any) => a.position - b.position)
+            .slice(-1);
           position = Math.ceil(lastTask.position) * 2 + 1;
         }
 
         console.log(`position ${position}`);
-        createTask({ variables: { taskGroupID, name, position } });
+        createTask({
+          variables: { taskGroupID, name, position },
+          optimisticResponse: {
+            __typename: 'Mutation',
+            createTask: {
+              __typename: 'Task',
+              id: '' + Math.round(Math.random() * -1000000),
+              name: name,
+              taskGroup: {
+                __typename: 'TaskGroup',
+                id: taskGroup.id,
+                name: taskGroup.name,
+                position: taskGroup.position,
+              },
+              position: position,
+              dueDate: null,
+              description: null,
+              labels: [],
+              assigned: [],
+            },
+          },
+        });
       }
     }
   };
@@ -410,6 +440,10 @@ const Project = () => {
   const [assignTask] = useAssignTaskMutation();
   const [unassignTask] = useUnassignTaskMutation();
 
+  const [updateTaskGroupName] = useUpdateTaskGroupNameMutation({});
+
+  const [updateTaskDueDate] = useUpdateTaskDueDateMutation();
+
   const [updateProjectName] = useUpdateProjectNameMutation({
     update: (client, newName) => {
       const cacheData = getCacheData(client, projectID);
@@ -420,6 +454,8 @@ const Project = () => {
       writeCacheData(client, projectID, cacheData, newData);
     },
   });
+
+  const [setTaskComplete] = useSetTaskCompleteMutation();
 
   const client = useApolloClient();
   const { userID } = useContext(UserIDContext);
@@ -441,6 +477,7 @@ const Project = () => {
     );
   }
   if (data) {
+    console.log(data.findProject);
     const onQuickEditorOpen = (e: ContextMenuEvent) => {
       const taskGroup = data.findProject.taskGroups.find(t => t.id === e.taskGroupID);
       const currentTask = taskGroup ? taskGroup.tasks.find(t => t.id === e.taskID) : null;
@@ -448,6 +485,7 @@ const Project = () => {
         setQuickCardEditor({
           top: e.top,
           left: e.left,
+          width: e.width,
           isOpen: true,
           taskID: currentTask.id,
           taskGroupID: currentTask.taskGroup.id,
@@ -567,7 +605,9 @@ const Project = () => {
               </Popup>,
             );
           }}
-          onChangeTaskGroupName={(taskGroupID, name) => {}}
+          onChangeTaskGroupName={(taskGroupID, name) => {
+            updateTaskGroupName({ variables: { taskGroupID, name } });
+          }}
           onQuickEditorOpen={onQuickEditorOpen}
           onExtraMenuOpen={(taskGroupID: string, $targetRef: any) => {
             showPopup(
@@ -660,8 +700,37 @@ const Project = () => {
                 },
               })
             }
+            onOpenDueDatePopup={($targetRef, task) => {
+              showPopup(
+                $targetRef,
+                <Popup
+                  title={'Change Due Date'}
+                  tab={0}
+                  onClose={() => {
+                    hidePopup();
+                  }}
+                >
+                  <DueDateManager
+                    task={task}
+                    onRemoveDueDate={t => {
+                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: null } });
+                      hidePopup();
+                    }}
+                    onDueDateChange={(t, newDueDate) => {
+                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
+                      hidePopup();
+                    }}
+                    onCancel={() => {}}
+                  />
+                </Popup>,
+              );
+            }}
+            onToggleComplete={task => {
+              setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
+            }}
             top={quickCardEditor.top}
             left={quickCardEditor.left}
+            width={quickCardEditor.width}
           />
         )}
         <Route

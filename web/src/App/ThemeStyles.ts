@@ -26,23 +26,3 @@ const theme: DefaultTheme = {
 };
 
 export { theme };
-
-export default createGlobalStyle`
-  :root {
-    --color-text: #c2c6dc;
-    --color-text-hover: #fff;
-    --color-primary: rgba(115, 103, 240);
-    --color-button-text: #c2c6dc;
-    --color-button-text-hover: #fff;
-    --color-button-background: rgba(115, 103, 240);
-
-    --color-background: #262c49;
-    --color-background-dark: #10163a;
-
-    --color-input-text: #c2c6dc;
-    --color-input-text-focus: #fff;
-
-    --color-icon: #c2c6dc;
-    --color-active-icon: rgba(115, 103, 240);
-  }
-`;

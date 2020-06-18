@@ -4,6 +4,7 @@ mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
     name
     position
     description
+    dueDate
     taskGroup {
       id
       name

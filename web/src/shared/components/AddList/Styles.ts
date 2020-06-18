@@ -3,7 +3,15 @@ import TextareaAutosize from 'react-autosize-textarea/lib';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 
-export const Container = styled.div``;
+export const Container = styled.div`
+  width: 272px;
+  margin: 0 4px;
+  height: 100%;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: top;
+  white-space: nowrap;
+`;
 
 export const Wrapper = styled.div<{ editorOpen: boolean }>`
   display: inline-block;

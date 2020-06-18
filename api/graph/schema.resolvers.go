@@ -143,7 +143,11 @@ func (r *mutationResolver) UpdateTaskGroupLocation(ctx context.Context, input Ne
 }
 
 func (r *mutationResolver) UpdateTaskGroupName(ctx context.Context, input UpdateTaskGroupName) (*pg.TaskGroup, error) {
-	panic(fmt.Errorf("not implemented"))
+	taskGroup, err := r.Repository.SetTaskGroupName(ctx, pg.SetTaskGroupNameParams{TaskGroupID: input.TaskGroupID, Name: input.Name})
+	if err != nil {
+		return &pg.TaskGroup{}, err
+	}
+	return &taskGroup, nil
 }
 
 func (r *mutationResolver) DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error) {
@@ -225,6 +229,75 @@ func (r *mutationResolver) ToggleTaskLabel(ctx context.Context, input ToggleTask
 	return &payload, nil
 }
 
+func (r *mutationResolver) CreateTaskChecklist(ctx context.Context, input CreateTaskChecklist) (*pg.TaskChecklist, error) {
+	createdAt := time.Now().UTC()
+	taskChecklist, err := r.Repository.CreateTaskChecklist(ctx, pg.CreateTaskChecklistParams{
+		TaskID:    input.TaskID,
+		CreatedAt: createdAt,
+		Name:      input.Name,
+		Position:  input.Position,
+	})
+	if err != nil {
+		return &pg.TaskChecklist{}, err
+	}
+
+	return &taskChecklist, nil
+}
+
+func (r *mutationResolver) CreateTaskChecklistItem(ctx context.Context, input CreateTaskChecklistItem) (*pg.TaskChecklistItem, error) {
+	createdAt := time.Now().UTC()
+	taskChecklistItem, err := r.Repository.CreateTaskChecklistItem(ctx, pg.CreateTaskChecklistItemParams{
+		TaskChecklistID: input.TaskChecklistID,
+		CreatedAt:       createdAt,
+		Name:            input.Name,
+		Position:        input.Position,
+	})
+	if err != nil {
+		return &pg.TaskChecklistItem{}, err
+	}
+
+	return &taskChecklistItem, nil
+}
+
+func (r *mutationResolver) UpdateTaskChecklistItemName(ctx context.Context, input UpdateTaskChecklistItemName) (*pg.TaskChecklistItem, error) {
+	task, err := r.Repository.UpdateTaskChecklistItemName(ctx, pg.UpdateTaskChecklistItemNameParams{TaskChecklistItemID: input.TaskChecklistItemID,
+		Name: input.Name,
+	})
+	if err != nil {
+		return &pg.TaskChecklistItem{}, err
+	}
+	return &task, nil
+}
+
+func (r *mutationResolver) SetTaskChecklistItemComplete(ctx context.Context, input SetTaskChecklistItemComplete) (*pg.TaskChecklistItem, error) {
+	item, err := r.Repository.SetTaskChecklistItemComplete(ctx, pg.SetTaskChecklistItemCompleteParams{TaskChecklistItemID: input.TaskChecklistItemID, Complete: input.Complete})
+	if err != nil {
+		return &pg.TaskChecklistItem{}, err
+	}
+	return &item, nil
+}
+
+func (r *mutationResolver) DeleteTaskChecklistItem(ctx context.Context, input DeleteTaskChecklistItem) (*DeleteTaskChecklistItemPayload, error) {
+	item, err := r.Repository.GetTaskChecklistItemByID(ctx, input.TaskChecklistItemID)
+	if err != nil {
+		return &DeleteTaskChecklistItemPayload{
+			Ok:                false,
+			TaskChecklistItem: &pg.TaskChecklistItem{},
+		}, err
+	}
+	err = r.Repository.DeleteTaskChecklistItem(ctx, input.TaskChecklistItemID)
+	if err != nil {
+		return &DeleteTaskChecklistItemPayload{
+			Ok:                false,
+			TaskChecklistItem: &pg.TaskChecklistItem{},
+		}, err
+	}
+	return &DeleteTaskChecklistItemPayload{
+		Ok:                true,
+		TaskChecklistItem: &item,
+	}, err
+}
+
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*pg.Task, error) {
 	taskGroupID, err := uuid.Parse(input.TaskGroupID)
 	createdAt := time.Now().UTC()
@@ -258,6 +331,14 @@ func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskN
 	}
 	task, err := r.Repository.UpdateTaskName(ctx, pg.UpdateTaskNameParams{taskID, input.Name})
 	return &task, err
+}
+
+func (r *mutationResolver) SetTaskComplete(ctx context.Context, input SetTaskComplete) (*pg.Task, error) {
+	task, err := r.Repository.SetTaskComplete(ctx, pg.SetTaskCompleteParams{TaskID: input.TaskID, Complete: input.Complete})
+	if err != nil {
+		return &pg.Task{}, err
+	}
+	return &task, nil
 }
 
 func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTaskDueDate) (*pg.Task, error) {
@@ -531,6 +612,51 @@ func (r *taskResolver) Labels(ctx context.Context, obj *pg.Task) ([]pg.TaskLabel
 	return r.Repository.GetTaskLabelsForTaskID(ctx, obj.TaskID)
 }
 
+func (r *taskResolver) Checklists(ctx context.Context, obj *pg.Task) ([]pg.TaskChecklist, error) {
+	return r.Repository.GetTaskChecklistsForTask(ctx, obj.TaskID)
+}
+
+func (r *taskResolver) Badges(ctx context.Context, obj *pg.Task) (*TaskBadges, error) {
+	checklists, err := r.Repository.GetTaskChecklistsForTask(ctx, obj.TaskID)
+	if err != nil {
+		return &TaskBadges{}, err
+	}
+	if len(checklists) == 0 {
+		return &TaskBadges{Checklist: nil}, err
+	}
+	complete := 0
+	total := 0
+	for _, checklist := range checklists {
+		items, err := r.Repository.GetTaskChecklistItemsForTaskChecklist(ctx, checklist.TaskChecklistID)
+		if err != nil {
+			return &TaskBadges{}, err
+		}
+		for _, item := range items {
+			total += 1
+			if item.Complete {
+				complete += 1
+			}
+		}
+	}
+	return &TaskBadges{Checklist: &ChecklistBadge{Total: total, Complete: complete}}, nil
+}
+
+func (r *taskChecklistResolver) ID(ctx context.Context, obj *pg.TaskChecklist) (uuid.UUID, error) {
+	return obj.TaskChecklistID, nil
+}
+
+func (r *taskChecklistResolver) Items(ctx context.Context, obj *pg.TaskChecklist) ([]pg.TaskChecklistItem, error) {
+	return r.Repository.GetTaskChecklistItemsForTaskChecklist(ctx, obj.TaskChecklistID)
+}
+
+func (r *taskChecklistItemResolver) ID(ctx context.Context, obj *pg.TaskChecklistItem) (uuid.UUID, error) {
+	return obj.TaskChecklistItemID, nil
+}
+
+func (r *taskChecklistItemResolver) DueDate(ctx context.Context, obj *pg.TaskChecklistItem) (*time.Time, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *taskGroupResolver) ID(ctx context.Context, obj *pg.TaskGroup) (uuid.UUID, error) {
 	return obj.TaskGroupID, nil
 }
@@ -591,6 +717,12 @@ func (r *Resolver) RefreshToken() RefreshTokenResolver { return &refreshTokenRes
 // Task returns TaskResolver implementation.
 func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 
+// TaskChecklist returns TaskChecklistResolver implementation.
+func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklistResolver{r} }
+
+// TaskChecklistItem returns TaskChecklistItemResolver implementation.
+func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver { return &taskChecklistItemResolver{r} }
+
 // TaskGroup returns TaskGroupResolver implementation.
 func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }
 
@@ -610,6 +742,8 @@ type projectLabelResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type refreshTokenResolver struct{ *Resolver }
 type taskResolver struct{ *Resolver }
+type taskChecklistResolver struct{ *Resolver }
+type taskChecklistItemResolver struct{ *Resolver }
 type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }

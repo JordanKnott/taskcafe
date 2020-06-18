@@ -77,6 +77,15 @@ type TaskGroup {
   tasks: [Task!]!
 }
 
+type ChecklistBadge {
+  complete: Int!
+  total: Int!
+}
+
+type TaskBadges {
+  checklist: ChecklistBadge
+}
+
 type Task {
   id: ID!
   taskGroup: TaskGroup!
@@ -85,8 +94,11 @@ type Task {
   position: Float!
   description: String
   dueDate: Time
+  complete: Boolean!
   assigned: [ProjectMember!]!
   labels: [TaskLabel!]!
+  checklists: [TaskChecklist!]!
+  badges: TaskBadges!
 }
 
 input ProjectsFilter {
@@ -188,6 +200,27 @@ type DeleteTaskGroupPayload {
   taskGroup: TaskGroup!
 }
 
+type DeleteTaskChecklistItemPayload {
+  ok: Boolean!
+  taskChecklistItem: TaskChecklistItem!
+}
+
+type TaskChecklistItem {
+  id: ID!
+  name: String!
+  taskChecklistID: UUID!
+  complete: Boolean!
+  position: Float!
+  dueDate: Time!
+}
+
+type TaskChecklist {
+  id: ID!
+  name: String!
+  position: Float!
+  items: [TaskChecklistItem!]!
+}
+
 input AssignTaskInput {
   taskID: UUID!
   userID: UUID!
@@ -267,6 +300,36 @@ input UpdateTaskDueDate  {
   dueDate: Time
 }
 
+input SetTaskComplete {
+  taskID: UUID!
+  complete: Boolean!
+}
+
+input CreateTaskChecklist {
+  taskID: UUID!
+  name: String!
+  position: Float!
+}
+
+input CreateTaskChecklistItem {
+  taskChecklistID: UUID!
+  name: String!
+  position: Float!
+}
+
+input SetTaskChecklistItemComplete {
+  taskChecklistItemID: UUID!
+  complete: Boolean!
+}
+input DeleteTaskChecklistItem {
+  taskChecklistItemID: UUID!
+}
+
+input UpdateTaskChecklistItemName {
+  taskChecklistItemID: UUID!
+  name: String!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -293,10 +356,17 @@ type Mutation {
   removeTaskLabel(input: RemoveTaskLabelInput): Task!
   toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
 
+  createTaskChecklist(input: CreateTaskChecklist!): TaskChecklist!
+  createTaskChecklistItem(input: CreateTaskChecklistItem!): TaskChecklistItem!
+  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
+  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
+  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!): DeleteTaskChecklistItemPayload!
+
   createTask(input: NewTask!): Task!
   updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
   updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
   updateTaskName(input: UpdateTaskName!): Task!
+  setTaskComplete(input: SetTaskComplete!): Task!
   updateTaskDueDate(input: UpdateTaskDueDate!): Task!
   deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
   assignTask(input: AssignTaskInput): Task!

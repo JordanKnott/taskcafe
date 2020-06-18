@@ -28,6 +28,8 @@ export const Default = () => {
         renderContent={() => {
           return (
             <TaskDetails
+              onDeleteItem={action('delete item')}
+              onChangeItemName={action('change item name')}
               task={{
                 id: '1',
                 taskGroup: { name: 'General', id: '1' },
@@ -65,6 +67,8 @@ export const Default = () => {
               onCloseModal={action('close modal')}
               onMemberProfile={action('profile')}
               onOpenAddMemberPopup={action('open add member popup')}
+              onAddItem={action('add item')}
+              onToggleChecklistItem={action('toggle checklist item')}
               onOpenAddLabelPopup={action('open add label popup')}
               onOpenDueDatePopop={action('open due date popup')}
             />

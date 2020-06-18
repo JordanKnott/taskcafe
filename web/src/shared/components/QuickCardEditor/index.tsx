@@ -14,12 +14,15 @@ type Props = {
   task: Task;
   onCloseEditor: () => void;
   onEditCard: (taskGroupID: string, taskID: string, cardName: string) => void;
+  onToggleComplete: (task: Task) => void;
   onOpenLabelsPopup: ($targetRef: React.RefObject<HTMLElement>, task: Task) => void;
   onOpenMembersPopup: ($targetRef: React.RefObject<HTMLElement>, task: Task) => void;
+  onOpenDueDatePopup: ($targetRef: React.RefObject<HTMLElement>, task: Task) => void;
   onArchiveCard: (taskGroupID: string, taskID: string) => void;
   onCardMemberClick?: OnCardMemberClick;
   top: number;
   left: number;
+  width?: number;
 };
 
 const QuickCardEditor = ({
@@ -27,14 +30,18 @@ const QuickCardEditor = ({
   onCloseEditor,
   onOpenLabelsPopup,
   onOpenMembersPopup,
+  onOpenDueDatePopup,
+  onToggleComplete,
   onCardMemberClick,
   onArchiveCard,
   onEditCard,
+  width = 272,
   top,
   left,
 }: Props) => {
   const [currentCardTitle, setCardTitle] = useState(task.name);
   const $labelsRef: any = useRef();
+  const $dueDate: any = useRef();
   const $membersRef: any = useRef();
 
   const handleCloseEditor = (e: any) => {
@@ -45,9 +52,9 @@ const QuickCardEditor = ({
   return (
     <Wrapper onClick={handleCloseEditor} open>
       <CloseButton onClick={handleCloseEditor}>
-        <Cross size={16} color="#000" />
+        <Cross width={16} height={16} />
       </CloseButton>
-      <Container left={left} top={top}>
+      <Container width={width} left={left} top={top}>
         <Card
           editable
           onCardMemberClick={onCardMemberClick}
@@ -56,6 +63,7 @@ const QuickCardEditor = ({
             onEditCard(taskGroupID, taskID, name);
             onCloseEditor();
           }}
+          complete={task.complete ?? false}
           members={task.assigned}
           taskID={task.id}
           taskGroupID={task.taskGroup.id}
@@ -64,6 +72,14 @@ const QuickCardEditor = ({
         <SaveButton onClick={() => onEditCard(task.taskGroup.id, task.id, currentCardTitle)}>Save</SaveButton>
         <EditorButtons>
           <EditorButton
+            onClick={e => {
+              e.stopPropagation();
+              onToggleComplete(task);
+            }}
+          >
+            {task.complete ? 'Mark Incomplete' : 'Mark Complete'}
+          </EditorButton>
+          <EditorButton
             ref={$membersRef}
             onClick={e => {
               e.stopPropagation();
@@ -71,6 +87,15 @@ const QuickCardEditor = ({
             }}
           >
             Edit Assigned
+          </EditorButton>
+          <EditorButton
+            ref={$dueDate}
+            onClick={e => {
+              e.stopPropagation();
+              onOpenDueDatePopup($labelsRef, task);
+            }}
+          >
+            Edit Due Date
           </EditorButton>
           <EditorButton
             ref={$labelsRef}

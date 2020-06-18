@@ -1,0 +1,1 @@
+ALTER TABLE task ADD COLUMN complete boolean NOT NULL DEFAULT FALSE;
