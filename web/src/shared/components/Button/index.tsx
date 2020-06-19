@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import styled, { css } from 'styled-components/macro';
 
 const Text = styled.span<{ fontSize: string }>`
@@ -109,7 +109,7 @@ type ButtonProps = {
   disabled?: boolean;
   type?: 'button' | 'submit';
   className?: string;
-  onClick?: () => void;
+  onClick?: ($target: React.RefObject<HTMLButtonElement>) => void;
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -122,46 +122,68 @@ const Button: React.FC<ButtonProps> = ({
   className,
   children,
 }) => {
+  const $button = useRef<HTMLButtonElement>(null);
   const handleClick = () => {
     if (onClick) {
-      onClick();
+      onClick($button);
     }
   };
   switch (variant) {
     case 'filled':
       return (
-        <Filled type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Filled ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Filled>
       );
     case 'outline':
       return (
-        <Outline type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Outline
+          ref={$button}
+          type={type}
+          onClick={handleClick}
+          className={className}
+          disabled={disabled}
+          color={color}
+        >
           <Text fontSize={fontSize}>{children}</Text>
         </Outline>
       );
     case 'flat':
       return (
-        <Flat type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Flat ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Flat>
       );
     case 'lineDown':
       return (
-        <LineDown type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <LineDown
+          ref={$button}
+          type={type}
+          onClick={handleClick}
+          className={className}
+          disabled={disabled}
+          color={color}
+        >
           <Text fontSize={fontSize}>{children}</Text>
           <LineX color={color} />
         </LineDown>
       );
     case 'gradient':
       return (
-        <Gradient type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Gradient
+          ref={$button}
+          type={type}
+          onClick={handleClick}
+          className={className}
+          disabled={disabled}
+          color={color}
+        >
           <Text fontSize={fontSize}>{children}</Text>
         </Gradient>
       );
     case 'relief':
       return (
-        <Relief type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
+        <Relief ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
           <Text fontSize={fontSize}>{children}</Text>
         </Relief>
       );

@@ -49,16 +49,17 @@ export const TaskAction = styled.button`
 
 export const TaskDetailsWrapper = styled.div`
   display: flex;
-  padding: 0px 30px 60px;
+  padding: 0px 16px 60px;
 `;
 
 export const TaskDetailsContent = styled.div`
-  width: 65%;
-  padding-right: 50px;
+  flex: 1;
+  padding-right: 8px;
 `;
 
 export const TaskDetailsSidebar = styled.div`
-  width: 35%;
+  width: 168px;
+  padding-left: 8px;
 `;
 
 export const TaskDetailsTitleWrapper = styled.div`
@@ -235,21 +236,19 @@ export const ProfileIcon = styled.div`
   cursor: pointer;
 `;
 
-export const TaskDetailsAddMember = styled.div`
+export const TaskDetailsAddMemberIcon = styled.div`
+  float: left;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 100%;
   background: ${mixin.darken('#262c49', 0.15)};
   cursor: pointer;
   &:hover {
     opacity: 0.8;
   }
-`;
-
-export const TaskDetailsAddMemberIcon = styled.div`
-  height: 32px;
-  width: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 `;
 
 export const TaskDetailLabels = styled.div`
@@ -292,11 +291,18 @@ export const TaskDetailsAddLabel = styled.div`
 `;
 
 export const TaskDetailsAddLabelIcon = styled.div`
+  float: left;
   height: 32px;
   width: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 3px;
+  background: ${mixin.darken('#262c49', 0.15)};
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 export const NoDueDateLabel = styled.span`
@@ -313,3 +319,69 @@ export const UnassignedLabel = styled.div`
   align-items: center;
   height: 32px;
 `;
+
+export const ActionButtons = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+export const ActionButtonsTitle = styled.h3`
+  color: rgba(${props => props.theme.colors.text.primary});
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+`;
+
+export const ActionButton = styled(Button)`
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+  text-align: left;
+  &:hover {
+    box-shadow: none;
+    background: rgba(${props => props.theme.colors.bg.primary}, 0.6);
+  }
+`;
+
+export const MetaDetails = styled.div`
+  margin-top: 8px;
+  display: flex;
+`;
+
+export const TaskDueDateButton = styled(Button)`
+  height: 32px;
+  padding: 6px 12px;
+  background: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+  &:hover {
+    box-shadow: none;
+    background: rgba(${props => props.theme.colors.bg.primary}, 0.6);
+  }
+`;
+
+export const MetaDetail = styled.div`
+  display: block;
+  float: left;
+  margin: 0 16px 8px 0;
+  max-width: 100%;
+`;
+
+export const TaskDetailsSection = styled.div`
+  display: block;
+`;
+
+export const MetaDetailTitle = styled.h3`
+  color: rgba(${props => props.theme.colors.text.primary});
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  margin-top: 16px;
+  text-transform: uppercase;
+  display: block;
+  line-height: 20px;
+  margin: 0 8px 4px 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+`;
+
+export const MetaDetailContent = styled.div``;

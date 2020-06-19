@@ -7,6 +7,7 @@ import { useRouteMatch, useHistory } from 'react-router';
 import {
   useFindTaskQuery,
   useUpdateTaskDueDateMutation,
+  useSetTaskCompleteMutation,
   useAssignTaskMutation,
   useUnassignTaskMutation,
   useSetTaskChecklistItemCompleteMutation,
@@ -108,6 +109,7 @@ const Details: React.FC<DetailsProps> = ({
     },
   });
   const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
+  const [setTaskComplete] = useSetTaskCompleteMutation();
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
     onCompleted: () => {
       refetch();
@@ -136,7 +138,7 @@ const Details: React.FC<DetailsProps> = ({
   return (
     <>
       <Modal
-        width={1040}
+        width={768}
         onClose={() => {
           history.push(projectURL);
         }}
@@ -146,6 +148,9 @@ const Details: React.FC<DetailsProps> = ({
               task={data.findTask}
               onTaskNameChange={onTaskNameChange}
               onTaskDescriptionChange={onTaskDescriptionChange}
+              onToggleTaskComplete={task => {
+                setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
+              }}
               onDeleteTask={onDeleteTask}
               onChangeItemName={(itemID, itemName) => {
                 updateTaskChecklistItemName({ variables: { taskChecklistItemID: itemID, name: itemName } });

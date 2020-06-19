@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Cross } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+import Button from 'shared/components/Button';
 
 import {
   Container,
   Wrapper,
   Placeholder,
   AddIconWrapper,
+  AddListButton,
   ListNameEditor,
   ListAddControls,
   CancelAdd,
-  AddListButton,
   ListNameEditorWrapper,
 } from './Styles';
 

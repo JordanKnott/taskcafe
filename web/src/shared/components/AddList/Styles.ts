@@ -46,6 +46,10 @@ export const Wrapper = styled.div<{ editorOpen: boolean }>`
     `}
 `;
 
+export const AddListButton = styled(Button)`
+  padding: 6px 12px;
+`;
+
 export const Placeholder = styled.span`
   color: #c2c6dc;
   display: flex;
@@ -97,12 +101,6 @@ export const ListAddControls = styled.div`
   transition: margin 85ms ease-in, height 85ms ease-in;
   overflow: hidden;
   margin: 4px 0 0;
-`;
-
-export const AddListButton = styled(Button)`
-  float: left;
-  padding: 6px 12px;
-  border-radius: 3px;
 `;
 
 export const CancelAdd = styled.div`

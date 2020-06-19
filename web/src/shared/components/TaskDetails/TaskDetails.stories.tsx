@@ -68,6 +68,7 @@ export const Default = () => {
               onMemberProfile={action('profile')}
               onOpenAddMemberPopup={action('open add member popup')}
               onAddItem={action('add item')}
+              onToggleTaskComplete={action('toggle task complete')}
               onToggleChecklistItem={action('toggle checklist item')}
               onOpenAddLabelPopup={action('open add label popup')}
               onOpenDueDatePopop={action('open due date popup')}

@@ -102,6 +102,17 @@ export type TaskGroup = {
   tasks: Array<Task>;
 };
 
+export type ChecklistBadge = {
+   __typename?: 'ChecklistBadge';
+  complete: Scalars['Int'];
+  total: Scalars['Int'];
+};
+
+export type TaskBadges = {
+   __typename?: 'TaskBadges';
+  checklist?: Maybe<ChecklistBadge>;
+};
+
 export type Task = {
    __typename?: 'Task';
   id: Scalars['ID'];
@@ -115,6 +126,7 @@ export type Task = {
   assigned: Array<ProjectMember>;
   labels: Array<TaskLabel>;
   checklists: Array<TaskChecklist>;
+  badges: TaskBadges;
 };
 
 export type ProjectsFilter = {
@@ -792,7 +804,7 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position'>
+    & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position' | 'complete'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id'>
@@ -1607,6 +1619,7 @@ export const FindTaskDocument = gql`
     description
     dueDate
     position
+    complete
     taskGroup {
       id
     }

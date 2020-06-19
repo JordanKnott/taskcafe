@@ -6,6 +6,7 @@ const TaskDetailAssignee = styled.div`
     opacity: 0.8;
   }
   margin-right: 4px;
+  float: left;
 `;
 
 export const Wrapper = styled.div<{ size: number | string; bgColor: string | null; backgroundURL: string | null }>`

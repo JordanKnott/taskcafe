@@ -7,15 +7,19 @@ import moment from 'moment';
 
 import {
   NoDueDateLabel,
+  TaskDueDateButton,
   UnassignedLabel,
-  TaskDetailsAddMember,
   TaskGroupLabel,
   TaskGroupLabelName,
+  TaskDetailsSection,
   TaskActions,
   TaskDetailsAddLabel,
   TaskDetailsAddLabelIcon,
   TaskAction,
   TaskMeta,
+  ActionButtons,
+  ActionButton,
+  ActionButtonsTitle,
   TaskHeader,
   ProfileIcon,
   TaskDetailsContent,
@@ -37,6 +41,10 @@ import {
   TaskDetailAssignee,
   TaskDetailAssignees,
   TaskDetailsAddMemberIcon,
+  MetaDetails,
+  MetaDetail,
+  MetaDetailTitle,
+  MetaDetailContent,
 } from './Styles';
 import Checklist from '../Checklist';
 
@@ -127,6 +135,7 @@ type TaskDetailsProps = {
   onAddItem: (checklistID: string, name: string, position: number) => void;
   onDeleteItem: (itemID: string) => void;
   onChangeItemName: (itemID: string, itemName: string) => void;
+  onToggleTaskComplete: (task: Task) => void;
   onToggleChecklistItem: (itemID: string, complete: boolean) => void;
   onOpenAddMemberPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
@@ -138,6 +147,7 @@ type TaskDetailsProps = {
 const TaskDetails: React.FC<TaskDetailsProps> = ({
   task,
   onTaskNameChange,
+  onToggleTaskComplete,
   onTaskDescriptionChange,
   onChangeItemName,
   onDeleteItem,
@@ -170,13 +180,14 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const onUnassignedClick = () => {
     onOpenAddMemberPopup(task, $unassignedRef);
   };
-  const onAddMember = () => {
-    onOpenAddMemberPopup(task, $addMemberRef);
+  const onAddMember = ($target: React.RefObject<HTMLElement>) => {
+    onOpenAddMemberPopup(task, $target);
   };
   const $dueDateLabel = useRef<HTMLDivElement>(null);
   const $addLabelRef = useRef<HTMLDivElement>(null);
-  const onAddLabel = () => {
-    onOpenAddLabelPopup(task, $addLabelRef);
+
+  const onAddLabel = ($target: React.RefObject<HTMLElement>) => {
+    onOpenAddLabelPopup(task, $target);
   };
   return (
     <>
@@ -206,100 +217,111 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       </TaskHeader>
       <TaskDetailsWrapper>
         <TaskDetailsContent>
-          <TaskDetailsLabel>Description</TaskDetailsLabel>
-          {editorOpen ? (
-            <DetailsEditor
-              description={description}
-              onTaskDescriptionChange={newDescription => {
-                setEditorOpen(false);
-                setDescription(newDescription);
-                onTaskDescriptionChange(task, newDescription);
-              }}
-              onCancel={() => {
-                setEditorOpen(false);
-              }}
-            />
-          ) : (
-            <TaskContent description={description} onEditContent={handleClick} />
-          )}
-          {task.checklists &&
-            task.checklists
-              .slice()
-              .sort((a, b) => a.position - b.position)
-              .map(checklist => (
-                <Checklist
-                  key={checklist.id}
-                  name={checklist.name}
-                  checklistID={checklist.id}
-                  items={checklist.items}
-                  onDeleteChecklist={() => {}}
-                  onChangeName={() => {}}
-                  onToggleItem={onToggleChecklistItem}
-                  onDeleteItem={onDeleteItem}
-                  onAddItem={n => {
-                    if (task.checklists) {
-                      let position = 1;
-                      const lastChecklist = task.checklists.sort((a, b) => a.position - b.position)[-1];
-                      if (lastChecklist) {
-                        position = lastChecklist.position * 2 + 1;
-                      }
-                      onAddItem(checklist.id, n, position);
-                    }
-                  }}
-                  onChangeItemName={onChangeItemName}
-                />
-              ))}
-        </TaskDetailsContent>
-        <TaskDetailsSidebar>
-          <TaskDetailSectionTitle>Assignees</TaskDetailSectionTitle>
-          <TaskDetailAssignees>
-            {task.assigned && task.assigned.length === 0 ? (
-              <UnassignedLabel ref={$unassignedRef} onClick={onUnassignedClick}>
-                Unassigned
-              </UnassignedLabel>
-            ) : (
-              <>
-                {task.assigned &&
-                  task.assigned.map(member => (
-                    <TaskAssignee key={member.id} size={32} member={member} onMemberProfile={onMemberProfile} />
-                  ))}
-                <TaskDetailsAddMember ref={$addMemberRef} onClick={onAddMember}>
-                  <TaskDetailsAddMemberIcon>
+          <MetaDetails>
+            {task.assigned && task.assigned.length !== 0 && (
+              <MetaDetail>
+                <MetaDetailTitle>MEMBERS</MetaDetailTitle>
+                <MetaDetailContent>
+                  {task.assigned &&
+                    task.assigned.map(member => (
+                      <TaskAssignee key={member.id} size={32} member={member} onMemberProfile={onMemberProfile} />
+                    ))}
+                  <TaskDetailsAddMemberIcon ref={$addMemberRef} onClick={() => onAddMember($addMemberRef)}>
                     <Plus size={16} color="#c2c6dc" />
                   </TaskDetailsAddMemberIcon>
-                </TaskDetailsAddMember>
-              </>
+                </MetaDetailContent>
+              </MetaDetail>
             )}
-          </TaskDetailAssignees>
-          <TaskDetailSectionTitle>Labels</TaskDetailSectionTitle>
-          <TaskDetailLabels>
-            {task.labels.map(label => {
-              return (
-                <TaskLabelItem
-                  key={label.projectLabel.id}
-                  label={label}
-                  onClick={$target => {
-                    onOpenAddLabelPopup(task, $target);
-                  }}
-                />
-              );
-            })}
-            <TaskDetailsAddLabel ref={$addLabelRef} onClick={onAddLabel}>
-              <TaskDetailsAddLabelIcon>
-                <Plus size={16} color="#c2c6dc" />
-              </TaskDetailsAddLabelIcon>
-            </TaskDetailsAddLabel>
-          </TaskDetailLabels>
-          <TaskDetailSectionTitle>Due Date</TaskDetailSectionTitle>
-          {task.dueDate ? (
-            <NoDueDateLabel ref={$dueDateLabel} onClick={() => onOpenDueDatePopop(task, $dueDateLabel)}>
-              {moment(task.dueDate).format('MMM D [at] h:mm A')}
-            </NoDueDateLabel>
-          ) : (
-            <NoDueDateLabel ref={$dueDateLabel} onClick={() => onOpenDueDatePopop(task, $dueDateLabel)}>
-              No due date
-            </NoDueDateLabel>
-          )}
+            {task.labels.length !== 0 && (
+              <MetaDetail>
+                <MetaDetailTitle>LABELS</MetaDetailTitle>
+                <MetaDetailContent>
+                  {task.labels.map(label => {
+                    return (
+                      <TaskLabelItem
+                        key={label.projectLabel.id}
+                        label={label}
+                        onClick={$target => {
+                          onOpenAddLabelPopup(task, $target);
+                        }}
+                      />
+                    );
+                  })}
+                  <TaskDetailsAddLabelIcon ref={$addLabelRef} onClick={() => onAddLabel($addLabelRef)}>
+                    <Plus size={16} color="#c2c6dc" />
+                  </TaskDetailsAddLabelIcon>
+                </MetaDetailContent>
+              </MetaDetail>
+            )}
+            {task.dueDate && (
+              <MetaDetail>
+                <MetaDetailTitle>DUE DATE</MetaDetailTitle>
+                <MetaDetailContent>
+                  <TaskDueDateButton>{moment(task.dueDate).format('MMM D [at] h:mm A')}</TaskDueDateButton>
+                </MetaDetailContent>
+              </MetaDetail>
+            )}
+          </MetaDetails>
+
+          <TaskDetailsSection>
+            <TaskDetailsLabel>Description</TaskDetailsLabel>
+            {editorOpen ? (
+              <DetailsEditor
+                description={description}
+                onTaskDescriptionChange={newDescription => {
+                  setEditorOpen(false);
+                  setDescription(newDescription);
+                  onTaskDescriptionChange(task, newDescription);
+                }}
+                onCancel={() => {
+                  setEditorOpen(false);
+                }}
+              />
+            ) : (
+              <TaskContent description={description} onEditContent={handleClick} />
+            )}
+            {task.checklists &&
+              task.checklists
+                .slice()
+                .sort((a, b) => a.position - b.position)
+                .map(checklist => (
+                  <Checklist
+                    key={checklist.id}
+                    name={checklist.name}
+                    checklistID={checklist.id}
+                    items={checklist.items}
+                    onDeleteChecklist={() => {}}
+                    onChangeName={() => {}}
+                    onToggleItem={onToggleChecklistItem}
+                    onDeleteItem={onDeleteItem}
+                    onAddItem={n => {
+                      if (task.checklists) {
+                        let position = 1;
+                        const lastChecklist = task.checklists.sort((a, b) => a.position - b.position)[-1];
+                        if (lastChecklist) {
+                          position = lastChecklist.position * 2 + 1;
+                        }
+                        onAddItem(checklist.id, n, position);
+                      }
+                    }}
+                    onChangeItemName={onChangeItemName}
+                  />
+                ))}
+          </TaskDetailsSection>
+        </TaskDetailsContent>
+        <TaskDetailsSidebar>
+          <ActionButtons>
+            <ActionButtonsTitle>ADD TO CARD</ActionButtonsTitle>
+            <ActionButton onClick={() => onToggleTaskComplete(task)}>
+              {task.complete ? 'Mark Incomplete' : 'Mark Complete'}
+            </ActionButton>
+            <ActionButton onClick={$target => onAddMember($target)}>Members</ActionButton>
+            <ActionButton onClick={$target => onAddLabel($target)}>Labels</ActionButton>
+            <ActionButton>Checklist</ActionButton>
+            <ActionButton onClick={$target => onOpenDueDatePopop(task, $target)}>Due Date</ActionButton>
+            <ActionButton>Attachment</ActionButton>
+            <ActionButton>Cover</ActionButton>
+          </ActionButtons>
         </TaskDetailsSidebar>
       </TaskDetailsWrapper>
     </>
