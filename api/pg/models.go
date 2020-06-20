@@ -103,6 +103,13 @@ type Team struct {
 	OrganizationID uuid.UUID `json:"organization_id"`
 }
 
+type TeamMember struct {
+	TeamMemberID uuid.UUID `json:"team_member_id"`
+	TeamID       uuid.UUID `json:"team_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	Addeddate    time.Time `json:"addeddate"`
+}
+
 type UserAccount struct {
 	UserID           uuid.UUID      `json:"user_id"`
 	CreatedAt        time.Time      `json:"created_at"`

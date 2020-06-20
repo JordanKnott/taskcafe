@@ -41,12 +41,8 @@ func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserA
 }
 
 func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error) {
-	organizationID, err := uuid.Parse(input.OrganizationID)
-	if err != nil {
-		return &pg.Team{}, err
-	}
 	createdAt := time.Now().UTC()
-	team, err := r.Repository.CreateTeam(ctx, pg.CreateTeamParams{organizationID, createdAt, input.Name})
+	team, err := r.Repository.CreateTeam(ctx, pg.CreateTeamParams{input.OrganizationID, createdAt, input.Name})
 	return &team, err
 }
 
@@ -65,10 +61,47 @@ func (r *mutationResolver) ClearProfileAvatar(ctx context.Context) (*pg.UserAcco
 	return &user, nil
 }
 
+func (r *mutationResolver) CreateTeamMember(ctx context.Context, input CreateTeamMember) (*CreateTeamMemberPayload, error) {
+	addedDate := time.Now().UTC()
+	team, err := r.Repository.GetTeamByID(ctx, input.TeamID)
+	if err != nil {
+		return &CreateTeamMemberPayload{}, err
+	}
+	_, err = r.Repository.CreateTeamMember(ctx, pg.CreateTeamMemberParams{TeamID: input.TeamID, UserID: input.UserID, Addeddate: addedDate})
+	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
+	if err != nil {
+		return &CreateTeamMemberPayload{}, err
+	}
+	var url *string
+	if user.ProfileAvatarUrl.Valid {
+		url = &user.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	return &CreateTeamMemberPayload{
+		Team: &team,
+		TeamMember: &ProjectMember{
+			ID:          user.UserID,
+			FullName:    user.FullName,
+			ProfileIcon: profileIcon,
+		}}, nil
+}
+
 func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) (*pg.Project, error) {
 	createdAt := time.Now().UTC()
 	project, err := r.Repository.CreateProject(ctx, pg.CreateProjectParams{input.UserID, input.TeamID, createdAt, input.Name})
 	return &project, err
+}
+
+func (r *mutationResolver) DeleteProject(ctx context.Context, input DeleteProject) (*DeleteProjectPayload, error) {
+	project, err := r.Repository.GetProjectByID(ctx, input.ProjectID)
+	if err != nil {
+		return &DeleteProjectPayload{Ok: false}, err
+	}
+	err = r.Repository.DeleteProjectByID(ctx, input.ProjectID)
+	if err != nil {
+		return &DeleteProjectPayload{Ok: false}, err
+	}
+	return &DeleteProjectPayload{Project: &project, Ok: true}, err
 }
 
 func (r *mutationResolver) UpdateProjectName(ctx context.Context, input *UpdateProjectName) (*pg.Project, error) {
@@ -409,6 +442,10 @@ func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bo
 	return true, err
 }
 
+func (r *organizationResolver) ID(ctx context.Context, obj *pg.Organization) (uuid.UUID, error) {
+	return obj.OrganizationID, nil
+}
+
 func (r *projectResolver) ID(ctx context.Context, obj *pg.Project) (uuid.UUID, error) {
 	return obj.ProjectID, nil
 }
@@ -473,6 +510,10 @@ func (r *projectLabelResolver) Name(ctx context.Context, obj *pg.ProjectLabel) (
 		name = &obj.Name.String
 	}
 	return name, nil
+}
+
+func (r *queryResolver) Organizations(ctx context.Context) ([]pg.Organization, error) {
+	return r.Repository.GetAllOrganizations(ctx)
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]pg.UserAccount, error) {
@@ -683,6 +724,31 @@ func (r *teamResolver) ID(ctx context.Context, obj *pg.Team) (uuid.UUID, error) 
 	return obj.TeamID, nil
 }
 
+func (r *teamResolver) Members(ctx context.Context, obj *pg.Team) ([]ProjectMember, error) {
+	teamMembers, err := r.Repository.GetTeamMembersForTeamID(ctx, obj.TeamID)
+	var projectMembers []ProjectMember
+	if err != nil {
+		return projectMembers, err
+	}
+	for _, teamMember := range teamMembers {
+		user, err := r.Repository.GetUserAccountByID(ctx, teamMember.UserID)
+		if err != nil {
+			return projectMembers, err
+		}
+		var url *string
+		if user.ProfileAvatarUrl.Valid {
+			url = &user.ProfileAvatarUrl.String
+		}
+		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+		projectMembers = append(projectMembers, ProjectMember{
+			ID:          user.UserID,
+			FullName:    user.FullName,
+			ProfileIcon: profileIcon,
+		})
+	}
+	return projectMembers, nil
+}
+
 func (r *userAccountResolver) ID(ctx context.Context, obj *pg.UserAccount) (uuid.UUID, error) {
 	return obj.UserID, nil
 }
@@ -701,6 +767,9 @@ func (r *Resolver) LabelColor() LabelColorResolver { return &labelColorResolver{
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
+// Organization returns OrganizationResolver implementation.
+func (r *Resolver) Organization() OrganizationResolver { return &organizationResolver{r} }
 
 // Project returns ProjectResolver implementation.
 func (r *Resolver) Project() ProjectResolver { return &projectResolver{r} }
@@ -737,6 +806,7 @@ func (r *Resolver) UserAccount() UserAccountResolver { return &userAccountResolv
 
 type labelColorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
+type organizationResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type projectLabelResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

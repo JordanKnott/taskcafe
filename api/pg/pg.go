@@ -7,10 +7,16 @@ import (
 )
 
 type Repository interface {
+	CreateTeamMember(ctx context.Context, arg CreateTeamMemberParams) (TeamMember, error)
+	DeleteTeamMemberByUserID(ctx context.Context, userID uuid.UUID) error
+	GetTeamMembersForTeamID(ctx context.Context, teamID uuid.UUID) ([]TeamMember, error)
+
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error
 	GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error)
 	GetAllTeams(ctx context.Context) ([]Team, error)
+
+	DeleteProjectByID(ctx context.Context, projectID uuid.UUID) error
 
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	GetAllProjects(ctx context.Context) ([]Project, error)

@@ -21,8 +21,10 @@ type Querier interface {
 	CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams) (TaskGroup, error)
 	CreateTaskLabelForTask(ctx context.Context, arg CreateTaskLabelForTaskParams) (TaskLabel, error)
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
+	CreateTeamMember(ctx context.Context, arg CreateTeamMemberParams) (TeamMember, error)
 	CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error)
 	DeleteExpiredTokens(ctx context.Context) error
+	DeleteProjectByID(ctx context.Context, projectID uuid.UUID) error
 	DeleteProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) error
 	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error
 	DeleteRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) error
@@ -34,6 +36,7 @@ type Querier interface {
 	DeleteTaskLabelForTaskByProjectLabelID(ctx context.Context, arg DeleteTaskLabelForTaskByProjectLabelIDParams) error
 	DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error
+	DeleteTeamMemberByUserID(ctx context.Context, userID uuid.UUID) error
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
 	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)
@@ -59,6 +62,7 @@ type Querier interface {
 	GetTaskLabelsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskLabel, error)
 	GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error)
 	GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error)
+	GetTeamMembersForTeamID(ctx context.Context, teamID uuid.UUID) ([]TeamMember, error)
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 	GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)

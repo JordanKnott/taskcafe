@@ -472,7 +472,7 @@ const Project = () => {
   if (loading) {
     return (
       <>
-        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" />
+        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" projectID={null} />
       </>
     );
   }
@@ -510,6 +510,7 @@ const Project = () => {
             updateProjectName({ variables: { projectID, name: projectName } });
           }}
           projectMembers={data.findProject.members}
+          projectID={projectID}
           name={data.findProject.name}
         />
         <ProjectBar>

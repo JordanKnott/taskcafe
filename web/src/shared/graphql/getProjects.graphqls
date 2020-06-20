@@ -1,4 +1,8 @@
 query getProjects {
+  organizations {
+    id
+    name
+  }
   teams {
     id
     name

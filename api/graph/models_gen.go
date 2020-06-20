@@ -36,8 +36,27 @@ type CreateTaskChecklistItem struct {
 	Position        float64   `json:"position"`
 }
 
+type CreateTeamMember struct {
+	UserID uuid.UUID `json:"userID"`
+	TeamID uuid.UUID `json:"teamID"`
+}
+
+type CreateTeamMemberPayload struct {
+	Team       *pg.Team       `json:"team"`
+	TeamMember *ProjectMember `json:"teamMember"`
+}
+
+type DeleteProject struct {
+	ProjectID uuid.UUID `json:"projectID"`
+}
+
 type DeleteProjectLabel struct {
 	ProjectLabelID uuid.UUID `json:"projectLabelID"`
+}
+
+type DeleteProjectPayload struct {
+	Ok      bool        `json:"ok"`
+	Project *pg.Project `json:"project"`
 }
 
 type DeleteTaskChecklistItem struct {
@@ -123,8 +142,8 @@ type NewTaskLocation struct {
 }
 
 type NewTeam struct {
-	Name           string `json:"name"`
-	OrganizationID string `json:"organizationID"`
+	Name           string    `json:"name"`
+	OrganizationID uuid.UUID `json:"organizationID"`
 }
 
 type NewUserAccount struct {

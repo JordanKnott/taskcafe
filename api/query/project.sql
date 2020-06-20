@@ -12,3 +12,6 @@ INSERT INTO project(owner, team_id, created_at, name) VALUES ($1, $2, $3, $4) RE
 
 -- name: UpdateProjectNameByID :one
 UPDATE project SET name = $2 WHERE project_id = $1 RETURNING *;
+
+-- name: DeleteProjectByID :exec
+DELETE FROM project WHERE project_id = $1;

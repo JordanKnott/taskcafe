@@ -1,6 +1,7 @@
 import React from 'react';
 
 import styled from 'styled-components';
+import Button from 'shared/components/Button';
 
 export const ListActionsWrapper = styled.ul`
   list-style-type: none;
@@ -36,16 +37,64 @@ export const ListSeparator = styled.hr`
   width: 100%;
 `;
 
-type Props = {};
-const ProjectSettings: React.FC<Props> = () => {
+type Props = {
+  onDeleteProject: () => void;
+};
+const ProjectSettings: React.FC<Props> = ({ onDeleteProject }) => {
   return (
     <>
       <ListActionsWrapper>
-        <ListActionItemWrapper onClick={() => {}}>
+        <ListActionItemWrapper onClick={() => onDeleteProject()}>
           <ListActionItem>Delete Project</ListActionItem>
         </ListActionItemWrapper>
       </ListActionsWrapper>
     </>
   );
 };
+
+const ConfirmWrapper = styled.div``;
+
+const ConfirmSubTitle = styled.h3`
+  font-size: 14px;
+`;
+
+const ConfirmDescription = styled.div`
+  font-size: 14px;
+`;
+
+const DeleteList = styled.ul`
+  margin-bottom: 12px;
+`;
+const DeleteListItem = styled.li`
+  padding: 6px 0;
+  list-style: disc;
+  margin-left: 12px;
+`;
+
+const ConfirmDeleteButton = styled(Button)`
+  width: 100%;
+  padding: 6px 12px;
+`;
+
+type DeleteProjectProps = {
+  name: string;
+  onDeleteProject: () => void;
+};
+const DeleteProject: React.FC<DeleteProjectProps> = ({ name, onDeleteProject }) => {
+  return (
+    <ConfirmWrapper>
+      <ConfirmDescription>
+        Deleting the project will also delete the following:
+        <DeleteList>
+          <DeleteListItem>Task groups and tasks</DeleteListItem>
+        </DeleteList>
+      </ConfirmDescription>
+      <ConfirmDeleteButton onClick={() => onDeleteProject()} color="danger">
+        Delete
+      </ConfirmDeleteButton>
+    </ConfirmWrapper>
+  );
+};
+
+export { DeleteProject };
 export default ProjectSettings;

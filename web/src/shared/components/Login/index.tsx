@@ -72,8 +72,10 @@ const Login = ({ onSubmit }: LoginProps) => {
               {errors.password && <FormError>{errors.password.message}</FormError>}
 
               <ActionButtons>
-                <RegisterButton>Register</RegisterButton>
-                <LoginButton type="submit" value="Login" disabled={!isComplete} />
+                <RegisterButton variant="outline">Register</RegisterButton>
+                <LoginButton type="submit" disabled={!isComplete}>
+                  Login
+                </LoginButton>
               </ActionButtons>
             </Form>
           </LoginFormContainer>

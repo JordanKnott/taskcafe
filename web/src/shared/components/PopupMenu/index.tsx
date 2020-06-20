@@ -16,7 +16,7 @@ import {
 
 type PopupContextState = {
   show: (target: RefObject<HTMLElement>, content: JSX.Element, width?: string | number) => void;
-  setTab: (newTab: number) => void;
+  setTab: (newTab: number, width?: number | string) => void;
   getCurrentTab: () => number;
   hide: () => void;
 };
@@ -139,12 +139,14 @@ export const PopupProvider: React.FC = ({ children }) => {
   };
   const portalTarget = canUseDOM ? document.body : null; // appease flow
 
-  const setTab = (newTab: number) => {
+  const setTab = (newTab: number, width?: number | string) => {
+    let newWidth = width ?? currentState.width;
     setState((prevState: PopupState) => {
       return {
         ...prevState,
         previousTab: currentState.currentTab,
         currentTab: newTab,
+        width: newWidth,
       };
     });
   };

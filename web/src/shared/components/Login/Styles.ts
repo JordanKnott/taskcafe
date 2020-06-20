@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import Button from 'shared/components/Button';
 
 export const Wrapper = styled.div`
   background: #eff2f7;
@@ -70,21 +71,7 @@ export const FormError = styled.span`
   color: rgb(234, 84, 85);
 `;
 
-export const LoginButton = styled.input`
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  background: var(--color-button-background);
-  outline: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-button-text-hover);
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-    pointer-events: none;
-  }
-`;
+export const LoginButton = styled(Button)``;
 
 export const ActionButtons = styled.div`
   margin-top: 17.5px;
@@ -92,15 +79,7 @@ export const ActionButtons = styled.div`
   justify-content: space-between;
 `;
 
-export const RegisterButton = styled.button`
-  padding: 0.679rem 2rem;
-  border-radius: 6px;
-  border: 1px solid rgb(115, 103, 240);
-  background: transparent;
-  font-size: 1rem;
-  color: var(--color-primary);
-  cursor: pointer;
-`;
+export const RegisterButton = styled(Button)``;
 
 export const LogoTitle = styled.div`
   font-size: 24px;

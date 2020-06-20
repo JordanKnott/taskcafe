@@ -50,7 +50,7 @@ const Projects = () => {
           }
         }}
       />
-      <GlobalTopNavbar onSaveProjectName={() => {}} name={null} />
+      <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
       {!loading && data && (
         <Settings
           profile={data.me.profileIcon}

@@ -11,7 +11,7 @@ const InputWrapper = styled.div<{ width: string }>`
   justify-content: center;
 
   margin-bottom: 2.2rem;
-  margin-top: 17px;
+  margin-top: 24px;
 `;
 
 const InputLabel = styled.span<{ width: string }>`

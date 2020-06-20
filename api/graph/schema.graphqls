@@ -55,6 +55,7 @@ type Team {
   id: ID!
   createdAt: Time!
   name: String!
+  members: [ProjectMember!]!
 }
 
 type Project {
@@ -117,7 +118,13 @@ input FindTask {
   taskID: UUID!
 }
 
+type Organization {
+  id: ID!
+  name: String!
+}
+
 type Query {
+  organizations: [Organization!]!
   users: [UserAccount!]!
   findUser(input: FindUser!): UserAccount!
   findProject(input: FindProject!): Project!
@@ -143,7 +150,7 @@ input NewUserAccount {
 
 input NewTeam {
   name: String!
-  organizationID: String!
+  organizationID: UUID!
 }
 
 input NewProject {
@@ -330,6 +337,25 @@ input UpdateTaskChecklistItemName {
   name: String!
 }
 
+input CreateTeamMember {
+  userID: UUID!
+  teamID: UUID!
+}
+
+type CreateTeamMemberPayload {
+  team: Team!
+  teamMember: ProjectMember!
+}
+
+input DeleteProject {
+  projectID: UUID!
+}
+
+type DeleteProjectPayload {
+  ok: Boolean!
+  project: Project!
+}
+
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
@@ -338,7 +364,10 @@ type Mutation {
   createTeam(input: NewTeam!): Team!
   clearProfileAvatar:  UserAccount!
 
+  createTeamMember(input: CreateTeamMember!): CreateTeamMemberPayload!
+
   createProject(input: NewProject!): Project!
+  deleteProject(input: DeleteProject!): DeleteProjectPayload!
   updateProjectName(input: UpdateProjectName): Project!
 
   createProjectLabel(input: NewProjectLabel!): ProjectLabel!
