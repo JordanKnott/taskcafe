@@ -24,4 +24,4 @@ windows:
   - database:
       root: ./api
       panes:
-        - docker container exec -it test-db psql -U postgres citadel
+        - pgcli postgres://postgres:test@localhost:5432/citadel
