@@ -6,6 +6,7 @@ import {
   useGetProjectsQuery,
   useCreateProjectMutation,
   GetProjectsDocument,
+  GetProjectsQuery,
 } from 'shared/generated/graphql';
 
 import ProjectGridItem, { AddProjectItem } from 'shared/components/ProjectGridItem';
@@ -17,6 +18,8 @@ import Button from 'shared/components/Button';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useForm } from 'react-hook-form';
 import Input from 'shared/components/Input';
+import updateApolloCache from 'shared/utils/cache';
+import produce from 'immer';
 
 const CreateTeamButton = styled(Button)`
   width: 100%;
@@ -205,22 +208,11 @@ const Projects = () => {
   }, []);
   const [createProject] = useCreateProjectMutation({
     update: (client, newProject) => {
-      const cacheData: any = client.readQuery({
-        query: GetProjectsDocument,
-      });
-
-      console.log(cacheData);
-      console.log(newProject);
-
-      const newData = {
-        ...cacheData,
-        projects: [...cacheData.projects, { ...newProject.data.createProject }],
-      };
-      console.log(newData);
-      client.writeQuery({
-        query: GetProjectsDocument,
-        data: newData,
-      });
+      updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
+        produce(cache, draftCache => {
+          draftCache.projects.push({ ...newProject.data.createProject });
+        }),
+      );
     },
   });
 
@@ -228,17 +220,11 @@ const Projects = () => {
   const { userID, setUserID } = useContext(UserIDContext);
   const [createTeam] = useCreateTeamMutation({
     update: (client, createData) => {
-      const cacheData: any = client.readQuery({
-        query: GetProjectsDocument,
-      });
-      const newData = {
-        ...cacheData,
-        teams: [...cacheData.teams, { ...createData.data.createTeam }],
-      };
-      client.writeQuery({
-        query: GetProjectsDocument,
-        data: newData,
-      });
+      updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
+        produce(cache, draftCache => {
+          draftCache.teams.push({ ...createData.data.createTeam });
+        }),
+      );
     },
   });
   if (loading) {

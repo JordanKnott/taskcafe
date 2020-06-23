@@ -2,7 +2,13 @@ import React, { useState, useContext, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import { MENU_TYPES } from 'shared/components/TopNavbar';
 import GlobalTopNavbar from 'App/TopNavbar';
-import { useGetTeamQuery, useDeleteTeamMutation, GetProjectsDocument } from 'shared/generated/graphql';
+import updateApolloCache from 'shared/utils/cache';
+import {
+  useGetTeamQuery,
+  useDeleteTeamMutation,
+  GetProjectsDocument,
+  GetProjectsQuery,
+} from 'shared/generated/graphql';
 import { useParams, useHistory } from 'react-router';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { History } from 'history';
@@ -116,26 +122,14 @@ export const TeamPopup: React.FC<TeamPopupProps> = ({ history, name, teamID }) =
   const { hidePopup, setTab } = usePopup();
   const [deleteTeam] = useDeleteTeamMutation({
     update: (client, deleteData) => {
-      const cacheData: any = client.readQuery({
-        query: GetProjectsDocument,
-      });
-
-      console.log(cacheData);
-      console.log(deleteData);
-
-      const newData = produce(cacheData, (draftState: any) => {
-        draftState.teams = draftState.teams.filter((team: any) => team.id !== deleteData.data.deleteTeam.team.id);
-        draftState.projects = draftState.projects.filter(
-          (project: any) => project.team.id !== deleteData.data.deleteTeam.team.id,
-        );
-      });
-
-      client.writeQuery({
-        query: GetProjectsDocument,
-        data: {
-          ...newData,
-        },
-      });
+      updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
+        produce(cache, draftCache => {
+          draftCache.teams = cache.teams.filter((team: any) => team.id !== deleteData.data.deleteTeam.team.id);
+          draftCache.projects = cache.projects.filter(
+            (project: any) => project.team.id !== deleteData.data.deleteTeam.team.id,
+          );
+        }),
+      );
     },
   });
   return (

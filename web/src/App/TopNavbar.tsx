@@ -137,11 +137,11 @@ const ProjectFinder = () => {
     return (
       <>
         {projectTeams.map(team => (
-          <TeamContainer>
+          <TeamContainer key={team.id}>
             <TeamTitle>{team.name}</TeamTitle>
             <TeamProjects>
               {team.projects.map((project, idx) => (
-                <TeamProjectContainer>
+                <TeamProjectContainer key={project.id}>
                   <TeamProjectLink to={`/projects/${project.id}`}>
                     <TeamProjectBackground color={colors[idx % 5]} />
                     <TeamProjectAvatar color={colors[idx % 5]} />

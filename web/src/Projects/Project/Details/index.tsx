@@ -18,6 +18,7 @@ import {
   useUpdateTaskChecklistItemNameMutation,
   useCreateTaskChecklistItemMutation,
   FindTaskDocument,
+  FindTaskQuery,
 } from 'shared/generated/graphql';
 import UserIDContext from 'App/context';
 import MiniProfile from 'shared/components/MiniProfile';
@@ -27,9 +28,10 @@ import styled from 'styled-components';
 import Button from 'shared/components/Button';
 import Input from 'shared/components/Input';
 import { useForm } from 'react-hook-form';
+import updateApolloCache from 'shared/utils/cache';
 
-const calculateChecklistBadge = (draftState: any) => {
-  const total = draftState.checklists.reduce((prev: any, next: any) => {
+const calculateChecklistBadge = (checklists: Array<TaskChecklist>) => {
+  const total = checklists.reduce((prev: any, next: any) => {
     return (
       prev +
       next.items.reduce((innerPrev: any, _item: any) => {
@@ -37,7 +39,7 @@ const calculateChecklistBadge = (draftState: any) => {
       }, 0)
     );
   }, 0);
-  const complete = draftState.checklists.reduce(
+  const complete = checklists.reduce(
     (prev: any, next: any) =>
       prev +
       next.items.reduce((innerPrev: any, item: any) => {
@@ -131,171 +133,104 @@ const Details: React.FC<DetailsProps> = ({
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
   const [setTaskChecklistItemComplete] = useSetTaskChecklistItemCompleteMutation({
     update: client => {
-      const cacheData: any = client.readQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-      });
-      const newData = produce(cacheData.findTask, (draftState: any) => {
-        const { complete, total } = calculateChecklistBadge(draftState);
-        if (!draftState.badges) {
-          draftState.badges = {
-            checklist: {},
-          };
-        }
-        draftState.badges.checklist = {
-          __typename: 'ChecklistBadge',
-          complete,
-          total,
-        };
-      });
-      client.writeQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-        data: {
-          findTask: newData,
-        },
-      });
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+            draftCache.findTask.badges.checklist = {
+              __typename: 'ChecklistBadge',
+              complete,
+              total,
+            };
+          }),
+        { taskID },
+      );
     },
   });
   const [deleteTaskChecklist] = useDeleteTaskChecklistMutation({
     update: (client, deleteData) => {
-      const cacheData: any = client.readQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-      });
-      console.log(deleteData);
-
-      const newData = produce(cacheData.findTask, (draftState: any) => {
-        draftState.checklists = cacheData.findTask.checklists.filter(
-          (checklist: any) => checklist.id !== deleteData.data.deleteTaskChecklist.taskChecklist.id,
-        );
-        const { complete, total } = calculateChecklistBadge(draftState);
-        if (!draftState.badges) {
-          draftState.badges = {
-            checklist: {},
-          };
-        }
-        draftState.badges.checklist = {
-          __typename: 'ChecklistBadge',
-          complete,
-          total,
-        };
-        if (complete === 0 && total === 0) {
-          draftState.badges.checklist = null;
-        }
-      });
-      client.writeQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-        data: {
-          findTask: newData,
-        },
-      });
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const { checklists } = cache.findTask;
+            const item = deleteData.deleteTaskChecklist;
+            draftCache.findTask.checklists = checklists.filter(c => c.id !== item.taskChecklist.id);
+            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+            draftCache.findTask.badges.checklist = {
+              __typename: 'ChecklistBadge',
+              complete,
+              total,
+            };
+            if (complete === 0 && total === 0) {
+              draftCache.findTask.badges.checklist = null;
+            }
+          }),
+        { taskID },
+      );
     },
   });
   const [updateTaskChecklistItemName] = useUpdateTaskChecklistItemNameMutation();
   const [createTaskChecklist] = useCreateTaskChecklistMutation({
     update: (client, createData) => {
-      const cacheData: any = client.readQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-      });
-      console.log(createData);
-
-      const newData = {
-        findTask: {
-          ...cacheData.findTask,
-          checklists: [...cacheData.findTask.checklists, { ...createData.data.createTaskChecklist }],
-        },
-      };
-      client.writeQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-        data: newData,
-      });
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const item = createData.data.createTaskChecklist;
+            draftCache.findTask.checklists.push({ ...item });
+          }),
+        { taskID },
+      );
     },
   });
   const [updateTaskChecklistName] = useUpdateTaskChecklistNameMutation();
   const [deleteTaskChecklistItem] = useDeleteTaskChecklistItemMutation({
     update: (client, deleteData) => {
-      const cacheData: any = client.readQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-      });
-      console.log(deleteData);
-      const newData = produce(cacheData.findTask, (draftState: any) => {
-        const idx = draftState.checklists.findIndex(
-          (checklist: TaskChecklist) =>
-            checklist.id === deleteData.data.deleteTaskChecklistItem.taskChecklistItem.taskChecklistID,
-        );
-        console.log(`idx ${idx}`);
-        if (idx !== -1) {
-          draftState.checklists[idx].items = cacheData.findTask.checklists[idx].items.filter(
-            (item: any) => item.id !== deleteData.data.deleteTaskChecklistItem.taskChecklistItem.id,
-          );
-          const { complete, total } = calculateChecklistBadge(draftState);
-          if (!draftState.badges) {
-            draftState.badges = {
-              checklist: {},
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const item = deleteData.data.deleteTaskChecklistItem.taskChecklistItem;
+            draftCache.findTask.checklists = cache.findTask.checklists.filter(c => item.id !== c.id);
+            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+            draftCache.findTask.badges.checklist = {
+              __typename: 'ChecklistBadge',
+              complete,
+              total,
             };
-          }
-          draftState.badges.checklist = {
-            __typename: 'ChecklistBadge',
-            complete,
-            total,
-          };
-        }
-      });
-      client.writeQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-        data: {
-          findTask: newData,
-        },
-      });
+          }),
+        { taskID },
+      );
     },
   });
   const [createTaskChecklistItem] = useCreateTaskChecklistItemMutation({
     update: (client, newTaskItem) => {
-      const cacheData: any = client.readQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-      });
-      console.log(cacheData);
-      console.log(newTaskItem);
-      const newData = produce(cacheData.findTask, (draftState: any) => {
-        const idx = draftState.checklists.findIndex(
-          (checklist: TaskChecklist) => checklist.id === newTaskItem.data.createTaskChecklistItem.taskChecklistID,
-        );
-        if (idx !== -1) {
-          draftState.checklists[idx].items = [
-            ...cacheData.findTask.checklists[idx].items,
-            { ...newTaskItem.data.createTaskChecklistItem },
-          ];
-          console.log(draftState.checklists.map((item: any) => item.items));
-          const { complete, total } = calculateChecklistBadge(draftState);
-          if (!draftState.badges) {
-            draftState.badges = {
-              checklist: {},
-            };
-          }
-          draftState.badges.checklist = {
-            __typename: 'ChecklistBadge',
-            complete,
-            total,
-          };
-          console.log(draftState.badges.checklist);
-        }
-      });
-
-      console.log(newData);
-      client.writeQuery({
-        query: FindTaskDocument,
-        variables: { taskID },
-        data: {
-          findTask: newData,
-        },
-      });
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const item = newTaskItem.data.createTaskChecklistItem;
+            const { checklists } = cache.findTask;
+            const idx = checklists.findIndex(c => c.id === item.taskChecklistID);
+            if (idx !== -1) {
+              draftCache.findTask.checklists[idx].items.push({ ...item });
+              const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+              draftCache.findTask.badges.checklist = {
+                __typename: 'ChecklistBadge',
+                complete,
+                total,
+              };
+            }
+          }),
+        { taskID },
+      );
     },
   });
   const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });

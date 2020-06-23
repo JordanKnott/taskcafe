@@ -1,8 +1,9 @@
+// LOC830
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import { MENU_TYPES } from 'shared/components/TopNavbar';
+import updateApolloCache from 'shared/utils/cache';
 import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
 import styled from 'styled-components/macro';
-import { DataProxy } from '@apollo/client';
 import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
@@ -45,32 +46,8 @@ import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import Details from './Details';
 import { useApolloClient } from '@apollo/react-hooks';
-import { DocumentNode } from 'graphql';
 import UserIDContext from 'App/context';
 import DueDateManager from 'shared/components/DueDateManager';
-
-type UpdateCacheFn<T> = (cache: T) => T;
-function updateApolloCache<T>(client: DataProxy, document: DocumentNode, update: UpdateCacheFn<T>, variables?: object) {
-  let queryArgs: DataProxy.Query<any>;
-  if (variables) {
-    queryArgs = {
-      query: document,
-      variables,
-    };
-  } else {
-    queryArgs = {
-      query: document,
-    };
-  }
-  const cache: T | null = client.readQuery(queryArgs);
-  if (cache) {
-    const newCache = update(cache);
-    client.writeQuery({
-      ...queryArgs,
-      data: newCache,
-    });
-  }
-}
 
 const getCacheData = (client: any, projectID: string) => {
   const cacheData: FindProjectQuery = client.readQuery({
@@ -140,25 +117,33 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
   const [currentLabel, setCurrentLabel] = useState('');
   const [createProjectLabel] = useCreateProjectLabelMutation({
     update: (client, newLabelData) => {
-      const cacheData = getCacheData(client, projectID);
-      const newData = {
-        ...cacheData.findProject,
-        labels: [...cacheData.findProject.labels, { ...newLabelData.data.createProjectLabel }],
-      };
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.labels.push({ ...newLabelData.data.createProjectLabel });
+          }),
+        {
+          projectId: projectID,
+        },
+      );
     },
   });
   const [updateProjectLabel] = useUpdateProjectLabelMutation();
   const [deleteProjectLabel] = useDeleteProjectLabelMutation({
     update: (client, newLabelData) => {
-      const cacheData = getCacheData(client, projectID);
-      const newData = {
-        ...cacheData.findProject,
-        labels: cacheData.findProject.labels.filter(
-          (label: any) => label.id !== newLabelData.data.deleteProjectLabel.id,
-        ),
-      };
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.labels = cache.findProject.labels.filter(
+              label => label.id !== newLabelData.data.deleteProjectLabel.id,
+            );
+          }),
+        { projectId: projectID },
+      );
     },
   });
   const labels = labelsRef.current ? labelsRef.current : [];
@@ -286,27 +271,29 @@ const Project = () => {
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
   const [updateTaskLocation] = useUpdateTaskLocationMutation({
     update: (client, newTask) => {
-      const cacheData = getCacheData(client, projectID);
-      console.log(cacheData);
-      console.log(newTask);
-
-      const newTaskGroups = produce(cacheData.findProject.taskGroups, (draftState: Array<TaskGroup>) => {
-        const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
-        if (previousTaskGroupID !== task.taskGroup.id) {
-          const oldTaskGroupIdx = draftState.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
-          const newTaskGroupIdx = draftState.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
-          if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
-            draftState[oldTaskGroupIdx].tasks = draftState[oldTaskGroupIdx].tasks.filter((t: Task) => t.id !== task.id);
-            draftState[newTaskGroupIdx].tasks = [...draftState[newTaskGroupIdx].tasks, { ...task }];
-          }
-        }
-      });
-
-      const newData = {
-        ...cacheData.findProject,
-        taskGroups: newTaskGroups,
-      };
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
+            if (previousTaskGroupID !== task.taskGroup.id) {
+              const { taskGroups } = cache.findProject;
+              const oldTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
+              const newTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
+              if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
+                draftCache.findProject.taskGroups[oldTaskGroupIdx].tasks = taskGroups[oldTaskGroupIdx].tasks.filter(
+                  (t: Task) => t.id !== task.id,
+                );
+                draftCache.findProject.taskGroups[newTaskGroupIdx].tasks = [
+                  ...taskGroups[newTaskGroupIdx].tasks,
+                  { ...task },
+                ];
+              }
+            }
+          }),
+        { projectId: projectID },
+      );
     },
   });
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation({});
@@ -314,15 +301,17 @@ const Project = () => {
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
     onCompleted: deletedTaskGroupData => {},
     update: (client, deletedTaskGroupData) => {
-      const cacheData = getCacheData(client, projectID);
-      const newData = {
-        ...cacheData.findProject,
-        taskGroups: cacheData.findProject.taskGroups.filter(
-          (taskGroup: any) => taskGroup.id !== deletedTaskGroupData.data.deleteTaskGroup.taskGroup.id,
-        ),
-      };
-
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.taskGroups = draftCache.findProject.taskGroups.filter(
+              (taskGroup: TaskGroup) => taskGroup.id !== deletedTaskGroupData.data.deleteTaskGroup.taskGroup.id,
+            );
+          }),
+        { projectId: projectID },
+      );
     },
   });
 
@@ -346,21 +335,19 @@ const Project = () => {
   const [createTask] = useCreateTaskMutation({
     onCompleted: newTaskData => {},
     update: (client, newTaskData) => {
-      const cacheData = getCacheData(client, projectID);
-      const newTaskGroups = produce(cacheData.findProject.taskGroups, draftState => {
-        const targetIndex = draftState.findIndex(
-          (taskGroup: any) => taskGroup.id === newTaskData.data.createTask.taskGroup.id,
-        );
-        draftState[targetIndex] = {
-          ...draftState[targetIndex],
-          tasks: [...draftState[targetIndex].tasks, { ...newTaskData.data.createTask }],
-        };
-      });
-      const newData = {
-        ...cacheData.findProject,
-        taskGroups: newTaskGroups,
-      };
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const { taskGroups } = cache.findProject;
+            const idx = taskGroups.findIndex(taskGroup => taskGroup.id === newTaskData.data.createTask.taskGroup.id);
+            if (idx !== -1) {
+              draftCache.findProject.taskGroups[idx].tasks.push({ ...newTaskData.data.createTask });
+            }
+          }),
+        { projectId: projectID },
+      );
     },
   });
 
@@ -444,12 +431,20 @@ const Project = () => {
 
   const onListDrop = (droppedColumn: TaskGroup) => {
     console.log(`list drop ${droppedColumn.id}`);
-    const cacheData = getCacheData(client, projectID);
-    const newData = produce(cacheData, (draftState: any) => {
-      const taskGroupIdx = cacheData.findProject.taskGroups.findIndex((t: any) => t.id === droppedColumn.id);
-      cacheData.findProject.taskGroups[taskGroupIdx].position = droppedColumn.position;
-    });
-    writeCacheData(client, projectID, cacheData, newData);
+    updateApolloCache<FindProjectQuery>(
+      client,
+      FindProjectDocument,
+      cache =>
+        produce(cache, draftCache => {
+          const taskGroupIdx = cache.findProject.taskGroups.findIndex(t => t.id === droppedColumn.id);
+          if (taskGroupIdx !== -1) {
+            draftCache.findProject.taskGroups[taskGroupIdx].position = droppedColumn.position;
+          }
+        }),
+      {
+        projectId: projectID,
+      },
+    );
     updateTaskGroupLocation({
       variables: { taskGroupID: droppedColumn.id, position: droppedColumn.position },
       optimisticResponse: {
@@ -481,12 +476,15 @@ const Project = () => {
 
   const [updateProjectName] = useUpdateProjectNameMutation({
     update: (client, newName) => {
-      const cacheData = getCacheData(client, projectID);
-      const newData = {
-        ...cacheData.findProject,
-        name: newName.data.updateProjectName.name,
-      };
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.name = newName.data.updateProjectName.name;
+          }),
+        { projectId: projectID },
+      );
     },
   });
 
@@ -739,17 +737,18 @@ const Project = () => {
               deleteTask({
                 variables: { taskID: cardId },
                 update: () => {
-                  const cacheData = getCacheData(client, projectID);
-                  const newData = {
-                    ...cacheData.findProject,
-                    taskGroups: cacheData.findProject.taskGroups.map((taskGroup: any) => {
-                      return {
-                        ...taskGroup,
-                        tasks: taskGroup.tasks.filter((t: any) => t.id !== cardId),
-                      };
-                    }),
-                  };
-                  writeCacheData(client, projectID, cacheData, newData);
+                  updateApolloCache<FindProjectQuery>(
+                    client,
+                    FindProjectDocument,
+                    cache =>
+                      produce(cache, draftCache => {
+                        draftCache.findProject.taskGroups = cache.findProject.taskGroups.map(taskGroup => ({
+                          ...taskGroup,
+                          tasks: taskGroup.tasks.filter(t => t.id !== cardId),
+                        }));
+                      }),
+                    { projectId: projectID },
+                  );
                 },
               })
             }

@@ -198,7 +198,11 @@ const NavBar: React.FC<NavBarProps> = ({
               {menuType &&
                 menuType.map((name, idx) => {
                   console.log(`${name} : ${idx} === ${currentTab}`);
-                  return <ProjectTab active={currentTab === idx}>{name}</ProjectTab>;
+                  return (
+                    <ProjectTab key={idx} active={currentTab === idx}>
+                      {name}
+                    </ProjectTab>
+                  );
                 })}
             </ProjectTabs>
           )}
