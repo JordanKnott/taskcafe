@@ -51,6 +51,7 @@ export const Default = () => {
       </Container>
       {menu.isOpen && (
         <DropdownMenu
+          onAdminConsole={action('admin')}
           onCloseDropdown={() => {
             setMenu({ top: 0, left: 0, isOpen: false });
           }}

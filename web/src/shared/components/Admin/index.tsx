@@ -1,34 +1,28 @@
 import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
-import { User, Plus } from 'shared/icons';
+import { User, Plus, Lock, Pencil, Trash } from 'shared/icons';
 import { AgGridReact } from 'ag-grid-react';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
+import Button from 'shared/components/Button';
 
-const NewUserButton = styled.button`
-  outline: none;
-  border: none;
-  cursor: pointer;
-  line-height: 20px;
-  padding: 0.75rem;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(115, 103, 240);
-  font-size: 14px;
-
-  border-radius: 0.5rem;
-  border-width: 1px;
-  border-style: solid;
-  border-color: transparent;
-  border-image: initial;
-  border-color: rgba(115, 103, 240);
-  span {
-    padding-left: 0.5rem;
-  }
+const NewUserButton = styled(Button)`
+  padding: 6px 12px;
+  margin-right: 12px;
 `;
+
+const InviteUserButton = styled(Button)`
+  padding: 6px 12px;
+  margin-right: 8px;
+`;
+
+const MemberActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
 const GridTable = styled.div`
   height: 620px;
 `;
@@ -93,8 +87,29 @@ const Header = styled.div`
   min-height: 112px;
 `;
 
+const ActionButtonsContainer = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const EditUserIcon = styled(Pencil)`
+  margin-right: 8px;
+`;
+
+const LockUserIcon = styled(Lock)`
+  margin-right: 8px;
+`;
+
+const DeleteUserIcon = styled(Trash)``;
+
 const ActionButtons = () => {
-  return <span>Hello!</span>;
+  return (
+    <>
+      <EditUserIcon width={16} height={16} />
+      <LockUserIcon width={16} height={16} />
+      <DeleteUserIcon width={16} height={16} />
+    </>
+  );
 };
 const data = {
   defaultColDef: {
@@ -103,16 +118,14 @@ const data = {
   },
   columnDefs: [
     {
-      minWidth: 125,
-      width: 125,
+      minWidth: 55,
+      width: 55,
       headerCheckboxSelection: true,
       checkboxSelection: true,
-      headerName: 'ID',
-      field: 'id',
     },
     { minWidth: 210, headerName: 'Username', editable: true, field: 'username' },
     { minWidth: 225, headerName: 'Email', field: 'email' },
-    { minWidth: 200, headerName: 'Name', editable: true, field: 'full_name' },
+    { minWidth: 200, headerName: 'Name', editable: true, field: 'fullName' },
     { minWidth: 200, headerName: 'Role', editable: true, field: 'role' },
     {
       minWidth: 200,
@@ -123,14 +136,13 @@ const data = {
   frameworkComponents: {
     actionButtons: ActionButtons,
   },
-  rowData: [
-    { id: '1', full_name: 'Jordan Knott', username: 'jordan', email: 'jordan@jordanthedev.com', role: 'Admin' },
-    { id: '2', full_name: 'Jordan Test', username: 'jordantest', email: 'jordan@jordanthedev.com', role: 'Admin' },
-    { id: '3', full_name: 'Jordan Other', username: 'alphatest1050', email: 'jordan@jordanthedev.com', role: 'Admin' },
-    { id: '5', full_name: 'Jordan French', username: 'other', email: 'jordan@jordanthedev.com', role: 'Admin' },
-  ],
 };
-const ListTable = () => {
+
+type ListTableProps = {
+  users: Array<User>;
+};
+
+const ListTable: React.FC<ListTableProps> = ({ users }) => {
   return (
     <Root>
       <div className="ag-theme-material" style={{ height: '296px', width: '100%' }}>
@@ -138,7 +150,7 @@ const ListTable = () => {
           rowSelection="multiple"
           defaultColDef={data.defaultColDef}
           columnDefs={data.columnDefs}
-          rowData={data.rowData}
+          rowData={users}
           frameworkComponents={data.frameworkComponents}
           onFirstDataRendered={params => {
             params.api.sizeColumnsToFit();
@@ -146,7 +158,7 @@ const ListTable = () => {
           onGridSizeChanged={params => {
             params.api.sizeColumnsToFit();
           }}
-        ></AgGridReact>
+        />
       </div>
     </Root>
   );
@@ -184,6 +196,7 @@ const TabNavContent = styled.ul`
 
 const TabNavItem = styled.li`
   padding: 0.35rem 0.3rem;
+  height: 48px;
   display: block;
   position: relative;
 `;
@@ -282,9 +295,16 @@ const NavItem: React.FC<NavItemProps> = ({ active, name, tab, onClick }) => {
   );
 };
 
-const Admin = () => {
-  const [currentTop, setTop] = useState(0);
-  const [currentTab, setTab] = useState(0);
+type AdminProps = {
+  initialTab: number;
+  onAddUser: ($target: React.RefObject<HTMLElement>) => void;
+  onInviteUser: ($target: React.RefObject<HTMLElement>) => void;
+  users: Array<User>;
+};
+
+const Admin: React.FC<AdminProps> = ({ initialTab, onAddUser, onInviteUser, users }) => {
+  const [currentTop, setTop] = useState(initialTab * 48);
+  const [currentTab, setTab] = useState(initialTab);
   const $tabNav = useRef<HTMLDivElement>(null);
   return (
     <Container>
@@ -309,11 +329,17 @@ const Admin = () => {
       </TabNav>
       <TabContentWrapper>
         <TabContent>
-          <NewUserButton>
-            <Plus color="rgba(115, 103, 240)" size={10} />
-            <span>Add New</span>
-          </NewUserButton>
-          <ListTable />
+          <MemberActions>
+            <NewUserButton variant="outline" onClick={onAddUser}>
+              <Plus color="rgba(115, 103, 240)" size={10} />
+              <span style={{ paddingLeft: '5px' }}>Create member</span>
+            </NewUserButton>
+            <InviteUserButton variant="outline" onClick={onInviteUser}>
+              <Plus color="rgba(115, 103, 240)" size={10} />
+              <span style={{ paddingLeft: '5px' }}>Invite member</span>
+            </InviteUserButton>
+          </MemberActions>
+          <ListTable users={users} />
         </TabContent>
       </TabContentWrapper>
     </Container>

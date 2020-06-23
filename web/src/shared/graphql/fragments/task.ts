@@ -8,8 +8,16 @@ const TASK_FRAGMENT = gql`
     dueDate
     complete
     position
+    badges {
+      checklist {
+        complete
+        total
+      }
+    }
     taskGroup {
       id
+      name
+      position
     }
     labels {
       id

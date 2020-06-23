@@ -1,10 +1,10 @@
 package main
 
 import (
-	_ "github.com/lib/pq"
-
 	"fmt"
+	_ "github.com/lib/pq"
 	"net/http"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jordanknott/project-citadel/api/router"
@@ -20,6 +20,10 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
 	defer db.Close()
 	fmt.Println("starting graphql server on http://localhost:3333")
 	fmt.Println("starting graphql playground on http://localhost:3333/__graphql")

@@ -1,0 +1,27 @@
+name: citadel
+root: .
+
+on_project_start: docker start test-db
+
+windows:
+  - services:
+      root: ./
+      panes:
+        - api:
+          - cd api
+          - go run cmd/citadel/main.go
+        - yarn:
+          - cd web
+          - yarn start
+  - web/editor:
+      root: ./web
+      panes:
+        - vim src/index.tsx
+  - api/editor:
+      root: ./api
+      panes:
+        - vim cmd/citadel/main.go
+  - database:
+      root: ./api
+      panes:
+        - docker container exec -it test-db psql -U postgres citadel

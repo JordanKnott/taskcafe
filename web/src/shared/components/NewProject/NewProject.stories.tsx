@@ -23,6 +23,7 @@ export const Default = () => {
       <NormalizeStyles />
       <BaseStyles />
       <NewProject
+        initialTeamID={null}
         onCreateProject={action('create project')}
         teams={[{ name: 'General', id: 'general', createdAt: '' }]}
         onClose={() => {}}

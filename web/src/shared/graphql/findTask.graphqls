@@ -9,6 +9,12 @@ query findTask($taskID: UUID!) {
     taskGroup {
       id
     }
+    badges {
+      checklist {
+        total
+        complete
+      }
+    }
     checklists {
       id
       name

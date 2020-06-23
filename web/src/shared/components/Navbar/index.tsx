@@ -35,7 +35,7 @@ export const ButtonContainer: React.FC = ({ children }) => (
 export const PrimaryLogo = () => {
   return (
     <LogoWrapper>
-      <Citadel size={42} />
+      <Citadel width={42} height={42} />
       <LogoTitle>Citadel</LogoTitle>
     </LogoWrapper>
   );

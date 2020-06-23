@@ -1,5 +1,8 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import Sort from './Sort';
+import Filter from './Filter';
+import BarChart from './BarChart';
 import Trash from './Trash';
 import CheckCircle from './CheckCircle';
 import Clock from './Clock';
@@ -58,6 +61,9 @@ export {
   Clock,
   CheckSquareOutline,
   CheckSquare,
+  BarChart,
   Square,
+  Filter,
+  Sort,
   ToggleOn,
 };

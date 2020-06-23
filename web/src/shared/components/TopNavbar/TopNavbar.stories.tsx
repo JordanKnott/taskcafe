@@ -26,7 +26,8 @@ export const Default = () => {
       <NormalizeStyles />
       <BaseStyles />
       <TopNavbar
-        projectName="Projects"
+        onOpenProjectFinder={action('finder')}
+        name="Projects"
         user={{
           id: '1',
           fullName: 'Jordan Knott',
@@ -38,6 +39,7 @@ export const Default = () => {
         }}
         onNotificationClick={action('notifications click')}
         onOpenSettings={action('open settings')}
+        onDashboardClick={action('open dashboard')}
         onProfileClick={action('profile click')}
       />
     </>

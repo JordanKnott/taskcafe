@@ -72,6 +72,15 @@ func (q *Queries) CreateTaskChecklistItem(ctx context.Context, arg CreateTaskChe
 	return i, err
 }
 
+const deleteTaskChecklistByID = `-- name: DeleteTaskChecklistByID :exec
+DELETE FROM task_checklist WHERE task_checklist_id = $1
+`
+
+func (q *Queries) DeleteTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteTaskChecklistByID, taskChecklistID)
+	return err
+}
+
 const deleteTaskChecklistItem = `-- name: DeleteTaskChecklistItem :exec
 DELETE FROM task_checklist_item WHERE task_checklist_item_id = $1
 `
@@ -79,6 +88,23 @@ DELETE FROM task_checklist_item WHERE task_checklist_item_id = $1
 func (q *Queries) DeleteTaskChecklistItem(ctx context.Context, taskChecklistItemID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteTaskChecklistItem, taskChecklistItemID)
 	return err
+}
+
+const getTaskChecklistByID = `-- name: GetTaskChecklistByID :one
+SELECT task_checklist_id, task_id, created_at, name, position FROM task_checklist WHERE task_checklist_id = $1
+`
+
+func (q *Queries) GetTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) (TaskChecklist, error) {
+	row := q.db.QueryRowContext(ctx, getTaskChecklistByID, taskChecklistID)
+	var i TaskChecklist
+	err := row.Scan(
+		&i.TaskChecklistID,
+		&i.TaskID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+	)
+	return i, err
 }
 
 const getTaskChecklistItemByID = `-- name: GetTaskChecklistItemByID :one
@@ -214,6 +240,29 @@ func (q *Queries) UpdateTaskChecklistItemName(ctx context.Context, arg UpdateTas
 		&i.Name,
 		&i.Position,
 		&i.DueDate,
+	)
+	return i, err
+}
+
+const updateTaskChecklistName = `-- name: UpdateTaskChecklistName :one
+UPDATE task_checklist SET name = $2 WHERE task_checklist_id = $1
+  RETURNING task_checklist_id, task_id, created_at, name, position
+`
+
+type UpdateTaskChecklistNameParams struct {
+	TaskChecklistID uuid.UUID `json:"task_checklist_id"`
+	Name            string    `json:"name"`
+}
+
+func (q *Queries) UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskChecklistName, arg.TaskChecklistID, arg.Name)
+	var i TaskChecklist
+	err := row.Scan(
+		&i.TaskChecklistID,
+		&i.TaskID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
 	)
 	return i, err
 }

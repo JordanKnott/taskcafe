@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
+  flex: 1;
   user-select: none;
   white-space: nowrap;
   margin-bottom: 8px;

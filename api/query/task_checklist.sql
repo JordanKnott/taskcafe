@@ -5,6 +5,16 @@ INSERT INTO task_checklist (task_id, created_at, name, position) VALUES ($1, $2,
 -- name: GetTaskChecklistsForTask :many
 SELECT * FROM task_checklist WHERE task_id = $1;
 
+-- name: UpdateTaskChecklistName :one
+UPDATE task_checklist SET name = $2 WHERE task_checklist_id = $1
+  RETURNING *;
+
+-- name: DeleteTaskChecklistByID :exec
+DELETE FROM task_checklist WHERE task_checklist_id = $1;
+
+-- name: GetTaskChecklistByID :one
+SELECT * FROM task_checklist WHERE task_checklist_id = $1;
+
 -- name: CreateTaskChecklistItem :one
 INSERT INTO task_checklist_item (task_checklist_id, created_at, name, position, complete, due_date) VALUES ($1, $2, $3, $4, false, null)
   RETURNING *;

@@ -17,7 +17,11 @@ type Repository interface {
 	GetAllTeams(ctx context.Context) ([]Team, error)
 
 	DeleteProjectByID(ctx context.Context, projectID uuid.UUID) error
+	DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) error
 
+	GetTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) (TaskChecklist, error)
+	DeleteTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) error
+	UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)

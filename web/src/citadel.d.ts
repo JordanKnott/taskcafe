@@ -17,6 +17,15 @@ type ContextMenuEvent = {
   taskGroupID: string;
 };
 
+type User = {
+  id: string;
+  fullName: string;
+  username: string;
+  email: string;
+  role: string;
+  profileIcon: ProfileIcon;
+};
+
 type TaskUser = {
   id: string;
   fullName: string;

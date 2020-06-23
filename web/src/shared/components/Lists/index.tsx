@@ -181,6 +181,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                                 onClick={() => {
                                                   onTaskClick(task);
                                                 }}
+                                                checklists={task.badges && task.badges.checklist}
                                                 onCardMemberClick={onCardMemberClick}
                                                 onContextMenu={onQuickEditorOpen}
                                               />

@@ -137,6 +137,7 @@ const ProjectTileName = styled.div<{ centered?: boolean }>`
 `;
 
 const Wrapper = styled.div`
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -146,10 +147,24 @@ const Wrapper = styled.div`
 const ProjectSectionTitleWrapper = styled.div`
   align-items: center;
   display: flex;
+  justify-content: space-between;
   height: 32px;
   margin-bottom: 24px;
   padding: 8px 0;
   position: relative;
+  margin-top: 16px;
+`;
+
+const SectionActions = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const SectionAction = styled(Button)`
+  padding: 6px 12px;
+`;
+const SectionActionLink = styled(Link)`
+  margin-right: 8px;
 `;
 
 const ProjectSectionTitle = styled.h3`
@@ -171,13 +186,19 @@ const ProjectGrid = styled.div`
 `;
 const AddTeamButton = styled(Button)`
   padding: 6px 12px;
-  float: right;
+  position: absolute;
+  top: 6px;
+  right: 12px;
 `;
+type ShowNewProject = {
+  open: boolean;
+  initialTeamID: null | string;
+};
 
 const ProjectLink = styled(Link)``;
 
 const Projects = () => {
-  const { showPopup } = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const { loading, data } = useGetProjectsQuery();
   useEffect(() => {
     document.title = 'Citadel';
@@ -202,9 +223,24 @@ const Projects = () => {
       });
     },
   });
-  const [showNewProject, setShowNewProject] = useState(false);
+
+  const [showNewProject, setShowNewProject] = useState<ShowNewProject>({ open: false, initialTeamID: null });
   const { userID, setUserID } = useContext(UserIDContext);
-  const [createTeam] = useCreateTeamMutation();
+  const [createTeam] = useCreateTeamMutation({
+    update: (client, createData) => {
+      const cacheData: any = client.readQuery({
+        query: GetProjectsDocument,
+      });
+      const newData = {
+        ...cacheData,
+        teams: [...cacheData.teams, { ...createData.data.createTeam }],
+      };
+      client.writeQuery({
+        query: GetProjectsDocument,
+        data: newData,
+      });
+    },
+  });
   if (loading) {
     return (
       <>
@@ -234,11 +270,18 @@ const Projects = () => {
               onClick={$target => {
                 showPopup(
                   $target,
-                  <Popup title="Create team" tab={0}>
+                  <Popup
+                    title="Create team"
+                    tab={0}
+                    onClose={() => {
+                      hidePopup();
+                    }}
+                  >
                     <CreateTeamForm
                       onCreateTeam={teamName => {
                         if (organizationID) {
                           createTeam({ variables: { name: teamName, organizationID } });
+                          hidePopup();
                         }
                       }}
                     />
@@ -253,6 +296,17 @@ const Projects = () => {
                 <div key={team.id}>
                   <ProjectSectionTitleWrapper>
                     <ProjectSectionTitle>{team.name}</ProjectSectionTitle>
+                    <SectionActions>
+                      <SectionActionLink to={`/teams/${team.id}`}>
+                        <SectionAction variant="outline">Projects</SectionAction>
+                      </SectionActionLink>
+                      <SectionActionLink to="/">
+                        <SectionAction variant="outline">Members</SectionAction>
+                      </SectionActionLink>
+                      <SectionActionLink to="/">
+                        <SectionAction variant="outline">Settings</SectionAction>
+                      </SectionActionLink>
+                    </SectionActions>
                   </ProjectSectionTitleWrapper>
                   <ProjectList>
                     {team.projects.map((project, idx) => (
@@ -268,7 +322,7 @@ const Projects = () => {
                     <ProjectListItem>
                       <ProjectAddTile
                         onClick={() => {
-                          setShowNewProject(true);
+                          setShowNewProject({ open: true, initialTeamID: team.id });
                         }}
                       >
                         <ProjectTileFade />
@@ -281,16 +335,17 @@ const Projects = () => {
                 </div>
               );
             })}
-            {showNewProject && (
+            {showNewProject.open && (
               <NewProject
+                initialTeamID={showNewProject.initialTeamID}
                 onCreateProject={(name, teamID) => {
                   if (userID) {
                     createProject({ variables: { teamID, name, userID } });
-                    setShowNewProject(false);
+                    setShowNewProject({ open: false, initialTeamID: null });
                   }
                 }}
                 onClose={() => {
-                  setShowNewProject(false);
+                  setShowNewProject({ open: false, initialTeamID: null });
                 }}
                 teams={teams}
               />

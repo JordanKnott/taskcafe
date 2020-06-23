@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
-import { Exit, User } from 'shared/icons';
+import { Exit, User, Cog } from 'shared/icons';
 import { Separator, Container, WrapperDiamond, Wrapper, ActionsList, ActionItem, ActionTitle } from './Styles';
 
 type DropdownMenuProps = {
@@ -8,15 +8,16 @@ type DropdownMenuProps = {
   top: number;
   onLogout: () => void;
   onCloseDropdown: () => void;
+  onAdminConsole: () => void;
 };
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout, onCloseDropdown }) => {
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout, onCloseDropdown, onAdminConsole }) => {
   const $containerRef = useRef<HTMLDivElement>(null);
   useOnOutsideClick($containerRef, true, onCloseDropdown, null);
   return (
     <Container ref={$containerRef} left={left} top={top}>
       <Wrapper>
-        <ActionItem>
+        <ActionItem onClick={onAdminConsole}>
           <User size={16} color="#c2c6dc" />
           <ActionTitle>Profile</ActionTitle>
         </ActionItem>
@@ -36,16 +37,21 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout, onClos
 type ProfileMenuProps = {
   onProfile: () => void;
   onLogout: () => void;
+  onAdminConsole: () => void;
 };
 
-const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfile, onLogout }) => {
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ onAdminConsole, onProfile, onLogout }) => {
   return (
     <>
+      <ActionItem onClick={onAdminConsole}>
+        <Cog size={16} color="#c2c6dc" />
+        <ActionTitle>Admin Console</ActionTitle>
+      </ActionItem>
+      <Separator />
       <ActionItem onClick={onProfile}>
         <User size={16} color="#c2c6dc" />
         <ActionTitle>Profile</ActionTitle>
       </ActionItem>
-      <Separator />
       <ActionsList>
         <ActionItem onClick={onLogout}>
           <Exit size={16} color="#c2c6dc" />

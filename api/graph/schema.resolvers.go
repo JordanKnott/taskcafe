@@ -13,6 +13,7 @@ import (
 	"github.com/jordanknott/project-citadel/api/pg"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (r *labelColorResolver) ID(ctx context.Context, obj *pg.LabelColor) (uuid.UUID, error) {
@@ -29,15 +30,52 @@ func (r *mutationResolver) CreateRefreshToken(ctx context.Context, input NewRefr
 
 func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserAccount) (*pg.UserAccount, error) {
 	createdAt := time.Now().UTC()
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(input.Password), 14)
+	if err != nil {
+		return &pg.UserAccount{}, err
+	}
 	userAccount, err := r.Repository.CreateUserAccount(ctx, pg.CreateUserAccountParams{
 		FullName:     input.FullName,
 		Initials:     input.Initials,
 		Email:        input.Email,
 		Username:     input.Username,
 		CreatedAt:    createdAt,
-		PasswordHash: input.Password,
+		PasswordHash: string(hashedPwd),
 	})
 	return &userAccount, err
+}
+
+func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error) {
+	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
+	if err != nil {
+		return &DeleteUserAccountPayload{Ok: false}, err
+	}
+
+	err = r.Repository.DeleteUserAccountByID(ctx, input.UserID)
+	if err != nil {
+		return &DeleteUserAccountPayload{Ok: false}, err
+	}
+	return &DeleteUserAccountPayload{UserAccount: &user, Ok: true}, nil
+}
+
+func (r *mutationResolver) DeleteTeam(ctx context.Context, input DeleteTeam) (*DeleteTeamPayload, error) {
+	team, err := r.Repository.GetTeamByID(ctx, input.TeamID)
+	if err != nil {
+		log.Error(err)
+		return &DeleteTeamPayload{Ok: false}, err
+	}
+	projects, err := r.Repository.GetAllProjectsForTeam(ctx, input.TeamID)
+	if err != nil {
+		log.Error(err)
+		return &DeleteTeamPayload{Ok: false}, err
+	}
+	err = r.Repository.DeleteTeamByID(ctx, input.TeamID)
+	if err != nil {
+		log.Error(err)
+		return &DeleteTeamPayload{Ok: false}, err
+	}
+
+	return &DeleteTeamPayload{Ok: true, Team: &team, Projects: projects}, nil
 }
 
 func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error) {
@@ -277,6 +315,26 @@ func (r *mutationResolver) CreateTaskChecklist(ctx context.Context, input Create
 	return &taskChecklist, nil
 }
 
+func (r *mutationResolver) DeleteTaskChecklist(ctx context.Context, input DeleteTaskChecklist) (*DeleteTaskChecklistPayload, error) {
+	taskChecklist, err := r.Repository.GetTaskChecklistByID(ctx, input.TaskChecklistID)
+	if err != nil {
+		return &DeleteTaskChecklistPayload{Ok: false}, err
+	}
+	err = r.Repository.DeleteTaskChecklistByID(ctx, input.TaskChecklistID)
+	if err != nil {
+		return &DeleteTaskChecklistPayload{Ok: false}, err
+	}
+	return &DeleteTaskChecklistPayload{Ok: true, TaskChecklist: &taskChecklist}, nil
+}
+
+func (r *mutationResolver) UpdateTaskChecklistName(ctx context.Context, input UpdateTaskChecklistName) (*pg.TaskChecklist, error) {
+	checklist, err := r.Repository.UpdateTaskChecklistName(ctx, pg.UpdateTaskChecklistNameParams{TaskChecklistID: input.TaskChecklistID, Name: input.Name})
+	if err != nil {
+		return &pg.TaskChecklist{}, err
+	}
+	return &checklist, nil
+}
+
 func (r *mutationResolver) CreateTaskChecklistItem(ctx context.Context, input CreateTaskChecklistItem) (*pg.TaskChecklistItem, error) {
 	createdAt := time.Now().UTC()
 	taskChecklistItem, err := r.Repository.CreateTaskChecklistItem(ctx, pg.CreateTaskChecklistItemParams{
@@ -475,6 +533,9 @@ func (r *projectResolver) TaskGroups(ctx context.Context, obj *pg.Project) ([]pg
 func (r *projectResolver) Members(ctx context.Context, obj *pg.Project) ([]ProjectMember, error) {
 	user, err := r.Repository.GetUserAccountByID(ctx, obj.Owner)
 	members := []ProjectMember{}
+	if err == sql.ErrNoRows {
+		return members, nil
+	}
 	if err != nil {
 		return members, err
 	}
@@ -561,13 +622,17 @@ func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*pg.Task,
 
 func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]pg.Project, error) {
 	if input != nil {
-		teamID, err := uuid.Parse(*input.TeamID)
-		if err != nil {
-			return []pg.Project{}, err
-		}
-		return r.Repository.GetAllProjectsForTeam(ctx, teamID)
+		return r.Repository.GetAllProjectsForTeam(ctx, *input.TeamID)
 	}
 	return r.Repository.GetAllProjects(ctx)
+}
+
+func (r *queryResolver) FindTeam(ctx context.Context, input FindTeam) (*pg.Team, error) {
+	team, err := r.Repository.GetTeamByID(ctx, input.TeamID)
+	if err != nil {
+		return &pg.Team{}, err
+	}
+	return &team, nil
 }
 
 func (r *queryResolver) Teams(ctx context.Context) ([]pg.Team, error) {
@@ -727,6 +792,9 @@ func (r *teamResolver) ID(ctx context.Context, obj *pg.Team) (uuid.UUID, error) 
 func (r *teamResolver) Members(ctx context.Context, obj *pg.Team) ([]ProjectMember, error) {
 	teamMembers, err := r.Repository.GetTeamMembersForTeamID(ctx, obj.TeamID)
 	var projectMembers []ProjectMember
+	if err == sql.ErrNoRows {
+		return projectMembers, nil
+	}
 	if err != nil {
 		return projectMembers, err
 	}

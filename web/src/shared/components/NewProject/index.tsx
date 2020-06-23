@@ -207,14 +207,15 @@ const CreateButton = styled.button`
   }
 `;
 type NewProjectProps = {
+  initialTeamID: string | null;
   teams: Array<Team>;
   onClose: () => void;
   onCreateProject: (projectName: string, teamID: string) => void;
 };
 
-const NewProject: React.FC<NewProjectProps> = ({ teams, onClose, onCreateProject }) => {
+const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, onCreateProject }) => {
   const [projectName, setProjectName] = useState('');
-  const [team, setTeam] = useState<null | string>(null);
+  const [team, setTeam] = useState<null | string>(initialTeamID);
   const options = teams.map(t => ({ label: t.name, value: t.id }));
   return (
     <Overlay>

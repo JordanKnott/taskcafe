@@ -80,8 +80,10 @@ type InputProps = {
   variant?: 'normal' | 'alternate';
   label?: string;
   width?: string;
+  floatingLabel?: boolean;
   placeholder?: string;
   icon?: JSX.Element;
+  autocomplete?: boolean;
   id?: string;
   name?: string;
   className?: string;
@@ -95,6 +97,7 @@ const Input = React.forwardRef(
     {
       width = 'auto',
       variant = 'normal',
+      autocomplete,
       label,
       placeholder,
       icon,
@@ -102,6 +105,7 @@ const Input = React.forwardRef(
       onChange,
       className,
       onClick,
+      floatingLabel,
       value: initialValue,
       id,
     }: InputProps,
@@ -124,12 +128,13 @@ const Input = React.forwardRef(
     return (
       <InputWrapper className={className} width={width}>
         <InputInput
-          hasValue={value !== ''}
+          hasValue={floatingLabel || value !== ''}
           ref={$ref}
           id={id}
           name={name}
           onClick={onClick}
           onChange={handleChange}
+          autoComplete={autocomplete ? 'on' : 'off'}
           value={value}
           hasIcon={typeof icon !== 'undefined'}
           width={width}

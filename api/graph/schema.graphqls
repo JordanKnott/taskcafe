@@ -103,7 +103,7 @@ type Task {
 }
 
 input ProjectsFilter {
-  teamID: String
+  teamID: UUID
 }
 
 input FindUser {
@@ -123,6 +123,10 @@ type Organization {
   name: String!
 }
 
+input FindTeam {
+  teamID: UUID!
+}
+
 type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
@@ -130,6 +134,7 @@ type Query {
   findProject(input: FindProject!): Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
+  findTeam(input: FindTeam!): Team!
   teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
@@ -356,11 +361,43 @@ type DeleteProjectPayload {
   project: Project!
 }
 
+input DeleteTeam {
+  teamID: UUID!
+}
+
+type DeleteTeamPayload {
+  ok: Boolean!
+  team: Team!
+  projects: [Project!]!
+}
+
+input DeleteUserAccount {
+  userID: UUID!
+}
+
+type DeleteUserAccountPayload {
+  ok: Boolean!
+  userAccount: UserAccount!
+}
+
+input UpdateTaskChecklistName {
+  taskChecklistID: UUID!
+  name: String!
+}
+input DeleteTaskChecklist {
+  taskChecklistID: UUID!
+}
+type DeleteTaskChecklistPayload {
+  ok: Boolean!
+  taskChecklist: TaskChecklist!
+}
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
   createUserAccount(input: NewUserAccount!): UserAccount!
+  deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
 
+  deleteTeam(input: DeleteTeam!): DeleteTeamPayload!
   createTeam(input: NewTeam!): Team!
   clearProfileAvatar:  UserAccount!
 
@@ -386,6 +423,8 @@ type Mutation {
   toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
 
   createTaskChecklist(input: CreateTaskChecklist!): TaskChecklist!
+  deleteTaskChecklist(input: DeleteTaskChecklist!): DeleteTaskChecklistPayload!
+  updateTaskChecklistName(input: UpdateTaskChecklistName!): TaskChecklist!
   createTaskChecklistItem(input: CreateTaskChecklistItem!): TaskChecklistItem!
   updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
   setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!

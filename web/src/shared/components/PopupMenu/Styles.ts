@@ -42,7 +42,6 @@ export const HeaderTitle = styled.span`
   box-sizing: border-box;
   color: #c2c6dc;
   display: block;
-  line-height: 40px;
   border-bottom: 1px solid #414561;
   margin: 0 12px;
   overflow: hidden;
@@ -51,6 +50,13 @@ export const HeaderTitle = styled.span`
   text-overflow: ellipsis;
   white-space: nowrap;
   z-index: 1;
+
+  height: 40px;
+  line-height: 18px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const Content = styled.div`
@@ -138,7 +144,7 @@ export const CardLabel = styled.span<{ active: boolean; color: string }>`
 `;
 
 export const CloseButton = styled.div`
-  padding: 10px 12px 10px 8px;
+  padding: 18px 18px 14px 12px;
   position: absolute;
   top: 0;
   right: 0;
@@ -312,7 +318,7 @@ export const CreateLabelButton = styled.button`
 `;
 
 export const PreviousButton = styled.div`
-  padding: 10px 12px 10px 8px;
+  padding: 18px 18px 14px 12px;
   position: absolute;
   top: 0;
   left: 0;

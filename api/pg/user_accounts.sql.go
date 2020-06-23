@@ -49,6 +49,15 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 	return i, err
 }
 
+const deleteUserAccountByID = `-- name: DeleteUserAccountByID :exec
+DELETE FROM user_account WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUserAccountByID, userID)
+	return err
+}
+
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
 SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url FROM user_account
 `

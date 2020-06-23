@@ -1,21 +1,12 @@
 import React from 'react';
+import Icon, { IconProps } from './Icon';
 
-type Props = {
-  size: number | string;
-  color: string;
-};
-
-const Lock = ({ size, color }: Props) => {
+const Lock: React.FC<IconProps> = ({ width = '16px', height = '16px', className }) => {
   return (
-    <svg fill={color} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 16 16">
-      <path d="M9.25 7h-0.25v-3c0-1.654-1.346-3-3-3h-2c-1.654 0-3 1.346-3 3v3h-0.25c-0.412 0-0.75 0.338-0.75 0.75v7.5c0 0.412 0.338 0.75 0.75 0.75h8.5c0.412 0 0.75-0.338 0.75-0.75v-7.5c0-0.412-0.338-0.75-0.75-0.75zM3 4c0-0.551 0.449-1 1-1h2c0.551 0 1 0.449 1 1v3h-4v-3z" />
-    </svg>
+    <Icon width={width} height={height} className={className} viewBox="0 0 448 512">
+      <path d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z" />
+    </Icon>
   );
-};
-
-Lock.defaultProps = {
-  size: 16,
-  color: '#000',
 };
 
 export default Lock;

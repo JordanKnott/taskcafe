@@ -30,6 +30,7 @@ type Querier interface {
 	DeleteRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteTaskAssignedByID(ctx context.Context, arg DeleteTaskAssignedByIDParams) (TaskAssigned, error)
 	DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error
+	DeleteTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) error
 	DeleteTaskChecklistItem(ctx context.Context, taskChecklistItemID uuid.UUID) error
 	DeleteTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTaskLabelByID(ctx context.Context, taskLabelID uuid.UUID) error
@@ -37,6 +38,7 @@ type Querier interface {
 	DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error
 	DeleteTeamMemberByUserID(ctx context.Context, userID uuid.UUID) error
+	DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) error
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
 	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)
@@ -52,6 +54,7 @@ type Querier interface {
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
 	GetRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) (RefreshToken, error)
 	GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, error)
+	GetTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) (TaskChecklist, error)
 	GetTaskChecklistItemByID(ctx context.Context, taskChecklistItemID uuid.UUID) (TaskChecklistItem, error)
 	GetTaskChecklistItemsForTaskChecklist(ctx context.Context, taskChecklistID uuid.UUID) ([]TaskChecklistItem, error)
 	GetTaskChecklistsForTask(ctx context.Context, taskID uuid.UUID) ([]TaskChecklist, error)
@@ -74,6 +77,7 @@ type Querier interface {
 	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)
 	UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNameByIDParams) (Project, error)
 	UpdateTaskChecklistItemName(ctx context.Context, arg UpdateTaskChecklistItemNameParams) (TaskChecklistItem, error)
+	UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error)
 	UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescriptionParams) (Task, error)
 	UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDateParams) (Task, error)
 	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)

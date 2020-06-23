@@ -1,7 +1,9 @@
 import React, { useState, useRef, useContext, useEffect } from 'react';
-import GlobalTopNavbar from 'App/TopNavbar';
+import { MENU_TYPES } from 'shared/components/TopNavbar';
+import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
 import styled from 'styled-components/macro';
-import { Bolt, ToggleOn, Tags } from 'shared/icons';
+import { DataProxy } from '@apollo/client';
+import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
 import {
@@ -26,6 +28,7 @@ import {
   useCreateProjectLabelMutation,
   useUnassignTaskMutation,
   useUpdateTaskDueDateMutation,
+  FindProjectQuery,
 } from 'shared/generated/graphql';
 
 import TaskAssignee from 'shared/components/TaskAssignee';
@@ -42,11 +45,35 @@ import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import Details from './Details';
 import { useApolloClient } from '@apollo/react-hooks';
+import { DocumentNode } from 'graphql';
 import UserIDContext from 'App/context';
 import DueDateManager from 'shared/components/DueDateManager';
 
+type UpdateCacheFn<T> = (cache: T) => T;
+function updateApolloCache<T>(client: DataProxy, document: DocumentNode, update: UpdateCacheFn<T>, variables?: object) {
+  let queryArgs: DataProxy.Query<any>;
+  if (variables) {
+    queryArgs = {
+      query: document,
+      variables,
+    };
+  } else {
+    queryArgs = {
+      query: document,
+    };
+  }
+  const cache: T | null = client.readQuery(queryArgs);
+  if (cache) {
+    const newCache = update(cache);
+    client.writeQuery({
+      ...queryArgs,
+      data: newCache,
+    });
+  }
+}
+
 const getCacheData = (client: any, projectID: string) => {
-  const cacheData: any = client.readQuery({
+  const cacheData: FindProjectQuery = client.readQuery({
     query: FindProjectDocument,
     variables: {
       projectId: projectID,
@@ -220,7 +247,7 @@ const initialQuickCardEditorState: QuickCardEditorState = {
 const ProjectBar = styled.div`
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   height: 40px;
   padding: 0 12px;
 `;
@@ -302,13 +329,17 @@ const Project = () => {
   const [createTaskGroup] = useCreateTaskGroupMutation({
     onCompleted: newTaskGroupData => {},
     update: (client, newTaskGroupData) => {
-      const cacheData = getCacheData(client, projectID);
-      const newData = {
-        ...cacheData.findProject,
-        taskGroups: [...cacheData.findProject.taskGroups, { ...newTaskGroupData.data.createTaskGroup, tasks: [] }],
-      };
-
-      writeCacheData(client, projectID, cacheData, newData);
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache => {
+          console.log(cache);
+          return produce(cache, draftCache => {
+            draftCache.findProject.taskGroups.push({ ...newTaskGroupData.data.createTaskGroup, tasks: [] });
+          });
+        },
+        { projectId: projectID },
+      );
     },
   });
 
@@ -316,7 +347,7 @@ const Project = () => {
     onCompleted: newTaskData => {},
     update: (client, newTaskData) => {
       const cacheData = getCacheData(client, projectID);
-      const newTaskGroups = produce(cacheData.findProject.taskGroups, (draftState: any) => {
+      const newTaskGroups = produce(cacheData.findProject.taskGroups, draftState => {
         const targetIndex = draftState.findIndex(
           (taskGroup: any) => taskGroup.id === newTaskData.data.createTask.taskGroup.id,
         );
@@ -388,14 +419,18 @@ const Project = () => {
             createTask: {
               __typename: 'Task',
               id: '' + Math.round(Math.random() * -1000000),
-              name: name,
+              name,
+              complete: false,
               taskGroup: {
                 __typename: 'TaskGroup',
                 id: taskGroup.id,
                 name: taskGroup.name,
                 position: taskGroup.position,
               },
-              position: position,
+              badges: {
+                checklist: null,
+              },
+              position,
               dueDate: null,
               description: null,
               labels: [],
@@ -509,11 +544,28 @@ const Project = () => {
           onSaveProjectName={projectName => {
             updateProjectName({ variables: { projectID, name: projectName } });
           }}
+          popupContent={<ProjectPopup history={history} name={data.findProject.name} projectID={projectID} />}
+          menuType={MENU_TYPES.PROJECT_MENU}
+          initialTab={0}
           projectMembers={data.findProject.members}
           projectID={projectID}
           name={data.findProject.name}
         />
         <ProjectBar>
+          <ProjectActions>
+            <ProjectAction>
+              <CheckCircle width={13} height={13} />
+              <ProjectActionText>All Tasks</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction>
+              <Filter width={13} height={13} />
+              <ProjectActionText>Filter</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction>
+              <Sort width={13} height={13} />
+              <ProjectActionText>Sort</ProjectActionText>
+            </ProjectAction>
+          </ProjectActions>
           <ProjectActions>
             <ProjectAction
               ref={$labelsRef}

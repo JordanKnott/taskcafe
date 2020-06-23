@@ -41,20 +41,19 @@ const App = () => {
     <>
       <UserIDContext.Provider value={{ userID, setUserID }}>
         <ThemeProvider theme={theme}>
-          <PopupProvider>
-            <NormalizeStyles />
-            <BaseStyles />
-            <Router history={history}>
+          <NormalizeStyles />
+          <BaseStyles />
+          <Router history={history}>
+            <PopupProvider>
               {loading ? (
                 <div>loading</div>
               ) : (
                 <>
-                  <Navbar />
                   <Routes history={history} />
                 </>
               )}
-            </Router>
-          </PopupProvider>
+            </PopupProvider>
+          </Router>
         </ThemeProvider>
       </UserIDContext.Provider>
     </>

@@ -71,6 +71,9 @@ export const Default = () => {
               onToggleTaskComplete={action('toggle task complete')}
               onToggleChecklistItem={action('toggle checklist item')}
               onOpenAddLabelPopup={action('open add label popup')}
+              onChangeChecklistName={action('change checklist name')}
+              onDeleteChecklist={action('delete checklist')}
+              onOpenAddChecklistPopup={action(' open checklist')}
               onOpenDueDatePopop={action('open due date popup')}
             />
           );

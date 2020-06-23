@@ -52,6 +52,21 @@ const ProjectSettings: React.FC<Props> = ({ onDeleteProject }) => {
   );
 };
 
+type TeamSettingsProps = {
+  onDeleteTeam: () => void;
+};
+export const TeamSettings: React.FC<TeamSettingsProps> = ({ onDeleteTeam }) => {
+  return (
+    <>
+      <ListActionsWrapper>
+        <ListActionItemWrapper onClick={() => onDeleteTeam()}>
+          <ListActionItem>Delete Team</ListActionItem>
+        </ListActionItemWrapper>
+      </ListActionsWrapper>
+    </>
+  );
+};
+
 const ConfirmWrapper = styled.div``;
 
 const ConfirmSubTitle = styled.h3`
@@ -76,25 +91,40 @@ const ConfirmDeleteButton = styled(Button)`
   padding: 6px 12px;
 `;
 
-type DeleteProjectProps = {
-  name: string;
-  onDeleteProject: () => void;
+type DeleteConfirmProps = {
+  description: string;
+  deletedItems: Array<string>;
+  onConfirmDelete: () => void;
 };
-const DeleteProject: React.FC<DeleteProjectProps> = ({ name, onDeleteProject }) => {
+
+export const DELETE_INFO = {
+  DELETE_PROJECTS: {
+    description: 'Deleting the project will also delete the following:',
+    deletedItems: ['Task groups and tasks'],
+  },
+  DELETE_TEAMS: {
+    description: 'Deleting the team will also delete the following:',
+    deletedItems: ['Projects under the team', 'All task groups & tasks associated with the team projects'],
+  },
+};
+
+const DeleteConfirm: React.FC<DeleteConfirmProps> = ({ description, deletedItems, onConfirmDelete }) => {
   return (
     <ConfirmWrapper>
       <ConfirmDescription>
-        Deleting the project will also delete the following:
+        {description}
         <DeleteList>
-          <DeleteListItem>Task groups and tasks</DeleteListItem>
+          {deletedItems.map(item => (
+            <DeleteListItem>{item}</DeleteListItem>
+          ))}
         </DeleteList>
       </ConfirmDescription>
-      <ConfirmDeleteButton onClick={() => onDeleteProject()} color="danger">
+      <ConfirmDeleteButton onClick={() => onConfirmDelete()} color="danger">
         Delete
       </ConfirmDeleteButton>
     </ConfirmWrapper>
   );
 };
 
-export { DeleteProject };
+export { DeleteConfirm };
 export default ProjectSettings;

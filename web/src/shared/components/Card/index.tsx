@@ -42,7 +42,7 @@ type Props = {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   description?: null | string;
   dueDate?: DueDate;
-  checklists?: Checklist;
+  checklists?: Checklist | null;
   labels?: Array<ProjectLabel>;
   watched?: boolean;
   wrapperProps?: any;

@@ -2,6 +2,8 @@ import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
+import { Citadel } from 'shared/icons';
+import { Link } from 'react-router-dom';
 
 export const NavbarWrapper = styled.div`
   width: 100%;
@@ -9,7 +11,6 @@ export const NavbarWrapper = styled.div`
 
 export const ProjectMembers = styled.div`
   display: flex;
-  padding-right: 18px;
   align-items: center;
 `;
 export const NavbarHeader = styled.header`
@@ -34,9 +35,9 @@ export const BreadcrumpSeparator = styled.span`
 `;
 
 export const ProjectActions = styled.div`
+  flex: 1;
   align-items: flex-start;
   display: flex;
-  flex: 1;
   flex-direction: column;
   min-width: 1px;
 `;
@@ -56,10 +57,11 @@ export const ProfileNameWrapper = styled.div`
   line-height: 1.25;
 `;
 
-export const NotificationContainer = styled.div`
+export const IconContainer = styled.div`
   margin-right: 20px;
   cursor: pointer;
 `;
+
 export const ProfileNamePrimary = styled.div`
   color: #c2c6dc;
   font-weight: 600;
@@ -70,7 +72,6 @@ export const ProfileNameSecondary = styled.small`
 `;
 
 export const ProfileIcon = styled.div<{ bgColor: string | null; backgroundURL: string | null }>`
-  margin-left: 10px;
   width: 40px;
   height: 40px;
   border-radius: 9999px;
@@ -84,9 +85,9 @@ export const ProfileIcon = styled.div<{ bgColor: string | null; backgroundURL: s
   background-size: contain;
 `;
 
-export const ProjectMeta = styled.div`
+export const ProjectMeta = styled.div<{ nameOnly?: boolean }>`
   display: flex;
-  padding-top: 9px;
+  ${props => !props.nameOnly && 'padding-top: 9px;'}
   margin-left: -14px;
   align-items: center;
   max-width: 100%;
@@ -188,7 +189,7 @@ export const ProjectSwitcher = styled.button`
 
 export const Separator = styled.div`
   color: #c2c6dc;
-  font-size: 16px;
+  font-size: 20px;
   padding-left: 4px;
   padding-right: 4px;
 `;
@@ -213,4 +214,37 @@ export const ProjectSettingsButton = styled.button`
 export const InviteButton = styled(Button)`
   margin: 0 0 0 8px;
   padding: 6px 12px;
+`;
+
+export const ProjectFinder = styled(Button)`
+  margin-right: 20px;
+  padding: 6px 12px;
+`;
+
+export const NavSeparator = styled.div`
+  width: 1px;
+  background: rgba(${props => props.theme.colors.border});
+  height: 34px;
+  margin: 0 20px;
+`;
+
+export const LogoContainer = styled(Link)`
+  display: block;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const CitadelTitle = styled.h2`
+  margin-left: 5px;
+  color: rgba(${props => props.theme.colors.text.primary});
+  font-size: 20px;
+`;
+
+export const CitadelLogo = styled(Citadel)`
+  fill: rgba(${props => props.theme.colors.text.primary});
+  stroke: rgba(${props => props.theme.colors.text.primary});
 `;

@@ -1,0 +1,14 @@
+query users {
+  users {
+    id
+    email
+    fullName
+    username
+    profileIcon {
+      url
+      initials
+      bgColor
+    }
+  }
+}
+

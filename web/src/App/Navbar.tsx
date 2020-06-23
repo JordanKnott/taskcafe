@@ -15,7 +15,7 @@ const GlobalNavbar = () => {
       <ButtonContainer>
         <Link to="/">
           <ActionButton name="Home">
-            <Home size={28} color="#c2c6dc" />
+            <Home width={28} height={28} />
           </ActionButton>
         </Link>
         <Link to="/projects">

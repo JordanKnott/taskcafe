@@ -38,7 +38,7 @@ const Login = ({ onSubmit }: LoginProps) => {
         <LoginFormWrapper>
           <LoginFormContainer>
             <LogoWrapper>
-              <Citadel size={42} />
+              <Citadel width={42} height={42} />
               <LogoTitle>Citadel</LogoTitle>
             </LogoWrapper>
             <Title>Login</Title>
@@ -66,7 +66,7 @@ const Login = ({ onSubmit }: LoginProps) => {
                   ref={register({ required: 'Password is required' })}
                 />
                 <FormIcon>
-                  <Lock color="#c2c6dc" size={20} />
+                  <Lock width={20} height={20} />
                 </FormIcon>
               </FormLabel>
               {errors.password && <FormError>{errors.password.message}</FormError>}

@@ -28,10 +28,10 @@ export const Default = () => {
         <PrimaryLogo />
         <ButtonContainer>
           <ActionButton name="Home">
-            <Home size={28} color="#c2c6dc" />
+            <Home width={28} height={28} />
           </ActionButton>
           <ActionButton name="Home">
-            <Home size={28} color="#c2c6dc" />
+            <Home width={28} height={28} />
           </ActionButton>
         </ButtonContainer>
       </Navbar>

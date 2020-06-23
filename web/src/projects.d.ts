@@ -47,10 +47,20 @@ type TaskChecklistItem = {
   dueDate?: null | string;
 };
 
+type ChecklistBadge = {
+  complete: number;
+  total: number;
+};
+
+type TaskBadges = {
+  checklist?: ChecklistBadge | null;
+};
+
 type Task = {
   id: string;
   taskGroup: InnerTaskGroup;
   name: string;
+  badges?: TaskBadges;
   position: number;
   dueDate?: string;
   complete?: boolean;

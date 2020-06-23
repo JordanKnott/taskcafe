@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import styled from 'styled-components';
 
 export const Container = styled.div<{ size: number | string; bgColor: string | null; backgroundURL: string | null }>`
-  margin-left: 10px;
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 9999px;

@@ -18,6 +18,7 @@ type Props = {
 
 const Svg = styled.svg`
   fill: rgba(${props => props.theme.colors.text.primary});
+  stroke: rgba(${props => props.theme.colors.text.primary});
 `;
 
 const Icon: React.FC<Props> = ({ width, height, viewBox, className, onClick, children }) => {

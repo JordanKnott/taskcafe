@@ -140,13 +140,19 @@ type TaskDetailsProps = {
   onOpenAddMemberPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenDueDatePopop: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
+  onOpenAddChecklistPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
+  onChangeChecklistName: (checklistID: string, name: string) => void;
+  onDeleteChecklist: ($target: React.RefObject<HTMLElement>, checklistID: string) => void;
   onCloseModal: () => void;
 };
 
 const TaskDetails: React.FC<TaskDetailsProps> = ({
   task,
+  onDeleteChecklist,
   onTaskNameChange,
+  onOpenAddChecklistPopup,
+  onChangeChecklistName,
   onToggleTaskComplete,
   onTaskDescriptionChange,
   onChangeItemName,
@@ -183,6 +189,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const onAddMember = ($target: React.RefObject<HTMLElement>) => {
     onOpenAddMemberPopup(task, $target);
   };
+  const onAddChecklist = ($target: React.RefObject<HTMLElement>) => {
+    onOpenAddChecklistPopup(task, $target)
+  }
   const $dueDateLabel = useRef<HTMLDivElement>(null);
   const $addLabelRef = useRef<HTMLDivElement>(null);
 
@@ -290,16 +299,16 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                     name={checklist.name}
                     checklistID={checklist.id}
                     items={checklist.items}
-                    onDeleteChecklist={() => {}}
-                    onChangeName={() => {}}
+                    onDeleteChecklist={onDeleteChecklist}
+                    onChangeName={newName => onChangeChecklistName(checklist.id, newName)}
                     onToggleItem={onToggleChecklistItem}
                     onDeleteItem={onDeleteItem}
                     onAddItem={n => {
                       if (task.checklists) {
-                        let position = 1;
-                        const lastChecklist = task.checklists.sort((a, b) => a.position - b.position)[-1];
-                        if (lastChecklist) {
-                          position = lastChecklist.position * 2 + 1;
+                        let position = 65535;
+                        const [lastItem] = checklist.items.sort((a, b) => a.position - b.position).slice(-1);
+                        if (lastItem) {
+                          position = lastItem.position * 2 + 1;
                         }
                         onAddItem(checklist.id, n, position);
                       }
@@ -317,7 +326,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </ActionButton>
             <ActionButton onClick={$target => onAddMember($target)}>Members</ActionButton>
             <ActionButton onClick={$target => onAddLabel($target)}>Labels</ActionButton>
-            <ActionButton>Checklist</ActionButton>
+            <ActionButton onClick={$target => onAddChecklist($target)}>Checklist</ActionButton>
             <ActionButton onClick={$target => onOpenDueDatePopop(task, $target)}>Due Date</ActionButton>
             <ActionButton>Attachment</ActionButton>
             <ActionButton>Cover</ActionButton>

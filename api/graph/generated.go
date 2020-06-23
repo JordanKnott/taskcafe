@@ -77,6 +77,11 @@ type ComplexityRoot struct {
 		TaskChecklistItem func(childComplexity int) int
 	}
 
+	DeleteTaskChecklistPayload struct {
+		Ok            func(childComplexity int) int
+		TaskChecklist func(childComplexity int) int
+	}
+
 	DeleteTaskGroupPayload struct {
 		AffectedRows func(childComplexity int) int
 		Ok           func(childComplexity int) int
@@ -85,6 +90,17 @@ type ComplexityRoot struct {
 
 	DeleteTaskPayload struct {
 		TaskID func(childComplexity int) int
+	}
+
+	DeleteTeamPayload struct {
+		Ok       func(childComplexity int) int
+		Projects func(childComplexity int) int
+		Team     func(childComplexity int) int
+	}
+
+	DeleteUserAccountPayload struct {
+		Ok          func(childComplexity int) int
+		UserAccount func(childComplexity int) int
 	}
 
 	LabelColor struct {
@@ -111,8 +127,11 @@ type ComplexityRoot struct {
 		DeleteProject                func(childComplexity int, input DeleteProject) int
 		DeleteProjectLabel           func(childComplexity int, input DeleteProjectLabel) int
 		DeleteTask                   func(childComplexity int, input DeleteTaskInput) int
+		DeleteTaskChecklist          func(childComplexity int, input DeleteTaskChecklist) int
 		DeleteTaskChecklistItem      func(childComplexity int, input DeleteTaskChecklistItem) int
 		DeleteTaskGroup              func(childComplexity int, input DeleteTaskGroupInput) int
+		DeleteTeam                   func(childComplexity int, input DeleteTeam) int
+		DeleteUserAccount            func(childComplexity int, input DeleteUserAccount) int
 		LogoutUser                   func(childComplexity int, input LogoutUser) int
 		RemoveTaskLabel              func(childComplexity int, input *RemoveTaskLabelInput) int
 		SetTaskChecklistItemComplete func(childComplexity int, input SetTaskChecklistItemComplete) int
@@ -124,6 +143,7 @@ type ComplexityRoot struct {
 		UpdateProjectLabelName       func(childComplexity int, input UpdateProjectLabelName) int
 		UpdateProjectName            func(childComplexity int, input *UpdateProjectName) int
 		UpdateTaskChecklistItemName  func(childComplexity int, input UpdateTaskChecklistItemName) int
+		UpdateTaskChecklistName      func(childComplexity int, input UpdateTaskChecklistName) int
 		UpdateTaskDescription        func(childComplexity int, input UpdateTaskDescriptionInput) int
 		UpdateTaskDueDate            func(childComplexity int, input UpdateTaskDueDate) int
 		UpdateTaskGroupLocation      func(childComplexity int, input NewTaskGroupLocation) int
@@ -170,6 +190,7 @@ type ComplexityRoot struct {
 	Query struct {
 		FindProject   func(childComplexity int, input FindProject) int
 		FindTask      func(childComplexity int, input FindTask) int
+		FindTeam      func(childComplexity int, input FindTeam) int
 		FindUser      func(childComplexity int, input FindUser) int
 		LabelColors   func(childComplexity int) int
 		Me            func(childComplexity int) int
@@ -271,6 +292,8 @@ type LabelColorResolver interface {
 type MutationResolver interface {
 	CreateRefreshToken(ctx context.Context, input NewRefreshToken) (*pg.RefreshToken, error)
 	CreateUserAccount(ctx context.Context, input NewUserAccount) (*pg.UserAccount, error)
+	DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error)
+	DeleteTeam(ctx context.Context, input DeleteTeam) (*DeleteTeamPayload, error)
 	CreateTeam(ctx context.Context, input NewTeam) (*pg.Team, error)
 	ClearProfileAvatar(ctx context.Context) (*pg.UserAccount, error)
 	CreateTeamMember(ctx context.Context, input CreateTeamMember) (*CreateTeamMemberPayload, error)
@@ -290,6 +313,8 @@ type MutationResolver interface {
 	RemoveTaskLabel(ctx context.Context, input *RemoveTaskLabelInput) (*pg.Task, error)
 	ToggleTaskLabel(ctx context.Context, input ToggleTaskLabelInput) (*ToggleTaskLabelPayload, error)
 	CreateTaskChecklist(ctx context.Context, input CreateTaskChecklist) (*pg.TaskChecklist, error)
+	DeleteTaskChecklist(ctx context.Context, input DeleteTaskChecklist) (*DeleteTaskChecklistPayload, error)
+	UpdateTaskChecklistName(ctx context.Context, input UpdateTaskChecklistName) (*pg.TaskChecklist, error)
 	CreateTaskChecklistItem(ctx context.Context, input CreateTaskChecklistItem) (*pg.TaskChecklistItem, error)
 	UpdateTaskChecklistItemName(ctx context.Context, input UpdateTaskChecklistItemName) (*pg.TaskChecklistItem, error)
 	SetTaskChecklistItemComplete(ctx context.Context, input SetTaskChecklistItemComplete) (*pg.TaskChecklistItem, error)
@@ -330,6 +355,7 @@ type QueryResolver interface {
 	FindProject(ctx context.Context, input FindProject) (*pg.Project, error)
 	FindTask(ctx context.Context, input FindTask) (*pg.Task, error)
 	Projects(ctx context.Context, input *ProjectsFilter) ([]pg.Project, error)
+	FindTeam(ctx context.Context, input FindTeam) (*pg.Team, error)
 	Teams(ctx context.Context) ([]pg.Team, error)
 	LabelColors(ctx context.Context) ([]pg.LabelColor, error)
 	TaskGroups(ctx context.Context) ([]pg.TaskGroup, error)
@@ -452,6 +478,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeleteTaskChecklistItemPayload.TaskChecklistItem(childComplexity), true
 
+	case "DeleteTaskChecklistPayload.ok":
+		if e.complexity.DeleteTaskChecklistPayload.Ok == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskChecklistPayload.Ok(childComplexity), true
+
+	case "DeleteTaskChecklistPayload.taskChecklist":
+		if e.complexity.DeleteTaskChecklistPayload.TaskChecklist == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskChecklistPayload.TaskChecklist(childComplexity), true
+
 	case "DeleteTaskGroupPayload.affectedRows":
 		if e.complexity.DeleteTaskGroupPayload.AffectedRows == nil {
 			break
@@ -479,6 +519,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteTaskPayload.TaskID(childComplexity), true
+
+	case "DeleteTeamPayload.ok":
+		if e.complexity.DeleteTeamPayload.Ok == nil {
+			break
+		}
+
+		return e.complexity.DeleteTeamPayload.Ok(childComplexity), true
+
+	case "DeleteTeamPayload.projects":
+		if e.complexity.DeleteTeamPayload.Projects == nil {
+			break
+		}
+
+		return e.complexity.DeleteTeamPayload.Projects(childComplexity), true
+
+	case "DeleteTeamPayload.team":
+		if e.complexity.DeleteTeamPayload.Team == nil {
+			break
+		}
+
+		return e.complexity.DeleteTeamPayload.Team(childComplexity), true
+
+	case "DeleteUserAccountPayload.ok":
+		if e.complexity.DeleteUserAccountPayload.Ok == nil {
+			break
+		}
+
+		return e.complexity.DeleteUserAccountPayload.Ok(childComplexity), true
+
+	case "DeleteUserAccountPayload.userAccount":
+		if e.complexity.DeleteUserAccountPayload.UserAccount == nil {
+			break
+		}
+
+		return e.complexity.DeleteUserAccountPayload.UserAccount(childComplexity), true
 
 	case "LabelColor.colorHex":
 		if e.complexity.LabelColor.ColorHex == nil {
@@ -695,6 +770,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTask(childComplexity, args["input"].(DeleteTaskInput)), true
 
+	case "Mutation.deleteTaskChecklist":
+		if e.complexity.Mutation.DeleteTaskChecklist == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTaskChecklist_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTaskChecklist(childComplexity, args["input"].(DeleteTaskChecklist)), true
+
 	case "Mutation.deleteTaskChecklistItem":
 		if e.complexity.Mutation.DeleteTaskChecklistItem == nil {
 			break
@@ -718,6 +805,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteTaskGroup(childComplexity, args["input"].(DeleteTaskGroupInput)), true
+
+	case "Mutation.deleteTeam":
+		if e.complexity.Mutation.DeleteTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTeam(childComplexity, args["input"].(DeleteTeam)), true
+
+	case "Mutation.deleteUserAccount":
+		if e.complexity.Mutation.DeleteUserAccount == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteUserAccount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteUserAccount(childComplexity, args["input"].(DeleteUserAccount)), true
 
 	case "Mutation.logoutUser":
 		if e.complexity.Mutation.LogoutUser == nil {
@@ -850,6 +961,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTaskChecklistItemName(childComplexity, args["input"].(UpdateTaskChecklistItemName)), true
+
+	case "Mutation.updateTaskChecklistName":
+		if e.complexity.Mutation.UpdateTaskChecklistName == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskChecklistName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskChecklistName(childComplexity, args["input"].(UpdateTaskChecklistName)), true
 
 	case "Mutation.updateTaskDescription":
 		if e.complexity.Mutation.UpdateTaskDescription == nil {
@@ -1086,6 +1209,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindTask(childComplexity, args["input"].(FindTask)), true
+
+	case "Query.findTeam":
+		if e.complexity.Query.FindTeam == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findTeam_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindTeam(childComplexity, args["input"].(FindTeam)), true
 
 	case "Query.findUser":
 		if e.complexity.Query.FindUser == nil {
@@ -1679,7 +1814,7 @@ type Task {
 }
 
 input ProjectsFilter {
-  teamID: String
+  teamID: UUID
 }
 
 input FindUser {
@@ -1699,6 +1834,10 @@ type Organization {
   name: String!
 }
 
+input FindTeam {
+  teamID: UUID!
+}
+
 type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
@@ -1706,6 +1845,7 @@ type Query {
   findProject(input: FindProject!): Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
+  findTeam(input: FindTeam!): Team!
   teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
@@ -1932,11 +2072,43 @@ type DeleteProjectPayload {
   project: Project!
 }
 
+input DeleteTeam {
+  teamID: UUID!
+}
+
+type DeleteTeamPayload {
+  ok: Boolean!
+  team: Team!
+  projects: [Project!]!
+}
+
+input DeleteUserAccount {
+  userID: UUID!
+}
+
+type DeleteUserAccountPayload {
+  ok: Boolean!
+  userAccount: UserAccount!
+}
+
+input UpdateTaskChecklistName {
+  taskChecklistID: UUID!
+  name: String!
+}
+input DeleteTaskChecklist {
+  taskChecklistID: UUID!
+}
+type DeleteTaskChecklistPayload {
+  ok: Boolean!
+  taskChecklist: TaskChecklist!
+}
 type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
 
   createUserAccount(input: NewUserAccount!): UserAccount!
+  deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
 
+  deleteTeam(input: DeleteTeam!): DeleteTeamPayload!
   createTeam(input: NewTeam!): Team!
   clearProfileAvatar:  UserAccount!
 
@@ -1962,6 +2134,8 @@ type Mutation {
   toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
 
   createTaskChecklist(input: CreateTaskChecklist!): TaskChecklist!
+  deleteTaskChecklist(input: DeleteTaskChecklist!): DeleteTaskChecklistPayload!
+  updateTaskChecklistName(input: UpdateTaskChecklistName!): TaskChecklist!
   createTaskChecklistItem(input: CreateTaskChecklistItem!): TaskChecklistItem!
   updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
   setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
@@ -2197,6 +2371,20 @@ func (ec *executionContext) field_Mutation_deleteTaskChecklistItem_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteTaskChecklist_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DeleteTaskChecklist
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDeleteTaskChecklist2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskChecklist(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2217,6 +2405,34 @@ func (ec *executionContext) field_Mutation_deleteTask_args(ctx context.Context, 
 	var arg0 DeleteTaskInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNDeleteTaskInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DeleteTeam
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDeleteTeam2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTeam(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteUserAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DeleteUserAccount
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDeleteUserAccount2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteUserAccount(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2379,6 +2595,20 @@ func (ec *executionContext) field_Mutation_updateTaskChecklistItemName_args(ctx 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateTaskChecklistName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateTaskChecklistName
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateTaskChecklistName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskChecklistName(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateTaskDescription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2497,6 +2727,20 @@ func (ec *executionContext) field_Query_findTask_args(ctx context.Context, rawAr
 	var arg0 FindTask
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNFindTask2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐFindTask(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 FindTeam
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNFindTeam2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐFindTeam(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2841,6 +3085,74 @@ func (ec *executionContext) _DeleteTaskChecklistItemPayload_taskChecklistItem(ct
 	return ec.marshalNTaskChecklistItem2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskChecklistItem(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _DeleteTaskChecklistPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskChecklistPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskChecklistPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ok, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTaskChecklistPayload_taskChecklist(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskChecklistPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskChecklistPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskChecklist, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.TaskChecklist)
+	fc.Result = res
+	return ec.marshalNTaskChecklist2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskChecklist(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DeleteTaskGroupPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2975,6 +3287,176 @@ func (ec *executionContext) _DeleteTaskPayload_taskID(ctx context.Context, field
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTeamPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTeamPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTeamPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ok, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTeamPayload_team(ctx context.Context, field graphql.CollectedField, obj *DeleteTeamPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTeamPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Team, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTeam(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTeamPayload_projects(ctx context.Context, field graphql.CollectedField, obj *DeleteTeamPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTeamPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Projects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]pg.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteUserAccountPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteUserAccountPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteUserAccountPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ok, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteUserAccountPayload_userAccount(ctx context.Context, field graphql.CollectedField, obj *DeleteUserAccountPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteUserAccountPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserAccount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.UserAccount)
+	fc.Result = res
+	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐUserAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LabelColor_id(ctx context.Context, field graphql.CollectedField, obj *pg.LabelColor) (ret graphql.Marshaler) {
@@ -3193,6 +3675,88 @@ func (ec *executionContext) _Mutation_createUserAccount(ctx context.Context, fie
 	res := resTmp.(*pg.UserAccount)
 	fc.Result = res
 	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐUserAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteUserAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteUserAccount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteUserAccount(rctx, args["input"].(DeleteUserAccount))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteUserAccountPayload)
+	fc.Result = res
+	return ec.marshalNDeleteUserAccountPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteUserAccountPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTeam_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTeam(rctx, args["input"].(DeleteTeam))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTeamPayload)
+	fc.Result = res
+	return ec.marshalNDeleteTeamPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTeamPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3951,6 +4515,88 @@ func (ec *executionContext) _Mutation_createTaskChecklist(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateTaskChecklist(rctx, args["input"].(CreateTaskChecklist))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.TaskChecklist)
+	fc.Result = res
+	return ec.marshalNTaskChecklist2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTaskChecklist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTaskChecklist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTaskChecklist_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTaskChecklist(rctx, args["input"].(DeleteTaskChecklist))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTaskChecklistPayload)
+	fc.Result = res
+	return ec.marshalNDeleteTaskChecklistPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskChecklistPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskChecklistName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskChecklistName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTaskChecklistName(rctx, args["input"].(UpdateTaskChecklistName))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5439,6 +6085,47 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 	res := resTmp.([]pg.Project)
 	fc.Result = res
 	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐProjectᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findTeam_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTeam(rctx, args["input"].(FindTeam))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*pg.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋpgᚐTeam(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_teams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8594,6 +9281,24 @@ func (ec *executionContext) unmarshalInputDeleteProjectLabel(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeleteTaskChecklist(ctx context.Context, obj interface{}) (DeleteTaskChecklist, error) {
+	var it DeleteTaskChecklist
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskChecklistID":
+			var err error
+			it.TaskChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDeleteTaskChecklistItem(ctx context.Context, obj interface{}) (DeleteTaskChecklistItem, error) {
 	var it DeleteTaskChecklistItem
 	var asMap = obj.(map[string]interface{})
@@ -8648,6 +9353,42 @@ func (ec *executionContext) unmarshalInputDeleteTaskInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeleteTeam(ctx context.Context, obj interface{}) (DeleteTeam, error) {
+	var it DeleteTeam
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "teamID":
+			var err error
+			it.TeamID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDeleteUserAccount(ctx context.Context, obj interface{}) (DeleteUserAccount, error) {
+	var it DeleteUserAccount
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userID":
+			var err error
+			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputFindProject(ctx context.Context, obj interface{}) (FindProject, error) {
 	var it FindProject
 	var asMap = obj.(map[string]interface{})
@@ -8675,6 +9416,24 @@ func (ec *executionContext) unmarshalInputFindTask(ctx context.Context, obj inte
 		case "taskID":
 			var err error
 			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFindTeam(ctx context.Context, obj interface{}) (FindTeam, error) {
+	var it FindTeam
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "teamID":
+			var err error
+			it.TeamID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8986,7 +9745,7 @@ func (ec *executionContext) unmarshalInputProjectsFilter(ctx context.Context, ob
 		switch k {
 		case "teamID":
 			var err error
-			it.TeamID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.TeamID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9236,6 +9995,30 @@ func (ec *executionContext) unmarshalInputUpdateTaskChecklistItemName(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateTaskChecklistName(ctx context.Context, obj interface{}) (UpdateTaskChecklistName, error) {
+	var it UpdateTaskChecklistName
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskChecklistID":
+			var err error
+			it.TaskChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateTaskDescriptionInput(ctx context.Context, obj interface{}) (UpdateTaskDescriptionInput, error) {
 	var it UpdateTaskDescriptionInput
 	var asMap = obj.(map[string]interface{})
@@ -9468,6 +10251,38 @@ func (ec *executionContext) _DeleteTaskChecklistItemPayload(ctx context.Context,
 	return out
 }
 
+var deleteTaskChecklistPayloadImplementors = []string{"DeleteTaskChecklistPayload"}
+
+func (ec *executionContext) _DeleteTaskChecklistPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskChecklistPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTaskChecklistPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTaskChecklistPayload")
+		case "ok":
+			out.Values[i] = ec._DeleteTaskChecklistPayload_ok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "taskChecklist":
+			out.Values[i] = ec._DeleteTaskChecklistPayload_taskChecklist(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var deleteTaskGroupPayloadImplementors = []string{"DeleteTaskGroupPayload"}
 
 func (ec *executionContext) _DeleteTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskGroupPayload) graphql.Marshaler {
@@ -9518,6 +10333,75 @@ func (ec *executionContext) _DeleteTaskPayload(ctx context.Context, sel ast.Sele
 			out.Values[i] = graphql.MarshalString("DeleteTaskPayload")
 		case "taskID":
 			out.Values[i] = ec._DeleteTaskPayload_taskID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deleteTeamPayloadImplementors = []string{"DeleteTeamPayload"}
+
+func (ec *executionContext) _DeleteTeamPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTeamPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTeamPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTeamPayload")
+		case "ok":
+			out.Values[i] = ec._DeleteTeamPayload_ok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "team":
+			out.Values[i] = ec._DeleteTeamPayload_team(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projects":
+			out.Values[i] = ec._DeleteTeamPayload_projects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deleteUserAccountPayloadImplementors = []string{"DeleteUserAccountPayload"}
+
+func (ec *executionContext) _DeleteUserAccountPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteUserAccountPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteUserAccountPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteUserAccountPayload")
+		case "ok":
+			out.Values[i] = ec._DeleteUserAccountPayload_ok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userAccount":
+			out.Values[i] = ec._DeleteUserAccountPayload_userAccount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -9605,6 +10489,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createUserAccount":
 			out.Values[i] = ec._Mutation_createUserAccount(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteUserAccount":
+			out.Values[i] = ec._Mutation_deleteUserAccount(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTeam":
+			out.Values[i] = ec._Mutation_deleteTeam(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -9700,6 +10594,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createTaskChecklist":
 			out.Values[i] = ec._Mutation_createTaskChecklist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTaskChecklist":
+			out.Values[i] = ec._Mutation_deleteTaskChecklist(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskChecklistName":
+			out.Values[i] = ec._Mutation_updateTaskChecklistName(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -10166,6 +11070,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_projects(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "findTeam":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findTeam(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -11235,6 +12153,10 @@ func (ec *executionContext) marshalNDeleteProjectPayload2ᚖgithubᚗcomᚋjorda
 	return ec._DeleteProjectPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDeleteTaskChecklist2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskChecklist(ctx context.Context, v interface{}) (DeleteTaskChecklist, error) {
+	return ec.unmarshalInputDeleteTaskChecklist(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNDeleteTaskChecklistItem2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskChecklistItem(ctx context.Context, v interface{}) (DeleteTaskChecklistItem, error) {
 	return ec.unmarshalInputDeleteTaskChecklistItem(ctx, v)
 }
@@ -11251,6 +12173,20 @@ func (ec *executionContext) marshalNDeleteTaskChecklistItemPayload2ᚖgithubᚗc
 		return graphql.Null
 	}
 	return ec._DeleteTaskChecklistItemPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskChecklistPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskChecklistPayload(ctx context.Context, sel ast.SelectionSet, v DeleteTaskChecklistPayload) graphql.Marshaler {
+	return ec._DeleteTaskChecklistPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskChecklistPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskChecklistPayload(ctx context.Context, sel ast.SelectionSet, v *DeleteTaskChecklistPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteTaskChecklistPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDeleteTaskGroupInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTaskGroupInput(ctx context.Context, v interface{}) (DeleteTaskGroupInput, error) {
@@ -11289,12 +12225,52 @@ func (ec *executionContext) marshalNDeleteTaskPayload2ᚖgithubᚗcomᚋjordankn
 	return ec._DeleteTaskPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDeleteTeam2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTeam(ctx context.Context, v interface{}) (DeleteTeam, error) {
+	return ec.unmarshalInputDeleteTeam(ctx, v)
+}
+
+func (ec *executionContext) marshalNDeleteTeamPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTeamPayload(ctx context.Context, sel ast.SelectionSet, v DeleteTeamPayload) graphql.Marshaler {
+	return ec._DeleteTeamPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteTeamPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteTeamPayload(ctx context.Context, sel ast.SelectionSet, v *DeleteTeamPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteTeamPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDeleteUserAccount2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteUserAccount(ctx context.Context, v interface{}) (DeleteUserAccount, error) {
+	return ec.unmarshalInputDeleteUserAccount(ctx, v)
+}
+
+func (ec *executionContext) marshalNDeleteUserAccountPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteUserAccountPayload(ctx context.Context, sel ast.SelectionSet, v DeleteUserAccountPayload) graphql.Marshaler {
+	return ec._DeleteUserAccountPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteUserAccountPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐDeleteUserAccountPayload(ctx context.Context, sel ast.SelectionSet, v *DeleteUserAccountPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteUserAccountPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNFindProject2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐFindProject(ctx context.Context, v interface{}) (FindProject, error) {
 	return ec.unmarshalInputFindProject(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNFindTask2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐFindTask(ctx context.Context, v interface{}) (FindTask, error) {
 	return ec.unmarshalInputFindTask(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNFindTeam2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐFindTeam(ctx context.Context, v interface{}) (FindTeam, error) {
+	return ec.unmarshalInputFindTeam(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNFindUser2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐFindUser(ctx context.Context, v interface{}) (FindUser, error) {
@@ -12068,6 +13044,10 @@ func (ec *executionContext) unmarshalNUpdateTaskChecklistItemName2githubᚗcom�
 	return ec.unmarshalInputUpdateTaskChecklistItemName(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNUpdateTaskChecklistName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskChecklistName(ctx context.Context, v interface{}) (UpdateTaskChecklistName, error) {
+	return ec.unmarshalInputUpdateTaskChecklistName(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUpdateTaskDescriptionInput(ctx context.Context, v interface{}) (UpdateTaskDescriptionInput, error) {
 	return ec.unmarshalInputUpdateTaskDescriptionInput(ctx, v)
 }
@@ -12501,6 +13481,29 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 		return graphql.Null
 	}
 	return ec.marshalOTime2timeᚐTime(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	return UnmarshalUUID(v)
+}
+
+func (ec *executionContext) marshalOUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	return MarshalUUID(v)
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOUnassignTaskInput2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋgraphᚐUnassignTaskInput(ctx context.Context, v interface{}) (UnassignTaskInput, error) {

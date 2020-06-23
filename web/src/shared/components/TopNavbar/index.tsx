@@ -1,22 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Star, Ellipsis, Bell, Cog, AngleDown } from 'shared/icons';
+import { Home, Star, Bell, AngleDown, BarChart, CheckCircle } from 'shared/icons';
+import styled from 'styled-components';
 import ProfileIcon from 'shared/components/ProfileIcon';
+import TaskAssignee from 'shared/components/TaskAssignee';
+import { usePopup, Popup } from 'shared/components/PopupMenu';
+import MiniProfile from 'shared/components/MiniProfile';
 import {
-  NotificationContainer,
+  CitadelLogo,
+  CitadelTitle,
+  ProjectFinder,
+  LogoContainer,
+  NavSeparator,
+  IconContainer,
   ProjectNameTextarea,
   InviteButton,
   GlobalActions,
   ProjectActions,
-  ProjectSwitcher,
-  Separator,
   ProjectMeta,
   ProjectName,
   ProjectTabs,
   ProjectTab,
   NavbarWrapper,
   NavbarHeader,
-  Breadcrumbs,
-  BreadcrumpSeparator,
   ProjectSettingsButton,
   ProfileContainer,
   ProfileNameWrapper,
@@ -24,18 +29,20 @@ import {
   ProfileNameSecondary,
   ProjectMembers,
 } from './Styles';
-import TaskAssignee from 'shared/components/TaskAssignee';
-import { usePopup, Popup } from 'shared/components/PopupMenu';
-import MiniProfile from 'shared/components/MiniProfile';
+import { Link } from 'react-router-dom';
+
+const HomeDashboard = styled(Home)``;
 
 type ProjectHeadingProps = {
-  projectName: string;
+  onFavorite?: () => void;
+  name: string;
   onSaveProjectName?: (projectName: string) => void;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
 };
 
 const ProjectHeading: React.FC<ProjectHeadingProps> = ({
-  projectName: initialProjectName,
+  onFavorite,
+  name: initialProjectName,
   onSaveProjectName,
   onOpenSettings,
 }) => {
@@ -73,7 +80,6 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
   const $settings = useRef<HTMLButtonElement>(null);
   return (
     <>
-      <Separator>»</Separator>
       {isEditProjectName ? (
         <ProjectNameTextarea
           ref={$projectName}
@@ -100,28 +106,54 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
       >
         <AngleDown color="#c2c6dc" />
       </ProjectSettingsButton>
-      <ProjectSettingsButton>
-        <Star width={16} height={16} color="#c2c6dc" />
-      </ProjectSettingsButton>
+      {onFavorite && (
+        <ProjectSettingsButton onClick={() => onFavorite()}>
+          <Star width={16} height={16} color="#c2c6dc" />
+        </ProjectSettingsButton>
+      )}
     </>
   );
 };
 
+type MenuType = {
+  [key: number]: string;
+};
+type MenuTypes = {
+  [key: string]: Array<string>;
+};
+
+export const MENU_TYPES: MenuTypes = {
+  PROJECT_MENU: ['Board', 'Timeline', 'Calender'],
+  TEAM_MENU: ['Projects', 'Members', 'Settings'],
+};
+
 type NavBarProps = {
-  projectName: string | null;
+  menuType?: Array<string> | null;
+  name: string | null;
+  currentTab?: number;
+  onOpenProjectFinder: ($target: React.RefObject<HTMLElement>) => void;
+  onFavorite?: () => void;
   onProfileClick: ($target: React.RefObject<HTMLElement>) => void;
-  onSaveProjectName?: (projectName: string) => void;
+  onTabClick?: (tab: number) => void;
+  onSaveName?: (name: string) => void;
   onNotificationClick: () => void;
+  onDashboardClick: () => void;
   user: TaskUser | null;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
   projectMembers?: Array<TaskUser> | null;
 };
 
 const NavBar: React.FC<NavBarProps> = ({
-  projectName,
-  onSaveProjectName,
+  menuType,
+  currentTab,
+  onOpenProjectFinder,
+  onFavorite,
+  onTabClick,
+  name,
+  onSaveName,
   onProfileClick,
   onNotificationClick,
+  onDashboardClick,
   user,
   projectMembers,
   onOpenSettings,
@@ -152,45 +184,61 @@ const NavBar: React.FC<NavBarProps> = ({
       <NavbarHeader>
         <ProjectActions>
           <ProjectMeta>
-            <ProjectSwitcher>Projects</ProjectSwitcher>
-            {projectName && (
+            {name && (
               <ProjectHeading
+                onFavorite={onFavorite}
                 onOpenSettings={onOpenSettings}
-                projectName={projectName}
-                onSaveProjectName={onSaveProjectName}
+                name={name}
+                onSaveProjectName={onSaveName}
               />
             )}
           </ProjectMeta>
-          {projectName && (
+          {name && (
             <ProjectTabs>
-              <ProjectTab active>Board</ProjectTab>
-              <ProjectTab>Calender</ProjectTab>
-              <ProjectTab>Timeline</ProjectTab>
-              <ProjectTab>Wiki</ProjectTab>
+              {menuType &&
+                menuType.map((name, idx) => {
+                  console.log(`${name} : ${idx} === ${currentTab}`);
+                  return <ProjectTab active={currentTab === idx}>{name}</ProjectTab>;
+                })}
             </ProjectTabs>
           )}
         </ProjectActions>
+        <LogoContainer to="/">
+          <CitadelLogo width={24} height={24} />
+          <CitadelTitle>Citadel</CitadelTitle>
+        </LogoContainer>
         <GlobalActions>
           {projectMembers && (
-            <ProjectMembers>
-              {projectMembers.map(member => (
-                <TaskAssignee key={member.id} size={28} member={member} onMemberProfile={onMemberProfile} />
-              ))}
-              <InviteButton variant="outline">Invite</InviteButton>
-            </ProjectMembers>
+            <>
+              <ProjectMembers>
+                {projectMembers.map(member => (
+                  <TaskAssignee key={member.id} size={28} member={member} onMemberProfile={onMemberProfile} />
+                ))}
+                <InviteButton variant="outline">Invite</InviteButton>
+              </ProjectMembers>
+              <NavSeparator />
+            </>
           )}
-          <NotificationContainer onClick={onNotificationClick}>
+          <ProjectFinder onClick={onOpenProjectFinder} variant="gradient">
+            Projects
+          </ProjectFinder>
+          <IconContainer onClick={onDashboardClick}>
+            <HomeDashboard width={20} height={20} />
+          </IconContainer>
+          <IconContainer>
+            <CheckCircle width={20} height={20} />
+          </IconContainer>
+          <IconContainer onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />
-          </NotificationContainer>
+          </IconContainer>
+          <IconContainer>
+            <BarChart width={20} height={20} />
+          </IconContainer>
 
           {user && (
-            <ProfileContainer>
-              <ProfileNameWrapper>
-                <ProfileNamePrimary>{user.fullName}</ProfileNamePrimary>
-                <ProfileNameSecondary>Manager</ProfileNameSecondary>
-              </ProfileNameWrapper>
-              <ProfileIcon user={user} size={40} onProfileClick={handleProfileClick} />}
-            </ProfileContainer>
+            <IconContainer>
+              <ProfileIcon user={user} size={30} onProfileClick={handleProfileClick} />
+            </IconContainer>
           )}
         </GlobalActions>
       </NavbarHeader>

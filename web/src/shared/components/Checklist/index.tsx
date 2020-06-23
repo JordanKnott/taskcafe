@@ -501,7 +501,7 @@ const ChecklistTitleEditor = React.forwardRef(
 );
 type ChecklistProps = {
   checklistID: string;
-  onDeleteChecklist: (checklistID: string) => void;
+  onDeleteChecklist: ($target: React.RefObject<HTMLElement>, checklistID: string) => void;
   name: string;
   onChangeName: (item: string) => void;
   onToggleItem: (taskID: string, complete: boolean) => void;
@@ -554,8 +554,8 @@ const Checklist: React.FC<ChecklistProps> = ({
             <WindowTitleText onClick={() => setEditting(true)}>{name}</WindowTitleText>
             <WindowOptions>
               <DeleteButton
-                onClick={() => {
-                  onDeleteChecklist(checklistID);
+                onClick={$target => {
+                  onDeleteChecklist($target, checklistID);
                 }}
                 color="danger"
                 variant="outline"

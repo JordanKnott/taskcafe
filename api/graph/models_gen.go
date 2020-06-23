@@ -59,6 +59,10 @@ type DeleteProjectPayload struct {
 	Project *pg.Project `json:"project"`
 }
 
+type DeleteTaskChecklist struct {
+	TaskChecklistID uuid.UUID `json:"taskChecklistID"`
+}
+
 type DeleteTaskChecklistItem struct {
 	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
 }
@@ -66,6 +70,11 @@ type DeleteTaskChecklistItem struct {
 type DeleteTaskChecklistItemPayload struct {
 	Ok                bool                  `json:"ok"`
 	TaskChecklistItem *pg.TaskChecklistItem `json:"taskChecklistItem"`
+}
+
+type DeleteTaskChecklistPayload struct {
+	Ok            bool              `json:"ok"`
+	TaskChecklist *pg.TaskChecklist `json:"taskChecklist"`
 }
 
 type DeleteTaskGroupInput struct {
@@ -86,12 +95,35 @@ type DeleteTaskPayload struct {
 	TaskID string `json:"taskID"`
 }
 
+type DeleteTeam struct {
+	TeamID uuid.UUID `json:"teamID"`
+}
+
+type DeleteTeamPayload struct {
+	Ok       bool         `json:"ok"`
+	Team     *pg.Team     `json:"team"`
+	Projects []pg.Project `json:"projects"`
+}
+
+type DeleteUserAccount struct {
+	UserID uuid.UUID `json:"userID"`
+}
+
+type DeleteUserAccountPayload struct {
+	Ok          bool            `json:"ok"`
+	UserAccount *pg.UserAccount `json:"userAccount"`
+}
+
 type FindProject struct {
 	ProjectID string `json:"projectId"`
 }
 
 type FindTask struct {
 	TaskID uuid.UUID `json:"taskID"`
+}
+
+type FindTeam struct {
+	TeamID uuid.UUID `json:"teamID"`
 }
 
 type FindUser struct {
@@ -167,7 +199,7 @@ type ProjectMember struct {
 }
 
 type ProjectsFilter struct {
-	TeamID *string `json:"teamID"`
+	TeamID *uuid.UUID `json:"teamID"`
 }
 
 type RemoveTaskLabelInput struct {
@@ -227,6 +259,11 @@ type UpdateProjectName struct {
 type UpdateTaskChecklistItemName struct {
 	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
 	Name                string    `json:"name"`
+}
+
+type UpdateTaskChecklistName struct {
+	TaskChecklistID uuid.UUID `json:"taskChecklistID"`
+	Name            string    `json:"name"`
 }
 
 type UpdateTaskDescriptionInput struct {

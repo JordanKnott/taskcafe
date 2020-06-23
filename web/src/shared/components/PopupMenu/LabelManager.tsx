@@ -58,7 +58,7 @@ const LabelManager: React.FC<Props> = ({ labels, taskLabels, onLabelToggle, onLa
                       onLabelEdit(label.id);
                     }}
                   >
-                    <Pencil color="#c2c6dc" />
+                    <Pencil width={16} height={16} />
                   </LabelIcon>
                   <CardLabel
                     key={label.id}
