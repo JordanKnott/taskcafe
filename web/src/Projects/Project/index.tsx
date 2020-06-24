@@ -148,10 +148,10 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
   const taskLabels = taskLabelsRef && taskLabelsRef.current ? taskLabelsRef.current : [];
   const [currentTaskLabels, setCurrentTaskLabels] = useState(taskLabels);
   console.log(taskLabels);
-  const { setTab } = usePopup();
+  const { setTab, hidePopup } = usePopup();
   return (
     <>
-      <Popup title="Labels" tab={0} onClose={() => {}}>
+      <Popup title="Labels" tab={0} onClose={() => hidePopup()}>
         <LabelManager
           labels={labels}
           taskLabels={currentTaskLabels}
@@ -184,7 +184,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
           }}
         />
       </Popup>
-      <Popup onClose={() => {}} title="Edit label" tab={1}>
+      <Popup onClose={() => hidePopup()} title="Edit label" tab={1}>
         <LabelEditor
           labelColors={labelColors}
           label={labels.find(label => label.id === currentLabel) ?? null}
@@ -200,7 +200,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
           }}
         />
       </Popup>
-      <Popup onClose={() => {}} title="Create new label" tab={2}>
+      <Popup onClose={() => hidePopup()} title="Create new label" tab={2}>
         <LabelEditor
           labelColors={labelColors}
           label={null}
@@ -643,7 +643,13 @@ const Project = () => {
             const profileIcon = member ? member.profileIcon : null;
             showPopup(
               $targetRef,
-              <Popup title={null} onClose={() => {}} tab={0}>
+              <Popup
+                title={null}
+                onClose={() => {
+                  hidePopup();
+                }}
+                tab={0}
+              >
                 <MiniProfile
                   profileIcon={profileIcon}
                   displayName="Jordan Knott"
@@ -663,7 +669,7 @@ const Project = () => {
           onExtraMenuOpen={(taskGroupID: string, $targetRef: any) => {
             showPopup(
               $targetRef,
-              <Popup title="List actions" tab={0} onClose={() => {}}>
+              <Popup title="List actions" tab={0} onClose={() => hidePopup()}>
                 <ListActions
                   taskGroupID={taskGroupID}
                   onArchiveTaskGroup={tgID => {
@@ -685,7 +691,7 @@ const Project = () => {
             onOpenMembersPopup={($targetRef, task) => {
               showPopup(
                 $targetRef,
-                <Popup title="Members" tab={0} onClose={() => {}}>
+                <Popup title="Members" tab={0} onClose={() => hidePopup()}>
                   <MemberManager
                     availableMembers={data.findProject.members}
                     activeMembers={task.assigned ?? []}
@@ -705,7 +711,7 @@ const Project = () => {
               const profileIcon = member ? member.profileIcon : null;
               showPopup(
                 $targetRef,
-                <Popup title={null} onClose={() => {}} tab={0}>
+                <Popup title={null} onClose={() => hidePopup()} tab={0}>
                   <MiniProfile
                     profileIcon={profileIcon}
                     displayName="Jordan Knott"
@@ -755,13 +761,7 @@ const Project = () => {
             onOpenDueDatePopup={($targetRef, task) => {
               showPopup(
                 $targetRef,
-                <Popup
-                  title={'Change Due Date'}
-                  tab={0}
-                  onClose={() => {
-                    hidePopup();
-                  }}
-                >
+                <Popup title={'Change Due Date'} tab={0} onClose={() => hidePopup()}>
                   <DueDateManager
                     task={task}
                     onRemoveDueDate={t => {

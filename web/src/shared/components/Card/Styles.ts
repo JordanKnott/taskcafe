@@ -163,6 +163,7 @@ export const CardMembers = styled.div`
 export const CompleteIcon = styled(CheckCircle)`
   fill: rgba(${props => props.theme.colors.success});
   margin-right: 4px;
+  flex-shrink: 0;
 `;
 
 export const EditorContent = styled.div`
