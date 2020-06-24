@@ -229,13 +229,13 @@ const NavBar: React.FC<NavBarProps> = ({
           <IconContainer onClick={onDashboardClick}>
             <HomeDashboard width={20} height={20} />
           </IconContainer>
-          <IconContainer>
+          <IconContainer disabled>
             <CheckCircle width={20} height={20} />
           </IconContainer>
           <IconContainer onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />
           </IconContainer>
-          <IconContainer>
+          <IconContainer disabled>
             <BarChart width={20} height={20} />
           </IconContainer>
 

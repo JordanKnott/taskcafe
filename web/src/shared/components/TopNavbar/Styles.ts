@@ -57,9 +57,16 @@ export const ProfileNameWrapper = styled.div`
   line-height: 1.25;
 `;
 
-export const IconContainer = styled.div`
+export const IconContainer = styled.div<{ disabled?: boolean }>`
   margin-right: 20px;
   cursor: pointer;
+  ${props =>
+    props.disabled &&
+    css`
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    `}
 `;
 
 export const ProfileNamePrimary = styled.div`

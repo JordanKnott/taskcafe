@@ -3,7 +3,7 @@ import React, { useState, useRef, useContext, useEffect } from 'react';
 import { MENU_TYPES } from 'shared/components/TopNavbar';
 import updateApolloCache from 'shared/utils/cache';
 import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
-import styled from 'styled-components/macro';
+import styled, { css } from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
@@ -238,7 +238,7 @@ const ProjectActions = styled.div`
   align-items: center;
 `;
 
-const ProjectAction = styled.div`
+const ProjectAction = styled.div<{ disabled?: boolean }>`
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -252,6 +252,13 @@ const ProjectAction = styled.div`
   &:hover {
     color: rgba(${props => props.theme.colors.text.secondary});
   }
+  ${props =>
+    props.disabled &&
+    css`
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    `}
 `;
 
 const ProjectActionText = styled.span`
@@ -551,15 +558,15 @@ const Project = () => {
         />
         <ProjectBar>
           <ProjectActions>
-            <ProjectAction>
+            <ProjectAction disabled>
               <CheckCircle width={13} height={13} />
               <ProjectActionText>All Tasks</ProjectActionText>
             </ProjectAction>
-            <ProjectAction>
+            <ProjectAction disabled>
               <Filter width={13} height={13} />
               <ProjectActionText>Filter</ProjectActionText>
             </ProjectAction>
-            <ProjectAction>
+            <ProjectAction disabled>
               <Sort width={13} height={13} />
               <ProjectActionText>Sort</ProjectActionText>
             </ProjectAction>
@@ -582,11 +589,11 @@ const Project = () => {
               <Tags width={13} height={13} />
               <ProjectActionText>Labels</ProjectActionText>
             </ProjectAction>
-            <ProjectAction>
+            <ProjectAction disabled>
               <ToggleOn width={13} height={13} />
               <ProjectActionText>Fields</ProjectActionText>
             </ProjectAction>
-            <ProjectAction>
+            <ProjectAction disabled>
               <Bolt width={13} height={13} />
               <ProjectActionText>Rules</ProjectActionText>
             </ProjectAction>
