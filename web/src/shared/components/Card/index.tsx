@@ -38,7 +38,7 @@ type Props = {
   taskID: string;
   taskGroupID: string;
   complete?: boolean;
-  onContextMenu?: (e: ContextMenuEvent) => void;
+  onContextMenu?: ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   description?: null | string;
   dueDate?: DueDate;
@@ -101,17 +101,8 @@ const Card = React.forwardRef(
     const [isActive, setActive] = useState(false);
     const $innerCardRef: any = useRef(null);
     const onOpenComposer = () => {
-      if (typeof $innerCardRef.current !== 'undefined') {
-        const pos = $innerCardRef.current.getBoundingClientRect();
-        if (onContextMenu) {
-          onContextMenu({
-            width: pos.width,
-            top: pos.top,
-            left: pos.left,
-            taskGroupID,
-            taskID,
-          });
-        }
+      if (onContextMenu) {
+        onContextMenu($innerCardRef, taskID, taskGroupID);
       }
     };
     const onTaskContext = (e: React.MouseEvent) => {

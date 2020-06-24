@@ -31,24 +31,17 @@ type PopupContainerProps = {
   top: number;
   left: number;
   invert: boolean;
+  invertY: boolean;
   onClose: () => void;
   width?: string | number;
 };
 
-const PopupContainer: React.FC<PopupContainerProps> = ({ width, top, left, onClose, children, invert }) => {
+const PopupContainer: React.FC<PopupContainerProps> = ({ width, top, left, onClose, children, invert, invertY }) => {
   const $containerRef = useRef<HTMLDivElement>(null);
   const [currentTop, setCurrentTop] = useState(top);
   useOnOutsideClick($containerRef, true, onClose, null);
-  useEffect(() => {
-    if ($containerRef && $containerRef.current) {
-      const bounding = $containerRef.current.getBoundingClientRect();
-      if (bounding.bottom > (window.innerHeight || document.documentElement.clientHeight)) {
-        setCurrentTop(44);
-      }
-    }
-  }, []);
   return (
-    <Container width={width ?? 316} left={left} top={currentTop} ref={$containerRef} invert={invert}>
+    <Container width={width ?? 316} left={left} top={currentTop} ref={$containerRef} invert={invert} invertY={invertY}>
       {children}
     </Container>
   );
@@ -74,6 +67,7 @@ type PopupState = {
   isOpen: boolean;
   left: number;
   top: number;
+  invertY: boolean;
   invert: boolean;
   currentTab: number;
   previousTab: number;
@@ -90,6 +84,7 @@ const defaultState = {
   left: 0,
   top: 0,
   invert: false,
+  invertY: false,
   currentTab: 0,
   previousTab: 0,
   content: null,
@@ -100,12 +95,18 @@ export const PopupProvider: React.FC = ({ children }) => {
   const show = (target: RefObject<HTMLElement>, content: JSX.Element, width?: number | string) => {
     if (target && target.current) {
       const bounds = target.current.getBoundingClientRect();
-      const top = bounds.top + bounds.height;
+      let top = bounds.top + bounds.height;
+      let invertY = false;
+      if (window.innerHeight / 2 < top) {
+        top = window.innerHeight - bounds.top;
+        invertY = true;
+      }
       if (bounds.left + 304 + 30 > window.innerWidth) {
         setState({
           isOpen: true,
           left: bounds.left + bounds.width,
           top,
+          invertY,
           invert: true,
           currentTab: 0,
           previousTab: 0,
@@ -118,6 +119,7 @@ export const PopupProvider: React.FC = ({ children }) => {
           left: bounds.left,
           top,
           invert: false,
+          invertY,
           currentTab: 0,
           previousTab: 0,
           content,
@@ -132,6 +134,7 @@ export const PopupProvider: React.FC = ({ children }) => {
       left: 0,
       top: 0,
       invert: true,
+      invertY: false,
       currentTab: 0,
       previousTab: 0,
       content: null,
@@ -140,7 +143,7 @@ export const PopupProvider: React.FC = ({ children }) => {
   const portalTarget = canUseDOM ? document.body : null; // appease flow
 
   const setTab = (newTab: number, width?: number | string) => {
-    let newWidth = width ?? currentState.width;
+    const newWidth = width ?? currentState.width;
     setState((prevState: PopupState) => {
       return {
         ...prevState,
@@ -161,6 +164,7 @@ export const PopupProvider: React.FC = ({ children }) => {
         currentState.isOpen &&
         createPortal(
           <PopupContainer
+            invertY={currentState.invertY}
             invert={currentState.invert}
             top={currentState.top}
             left={currentState.left}
@@ -168,7 +172,7 @@ export const PopupProvider: React.FC = ({ children }) => {
             width={currentState.width ?? 316}
           >
             {currentState.content}
-            <ContainerDiamond invert={currentState.invert} />
+            <ContainerDiamond invertY={currentState.invertY} invert={currentState.invert} />
           </PopupContainer>,
           portalTarget,
         )}
@@ -192,7 +196,7 @@ const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader
   useOnOutsideClick($containerRef, true, onClose, null);
 
   return (
-    <Container width={width ?? 316} invert={false} left={left} top={top} ref={$containerRef}>
+    <Container invertY={false} width={width ?? 316} invert={false} left={left} top={top} ref={$containerRef}>
       <Wrapper>
         {onPrevious && (
           <PreviousButton onClick={onPrevious}>

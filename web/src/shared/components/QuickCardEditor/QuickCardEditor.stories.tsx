@@ -47,11 +47,12 @@ export const Default = () => {
     },
   };
   const [isEditorOpen, setEditorOpen] = useState(false);
+  const [target, setTarget] = useState<null | React.RefObject<HTMLElement>>(null);
   const [top, setTop] = useState(0);
   const [left, setLeft] = useState(0);
   return (
     <>
-      {isEditorOpen && (
+      {isEditorOpen && target && (
         <QuickCardEditor
           task={task}
           onCloseEditor={() => setEditorOpen(false)}
@@ -61,8 +62,7 @@ export const Default = () => {
           onOpenMembersPopup={action('open popup')}
           onToggleComplete={action('complete')}
           onArchiveCard={action('archive card')}
-          top={top}
-          left={left}
+          target={target}
         />
       )}
       <List
@@ -82,8 +82,7 @@ export const Default = () => {
             title={task.name}
             onClick={action('on click')}
             onContextMenu={e => {
-              setTop(e.top);
-              setLeft(e.left);
+              setTarget($cardRef);
               setEditorOpen(true);
             }}
             watched

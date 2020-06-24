@@ -75,9 +75,7 @@ type TaskRouteProps = {
 
 interface QuickCardEditorState {
   isOpen: boolean;
-  left: number;
-  top: number;
-  width: number;
+  target: React.RefObject<HTMLElement> | null;
   taskID: string | null;
   taskGroupID: string | null;
 }
@@ -224,9 +222,7 @@ const initialQuickCardEditorState: QuickCardEditorState = {
   taskID: null,
   taskGroupID: null,
   isOpen: false,
-  top: 0,
-  left: 0,
-  width: 272,
+  target: null,
 };
 
 const ProjectBar = styled.div`
@@ -511,14 +507,18 @@ const Project = () => {
   }
   if (data) {
     console.log(data.findProject);
-    const onQuickEditorOpen = (e: ContextMenuEvent) => {
-      const taskGroup = data.findProject.taskGroups.find(t => t.id === e.taskGroupID);
-      const currentTask = taskGroup ? taskGroup.tasks.find(t => t.id === e.taskID) : null;
+    const onQuickEditorOpen = ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => {
+      if ($target && $target.current) {
+        const pos = $target.current.getBoundingClientRect();
+        const height = 120;
+        if (window.innerHeight - pos.bottom < height) {
+        }
+      }
+      const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
+      const currentTask = taskGroup ? taskGroup.tasks.find(t => t.id === taskID) : null;
       if (currentTask) {
         setQuickCardEditor({
-          top: e.top,
-          left: e.left,
-          width: e.width,
+          target: $target,
           isOpen: true,
           taskID: currentTask.id,
           taskGroupID: currentTask.taskGroup.id,
@@ -675,7 +675,7 @@ const Project = () => {
             );
           }}
         />
-        {quickCardEditor.isOpen && currentQuickTask && (
+        {quickCardEditor.isOpen && currentQuickTask && quickCardEditor.target && (
           <QuickCardEditor
             task={currentQuickTask}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
@@ -780,9 +780,7 @@ const Project = () => {
             onToggleComplete={task => {
               setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
             }}
-            top={quickCardEditor.top}
-            left={quickCardEditor.left}
-            width={quickCardEditor.width}
+            target={quickCardEditor.target}
           />
         )}
         <Route

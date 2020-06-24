@@ -22,7 +22,7 @@ interface SimpleProps {
   onTaskClick: (task: Task) => void;
   onCreateTask: (taskGroupID: string, name: string) => void;
   onChangeTaskGroupName: (taskGroupID: string, name: string) => void;
-  onQuickEditorOpen: (e: ContextMenuEvent) => void;
+  onQuickEditorOpen: ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => void;
   onCreateTaskGroup: (listName: string) => void;
   onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
   onCardMemberClick: OnCardMemberClick;

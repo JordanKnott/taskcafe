@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 
@@ -14,11 +14,18 @@ export const Wrapper = styled.div<{ open: boolean }>`
   visibility: ${props => (props.open ? 'show' : 'hidden')};
 `;
 
-export const Container = styled.div<{ width: number; top: number; left: number }>`
+export const Container = styled.div<{ fixed: boolean; width: number; top: number; left: number }>`
   position: absolute;
   width: ${props => props.width}px;
   top: ${props => props.top}px;
   left: ${props => props.left}px;
+
+  ${props =>
+    props.fixed &&
+    css`
+      top: auto;
+      bottom: ${props.top}px;
+    `}
 `;
 
 export const SaveButton = styled.button`
@@ -41,13 +48,19 @@ from { opacity: 0; transform: translateX(-20px); }
 to { opacity: 1; transform: translateX(0); }
 `;
 
-export const EditorButtons = styled.div`
+export const EditorButtons = styled.div<{ fixed: boolean }>`
   left: 100%;
   position: absolute;
   top: 0;
   width: 240px;
   z-index: 0;
   animation: ${FadeInAnimation} 85ms ease-in 1;
+  ${props =>
+    props.fixed &&
+    css`
+      top: auto;
+      bottom: 8px;
+    `}
 `;
 
 export const EditorButton = styled.div`

@@ -20,9 +20,7 @@ type Props = {
   onOpenDueDatePopup: ($targetRef: React.RefObject<HTMLElement>, task: Task) => void;
   onArchiveCard: (taskGroupID: string, taskID: string) => void;
   onCardMemberClick?: OnCardMemberClick;
-  top: number;
-  left: number;
-  width?: number;
+  target: React.RefObject<HTMLElement>;
 };
 
 const QuickCardEditor = ({
@@ -35,9 +33,7 @@ const QuickCardEditor = ({
   onCardMemberClick,
   onArchiveCard,
   onEditCard,
-  width = 272,
-  top,
-  left,
+  target: $target,
 }: Props) => {
   const [currentCardTitle, setCardTitle] = useState(task.name);
   const $labelsRef: any = useRef();
@@ -49,12 +45,29 @@ const QuickCardEditor = ({
     onCloseEditor();
   };
 
+  const height = 180;
+  const saveCardButtonBarHeight = 48;
+  let top = 0;
+  let left = 0;
+  let width = 272;
+  let fixed = false;
+  if ($target && $target.current) {
+    const pos = $target.current.getBoundingClientRect();
+    top = pos.top;
+    left = pos.left;
+    width = pos.width;
+    if (window.innerHeight - pos.height > height) {
+      top = window.innerHeight - pos.bottom - saveCardButtonBarHeight;
+      fixed = true;
+    }
+  }
+
   return (
     <Wrapper onClick={handleCloseEditor} open>
       <CloseButton onClick={handleCloseEditor}>
         <Cross width={16} height={16} />
       </CloseButton>
-      <Container width={width} left={left} top={top}>
+      <Container fixed={fixed} width={width} left={left} top={top}>
         <Card
           editable
           onCardMemberClick={onCardMemberClick}
@@ -70,7 +83,7 @@ const QuickCardEditor = ({
           labels={task.labels.map(l => l.projectLabel)}
         />
         <SaveButton onClick={() => onEditCard(task.taskGroup.id, task.id, currentCardTitle)}>Save</SaveButton>
-        <EditorButtons>
+        <EditorButtons fixed={fixed}>
           <EditorButton
             onClick={e => {
               e.stopPropagation();

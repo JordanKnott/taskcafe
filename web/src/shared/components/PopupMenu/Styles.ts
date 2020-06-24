@@ -1,7 +1,14 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 
-export const Container = styled.div<{ invert: boolean; top: number; left: number; ref: any; width: number | string }>`
+export const Container = styled.div<{
+  invertY: boolean;
+  invert: boolean;
+  top: number;
+  left: number;
+  ref: any;
+  width: number | string;
+}>`
   left: ${props => props.left}px;
   top: ${props => props.top}px;
   display: block;
@@ -14,6 +21,14 @@ export const Container = styled.div<{ invert: boolean; top: number; left: number
     props.invert &&
     css`
       transform: translate(-100%);
+    `}
+  ${props =>
+    props.invertY &&
+    css`
+      top: auto;
+      padding-top: 0;
+      padding-bottom: 10px;
+      bottom: ${props.top}px;
     `}
 `;
 
@@ -331,16 +346,25 @@ export const PreviousButton = styled.div`
   cursor: pointer;
 `;
 
-export const ContainerDiamond = styled.div<{ invert: boolean }>`
-  top: 10px;
+export const ContainerDiamond = styled.div<{ invert: boolean; invertY: boolean }>`
   ${props => (props.invert ? 'right: 10px; ' : 'left: 15px;')}
   position: absolute;
   width: 10px;
   height: 10px;
   display: block;
+  ${props =>
+    props.invertY
+      ? css`
+          bottom: 0;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          border-right: 1px solid rgba(0, 0, 0, 0.1);
+        `
+      : css`
+          top: 10px;
+          border-top: 1px solid rgba(0, 0, 0, 0.1);
+          border-left: 1px solid rgba(0, 0, 0, 0.1);
+        `}
   transform: rotate(45deg) translate(-7px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-left: 1px solid rgba(0, 0, 0, 0.1);
   z-index: 10;
 
   background: #262c49;
