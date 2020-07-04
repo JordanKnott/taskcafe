@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import LabelColors from 'shared/constants/labelColors';
 import { Checkmark } from 'shared/icons';
 import { SaveButton, DeleteButton, LabelBox, EditLabelForm, FieldLabel, FieldName } from './Styles';
+import styled from 'styled-components';
 
+const WhiteCheckmark = styled(Checkmark)`
+  fill: rgba(${props => props.theme.colors.text.secondary});
+`;
 type Props = {
   labelColors: Array<LabelColor>;
   label: ProjectLabel | null;
@@ -44,7 +47,7 @@ const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props)
               setCurrentColor(labelColor);
             }}
           >
-            {currentColor && labelColor.id === currentColor.id && <Checkmark width={12} height={12} />}
+            {currentColor && labelColor.id === currentColor.id && <WhiteCheckmark width={12} height={12} />}
           </LabelBox>
         ))}
       </div>

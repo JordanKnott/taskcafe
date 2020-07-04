@@ -1,0 +1,68 @@
+extend type Mutation {
+  createTask(input: NewTask!): Task!
+  deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+
+  updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
+  updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
+  updateTaskName(input: UpdateTaskName!): Task!
+  setTaskComplete(input: SetTaskComplete!): Task!
+  updateTaskDueDate(input: UpdateTaskDueDate!): Task!
+
+  assignTask(input: AssignTaskInput): Task!
+  unassignTask(input: UnassignTaskInput): Task!
+}
+
+input NewTask {
+  taskGroupID: String!
+  name: String!
+  position: Float!
+}
+
+input AssignTaskInput {
+  taskID: UUID!
+  userID: UUID!
+}
+
+input UnassignTaskInput {
+  taskID: UUID!
+  userID: UUID!
+}
+
+input UpdateTaskDescriptionInput {
+  taskID: UUID!
+  description: String!
+}
+
+type UpdateTaskLocationPayload {
+  previousTaskGroupID: UUID!
+  task: Task!
+}
+
+input UpdateTaskDueDate  {
+  taskID: UUID!
+  dueDate: Time
+}
+
+input SetTaskComplete {
+  taskID: UUID!
+  complete: Boolean!
+}
+
+input NewTaskLocation {
+  taskID: UUID!
+  taskGroupID: UUID!
+  position: Float!
+}
+
+input DeleteTaskInput {
+  taskID: String!
+}
+
+type DeleteTaskPayload {
+  taskID: String!
+}
+
+input UpdateTaskName {
+  taskID: String!
+  name: String!
+}

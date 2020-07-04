@@ -6,8 +6,12 @@ import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
 import styled, { css } from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
-import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps } from 'react-router-dom';
+import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps, useLocation } from 'react-router-dom';
 import {
+  useSetProjectOwnerMutation,
+  useUpdateProjectMemberRoleMutation,
+  useCreateProjectMemberMutation,
+  useDeleteProjectMemberMutation,
   useSetTaskCompleteMutation,
   useToggleTaskLabelMutation,
   useUpdateProjectNameMutation,
@@ -30,6 +34,7 @@ import {
   useUnassignTaskMutation,
   useUpdateTaskDueDateMutation,
   FindProjectQuery,
+  useUsersQuery,
 } from 'shared/generated/graphql';
 
 import TaskAssignee from 'shared/components/TaskAssignee';
@@ -48,25 +53,51 @@ import Details from './Details';
 import { useApolloClient } from '@apollo/react-hooks';
 import UserIDContext from 'App/context';
 import DueDateManager from 'shared/components/DueDateManager';
+import Input from 'shared/components/Input';
+import Member from 'shared/components/Member';
 
-const getCacheData = (client: any, projectID: string) => {
-  const cacheData: FindProjectQuery = client.readQuery({
-    query: FindProjectDocument,
-    variables: {
-      projectId: projectID,
-    },
-  });
-  return cacheData;
+const SearchInput = styled(Input)`
+  margin: 0;
+`;
+
+const UserMember = styled(Member)`
+  padding: 4px 0;
+  cursor: pointer;
+  &:hover {
+    background: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+  }
+  border-radius: 6px;
+`;
+
+const MemberList = styled.div`
+  margin: 8px 0;
+`;
+
+type UserManagementPopupProps = {
+  users: Array<User>;
+  projectMembers: Array<TaskUser>;
+  onAddProjectMember: (userID: string) => void;
 };
 
-const writeCacheData = (client: any, projectID: string, cacheData: any, newData: any) => {
-  client.writeQuery({
-    query: FindProjectDocument,
-    variables: {
-      projectId: projectID,
-    },
-    data: { ...cacheData, findProject: newData },
-  });
+const UserManagementPopup: React.FC<UserManagementPopupProps> = ({ users, projectMembers, onAddProjectMember }) => {
+  return (
+    <Popup tab={0} title="Invite a user">
+      <SearchInput width="100%" variant="alternate" placeholder="Email address or name" name="search" />
+      <MemberList>
+        {users
+          .filter(u => u.id !== projectMembers.find(p => p.id === u.id)?.id)
+          .map(user => (
+            <UserMember
+              key={user.id}
+              onCardMemberClick={() => onAddProjectMember(user.id)}
+              showName
+              member={user}
+              taskID=""
+            />
+          ))}
+      </MemberList>
+    </Popup>
+  );
 };
 
 type TaskRouteProps = {
@@ -300,6 +331,7 @@ const Project = () => {
     },
   });
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation({});
+  const [updateProjectMemberRole] = useUpdateProjectMemberRoleMutation();
 
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
     onCompleted: deletedTaskGroupData => {},
@@ -492,9 +524,39 @@ const Project = () => {
   });
 
   const [setTaskComplete] = useSetTaskCompleteMutation();
+  const [createProjectMember] = useCreateProjectMemberMutation({
+    update: (client, response) => {
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.members.push({ ...response.data.createProjectMember.member });
+          }),
+        { projectId: projectID },
+      );
+    },
+  });
+  const [setProjectOwner] = useSetProjectOwnerMutation();
+  const [deleteProjectMember] = useDeleteProjectMemberMutation({
+    update: (client, response) => {
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.members = cache.findProject.members.filter(
+              m => m.id !== response.data.deleteProjectMember.member.id,
+            );
+          }),
+        { projectId: projectID },
+      );
+    },
+  });
 
   const client = useApolloClient();
   const { userID } = useContext(UserIDContext);
+  const location = useLocation();
 
   const { showPopup, hidePopup } = usePopup();
   const $labelsRef = useRef<HTMLDivElement>(null);
@@ -546,12 +608,35 @@ const Project = () => {
     return (
       <>
         <GlobalTopNavbar
+          onChangeRole={(userID, roleCode) => {
+            updateProjectMemberRole({ variables: { userID, roleCode, projectID } });
+          }}
+          onChangeProjectOwner={uid => {
+            setProjectOwner({ variables: { ownerID: uid, projectID } });
+            hidePopup();
+          }}
+          onRemoveFromBoard={userID => {
+            deleteProjectMember({ variables: { userID, projectID } });
+            hidePopup();
+          }}
           onSaveProjectName={projectName => {
             updateProjectName({ variables: { projectID, name: projectName } });
           }}
+          onInviteUser={$target => {
+            showPopup(
+              $target,
+              <UserManagementPopup
+                onAddProjectMember={userID => {
+                  createProjectMember({ variables: { userID, projectID } });
+                }}
+                users={data.users}
+                projectMembers={data.findProject.members}
+              />,
+            );
+          }}
           popupContent={<ProjectPopup history={history} name={data.findProject.name} projectID={projectID} />}
-          menuType={MENU_TYPES.PROJECT_MENU}
-          initialTab={0}
+          menuType={[{ name: 'Board', link: location.pathname }]}
+          currentTab={0}
           projectMembers={data.findProject.members}
           projectID={projectID}
           name={data.findProject.name}
@@ -647,27 +732,18 @@ const Project = () => {
           onCreateTaskGroup={onCreateList}
           onCardMemberClick={($targetRef, taskID, memberID) => {
             const member = data.findProject.members.find(m => m.id === memberID);
-            const profileIcon = member ? member.profileIcon : null;
-            showPopup(
-              $targetRef,
-              <Popup
-                title={null}
-                onClose={() => {
-                  hidePopup();
-                }}
-                tab={0}
-              >
+            if (member) {
+              showPopup(
+                $targetRef,
                 <MiniProfile
-                  profileIcon={profileIcon}
-                  displayName="Jordan Knott"
-                  username="@jordanthedev"
+                  user={member}
                   bio="None"
                   onRemoveFromTask={() => {
                     /* unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } }); */
                   }}
-                />
-              </Popup>,
-            );
+                />,
+              );
+            }
           }}
           onChangeTaskGroupName={(taskGroupID, name) => {
             updateTaskGroupName({ variables: { taskGroupID, name } });
@@ -715,21 +791,18 @@ const Project = () => {
             }}
             onCardMemberClick={($targetRef, taskID, memberID) => {
               const member = data.findProject.members.find(m => m.id === memberID);
-              const profileIcon = member ? member.profileIcon : null;
-              showPopup(
-                $targetRef,
-                <Popup title={null} onClose={() => hidePopup()} tab={0}>
+              if (member) {
+                showPopup(
+                  $targetRef,
                   <MiniProfile
-                    profileIcon={profileIcon}
-                    displayName="Jordan Knott"
-                    username="@jordanthedev"
                     bio="None"
+                    user={member}
                     onRemoveFromTask={() => {
                       /* unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } }); */
                     }}
-                  />
-                </Popup>,
-              );
+                  />,
+                );
+              }
             }}
             onOpenLabelsPopup={($targetRef, task) => {
               taskLabelsRef.current = task.labels;

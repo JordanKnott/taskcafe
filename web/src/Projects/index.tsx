@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
+import Empty from 'shared/undraw/Empty';
 import {
   useCreateTeamMutation,
   useGetProjectsQuery,
@@ -20,7 +21,27 @@ import { useForm } from 'react-hook-form';
 import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
+const EmptyStateContent = styled.div`
+  display: flex;
+  justy-content: center;
+  align-items: center;
+  flex-direction: column;
+`;
 
+const EmptyStateTitle = styled.h3`
+  color: #fff;
+  font-size: 18px;
+`;
+
+const EmptyStatePrompt = styled.span`
+  color: rgba(${props => props.theme.colors.text.primary});
+  font-size: 16px;
+  margin-top: 8px;
+`;
+const EmptyState = styled(Empty)`
+  display: block;
+  margin: 0 auto;
+`;
 const CreateTeamButton = styled(Button)`
   width: 100%;
 `;
@@ -193,6 +214,10 @@ const AddTeamButton = styled(Button)`
   top: 6px;
   right: 12px;
 `;
+
+const CreateFirstTeam = styled(Button)`
+  margin-top: 8px;
+`;
 type ShowNewProject = {
   open: boolean;
   initialTeamID: null | string;
@@ -277,6 +302,39 @@ const Projects = () => {
             >
               Add Team
             </AddTeamButton>
+            {projectTeams.length === 0 && (
+              <EmptyStateContent>
+                <EmptyState width={425} height={425} />
+                <EmptyStateTitle>No teams exist</EmptyStateTitle>
+                <EmptyStatePrompt>Create a new team to get started</EmptyStatePrompt>
+                <CreateFirstTeam
+                  variant="outline"
+                  onClick={$target => {
+                    showPopup(
+                      $target,
+                      <Popup
+                        title="Create team"
+                        tab={0}
+                        onClose={() => {
+                          hidePopup();
+                        }}
+                      >
+                        <CreateTeamForm
+                          onCreateTeam={teamName => {
+                            if (organizationID) {
+                              createTeam({ variables: { name: teamName, organizationID } });
+                              hidePopup();
+                            }
+                          }}
+                        />
+                      </Popup>,
+                    );
+                  }}
+                >
+                  Create new team
+                </CreateFirstTeam>
+              </EmptyStateContent>
+            )}
             {projectTeams.map(team => {
               return (
                 <div key={team.id}>
@@ -286,10 +344,10 @@ const Projects = () => {
                       <SectionActionLink to={`/teams/${team.id}`}>
                         <SectionAction variant="outline">Projects</SectionAction>
                       </SectionActionLink>
-                      <SectionActionLink to="/">
+                      <SectionActionLink to={`/teams/${team.id}/members`}>
                         <SectionAction variant="outline">Members</SectionAction>
                       </SectionActionLink>
-                      <SectionActionLink to="/">
+                      <SectionActionLink to={`/teams/${team.id}/settings`}>
                         <SectionAction variant="outline">Settings</SectionAction>
                       </SectionActionLink>
                     </SectionActions>

@@ -305,21 +305,20 @@ const Details: React.FC<DetailsProps> = ({
               }}
               onMemberProfile={($targetRef, memberID) => {
                 const member = data.findTask.assigned.find(m => m.id === memberID);
-                const profileIcon = member ? member.profileIcon : null;
-                showPopup(
-                  $targetRef,
-                  <Popup title={null} onClose={() => {}} tab={0}>
-                    <MiniProfile
-                      profileIcon={profileIcon}
-                      displayName="Jordan Knott"
-                      username="@jordanthedev"
-                      bio="None"
-                      onRemoveFromTask={() => {
-                        unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
-                      }}
-                    />
-                  </Popup>,
-                );
+                if (member) {
+                  showPopup(
+                    $targetRef,
+                    <Popup title={null} onClose={() => {}} tab={0}>
+                      <MiniProfile
+                        user={member}
+                        bio="None"
+                        onRemoveFromTask={() => {
+                          unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                        }}
+                      />
+                    </Popup>,
+                  );
+                }
               }}
               onOpenAddMemberPopup={(task, $targetRef) => {
                 showPopup(

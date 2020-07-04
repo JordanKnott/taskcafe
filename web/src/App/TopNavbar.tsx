@@ -1,11 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
-import TopNavbar from 'shared/components/TopNavbar';
+import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import styled from 'styled-components/macro';
 import DropdownMenu, { ProfileMenu } from 'shared/components/DropdownMenu';
 import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
 import UserIDContext from 'App/context';
 import {
+  RoleCode,
   useMeQuery,
   useDeleteProjectMutation,
   useGetProjectsQuery,
@@ -219,32 +220,38 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, proje
 type GlobalTopNavbarProps = {
   nameOnly?: boolean;
   projectID: string | null;
+  onChangeProjectOwner?: (userID: string) => void;
   name: string | null;
-  initialTab?: number;
+  currentTab?: number;
   popupContent?: JSX.Element;
-  menuType?: Array<string>;
+  menuType?: Array<MenuItem>;
+  onChangeRole?: (userID: string, roleCode: RoleCode) => void;
   projectMembers?: null | Array<TaskUser>;
   onSaveProjectName?: (projectName: string) => void;
+  onInviteUser?: ($target: React.RefObject<HTMLElement>) => void;
+  onSetTab?: (tab: number) => void;
+  onRemoveFromBoard?: (userID: string) => void;
 };
 
 const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
-  initialTab,
+  currentTab,
+  onSetTab,
   menuType,
   projectID,
+  onChangeProjectOwner,
+  onChangeRole,
   name,
   popupContent,
   projectMembers,
+  onInviteUser,
   onSaveProjectName,
+  onRemoveFromBoard,
   nameOnly,
 }) => {
   console.log(popupContent);
   const { loading, data } = useMeQuery();
   const { showPopup, hidePopup, setTab } = usePopup();
   const history = useHistory();
-  const [currentTab, setCurrentTab] = useState(initialTab);
-  useEffect(() => {
-    setCurrentTab(initialTab);
-  }, [initialTab]);
   const { userID, setUserID } = useContext(UserIDContext);
   const onLogout = () => {
     fetch('http://localhost:3333/auth/logout', {
@@ -305,7 +312,12 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
         }}
         currentTab={currentTab}
         user={data ? data.me : null}
+        onInviteUser={onInviteUser}
+        onChangeRole={onChangeRole}
+        onChangeProjectOwner={onChangeProjectOwner}
         onNotificationClick={() => {}}
+        onSetTab={onSetTab}
+        onRemoveFromBoard={onRemoveFromBoard}
         onDashboardClick={() => {
           history.push('/');
         }}

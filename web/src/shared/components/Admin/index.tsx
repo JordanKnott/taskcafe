@@ -87,62 +87,85 @@ const Header = styled.div`
   min-height: 112px;
 `;
 
-const ActionButtonsContainer = styled.div`
-  display: flex;
-  align-items: center;
-`;
+const EditUserIcon = styled(Pencil)``;
 
-const EditUserIcon = styled(Pencil)`
-  margin-right: 8px;
-`;
-
-const LockUserIcon = styled(Lock)`
-  margin-right: 8px;
-`;
+const LockUserIcon = styled(Lock)``;
 
 const DeleteUserIcon = styled(Trash)``;
 
-const ActionButtons = () => {
+type ActionButtonProps = {
+  onClick: ($target: React.RefObject<HTMLElement>) => void;
+};
+
+const ActionButtonWrapper = styled.div`
+  margin-right: 8px;
+  cursor: pointer;
+  display: inline-flex;
+`;
+
+const ActionButton: React.FC<ActionButtonProps> = ({ onClick, children }) => {
+  const $wrapper = useRef<HTMLDivElement>(null);
   return (
-    <>
-      <EditUserIcon width={16} height={16} />
-      <LockUserIcon width={16} height={16} />
-      <DeleteUserIcon width={16} height={16} />
-    </>
+    <ActionButtonWrapper onClick={() => onClick($wrapper)} ref={$wrapper}>
+      {children}
+    </ActionButtonWrapper>
   );
 };
-const data = {
-  defaultColDef: {
-    resizable: true,
-    sortable: true,
-  },
-  columnDefs: [
-    {
-      minWidth: 55,
-      width: 55,
-      headerCheckboxSelection: true,
-      checkboxSelection: true,
-    },
-    { minWidth: 210, headerName: 'Username', editable: true, field: 'username' },
-    { minWidth: 225, headerName: 'Email', field: 'email' },
-    { minWidth: 200, headerName: 'Name', editable: true, field: 'fullName' },
-    { minWidth: 200, headerName: 'Role', editable: true, field: 'role' },
-    {
-      minWidth: 200,
-      headerName: 'Actions',
-      cellRenderer: 'actionButtons',
-    },
-  ],
-  frameworkComponents: {
-    actionButtons: ActionButtons,
-  },
+
+const ActionButtons = (params: any) => {
+  return (
+    <>
+      <ActionButton onClick={() => {}}>
+        <EditUserIcon width={16} height={16} />
+      </ActionButton>
+      <ActionButton onClick={() => {}}>
+        <LockUserIcon width={16} height={16} />
+      </ActionButton>
+      <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
+        <DeleteUserIcon width={16} height={16} />
+      </ActionButton>
+    </>
+  );
 };
 
 type ListTableProps = {
   users: Array<User>;
+  onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
 };
 
-const ListTable: React.FC<ListTableProps> = ({ users }) => {
+const ListTable: React.FC<ListTableProps> = ({ users, onDeleteUser }) => {
+  const data = {
+    defaultColDef: {
+      resizable: true,
+      sortable: true,
+    },
+    columnDefs: [
+      {
+        minWidth: 55,
+        width: 55,
+        headerCheckboxSelection: true,
+        checkboxSelection: true,
+      },
+      { minWidth: 210, headerName: 'Username', editable: true, field: 'username' },
+      { minWidth: 225, headerName: 'Email', field: 'email' },
+      { minWidth: 200, headerName: 'Name', editable: true, field: 'fullName' },
+      { minWidth: 200, headerName: 'Role', editable: true, field: 'roleName' },
+      {
+        minWidth: 200,
+        headerName: 'Actions',
+        field: 'id',
+        cellRenderer: 'actionButtons',
+        cellRendererParams: {
+          onDeleteUser: (target: any, userID: any) => {
+            onDeleteUser(target, userID);
+          },
+        },
+      },
+    ],
+    frameworkComponents: {
+      actionButtons: ActionButtons,
+    },
+  };
   return (
     <Root>
       <div className="ag-theme-material" style={{ height: '296px', width: '100%' }}>
@@ -150,7 +173,7 @@ const ListTable: React.FC<ListTableProps> = ({ users }) => {
           rowSelection="multiple"
           defaultColDef={data.defaultColDef}
           columnDefs={data.columnDefs}
-          rowData={users}
+          rowData={users.map(u => ({ ...u, roleName: u.role.name }))}
           frameworkComponents={data.frameworkComponents}
           onFirstDataRendered={params => {
             params.api.sizeColumnsToFit();
@@ -298,11 +321,12 @@ const NavItem: React.FC<NavItemProps> = ({ active, name, tab, onClick }) => {
 type AdminProps = {
   initialTab: number;
   onAddUser: ($target: React.RefObject<HTMLElement>) => void;
+  onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
   onInviteUser: ($target: React.RefObject<HTMLElement>) => void;
   users: Array<User>;
 };
 
-const Admin: React.FC<AdminProps> = ({ initialTab, onAddUser, onInviteUser, users }) => {
+const Admin: React.FC<AdminProps> = ({ initialTab, onAddUser, onDeleteUser, onInviteUser, users }) => {
   const [currentTop, setTop] = useState(initialTab * 48);
   const [currentTab, setTab] = useState(initialTab);
   const $tabNav = useRef<HTMLDivElement>(null);
@@ -339,7 +363,7 @@ const Admin: React.FC<AdminProps> = ({ initialTab, onAddUser, onInviteUser, user
               <span style={{ paddingLeft: '5px' }}>Invite member</span>
             </InviteUserButton>
           </MemberActions>
-          <ListTable users={users} />
+          <ListTable onDeleteUser={onDeleteUser} users={users} />
         </TabContent>
       </TabContentWrapper>
     </Container>

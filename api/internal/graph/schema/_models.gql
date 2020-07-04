@@ -1,0 +1,139 @@
+scalar Time
+scalar UUID
+scalar Upload
+
+enum RoleCode {
+  owner
+  admin
+  member
+  observer
+}
+
+type ProjectLabel {
+  id: ID!
+  createdDate: Time!
+  labelColor: LabelColor!
+  name: String
+}
+
+type LabelColor {
+  id: ID!
+  name: String!
+  position: Float!
+  colorHex: String!
+}
+
+type TaskLabel {
+  id: ID!
+  projectLabel: ProjectLabel!
+  assignedDate: Time!
+}
+
+type ProfileIcon {
+  url: String
+  initials: String
+  bgColor: String
+}
+
+type Member {
+  id: ID!
+  role: Role!
+  fullName: String!
+  username: String!
+  profileIcon: ProfileIcon!
+}
+
+type RefreshToken {
+  id: ID!
+  userId: UUID!
+  expiresAt: Time!
+  createdAt: Time!
+}
+
+type Role {
+  code: String!
+  name: String!
+}
+
+type UserAccount {
+  id: ID!
+  email: String!
+  createdAt: Time!
+  fullName: String!
+  initials: String!
+  role: Role!
+  username: String!
+  profileIcon: ProfileIcon!
+}
+
+type Team {
+  id: ID!
+  createdAt: Time!
+  name: String!
+  members: [Member!]!
+}
+
+type Project {
+  id: ID!
+  createdAt: Time!
+  name: String!
+  team: Team!
+  owner: Member!
+  taskGroups: [TaskGroup!]!
+  members: [Member!]!
+  labels: [ProjectLabel!]!
+}
+
+type TaskGroup {
+  id: ID!
+  projectID: String!
+  createdAt: Time!
+  name: String!
+  position: Float!
+  tasks: [Task!]!
+}
+
+type ChecklistBadge {
+  complete: Int!
+  total: Int!
+}
+
+type TaskBadges {
+  checklist: ChecklistBadge
+}
+
+type Task {
+  id: ID!
+  taskGroup: TaskGroup!
+  createdAt: Time!
+  name: String!
+  position: Float!
+  description: String
+  dueDate: Time
+  complete: Boolean!
+  assigned: [Member!]!
+  labels: [TaskLabel!]!
+  checklists: [TaskChecklist!]!
+  badges: TaskBadges!
+}
+
+type Organization {
+  id: ID!
+  name: String!
+}
+
+type TaskChecklistItem {
+  id: ID!
+  name: String!
+  taskChecklistID: UUID!
+  complete: Boolean!
+  position: Float!
+  dueDate: Time!
+}
+
+type TaskChecklist {
+  id: ID!
+  name: String!
+  position: Float!
+  items: [TaskChecklistItem!]!
+}

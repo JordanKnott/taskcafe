@@ -3,13 +3,21 @@ import gql from 'graphql-tag';
 export const CREATE_USER_MUTATION = gql`
   mutation createUserAccount(
     $username: String!
+    $roleCode: String!
     $email: String!
     $fullName: String!
     $initials: String!
     $password: String!
   ) {
     createUserAccount(
-      input: { username: $username, email: $email, fullName: $fullName, initials: $initials, password: $password }
+      input: {
+        roleCode: $roleCode
+        username: $username
+        email: $email
+        fullName: $fullName
+        initials: $initials
+        password: $password
+      }
     ) {
       id
       email
@@ -20,6 +28,10 @@ export const CREATE_USER_MUTATION = gql`
         url
         initials
         bgColor
+      }
+      role {
+        code
+        name
       }
     }
   }

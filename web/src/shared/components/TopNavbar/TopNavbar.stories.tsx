@@ -37,9 +37,11 @@ export const Default = () => {
             bgColor: '#000',
           },
         }}
+        onChangeRole={action('change role')}
         onNotificationClick={action('notifications click')}
         onOpenSettings={action('open settings')}
         onDashboardClick={action('open dashboard')}
+        onRemoveFromBoard={action('remove project')}
         onProfileClick={action('profile click')}
       />
     </>

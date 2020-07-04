@@ -6,6 +6,20 @@ export const GET_TEAM_QUERY = gql`
       id
       createdAt
       name
+      members {
+        id
+        fullName
+        username
+        role {
+          code
+          name
+        }
+        profileIcon {
+          url
+          initials
+          bgColor
+        }
+      }
     }
     projects(input: { teamID: $teamID }) {
       id
@@ -13,6 +27,21 @@ export const GET_TEAM_QUERY = gql`
       team {
         id
         name
+      }
+    }
+    users {
+      id
+      email
+      fullName
+      username
+      role {
+        code
+        name
+      }
+      profileIcon {
+        url
+        initials
+        bgColor
       }
     }
   }

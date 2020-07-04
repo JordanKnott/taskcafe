@@ -2,7 +2,10 @@ import Cross from './Cross';
 import Cog from './Cog';
 import Sort from './Sort';
 import Filter from './Filter';
+import DoubleChevronUp from './DoubleChevronUp';
+import Crown from './Crown';
 import BarChart from './BarChart';
+import UserPlus from './UserPlus';
 import Trash from './Trash';
 import CheckCircle from './CheckCircle';
 import Clock from './Clock';
@@ -65,5 +68,8 @@ export {
   Square,
   Filter,
   Sort,
+  DoubleChevronUp,
+  UserPlus,
+  Crown,
   ToggleOn,
 };

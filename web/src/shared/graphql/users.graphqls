@@ -4,6 +4,10 @@ query users {
     email
     fullName
     username
+    role {
+      code
+      name
+    }
     profileIcon {
       url
       initials

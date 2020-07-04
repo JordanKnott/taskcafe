@@ -1,0 +1,35 @@
+type Query {
+  organizations: [Organization!]!
+  users: [UserAccount!]!
+  findUser(input: FindUser!): UserAccount!
+  findProject(input: FindProject!): Project!
+  findTask(input: FindTask!): Task!
+  projects(input: ProjectsFilter): [Project!]!
+  findTeam(input: FindTeam!): Team!
+  teams: [Team!]!
+  labelColors: [LabelColor!]!
+  taskGroups: [TaskGroup!]!
+  me: UserAccount!
+}
+
+type Mutation
+
+input ProjectsFilter {
+  teamID: UUID
+}
+
+input FindUser {
+  userId: String!
+}
+
+input FindProject {
+  projectId: String!
+}
+
+input FindTask {
+  taskID: UUID!
+}
+
+input FindTeam {
+  teamID: UUID!
+}

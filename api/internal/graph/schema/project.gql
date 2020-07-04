@@ -1,0 +1,26 @@
+extend type Mutation {
+  createProject(input: NewProject!): Project!
+  deleteProject(input: DeleteProject!): DeleteProjectPayload!
+  updateProjectName(input: UpdateProjectName): Project!
+}
+
+input NewProject {
+  userID: UUID!
+  teamID: UUID!
+  name: String!
+}
+
+input UpdateProjectName {
+  projectID: UUID!
+  name: String!
+}
+
+input DeleteProject {
+  projectID: UUID!
+}
+
+type DeleteProjectPayload {
+  ok: Boolean!
+  project: Project!
+}
+

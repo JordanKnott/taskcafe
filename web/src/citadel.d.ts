@@ -17,12 +17,17 @@ type ContextMenuEvent = {
   taskGroupID: string;
 };
 
+type Role = {
+  code: string;
+  name: string;
+};
+
 type User = {
   id: string;
   fullName: string;
   username: string;
   email: string;
-  role: string;
+  role: Role;
   profileIcon: ProfileIcon;
 };
 
@@ -30,6 +35,8 @@ type TaskUser = {
   id: string;
   fullName: string;
   profileIcon: ProfileIcon;
+  username?: string;
+  role?: Role;
 };
 
 type RefreshTokenResponse = {

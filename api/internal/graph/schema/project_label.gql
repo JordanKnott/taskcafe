@@ -1,0 +1,33 @@
+extend type Mutation {
+  createProjectLabel(input: NewProjectLabel!): ProjectLabel!
+  deleteProjectLabel(input: DeleteProjectLabel!): ProjectLabel!
+  updateProjectLabel(input: UpdateProjectLabel!): ProjectLabel!
+  updateProjectLabelName(input: UpdateProjectLabelName!): ProjectLabel!
+  updateProjectLabelColor(input: UpdateProjectLabelColor!): ProjectLabel!
+}
+
+input NewProjectLabel {
+  projectID: UUID!
+  labelColorID: UUID!
+  name: String
+}
+
+input DeleteProjectLabel {
+  projectLabelID: UUID!
+}
+
+input UpdateProjectLabelName {
+  projectLabelID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabel {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabelColor {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+}

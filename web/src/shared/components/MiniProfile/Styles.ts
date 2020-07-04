@@ -1,15 +1,22 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import Button from 'shared/components/Button';
+import { Checkmark } from 'shared/icons';
 
+export const RoleCheckmark = styled(Checkmark)`
+  padding-left: 4px;
+`;
 export const Profile = styled.div`
   margin: 8px 0;
   min-height: 56px;
   position: relative;
 `;
 
-export const ProfileIcon = styled.div<{ bgColor: string }>`
+export const ProfileIcon = styled.div<{ bgUrl: string | null; bgColor: string }>`
   float: left;
   margin: 2px;
-  background-color: ${props => props.bgColor};
+  background: ${props => (props.bgUrl ? `url(${props.bgUrl})` : props.bgColor)};
+  background-position: center;
+  background-size: contain;
   border-radius: 25em;
   font-size: 16px;
   color: #fff;
@@ -60,15 +67,66 @@ export const MiniProfileActions = styled.ul`
 
 export const MiniProfileActionWrapper = styled.li``;
 
-export const MiniProfileActionItem = styled.span`
+export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
   color: #c2c6dc;
-  cursor: pointer;
   display: block;
   font-weight: 400;
   padding: 6px 12px;
   position: relative;
   text-decoration: none;
-  &:hover {
-    background: rgb(115, 103, 240);
-  }
+
+  ${props =>
+    props.disabled
+      ? css`
+          user-select: none;
+          pointer-events: none;
+          color: rgba(${props.theme.colors.text.primary}, 0.4);
+        `
+      : css`
+          cursor: pointer;
+          &:hover {
+            background: rgb(115, 103, 240);
+          }
+        `}
+`;
+
+export const CurrentPermission = styled.span`
+  margin-left: 4px;
+  color: rgba(${props => props.theme.colors.text.secondary}, 0.4);
+`;
+
+export const Separator = styled.div`
+  height: 1px;
+  border-top: 1px solid #414561;
+  margin: 0.25rem !important;
+`;
+
+export const WarningText = styled.span`
+  display: flex;
+  color: rgba(${props => props.theme.colors.text.primary}, 0.4);
+  padding: 6px;
+`;
+
+export const DeleteDescription = styled.div`
+  font-size: 14px;
+  color: rgba(${props => props.theme.colors.text.primary});
+`;
+
+export const RemoveMemberButton = styled(Button)`
+  margin-top: 16px;
+  padding: 6px 12px;
+  width: 100%;
+`;
+
+export const Content = styled.div`
+  padding: 0 12px 12px;
+`;
+
+export const RoleName = styled.div`
+  font-size: 14px;
+  font-weight: 700;
+`;
+export const RoleDescription = styled.div`
+  margin-top: 4px;
+  font-size: 14px;
 `;

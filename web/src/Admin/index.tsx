@@ -1,20 +1,57 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Admin from 'shared/components/Admin';
+import Select from 'shared/components/Select';
 import GlobalTopNavbar from 'App/TopNavbar';
-import { useUsersQuery, useCreateUserAccountMutation, UsersDocument } from 'shared/generated/graphql';
+import {
+  useUsersQuery,
+  useDeleteUserAccountMutation,
+  useCreateUserAccountMutation,
+  UsersDocument,
+  UsersQuery,
+} from 'shared/generated/graphql';
 import Input from 'shared/components/Input';
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
 import { useForm } from 'react-hook-form';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
+import updateApolloCache from 'shared/utils/cache';
 
+const DeleteUserWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const DeleteUserDescription = styled.p`
+  font-size: 14px;
+`;
+
+const DeleteUserButton = styled(Button)`
+  margin-top: 6px;
+  padding: 6px 12px;
+  width: 100%;
+`;
+
+type DeleteUserPopupProps = {
+  onDeleteUser: () => void;
+};
+const DeleteUserPopup: React.FC<DeleteUserPopupProps> = ({ onDeleteUser }) => {
+  return (
+    <DeleteUserWrapper>
+      <DeleteUserDescription>Deleting this user will remove all user related data.</DeleteUserDescription>
+      <DeleteUserButton onClick={() => onDeleteUser()} color="danger">
+        Delete user
+      </DeleteUserButton>
+    </DeleteUserWrapper>
+  );
+};
 type CreateUserData = {
   email: string;
   username: string;
   fullName: string;
   initials: string;
   password: string;
+  roleCode: string;
 };
 const CreateUserForm = styled.form`
   display: flex;
@@ -34,11 +71,16 @@ const InputError = styled.span`
   color: rgba(${props => props.theme.colors.danger});
   font-size: 12px;
 `;
+
 type AddUserPopupProps = {
   onAddUser: (user: CreateUserData) => void;
 };
+
 const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
-  const { register, handleSubmit, errors } = useForm<CreateUserData>();
+  const { register, handleSubmit, errors, setValue } = useForm<CreateUserData>();
+  const [role, setRole] = useState<string | null>(null);
+  register({ name: 'roleCode' }, { required: true });
+
   const createUser = (data: CreateUserData) => {
     onAddUser(data);
   };
@@ -62,6 +104,18 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
         name="email"
         variant="alternate"
         ref={register({ required: 'Email is required' })}
+      />
+      <Select
+        label="Role"
+        value={role}
+        options={[
+          { label: 'Admin', value: 'admin' },
+          { label: 'Member', value: 'member' },
+        ]}
+        onChange={newRole => {
+          setRole(newRole);
+          setValue('roleCode', newRole.value);
+        }}
       />
       {errors.email && <InputError>{errors.email.message}</InputError>}
       <AddUserInput
@@ -105,6 +159,15 @@ const AdminRoute = () => {
   }, []);
   const { loading, data } = useUsersQuery();
   const { showPopup, hidePopup } = usePopup();
+  const [deleteUser] = useDeleteUserAccountMutation({
+    update: (client, response) => {
+      updateApolloCache<UsersQuery>(client, UsersDocument, cache =>
+        produce(cache, draftCache => {
+          draftCache.users = cache.users.filter(u => u.id !== response.data.deleteUserAccount.userAccount.id);
+        }),
+      );
+    },
+  });
   const [createUser] = useCreateUserAccountMutation({
     update: (client, createData) => {
       const cacheData: any = client.readQuery({
@@ -133,8 +196,21 @@ const AdminRoute = () => {
         <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
         <Admin
           initialTab={1}
-          users={data.users.map((user: any) => ({ ...user, role: 'TBD' }))}
+          users={data.users}
           onInviteUser={() => {}}
+          onDeleteUser={($target, userID) => {
+            showPopup(
+              $target,
+              <Popup tab={0} title="Delete user?" onClose={() => hidePopup()}>
+                <DeleteUserPopup
+                  onDeleteUser={() => {
+                    deleteUser({ variables: { userID } });
+                    hidePopup();
+                  }}
+                />
+              </Popup>,
+            );
+          }}
           onAddUser={$target => {
             showPopup(
               $target,

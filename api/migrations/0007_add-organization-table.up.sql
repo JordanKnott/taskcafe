@@ -3,3 +3,5 @@ CREATE TABLE organization (
   created_at timestamptz NOT NULL,
   name text NOT NULL
 );
+
+INSERT INTO organization (created_at, name) VALUES (NOW(), 'sys_default_organization');

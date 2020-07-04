@@ -56,7 +56,8 @@ const QuickCardEditor = ({
     top = pos.top;
     left = pos.left;
     width = pos.width;
-    if (window.innerHeight - pos.height > height) {
+    const isFixed = window.innerHeight / 2 < pos.top;
+    if (isFixed) {
       top = window.innerHeight - pos.bottom - saveCardButtonBarHeight;
       fixed = true;
     }

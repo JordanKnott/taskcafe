@@ -26,12 +26,13 @@ export const Default = () => {
         <Admin
           onInviteUser={action('invite user')}
           initialTab={1}
+          onDeleteUser={action('delete user')}
           users={[
             {
               id: '1',
               username: 'jordanthedev',
               email: 'jordan@jordanthedev.com',
-              role: 'Admin',
+              role: { code: 'admin', name: 'Admin' },
               fullName: 'Jordan Knott',
               profileIcon: {
                 bgColor: '#fff',

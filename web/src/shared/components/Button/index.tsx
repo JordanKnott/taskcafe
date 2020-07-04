@@ -3,7 +3,9 @@ import styled, { css } from 'styled-components/macro';
 
 const Text = styled.span<{ fontSize: string }>`
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
   font-size: ${props => props.fontSize};
   color: rgba(${props => props.theme.colors.text.secondary});

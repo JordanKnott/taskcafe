@@ -3,7 +3,12 @@ import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 import { Citadel } from 'shared/icons';
-import { Link } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
+import TaskAssignee from 'shared/components/TaskAssignee';
+export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
+  z-index: ${props => props.zIndex};
+  position: relative;
+`;
 
 export const NavbarWrapper = styled.div`
   width: 100%;
@@ -110,7 +115,7 @@ export const ProjectTabs = styled.div`
   max-width: 100%;
 `;
 
-export const ProjectTab = styled.span<{ active?: boolean }>`
+export const ProjectTab = styled(NavLink)`
   font-size: 80%;
   color: rgba(${props => props.theme.colors.text.primary});
   font-size: 15px;
@@ -128,18 +133,19 @@ export const ProjectTab = styled.span<{ active?: boolean }>`
     margin-right: 20px;
   }
 
-  ${props =>
-    props.active
-      ? css`
-          box-shadow: inset 0 -2px rgba(${props.theme.colors.secondary});
-          color: rgba(${props.theme.colors.secondary});
-        `
-      : css`
-          &:hover {
-            box-shadow: inset 0 -2px rgba(${props.theme.colors.text.secondary});
-            color: rgba(${props.theme.colors.text.secondary});
-          }
-        `}
+  &:hover {
+    box-shadow: inset 0 -2px rgba(${props => props.theme.colors.text.secondary});
+    color: rgba(${props => props.theme.colors.text.secondary});
+  }
+
+  &.active {
+    box-shadow: inset 0 -2px rgba(${props => props.theme.colors.secondary});
+    color: rgba(${props => props.theme.colors.secondary});
+  }
+  &.active:hover {
+    box-shadow: inset 0 -2px rgba(${props => props.theme.colors.secondary});
+    color: rgba(${props => props.theme.colors.secondary});
+  }
 `;
 
 export const ProjectName = styled.h1`

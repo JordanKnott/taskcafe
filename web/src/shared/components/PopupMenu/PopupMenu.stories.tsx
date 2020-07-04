@@ -343,9 +343,12 @@ export const MiniProfilePopup = () => {
           left={popupData.left}
         >
           <MiniProfile
-            displayName="Jordan Knott"
-            profileIcon={{ url: null, bgColor: '#000', initials: 'JK' }}
-            username="@jordanthedev"
+            user={{
+              id: '1',
+              fullName: 'Jordan Knott',
+              username: 'jordanthedev',
+              profileIcon: { url: null, bgColor: '#000', initials: 'JK' },
+            }}
             bio="Stuff and things"
             onRemoveFromTask={action('mini profile')}
           />

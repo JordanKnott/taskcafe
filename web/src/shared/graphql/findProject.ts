@@ -8,6 +8,11 @@ query findProject($projectId: String!) {
     members {
       id
       fullName
+      username
+      role {
+        code
+        name
+      }
       profileIcon {
         url
         initials
@@ -39,6 +44,21 @@ query findProject($projectId: String!) {
     position
     colorHex
     name
+  }
+  users {
+    id
+    email
+    fullName
+    username
+    role {
+      code
+      name
+    }
+    profileIcon {
+      url
+      initials
+      bgColor
+    }
   }
   ${TASK_FRAGMENT}
 }

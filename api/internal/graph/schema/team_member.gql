@@ -1,0 +1,48 @@
+extend type Mutation {
+  setTeamOwner(input: SetTeamOwner!): SetTeamOwnerPayload!
+  createTeamMember(input: CreateTeamMember!): CreateTeamMemberPayload!
+  updateTeamMemberRole(input: UpdateTeamMemberRole!): UpdateTeamMemberRolePayload!
+  deleteTeamMember(input: DeleteTeamMember!): DeleteTeamMemberPayload!
+}
+
+input DeleteTeamMember {
+  teamID: UUID!
+  userID: UUID!
+}
+
+type DeleteTeamMemberPayload {
+  teamID: UUID!
+  userID: UUID!
+}
+
+input CreateTeamMember {
+  userID: UUID!
+  teamID: UUID!
+}
+
+type CreateTeamMemberPayload {
+  team: Team!
+  teamMember: Member!
+}
+
+input UpdateTeamMemberRole {
+  teamID: UUID!
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateTeamMemberRolePayload {
+  ok: Boolean!
+  member: Member!
+}
+
+input SetTeamOwner {
+  teamID: UUID!
+  userID: UUID!
+}
+
+type SetTeamOwnerPayload {
+  ok: Boolean!
+  prevOwner: Member!
+  newOwner: Member!
+}

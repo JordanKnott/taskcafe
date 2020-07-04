@@ -1,0 +1,32 @@
+extend type Mutation {
+  createTaskGroup(input: NewTaskGroup!): TaskGroup!
+  updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
+  updateTaskGroupName(input: UpdateTaskGroupName!): TaskGroup!
+  deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
+}
+
+input NewTaskGroupLocation {
+  taskGroupID: UUID!
+  position: Float!
+}
+
+input UpdateTaskGroupName  {
+  taskGroupID: UUID!
+  name: String!
+}
+
+input DeleteTaskGroupInput {
+  taskGroupID: UUID!
+}
+
+type DeleteTaskGroupPayload {
+  ok: Boolean!
+  affectedRows: Int!
+  taskGroup: TaskGroup!
+}
+
+input NewTaskGroup {
+  projectID: String!
+  name: String!
+  position: Float!
+}

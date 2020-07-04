@@ -1,0 +1,19 @@
+extend type Mutation {
+  deleteTeam(input: DeleteTeam!): DeleteTeamPayload!
+  createTeam(input: NewTeam!): Team!
+}
+
+input NewTeam {
+  name: String!
+  organizationID: UUID!
+}
+
+input DeleteTeam {
+  teamID: UUID!
+}
+
+type DeleteTeamPayload {
+  ok: Boolean!
+  team: Team!
+  projects: [Project!]!
+}

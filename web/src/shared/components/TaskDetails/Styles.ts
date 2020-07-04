@@ -179,6 +179,10 @@ export const TaskDetailsMarkdown = styled.div`
     margin: 8px 8px 8px 24px;
     list-style: disc;
   }
+
+  p a {
+    color: rgba(${props => props.theme.colors.primary});
+  }
 `;
 
 export const TaskDetailsControls = styled.div`

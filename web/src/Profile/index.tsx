@@ -53,7 +53,7 @@ const Projects = () => {
       <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
       {!loading && data && (
         <Settings
-          profile={data.me.profileIcon}
+          profile={data.me}
           onProfileAvatarChange={() => {
             if ($fileUpload && $fileUpload.current) {
               $fileUpload.current.click();

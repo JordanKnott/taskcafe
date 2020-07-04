@@ -1,0 +1,33 @@
+extend type Mutation {
+  createRefreshToken(input: NewRefreshToken!): RefreshToken!
+  createUserAccount(input: NewUserAccount!): UserAccount!
+  deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
+  logoutUser(input: LogoutUser!): Boolean!
+  clearProfileAvatar:  UserAccount!
+}
+
+input NewRefreshToken {
+  userId: String!
+}
+
+input NewUserAccount {
+  username: String!
+  email: String!
+  fullName: String!
+  initials: String!
+  password: String!
+  roleCode: String!
+}
+
+input LogoutUser {
+  userID: String!
+}
+
+input DeleteUserAccount {
+  userID: UUID!
+}
+
+type DeleteUserAccountPayload {
+  ok: Boolean!
+  userAccount: UserAccount!
+}

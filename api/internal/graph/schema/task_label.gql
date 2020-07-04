@@ -1,0 +1,22 @@
+input AddTaskLabelInput {
+  taskID: UUID!
+  projectLabelID: UUID!
+}
+
+input RemoveTaskLabelInput {
+  taskLabelID: UUID!
+}
+input ToggleTaskLabelInput {
+  taskID: UUID!
+  projectLabelID: UUID!
+}
+
+type ToggleTaskLabelPayload {
+  active: Boolean!
+  task: Task!
+}
+extend type Mutation {
+  addTaskLabel(input: AddTaskLabelInput): Task!
+  removeTaskLabel(input: RemoveTaskLabelInput): Task!
+  toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
+}

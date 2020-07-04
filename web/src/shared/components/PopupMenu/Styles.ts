@@ -78,7 +78,6 @@ export const Content = styled.div`
   max-height: 632px;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 0 12px 12px;
 `;
 export const LabelSearch = styled.input`
   box-sizing: border-box;
@@ -266,6 +265,9 @@ export const LabelBox = styled.span<{ color: string }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 export const SaveButton = styled.input`

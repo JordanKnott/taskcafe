@@ -228,7 +228,7 @@ const SaveButton = styled(Button)`
 type SettingsProps = {
   onProfileAvatarChange: () => void;
   onProfileAvatarRemove: () => void;
-  profile: ProfileIcon;
+  profile: TaskUser;
 };
 
 const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAvatarChange, profile }) => {
@@ -261,11 +261,15 @@ const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAva
           <AvatarSettings
             onProfileAvatarRemove={onProfileAvatarRemove}
             onProfileAvatarChange={onProfileAvatarChange}
-            profile={profile}
+            profile={profile.profileIcon}
           />
-          <Input width="100%" label="Name" />
-          <Input width="100%" label="Initials " />
-          <Input width="100%" label="Username " />
+          <Input value={profile.fullName} width="100%" label="Name" />
+          <Input
+            value={profile.profileIcon && profile.profileIcon.initials ? profile.profileIcon.initials : ''}
+            width="100%"
+            label="Initials "
+          />
+          <Input value={profile.username ?? ''} width="100%" label="Username " />
           <Input width="100%" label="Email" />
           <Input width="100%" label="Bio" />
           <SettingActions>

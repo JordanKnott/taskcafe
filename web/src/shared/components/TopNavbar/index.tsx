@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import ProfileIcon from 'shared/components/ProfileIcon';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
+import { RoleCode } from 'shared/generated/graphql';
 import MiniProfile from 'shared/components/MiniProfile';
 import {
   CitadelLogo,
@@ -27,6 +28,7 @@ import {
   ProfileNameWrapper,
   ProfileNamePrimary,
   ProfileNameSecondary,
+  ProjectMember,
   ProjectMembers,
 } from './Styles';
 import { Link } from 'react-router-dom';
@@ -115,8 +117,9 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
   );
 };
 
-type MenuType = {
-  [key: number]: string;
+export type MenuItem = {
+  name: string;
+  link: string;
 };
 type MenuTypes = {
   [key: string]: Array<string>;
@@ -128,28 +131,36 @@ export const MENU_TYPES: MenuTypes = {
 };
 
 type NavBarProps = {
-  menuType?: Array<string> | null;
+  menuType?: Array<MenuItem> | null;
   name: string | null;
   currentTab?: number;
+  onSetTab?: (tab: number) => void;
   onOpenProjectFinder: ($target: React.RefObject<HTMLElement>) => void;
+  onChangeProjectOwner?: (userID: string) => void;
+  onChangeRole?: (userID: string, roleCode: RoleCode) => void;
   onFavorite?: () => void;
   onProfileClick: ($target: React.RefObject<HTMLElement>) => void;
-  onTabClick?: (tab: number) => void;
   onSaveName?: (name: string) => void;
   onNotificationClick: () => void;
+  onInviteUser?: ($target: React.RefObject<HTMLElement>) => void;
   onDashboardClick: () => void;
   user: TaskUser | null;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
   projectMembers?: Array<TaskUser> | null;
+  onRemoveFromBoard?: (userID: string) => void;
 };
 
 const NavBar: React.FC<NavBarProps> = ({
   menuType,
+  onInviteUser,
+  onChangeProjectOwner,
   currentTab,
   onOpenProjectFinder,
   onFavorite,
-  onTabClick,
+  onSetTab,
+  onChangeRole,
   name,
+  onRemoveFromBoard,
   onSaveName,
   onProfileClick,
   onNotificationClick,
@@ -165,18 +176,44 @@ const NavBar: React.FC<NavBarProps> = ({
   };
   const { showPopup } = usePopup();
   const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
-    showPopup(
-      $targetRef,
-      <Popup title={null} onClose={() => {}} tab={0}>
+    const member = projectMembers ? projectMembers.find(u => u.id === memberID) : null;
+    const warning =
+      'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
+    if (member) {
+      console.log(member);
+      showPopup(
+        $targetRef,
         <MiniProfile
-          profileIcon={projectMembers ? projectMembers[0].profileIcon : { url: null, initials: 'JK', bgColor: '#000' }}
-          displayName="Jordan Knott"
-          username="@jordanthedev"
-          bio="None"
-          onRemoveFromTask={() => {}}
-        />
-      </Popup>,
-    );
+          warning={member.role && member.role.code === 'owner' ? warning : null}
+          onChangeProjectOwner={
+            member.role && member.role.code !== 'owner'
+              ? (userID: string) => {
+                  if (user && onChangeProjectOwner) {
+                    onChangeProjectOwner(userID);
+                  }
+                }
+              : undefined
+          }
+          canChangeRole={member.role && member.role.code !== 'owner'}
+          onChangeRole={roleCode => {
+            if (onChangeRole) {
+              onChangeRole(member.id, roleCode);
+            }
+          }}
+          onRemoveFromBoard={
+            member.role && member.role.code === 'owner'
+              ? undefined
+              : () => {
+                  if (onRemoveFromBoard) {
+                    onRemoveFromBoard(member.id);
+                  }
+                }
+          }
+          user={member}
+          bio=""
+        />,
+      );
+    }
   };
 
   return (
@@ -196,11 +233,17 @@ const NavBar: React.FC<NavBarProps> = ({
           {name && (
             <ProjectTabs>
               {menuType &&
-                menuType.map((name, idx) => {
-                  console.log(`${name} : ${idx} === ${currentTab}`);
+                menuType.map((menu, idx) => {
                   return (
-                    <ProjectTab key={idx} active={currentTab === idx}>
-                      {name}
+                    <ProjectTab
+                      key={menu.name}
+                      to={menu.link}
+                      exact
+                      onClick={() => {
+                        // TODO
+                      }}
+                    >
+                      {menu.name}
                     </ProjectTab>
                   );
                 })}
@@ -215,10 +258,26 @@ const NavBar: React.FC<NavBarProps> = ({
           {projectMembers && (
             <>
               <ProjectMembers>
-                {projectMembers.map(member => (
-                  <TaskAssignee key={member.id} size={28} member={member} onMemberProfile={onMemberProfile} />
+                {projectMembers.map((member, idx) => (
+                  <ProjectMember
+                    showRoleIcons
+                    zIndex={projectMembers.length - idx}
+                    key={member.id}
+                    size={28}
+                    member={member}
+                    onMemberProfile={onMemberProfile}
+                  />
                 ))}
-                <InviteButton variant="outline">Invite</InviteButton>
+                <InviteButton
+                  onClick={$target => {
+                    if (onInviteUser) {
+                      onInviteUser($target);
+                    }
+                  }}
+                  variant="outline"
+                >
+                  Invite
+                </InviteButton>
               </ProjectMembers>
               <NavSeparator />
             </>
