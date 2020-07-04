@@ -8,20 +8,19 @@ windows:
       root: ./
       panes:
         - api:
-          - cd api
           - go run cmd/citadel/main.go
         - yarn:
-          - cd web
+          - cd frontend
           - yarn start
   - web/editor:
-      root: ./web
+      root: ./frontend
       panes:
         - vim src/index.tsx
   - api/editor:
-      root: ./api
+      root: ./
       panes:
         - vim cmd/citadel/main.go
   - database:
-      root: ./api
+      root: ./
       panes:
         - pgcli postgres://postgres:test@localhost:5432/citadel
