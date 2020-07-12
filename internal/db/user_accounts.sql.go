@@ -189,3 +189,30 @@ func (q *Queries) UpdateUserAccountProfileAvatarURL(ctx context.Context, arg Upd
 	)
 	return i, err
 }
+
+const updateUserRole = `-- name: UpdateUserRole :one
+UPDATE user_account SET role_code = $2 WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code
+`
+
+type UpdateUserRoleParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	RoleCode string    `json:"role_code"`
+}
+
+func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UserAccount, error) {
+	row := q.db.QueryRowContext(ctx, updateUserRole, arg.UserID, arg.RoleCode)
+	var i UserAccount
+	err := row.Scan(
+		&i.UserID,
+		&i.CreatedAt,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
+		&i.RoleCode,
+	)
+	return i, err
+}

@@ -8,11 +8,13 @@ extend type Mutation {
 input DeleteTeamMember {
   teamID: UUID!
   userID: UUID!
+  newOwnerID: UUID
 }
 
 type DeleteTeamMemberPayload {
   teamID: UUID!
   userID: UUID!
+  affectedProjects: [Project!]!
 }
 
 input CreateTeamMember {

@@ -219,6 +219,31 @@ func (q *Queries) SetTaskChecklistItemComplete(ctx context.Context, arg SetTaskC
 	return i, err
 }
 
+const updateTaskChecklistItemLocation = `-- name: UpdateTaskChecklistItemLocation :one
+UPDATE task_checklist_item SET position = $2, task_checklist_id = $3 WHERE task_checklist_item_id = $1 RETURNING task_checklist_item_id, task_checklist_id, created_at, complete, name, position, due_date
+`
+
+type UpdateTaskChecklistItemLocationParams struct {
+	TaskChecklistItemID uuid.UUID `json:"task_checklist_item_id"`
+	Position            float64   `json:"position"`
+	TaskChecklistID     uuid.UUID `json:"task_checklist_id"`
+}
+
+func (q *Queries) UpdateTaskChecklistItemLocation(ctx context.Context, arg UpdateTaskChecklistItemLocationParams) (TaskChecklistItem, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskChecklistItemLocation, arg.TaskChecklistItemID, arg.Position, arg.TaskChecklistID)
+	var i TaskChecklistItem
+	err := row.Scan(
+		&i.TaskChecklistItemID,
+		&i.TaskChecklistID,
+		&i.CreatedAt,
+		&i.Complete,
+		&i.Name,
+		&i.Position,
+		&i.DueDate,
+	)
+	return i, err
+}
+
 const updateTaskChecklistItemName = `-- name: UpdateTaskChecklistItemName :one
 UPDATE task_checklist_item SET name = $2 WHERE task_checklist_item_id = $1
   RETURNING task_checklist_item_id, task_checklist_id, created_at, complete, name, position, due_date
@@ -256,6 +281,28 @@ type UpdateTaskChecklistNameParams struct {
 
 func (q *Queries) UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error) {
 	row := q.db.QueryRowContext(ctx, updateTaskChecklistName, arg.TaskChecklistID, arg.Name)
+	var i TaskChecklist
+	err := row.Scan(
+		&i.TaskChecklistID,
+		&i.TaskID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+	)
+	return i, err
+}
+
+const updateTaskChecklistPosition = `-- name: UpdateTaskChecklistPosition :one
+UPDATE task_checklist SET position = $2 WHERE task_checklist_id = $1 RETURNING task_checklist_id, task_id, created_at, name, position
+`
+
+type UpdateTaskChecklistPositionParams struct {
+	TaskChecklistID uuid.UUID `json:"task_checklist_id"`
+	Position        float64   `json:"position"`
+}
+
+func (q *Queries) UpdateTaskChecklistPosition(ctx context.Context, arg UpdateTaskChecklistPositionParams) (TaskChecklist, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskChecklistPosition, arg.TaskChecklistID, arg.Position)
 	var i TaskChecklist
 	err := row.Scan(
 		&i.TaskChecklistID,

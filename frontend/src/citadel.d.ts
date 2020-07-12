@@ -31,12 +31,18 @@ type User = {
   profileIcon: ProfileIcon;
 };
 
+type OwnedList = {
+  projects: Array<string>;
+  teams: Array<string>;
+};
+
 type TaskUser = {
   id: string;
   fullName: string;
   profileIcon: ProfileIcon;
   username?: string;
   role?: Role;
+  owned?: OwnedList | null;
 };
 
 type RefreshTokenResponse = {

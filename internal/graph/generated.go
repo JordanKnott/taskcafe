@@ -104,8 +104,9 @@ type ComplexityRoot struct {
 	}
 
 	DeleteTeamMemberPayload struct {
-		TeamID func(childComplexity int) int
-		UserID func(childComplexity int) int
+		AffectedProjects func(childComplexity int) int
+		TeamID           func(childComplexity int) int
+		UserID           func(childComplexity int) int
 	}
 
 	DeleteTeamPayload struct {
@@ -129,63 +130,72 @@ type ComplexityRoot struct {
 	Member struct {
 		FullName    func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Owned       func(childComplexity int) int
 		ProfileIcon func(childComplexity int) int
 		Role        func(childComplexity int) int
 		Username    func(childComplexity int) int
 	}
 
 	Mutation struct {
-		AddTaskLabel                 func(childComplexity int, input *AddTaskLabelInput) int
-		AssignTask                   func(childComplexity int, input *AssignTaskInput) int
-		ClearProfileAvatar           func(childComplexity int) int
-		CreateProject                func(childComplexity int, input NewProject) int
-		CreateProjectLabel           func(childComplexity int, input NewProjectLabel) int
-		CreateProjectMember          func(childComplexity int, input CreateProjectMember) int
-		CreateRefreshToken           func(childComplexity int, input NewRefreshToken) int
-		CreateTask                   func(childComplexity int, input NewTask) int
-		CreateTaskChecklist          func(childComplexity int, input CreateTaskChecklist) int
-		CreateTaskChecklistItem      func(childComplexity int, input CreateTaskChecklistItem) int
-		CreateTaskGroup              func(childComplexity int, input NewTaskGroup) int
-		CreateTeam                   func(childComplexity int, input NewTeam) int
-		CreateTeamMember             func(childComplexity int, input CreateTeamMember) int
-		CreateUserAccount            func(childComplexity int, input NewUserAccount) int
-		DeleteProject                func(childComplexity int, input DeleteProject) int
-		DeleteProjectLabel           func(childComplexity int, input DeleteProjectLabel) int
-		DeleteProjectMember          func(childComplexity int, input DeleteProjectMember) int
-		DeleteTask                   func(childComplexity int, input DeleteTaskInput) int
-		DeleteTaskChecklist          func(childComplexity int, input DeleteTaskChecklist) int
-		DeleteTaskChecklistItem      func(childComplexity int, input DeleteTaskChecklistItem) int
-		DeleteTaskGroup              func(childComplexity int, input DeleteTaskGroupInput) int
-		DeleteTeam                   func(childComplexity int, input DeleteTeam) int
-		DeleteTeamMember             func(childComplexity int, input DeleteTeamMember) int
-		DeleteUserAccount            func(childComplexity int, input DeleteUserAccount) int
-		LogoutUser                   func(childComplexity int, input LogoutUser) int
-		RemoveTaskLabel              func(childComplexity int, input *RemoveTaskLabelInput) int
-		SetProjectOwner              func(childComplexity int, input SetProjectOwner) int
-		SetTaskChecklistItemComplete func(childComplexity int, input SetTaskChecklistItemComplete) int
-		SetTaskComplete              func(childComplexity int, input SetTaskComplete) int
-		SetTeamOwner                 func(childComplexity int, input SetTeamOwner) int
-		ToggleTaskLabel              func(childComplexity int, input ToggleTaskLabelInput) int
-		UnassignTask                 func(childComplexity int, input *UnassignTaskInput) int
-		UpdateProjectLabel           func(childComplexity int, input UpdateProjectLabel) int
-		UpdateProjectLabelColor      func(childComplexity int, input UpdateProjectLabelColor) int
-		UpdateProjectLabelName       func(childComplexity int, input UpdateProjectLabelName) int
-		UpdateProjectMemberRole      func(childComplexity int, input UpdateProjectMemberRole) int
-		UpdateProjectName            func(childComplexity int, input *UpdateProjectName) int
-		UpdateTaskChecklistItemName  func(childComplexity int, input UpdateTaskChecklistItemName) int
-		UpdateTaskChecklistName      func(childComplexity int, input UpdateTaskChecklistName) int
-		UpdateTaskDescription        func(childComplexity int, input UpdateTaskDescriptionInput) int
-		UpdateTaskDueDate            func(childComplexity int, input UpdateTaskDueDate) int
-		UpdateTaskGroupLocation      func(childComplexity int, input NewTaskGroupLocation) int
-		UpdateTaskGroupName          func(childComplexity int, input UpdateTaskGroupName) int
-		UpdateTaskLocation           func(childComplexity int, input NewTaskLocation) int
-		UpdateTaskName               func(childComplexity int, input UpdateTaskName) int
-		UpdateTeamMemberRole         func(childComplexity int, input UpdateTeamMemberRole) int
+		AddTaskLabel                    func(childComplexity int, input *AddTaskLabelInput) int
+		AssignTask                      func(childComplexity int, input *AssignTaskInput) int
+		ClearProfileAvatar              func(childComplexity int) int
+		CreateProject                   func(childComplexity int, input NewProject) int
+		CreateProjectLabel              func(childComplexity int, input NewProjectLabel) int
+		CreateProjectMember             func(childComplexity int, input CreateProjectMember) int
+		CreateRefreshToken              func(childComplexity int, input NewRefreshToken) int
+		CreateTask                      func(childComplexity int, input NewTask) int
+		CreateTaskChecklist             func(childComplexity int, input CreateTaskChecklist) int
+		CreateTaskChecklistItem         func(childComplexity int, input CreateTaskChecklistItem) int
+		CreateTaskGroup                 func(childComplexity int, input NewTaskGroup) int
+		CreateTeam                      func(childComplexity int, input NewTeam) int
+		CreateTeamMember                func(childComplexity int, input CreateTeamMember) int
+		CreateUserAccount               func(childComplexity int, input NewUserAccount) int
+		DeleteProject                   func(childComplexity int, input DeleteProject) int
+		DeleteProjectLabel              func(childComplexity int, input DeleteProjectLabel) int
+		DeleteProjectMember             func(childComplexity int, input DeleteProjectMember) int
+		DeleteTask                      func(childComplexity int, input DeleteTaskInput) int
+		DeleteTaskChecklist             func(childComplexity int, input DeleteTaskChecklist) int
+		DeleteTaskChecklistItem         func(childComplexity int, input DeleteTaskChecklistItem) int
+		DeleteTaskGroup                 func(childComplexity int, input DeleteTaskGroupInput) int
+		DeleteTeam                      func(childComplexity int, input DeleteTeam) int
+		DeleteTeamMember                func(childComplexity int, input DeleteTeamMember) int
+		DeleteUserAccount               func(childComplexity int, input DeleteUserAccount) int
+		LogoutUser                      func(childComplexity int, input LogoutUser) int
+		RemoveTaskLabel                 func(childComplexity int, input *RemoveTaskLabelInput) int
+		SetProjectOwner                 func(childComplexity int, input SetProjectOwner) int
+		SetTaskChecklistItemComplete    func(childComplexity int, input SetTaskChecklistItemComplete) int
+		SetTaskComplete                 func(childComplexity int, input SetTaskComplete) int
+		SetTeamOwner                    func(childComplexity int, input SetTeamOwner) int
+		ToggleTaskLabel                 func(childComplexity int, input ToggleTaskLabelInput) int
+		UnassignTask                    func(childComplexity int, input *UnassignTaskInput) int
+		UpdateProjectLabel              func(childComplexity int, input UpdateProjectLabel) int
+		UpdateProjectLabelColor         func(childComplexity int, input UpdateProjectLabelColor) int
+		UpdateProjectLabelName          func(childComplexity int, input UpdateProjectLabelName) int
+		UpdateProjectMemberRole         func(childComplexity int, input UpdateProjectMemberRole) int
+		UpdateProjectName               func(childComplexity int, input *UpdateProjectName) int
+		UpdateTaskChecklistItemLocation func(childComplexity int, input UpdateTaskChecklistItemLocation) int
+		UpdateTaskChecklistItemName     func(childComplexity int, input UpdateTaskChecklistItemName) int
+		UpdateTaskChecklistLocation     func(childComplexity int, input UpdateTaskChecklistLocation) int
+		UpdateTaskChecklistName         func(childComplexity int, input UpdateTaskChecklistName) int
+		UpdateTaskDescription           func(childComplexity int, input UpdateTaskDescriptionInput) int
+		UpdateTaskDueDate               func(childComplexity int, input UpdateTaskDueDate) int
+		UpdateTaskGroupLocation         func(childComplexity int, input NewTaskGroupLocation) int
+		UpdateTaskGroupName             func(childComplexity int, input UpdateTaskGroupName) int
+		UpdateTaskLocation              func(childComplexity int, input NewTaskLocation) int
+		UpdateTaskName                  func(childComplexity int, input UpdateTaskName) int
+		UpdateTeamMemberRole            func(childComplexity int, input UpdateTeamMemberRole) int
+		UpdateUserRole                  func(childComplexity int, input UpdateUserRole) int
 	}
 
 	Organization struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
+	}
+
+	OwnersList struct {
+		Projects func(childComplexity int) int
+		Teams    func(childComplexity int) int
 	}
 
 	ProfileIcon struct {
@@ -317,6 +327,16 @@ type ComplexityRoot struct {
 		Ok     func(childComplexity int) int
 	}
 
+	UpdateTaskChecklistItemLocationPayload struct {
+		ChecklistID     func(childComplexity int) int
+		ChecklistItem   func(childComplexity int) int
+		PrevChecklistID func(childComplexity int) int
+	}
+
+	UpdateTaskChecklistLocationPayload struct {
+		Checklist func(childComplexity int) int
+	}
+
 	UpdateTaskLocationPayload struct {
 		PreviousTaskGroupID func(childComplexity int) int
 		Task                func(childComplexity int) int
@@ -325,6 +345,10 @@ type ComplexityRoot struct {
 	UpdateTeamMemberRolePayload struct {
 		Member func(childComplexity int) int
 		Ok     func(childComplexity int) int
+	}
+
+	UpdateUserRolePayload struct {
+		User func(childComplexity int) int
 	}
 
 	UserAccount struct {
@@ -371,6 +395,8 @@ type MutationResolver interface {
 	UpdateTaskChecklistItemName(ctx context.Context, input UpdateTaskChecklistItemName) (*db.TaskChecklistItem, error)
 	SetTaskChecklistItemComplete(ctx context.Context, input SetTaskChecklistItemComplete) (*db.TaskChecklistItem, error)
 	DeleteTaskChecklistItem(ctx context.Context, input DeleteTaskChecklistItem) (*DeleteTaskChecklistItemPayload, error)
+	UpdateTaskChecklistLocation(ctx context.Context, input UpdateTaskChecklistLocation) (*UpdateTaskChecklistLocationPayload, error)
+	UpdateTaskChecklistItemLocation(ctx context.Context, input UpdateTaskChecklistItemLocation) (*UpdateTaskChecklistItemLocationPayload, error)
 	CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*db.TaskGroup, error)
 	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*db.TaskGroup, error)
 	UpdateTaskGroupName(ctx context.Context, input UpdateTaskGroupName) (*db.TaskGroup, error)
@@ -389,6 +415,7 @@ type MutationResolver interface {
 	DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error)
 	LogoutUser(ctx context.Context, input LogoutUser) (bool, error)
 	ClearProfileAvatar(ctx context.Context) (*db.UserAccount, error)
+	UpdateUserRole(ctx context.Context, input UpdateUserRole) (*UpdateUserRolePayload, error)
 }
 type OrganizationResolver interface {
 	ID(ctx context.Context, obj *db.Organization) (uuid.UUID, error)
@@ -617,6 +644,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeleteTaskPayload.TaskID(childComplexity), true
 
+	case "DeleteTeamMemberPayload.affectedProjects":
+		if e.complexity.DeleteTeamMemberPayload.AffectedProjects == nil {
+			break
+		}
+
+		return e.complexity.DeleteTeamMemberPayload.AffectedProjects(childComplexity), true
+
 	case "DeleteTeamMemberPayload.teamID":
 		if e.complexity.DeleteTeamMemberPayload.TeamID == nil {
 			break
@@ -707,6 +741,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Member.ID(childComplexity), true
+
+	case "Member.owned":
+		if e.complexity.Member.Owned == nil {
+			break
+		}
+
+		return e.complexity.Member.Owned(childComplexity), true
 
 	case "Member.profileIcon":
 		if e.complexity.Member.ProfileIcon == nil {
@@ -1168,6 +1209,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateProjectName(childComplexity, args["input"].(*UpdateProjectName)), true
 
+	case "Mutation.updateTaskChecklistItemLocation":
+		if e.complexity.Mutation.UpdateTaskChecklistItemLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskChecklistItemLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskChecklistItemLocation(childComplexity, args["input"].(UpdateTaskChecklistItemLocation)), true
+
 	case "Mutation.updateTaskChecklistItemName":
 		if e.complexity.Mutation.UpdateTaskChecklistItemName == nil {
 			break
@@ -1179,6 +1232,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTaskChecklistItemName(childComplexity, args["input"].(UpdateTaskChecklistItemName)), true
+
+	case "Mutation.updateTaskChecklistLocation":
+		if e.complexity.Mutation.UpdateTaskChecklistLocation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskChecklistLocation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskChecklistLocation(childComplexity, args["input"].(UpdateTaskChecklistLocation)), true
 
 	case "Mutation.updateTaskChecklistName":
 		if e.complexity.Mutation.UpdateTaskChecklistName == nil {
@@ -1276,6 +1341,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateTeamMemberRole(childComplexity, args["input"].(UpdateTeamMemberRole)), true
 
+	case "Mutation.updateUserRole":
+		if e.complexity.Mutation.UpdateUserRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserRole(childComplexity, args["input"].(UpdateUserRole)), true
+
 	case "Organization.id":
 		if e.complexity.Organization.ID == nil {
 			break
@@ -1289,6 +1366,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organization.Name(childComplexity), true
+
+	case "OwnersList.projects":
+		if e.complexity.OwnersList.Projects == nil {
+			break
+		}
+
+		return e.complexity.OwnersList.Projects(childComplexity), true
+
+	case "OwnersList.teams":
+		if e.complexity.OwnersList.Teams == nil {
+			break
+		}
+
+		return e.complexity.OwnersList.Teams(childComplexity), true
 
 	case "ProfileIcon.bgColor":
 		if e.complexity.ProfileIcon.BgColor == nil {
@@ -1861,6 +1952,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UpdateProjectMemberRolePayload.Ok(childComplexity), true
 
+	case "UpdateTaskChecklistItemLocationPayload.checklistID":
+		if e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistID == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistID(childComplexity), true
+
+	case "UpdateTaskChecklistItemLocationPayload.checklistItem":
+		if e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistItem == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistItem(childComplexity), true
+
+	case "UpdateTaskChecklistItemLocationPayload.prevChecklistID":
+		if e.complexity.UpdateTaskChecklistItemLocationPayload.PrevChecklistID == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskChecklistItemLocationPayload.PrevChecklistID(childComplexity), true
+
+	case "UpdateTaskChecklistLocationPayload.checklist":
+		if e.complexity.UpdateTaskChecklistLocationPayload.Checklist == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskChecklistLocationPayload.Checklist(childComplexity), true
+
 	case "UpdateTaskLocationPayload.previousTaskGroupID":
 		if e.complexity.UpdateTaskLocationPayload.PreviousTaskGroupID == nil {
 			break
@@ -1888,6 +2007,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UpdateTeamMemberRolePayload.Ok(childComplexity), true
+
+	case "UpdateUserRolePayload.user":
+		if e.complexity.UpdateUserRolePayload.User == nil {
+			break
+		}
+
+		return e.complexity.UpdateUserRolePayload.User(childComplexity), true
 
 	case "UserAccount.createdAt":
 		if e.complexity.UserAccount.CreatedAt == nil {
@@ -2046,12 +2172,18 @@ type ProfileIcon {
   bgColor: String
 }
 
+type OwnersList  {
+  projects: [UUID!]!
+  teams: [UUID!]!
+}
+
 type Member {
   id: ID!
   role: Role!
   fullName: String!
   username: String!
   profileIcon: ProfileIcon!
+  owned: OwnersList
 }
 
 type RefreshToken {
@@ -2372,6 +2504,30 @@ extend type Mutation {
   updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
   setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
   deleteTaskChecklistItem(input: DeleteTaskChecklistItem!): DeleteTaskChecklistItemPayload!
+
+  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!): UpdateTaskChecklistLocationPayload!
+  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!): UpdateTaskChecklistItemLocationPayload!
+}
+
+input UpdateTaskChecklistItemLocation {
+  checklistID: UUID!
+  checklistItemID: UUID!
+  position: Float!
+}
+
+type UpdateTaskChecklistItemLocationPayload {
+  checklistID: UUID!
+  prevChecklistID: UUID!
+  checklistItem: TaskChecklistItem!
+}
+
+input UpdateTaskChecklistLocation {
+  checklistID: UUID!
+  position: Float!
+}
+
+type UpdateTaskChecklistLocationPayload {
+  checklist: TaskChecklist!
 }
 
 input CreateTaskChecklist {
@@ -2503,11 +2659,13 @@ extend type Mutation {
 input DeleteTeamMember {
   teamID: UUID!
   userID: UUID!
+  newOwnerID: UUID
 }
 
 type DeleteTeamMemberPayload {
   teamID: UUID!
   userID: UUID!
+  affectedProjects: [Project!]!
 }
 
 input CreateTeamMember {
@@ -2548,6 +2706,17 @@ extend type Mutation {
   deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
+
+  updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+}
+
+input UpdateUserRole {
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateUserRolePayload {
+  user: UserAccount!
 }
 
 input NewRefreshToken {
@@ -3088,12 +3257,40 @@ func (ec *executionContext) field_Mutation_updateProjectName_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateTaskChecklistItemLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateTaskChecklistItemLocation
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateTaskChecklistItemLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemLocation(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateTaskChecklistItemName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 UpdateTaskChecklistItemName
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateTaskChecklistItemName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemName(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTaskChecklistLocation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateTaskChecklistLocation
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateTaskChecklistLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistLocation(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3206,6 +3403,20 @@ func (ec *executionContext) field_Mutation_updateTeamMemberRole_args(ctx context
 	var arg0 UpdateTeamMemberRole
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateTeamMemberRole2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTeamMemberRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateUserRole
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateUserRole2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserRole(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4048,6 +4259,40 @@ func (ec *executionContext) _DeleteTeamMemberPayload_userID(ctx context.Context,
 	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _DeleteTeamMemberPayload_affectedProjects(ctx context.Context, field graphql.CollectedField, obj *DeleteTeamMemberPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTeamMemberPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AffectedProjects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐProjectᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DeleteTeamPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTeamPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4522,6 +4767,37 @@ func (ec *executionContext) _Member_profileIcon(ctx context.Context, field graph
 	res := resTmp.(*ProfileIcon)
 	fc.Result = res
 	return ec.marshalNProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐProfileIcon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_owned(ctx context.Context, field graphql.CollectedField, obj *Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Member",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Owned, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*OwnersList)
+	fc.Result = res
+	return ec.marshalOOwnersList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnersList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5672,6 +5948,88 @@ func (ec *executionContext) _Mutation_deleteTaskChecklistItem(ctx context.Contex
 	return ec.marshalNDeleteTaskChecklistItemPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐDeleteTaskChecklistItemPayload(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateTaskChecklistLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskChecklistLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTaskChecklistLocation(rctx, args["input"].(UpdateTaskChecklistLocation))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateTaskChecklistLocationPayload)
+	fc.Result = res
+	return ec.marshalNUpdateTaskChecklistLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistLocationPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskChecklistItemLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskChecklistItemLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTaskChecklistItemLocation(rctx, args["input"].(UpdateTaskChecklistItemLocation))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateTaskChecklistItemLocationPayload)
+	fc.Result = res
+	return ec.marshalNUpdateTaskChecklistItemLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemLocationPayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createTaskGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6403,6 +6761,47 @@ func (ec *executionContext) _Mutation_clearProfileAvatar(ctx context.Context, fi
 	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateUserRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateUserRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserRole(rctx, args["input"].(UpdateUserRole))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateUserRolePayload)
+	fc.Result = res
+	return ec.marshalNUpdateUserRolePayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserRolePayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *db.Organization) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6469,6 +6868,74 @@ func (ec *executionContext) _Organization_name(ctx context.Context, field graphq
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OwnersList_projects(ctx context.Context, field graphql.CollectedField, obj *OwnersList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "OwnersList",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Projects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OwnersList_teams(ctx context.Context, field graphql.CollectedField, obj *OwnersList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "OwnersList",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Teams, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProfileIcon_url(ctx context.Context, field graphql.CollectedField, obj *ProfileIcon) (ret graphql.Marshaler) {
@@ -9206,6 +9673,142 @@ func (ec *executionContext) _UpdateProjectMemberRolePayload_member(ctx context.C
 	return ec.marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMember(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload_checklistID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskChecklistItemLocationPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskChecklistItemLocationPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChecklistID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload_prevChecklistID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskChecklistItemLocationPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskChecklistItemLocationPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrevChecklistID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload_checklistItem(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskChecklistItemLocationPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskChecklistItemLocationPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChecklistItem, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.TaskChecklistItem)
+	fc.Result = res
+	return ec.marshalNTaskChecklistItem2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐTaskChecklistItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskChecklistLocationPayload_checklist(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskChecklistLocationPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskChecklistLocationPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Checklist, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.TaskChecklist)
+	fc.Result = res
+	return ec.marshalNTaskChecklist2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐTaskChecklist(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UpdateTaskLocationPayload_previousTaskGroupID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskLocationPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9340,6 +9943,40 @@ func (ec *executionContext) _UpdateTeamMemberRolePayload_member(ctx context.Cont
 	res := resTmp.(*Member)
 	fc.Result = res
 	return ec.marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateUserRolePayload_user(ctx context.Context, field graphql.CollectedField, obj *UpdateUserRolePayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateUserRolePayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.UserAccount)
+	fc.Result = res
+	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserAccount_id(ctx context.Context, field graphql.CollectedField, obj *db.UserAccount) (ret graphql.Marshaler) {
@@ -10993,6 +11630,12 @@ func (ec *executionContext) unmarshalInputDeleteTeamMember(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "newOwnerID":
+			var err error
+			it.NewOwnerID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -11683,6 +12326,36 @@ func (ec *executionContext) unmarshalInputUpdateProjectName(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateTaskChecklistItemLocation(ctx context.Context, obj interface{}) (UpdateTaskChecklistItemLocation, error) {
+	var it UpdateTaskChecklistItemLocation
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "checklistID":
+			var err error
+			it.ChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checklistItemID":
+			var err error
+			it.ChecklistItemID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "position":
+			var err error
+			it.Position, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateTaskChecklistItemName(ctx context.Context, obj interface{}) (UpdateTaskChecklistItemName, error) {
 	var it UpdateTaskChecklistItemName
 	var asMap = obj.(map[string]interface{})
@@ -11698,6 +12371,30 @@ func (ec *executionContext) unmarshalInputUpdateTaskChecklistItemName(ctx contex
 		case "name":
 			var err error
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateTaskChecklistLocation(ctx context.Context, obj interface{}) (UpdateTaskChecklistLocation, error) {
+	var it UpdateTaskChecklistLocation
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "checklistID":
+			var err error
+			it.ChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "position":
+			var err error
+			it.Position, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11839,6 +12536,30 @@ func (ec *executionContext) unmarshalInputUpdateTeamMemberRole(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "userID":
+			var err error
+			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "roleCode":
+			var err error
+			it.RoleCode, err = ec.unmarshalNRoleCode2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐRoleCode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateUserRole(ctx context.Context, obj interface{}) (UpdateUserRole, error) {
+	var it UpdateUserRole
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
 		case "userID":
 			var err error
 			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
@@ -12179,6 +12900,11 @@ func (ec *executionContext) _DeleteTeamMemberPayload(ctx context.Context, sel as
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "affectedProjects":
+			out.Values[i] = ec._DeleteTeamMemberPayload_affectedProjects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12346,6 +13072,8 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "owned":
+			out.Values[i] = ec._Member_owned(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12512,6 +13240,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateTaskChecklistLocation":
+			out.Values[i] = ec._Mutation_updateTaskChecklistLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskChecklistItemLocation":
+			out.Values[i] = ec._Mutation_updateTaskChecklistItemLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createTaskGroup":
 			out.Values[i] = ec._Mutation_createTaskGroup(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -12602,6 +13340,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateUserRole":
+			out.Values[i] = ec._Mutation_updateUserRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12642,6 +13385,38 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var ownersListImplementors = []string{"OwnersList"}
+
+func (ec *executionContext) _OwnersList(ctx context.Context, sel ast.SelectionSet, obj *OwnersList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ownersListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OwnersList")
+		case "projects":
+			out.Values[i] = ec._OwnersList_projects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "teams":
+			out.Values[i] = ec._OwnersList_teams(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -13765,6 +14540,70 @@ func (ec *executionContext) _UpdateProjectMemberRolePayload(ctx context.Context,
 	return out
 }
 
+var updateTaskChecklistItemLocationPayloadImplementors = []string{"UpdateTaskChecklistItemLocationPayload"}
+
+func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskChecklistItemLocationPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateTaskChecklistItemLocationPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateTaskChecklistItemLocationPayload")
+		case "checklistID":
+			out.Values[i] = ec._UpdateTaskChecklistItemLocationPayload_checklistID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "prevChecklistID":
+			out.Values[i] = ec._UpdateTaskChecklistItemLocationPayload_prevChecklistID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "checklistItem":
+			out.Values[i] = ec._UpdateTaskChecklistItemLocationPayload_checklistItem(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateTaskChecklistLocationPayloadImplementors = []string{"UpdateTaskChecklistLocationPayload"}
+
+func (ec *executionContext) _UpdateTaskChecklistLocationPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskChecklistLocationPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateTaskChecklistLocationPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateTaskChecklistLocationPayload")
+		case "checklist":
+			out.Values[i] = ec._UpdateTaskChecklistLocationPayload_checklist(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var updateTaskLocationPayloadImplementors = []string{"UpdateTaskLocationPayload"}
 
 func (ec *executionContext) _UpdateTaskLocationPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskLocationPayload) graphql.Marshaler {
@@ -13815,6 +14654,33 @@ func (ec *executionContext) _UpdateTeamMemberRolePayload(ctx context.Context, se
 			}
 		case "member":
 			out.Values[i] = ec._UpdateTeamMemberRolePayload_member(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateUserRolePayloadImplementors = []string{"UpdateUserRolePayload"}
+
+func (ec *executionContext) _UpdateUserRolePayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateUserRolePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateUserRolePayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateUserRolePayload")
+		case "user":
+			out.Values[i] = ec._UpdateUserRolePayload_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -15213,6 +16079,35 @@ func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 	return res
 }
 
+func (ec *executionContext) unmarshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]uuid.UUID, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []uuid.UUID) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNUpdateProjectLabel2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateProjectLabel(ctx context.Context, v interface{}) (UpdateProjectLabel, error) {
 	return ec.unmarshalInputUpdateProjectLabel(ctx, v)
 }
@@ -15243,8 +16138,44 @@ func (ec *executionContext) marshalNUpdateProjectMemberRolePayload2ᚖgithubᚗc
 	return ec._UpdateProjectMemberRolePayload(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNUpdateTaskChecklistItemLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemLocation(ctx context.Context, v interface{}) (UpdateTaskChecklistItemLocation, error) {
+	return ec.unmarshalInputUpdateTaskChecklistItemLocation(ctx, v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskChecklistItemLocationPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemLocationPayload(ctx context.Context, sel ast.SelectionSet, v UpdateTaskChecklistItemLocationPayload) graphql.Marshaler {
+	return ec._UpdateTaskChecklistItemLocationPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskChecklistItemLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemLocationPayload(ctx context.Context, sel ast.SelectionSet, v *UpdateTaskChecklistItemLocationPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateTaskChecklistItemLocationPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNUpdateTaskChecklistItemName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistItemName(ctx context.Context, v interface{}) (UpdateTaskChecklistItemName, error) {
 	return ec.unmarshalInputUpdateTaskChecklistItemName(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateTaskChecklistLocation2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistLocation(ctx context.Context, v interface{}) (UpdateTaskChecklistLocation, error) {
+	return ec.unmarshalInputUpdateTaskChecklistLocation(ctx, v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskChecklistLocationPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistLocationPayload(ctx context.Context, sel ast.SelectionSet, v UpdateTaskChecklistLocationPayload) graphql.Marshaler {
+	return ec._UpdateTaskChecklistLocationPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskChecklistLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistLocationPayload(ctx context.Context, sel ast.SelectionSet, v *UpdateTaskChecklistLocationPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateTaskChecklistLocationPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateTaskChecklistName2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTaskChecklistName(ctx context.Context, v interface{}) (UpdateTaskChecklistName, error) {
@@ -15297,6 +16228,24 @@ func (ec *executionContext) marshalNUpdateTeamMemberRolePayload2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._UpdateTeamMemberRolePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateUserRole2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserRole(ctx context.Context, v interface{}) (UpdateUserRole, error) {
+	return ec.unmarshalInputUpdateUserRole(ctx, v)
+}
+
+func (ec *executionContext) marshalNUpdateUserRolePayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserRolePayload(ctx context.Context, sel ast.SelectionSet, v UpdateUserRolePayload) graphql.Marshaler {
+	return ec._UpdateUserRolePayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateUserRolePayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserRolePayload(ctx context.Context, sel ast.SelectionSet, v *UpdateUserRolePayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateUserRolePayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserAccount2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐUserAccount(ctx context.Context, sel ast.SelectionSet, v db.UserAccount) graphql.Marshaler {
@@ -15632,6 +16581,17 @@ func (ec *executionContext) marshalOChecklistBadge2ᚖgithubᚗcomᚋjordanknott
 		return graphql.Null
 	}
 	return ec._ChecklistBadge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOwnersList2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnersList(ctx context.Context, sel ast.SelectionSet, v OwnersList) graphql.Marshaler {
+	return ec._OwnersList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOOwnersList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnersList(ctx context.Context, sel ast.SelectionSet, v *OwnersList) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._OwnersList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOProjectsFilter2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐProjectsFilter(ctx context.Context, v interface{}) (ProjectsFilter, error) {

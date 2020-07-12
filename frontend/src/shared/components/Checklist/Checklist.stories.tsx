@@ -5,7 +5,7 @@ import NormalizeStyles from 'App/NormalizeStyles';
 import { theme } from 'App/ThemeStyles';
 import produce from 'immer';
 import styled, { ThemeProvider } from 'styled-components';
-import Checklist from '.';
+import Checklist, { ChecklistItem } from '.';
 
 export default {
   component: Checklist,
@@ -86,6 +86,8 @@ export const Default = () => {
       <ThemeProvider theme={theme}>
         <Container>
           <Checklist
+            wrapperProps={{}}
+            handleProps={{}}
             name={checklistName}
             checklistID="checklist-one"
             items={items}
@@ -130,7 +132,21 @@ export const Default = () => {
               );
             }}
             onToggleItem={onToggleItem}
-          />
+          >
+            {items.map((item, idx) => (
+              <ChecklistItem
+                key={item.id}
+                wrapperProps={{}}
+                handleProps={{}}
+                itemID={item.id}
+                name={item.name}
+                complete={item.complete}
+                onDeleteItem={() => {}}
+                onChangeName={() => {}}
+                onToggleItem={() => {}}
+              />
+            ))}
+          </Checklist>
         </Container>
       </ThemeProvider>
     </>

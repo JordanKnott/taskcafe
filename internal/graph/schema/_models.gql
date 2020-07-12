@@ -35,12 +35,18 @@ type ProfileIcon {
   bgColor: String
 }
 
+type OwnersList  {
+  projects: [UUID!]!
+  teams: [UUID!]!
+}
+
 type Member {
   id: ID!
   role: Role!
   fullName: String!
   username: String!
   profileIcon: ProfileIcon!
+  owned: OwnersList
 }
 
 type RefreshToken {

@@ -14,6 +14,10 @@ export const GET_TEAM_QUERY = gql`
           code
           name
         }
+        owned {
+          projects
+          teams
+        }
         profileIcon {
           url
           initials

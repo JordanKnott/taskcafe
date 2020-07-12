@@ -63,7 +63,6 @@ export const TaskDetailsSidebar = styled.div`
 `;
 
 export const TaskDetailsTitleWrapper = styled.div`
-  height: 44px;
   width: 100%;
   margin: 0 0 0 -8px;
   display: inline-block;

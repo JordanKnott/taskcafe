@@ -158,6 +158,38 @@ func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) (
 	return items, nil
 }
 
+const getOwnedTeamProjectsForUserID = `-- name: GetOwnedTeamProjectsForUserID :many
+SELECT project_id FROM project WHERE owner = $1 AND team_id = $2
+`
+
+type GetOwnedTeamProjectsForUserIDParams struct {
+	Owner  uuid.UUID `json:"owner"`
+	TeamID uuid.UUID `json:"team_id"`
+}
+
+func (q *Queries) GetOwnedTeamProjectsForUserID(ctx context.Context, arg GetOwnedTeamProjectsForUserIDParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getOwnedTeamProjectsForUserID, arg.Owner, arg.TeamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var project_id uuid.UUID
+		if err := rows.Scan(&project_id); err != nil {
+			return nil, err
+		}
+		items = append(items, project_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProjectByID = `-- name: GetProjectByID :one
 SELECT project_id, team_id, created_at, name, owner FROM project WHERE project_id = $1
 `

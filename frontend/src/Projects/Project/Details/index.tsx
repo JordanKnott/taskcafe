@@ -1,12 +1,13 @@
-import React, { useState, useContext } from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import Modal from 'shared/components/Modal';
 import TaskDetails from 'shared/components/TaskDetails';
-import PopupMenu, { Popup, usePopup } from 'shared/components/PopupMenu';
+import PopupMenu, {Popup, usePopup} from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
-import { useRouteMatch, useHistory } from 'react-router';
+import {useRouteMatch, useHistory} from 'react-router';
 import {
   useDeleteTaskChecklistMutation,
   useUpdateTaskChecklistNameMutation,
+  useUpdateTaskChecklistItemLocationMutation,
   useCreateTaskChecklistMutation,
   useFindTaskQuery,
   useUpdateTaskDueDateMutation,
@@ -14,6 +15,7 @@ import {
   useAssignTaskMutation,
   useUnassignTaskMutation,
   useSetTaskChecklistItemCompleteMutation,
+  useUpdateTaskChecklistLocationMutation,
   useDeleteTaskChecklistItemMutation,
   useUpdateTaskChecklistItemNameMutation,
   useCreateTaskChecklistItemMutation,
@@ -27,7 +29,7 @@ import produce from 'immer';
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
 import Input from 'shared/components/Input';
-import { useForm } from 'react-hook-form';
+import {useForm} from 'react-hook-form';
 import updateApolloCache from 'shared/utils/cache';
 
 const calculateChecklistBadge = (checklists: Array<TaskChecklist>) => {
@@ -47,7 +49,7 @@ const calculateChecklistBadge = (checklists: Array<TaskChecklist>) => {
       }, 0),
     0,
   );
-  return { total, complete };
+  return {total, complete};
 };
 
 const DeleteChecklistButton = styled(Button)`
@@ -80,8 +82,8 @@ const InputError = styled.span`
 type CreateChecklistPopupProps = {
   onCreateChecklist: (data: CreateChecklistData) => void;
 };
-const CreateChecklistPopup: React.FC<CreateChecklistPopupProps> = ({ onCreateChecklist }) => {
-  const { register, handleSubmit, errors } = useForm<CreateChecklistData>();
+const CreateChecklistPopup: React.FC<CreateChecklistPopupProps> = ({onCreateChecklist}) => {
+  const {register, handleSubmit, errors} = useForm<CreateChecklistData>();
   const createUser = (data: CreateChecklistData) => {
     onCreateChecklist(data);
   };
@@ -90,12 +92,13 @@ const CreateChecklistPopup: React.FC<CreateChecklistPopupProps> = ({ onCreateChe
     <CreateChecklistForm onSubmit={handleSubmit(createUser)}>
       <CreateChecklistInput
         floatingLabel
+        value="Checklist"
         width="100%"
         label="Name"
         id="name"
         name="name"
         variant="alternate"
-        ref={register({ required: 'Checklist name is required' })}
+        ref={register({required: 'Checklist name is required'})}
       />
       <CreateChecklistButton type="submit">Create</CreateChecklistButton>
     </CreateChecklistForm>
@@ -113,7 +116,7 @@ type DetailsProps = {
   refreshCache: () => void;
 };
 
-const initialMemberPopupState = { taskID: '', isOpen: false, top: 0, left: 0 };
+const initialMemberPopupState = {taskID: '', isOpen: false, top: 0, left: 0};
 
 const Details: React.FC<DetailsProps> = ({
   projectURL,
@@ -125,12 +128,46 @@ const Details: React.FC<DetailsProps> = ({
   availableMembers,
   refreshCache,
 }) => {
-  const { userID } = useContext(UserIDContext);
-  const { showPopup, hidePopup } = usePopup();
+  const {userID} = useContext(UserIDContext);
+  const {showPopup, hidePopup} = usePopup();
   const history = useHistory();
   const match = useRouteMatch();
   const [currentMemberTask, setCurrentMemberTask] = useState('');
   const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
+  const [updateTaskChecklistLocation] = useUpdateTaskChecklistLocationMutation();
+  const [updateTaskChecklistItemLocation] = useUpdateTaskChecklistItemLocationMutation({
+    update: (client, response) => {
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const {prevChecklistID, checklistID, checklistItem} = response.data.updateTaskChecklistItemLocation;
+            console.log(`${checklistID} !== ${prevChecklistID}`);
+            if (checklistID !== prevChecklistID) {
+              const oldIdx = cache.findTask.checklists.findIndex(c => c.id === prevChecklistID);
+              const newIdx = cache.findTask.checklists.findIndex(c => c.id === checklistID);
+              console.log(`oldIdx ${oldIdx} newIdx ${newIdx}`);
+              if (oldIdx > -1 && newIdx > -1) {
+                const item = cache.findTask.checklists[oldIdx].items.find(item => item.id === checklistItem.id);
+                console.log(item);
+                if (item) {
+                  draftCache.findTask.checklists[oldIdx].items = cache.findTask.checklists[oldIdx].items.filter(
+                    i => i.id !== checklistItem.id,
+                  );
+                  draftCache.findTask.checklists[newIdx].items.push({
+                    ...item,
+                    position: checklistItem.position,
+                    taskChecklistID: checklistID,
+                  });
+                }
+              }
+            }
+          }),
+        {taskID},
+      );
+    },
+  });
   const [setTaskChecklistItemComplete] = useSetTaskChecklistItemCompleteMutation({
     update: client => {
       updateApolloCache<FindTaskQuery>(
@@ -138,14 +175,14 @@ const Details: React.FC<DetailsProps> = ({
         FindTaskDocument,
         cache =>
           produce(cache, draftCache => {
-            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+            const {complete, total} = calculateChecklistBadge(draftCache.findTask.checklists);
             draftCache.findTask.badges.checklist = {
               __typename: 'ChecklistBadge',
               complete,
               total,
             };
           }),
-        { taskID },
+        {taskID},
       );
     },
   });
@@ -156,10 +193,10 @@ const Details: React.FC<DetailsProps> = ({
         FindTaskDocument,
         cache =>
           produce(cache, draftCache => {
-            const { checklists } = cache.findTask;
-            const item = deleteData.deleteTaskChecklist;
-            draftCache.findTask.checklists = checklists.filter(c => c.id !== item.taskChecklist.id);
-            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+            const {checklists} = cache.findTask;
+            console.log(deleteData)
+            draftCache.findTask.checklists = checklists.filter(c => c.id !== deleteData.data.deleteTaskChecklist.taskChecklist.id);
+            const {complete, total} = calculateChecklistBadge(draftCache.findTask.checklists);
             draftCache.findTask.badges.checklist = {
               __typename: 'ChecklistBadge',
               complete,
@@ -169,7 +206,7 @@ const Details: React.FC<DetailsProps> = ({
               draftCache.findTask.badges.checklist = null;
             }
           }),
-        { taskID },
+        {taskID},
       );
     },
   });
@@ -182,9 +219,9 @@ const Details: React.FC<DetailsProps> = ({
         cache =>
           produce(cache, draftCache => {
             const item = createData.data.createTaskChecklist;
-            draftCache.findTask.checklists.push({ ...item });
+            draftCache.findTask.checklists.push({...item});
           }),
-        { taskID },
+        {taskID},
       );
     },
   });
@@ -197,15 +234,18 @@ const Details: React.FC<DetailsProps> = ({
         cache =>
           produce(cache, draftCache => {
             const item = deleteData.data.deleteTaskChecklistItem.taskChecklistItem;
-            draftCache.findTask.checklists = cache.findTask.checklists.filter(c => item.id !== c.id);
-            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+            const targetIdx = cache.findTask.checklists.findIndex(c => c.id === item.taskChecklistID)
+            if (targetIdx > -1) {
+              draftCache.findTask.checklists[targetIdx].items = cache.findTask.checklists[targetIdx].items.filter(c => item.id !== c.id);
+            }
+            const {complete, total} = calculateChecklistBadge(draftCache.findTask.checklists);
             draftCache.findTask.badges.checklist = {
               __typename: 'ChecklistBadge',
               complete,
               total,
             };
           }),
-        { taskID },
+        {taskID},
       );
     },
   });
@@ -217,11 +257,11 @@ const Details: React.FC<DetailsProps> = ({
         cache =>
           produce(cache, draftCache => {
             const item = newTaskItem.data.createTaskChecklistItem;
-            const { checklists } = cache.findTask;
+            const {checklists} = cache.findTask;
             const idx = checklists.findIndex(c => c.id === item.taskChecklistID);
             if (idx !== -1) {
-              draftCache.findTask.checklists[idx].items.push({ ...item });
-              const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+              draftCache.findTask.checklists[idx].items.push({...item});
+              const {complete, total} = calculateChecklistBadge(draftCache.findTask.checklists);
               draftCache.findTask.badges.checklist = {
                 __typename: 'ChecklistBadge',
                 complete,
@@ -229,11 +269,11 @@ const Details: React.FC<DetailsProps> = ({
               };
             }
           }),
-        { taskID },
+        {taskID},
       );
     },
   });
-  const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
+  const {loading, data, refetch} = useFindTaskQuery({variables: {taskID}});
   const [setTaskComplete] = useSetTaskCompleteMutation();
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
     onCompleted: () => {
@@ -259,7 +299,6 @@ const Details: React.FC<DetailsProps> = ({
   if (!data) {
     return <div>loading</div>;
   }
-  console.log(data.findTask);
   return (
     <>
       <Modal
@@ -271,25 +310,62 @@ const Details: React.FC<DetailsProps> = ({
           return (
             <TaskDetails
               task={data.findTask}
+              onChecklistDrop={checklist => {
+                updateTaskChecklistLocation({
+                  variables: {checklistID: checklist.id, position: checklist.position},
+
+                  optimisticResponse: {
+                    __typename: 'Mutation',
+                    updateTaskChecklistLocation: {
+                      __typename: 'UpdateTaskChecklistLocationPayload',
+                      checklist: {
+                        __typename: 'TaskChecklist',
+                        position: checklist.position,
+                        id: checklist.id,
+                      },
+                    },
+                  },
+                });
+              }}
+              onChecklistItemDrop={(prevChecklistID, checklistID, checklistItem) => {
+                updateTaskChecklistItemLocation({
+                  variables: {checklistID, checklistItemID: checklistItem.id, position: checklistItem.position},
+
+                  optimisticResponse: {
+                    __typename: 'Mutation',
+                    updateTaskChecklistItemLocation: {
+                      __typename: 'UpdateTaskChecklistItemLocationPayload',
+                      prevChecklistID,
+                      checklistID,
+                      checklistItem: {
+                        __typename: 'TaskChecklistItem',
+                        position: checklistItem.position,
+                        id: checklistItem.id,
+                        taskChecklistID: checklistID,
+                      },
+                    },
+                  },
+                });
+              }}
               onTaskNameChange={onTaskNameChange}
               onTaskDescriptionChange={onTaskDescriptionChange}
               onToggleTaskComplete={task => {
-                setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
+                setTaskComplete({variables: {taskID: task.id, complete: !task.complete}});
               }}
               onDeleteTask={onDeleteTask}
               onChangeItemName={(itemID, itemName) => {
-                updateTaskChecklistItemName({ variables: { taskChecklistItemID: itemID, name: itemName } });
+                updateTaskChecklistItemName({variables: {taskChecklistItemID: itemID, name: itemName}});
               }}
               onCloseModal={() => history.push(projectURL)}
               onChangeChecklistName={(checklistID, newName) => {
-                updateTaskChecklistName({ variables: { taskChecklistID: checklistID, name: newName } });
+                updateTaskChecklistName({variables: {taskChecklistID: checklistID, name: newName}});
               }}
               onDeleteItem={itemID => {
-                deleteTaskChecklistItem({ variables: { taskChecklistItemID: itemID } });
+                deleteTaskChecklistItem({variables: {taskChecklistItemID: itemID}});
               }}
               onToggleChecklistItem={(itemID, complete) => {
                 setTaskChecklistItemComplete({
-                  variables: { taskChecklistItemID: itemID, complete },
+                  variables: {taskChecklistItemID: itemID, complete},
                   optimisticResponse: {
                     __typename: 'Mutation',
                     setTaskChecklistItemComplete: {
@@ -301,7 +377,7 @@ const Details: React.FC<DetailsProps> = ({
                 });
               }}
               onAddItem={(taskChecklistID, name, position) => {
-                createTaskChecklistItem({ variables: { taskChecklistID, name, position } });
+                createTaskChecklistItem({variables: {taskChecklistID, name, position}});
               }}
               onMemberProfile={($targetRef, memberID) => {
                 const member = data.findTask.assigned.find(m => m.id === memberID);
@@ -313,7 +389,7 @@ const Details: React.FC<DetailsProps> = ({
                         user={member}
                         bio="None"
                         onRemoveFromTask={() => {
-                          unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                          unassignTask({variables: {taskID: data.findTask.id, userID: userID ?? ''}});
                         }}
                       />
                     </Popup>,
@@ -329,9 +405,9 @@ const Details: React.FC<DetailsProps> = ({
                       activeMembers={data.findTask.assigned}
                       onMemberChange={(member, isActive) => {
                         if (isActive) {
-                          assignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                          assignTask({variables: {taskID: data.findTask.id, userID: userID ?? ''}});
                         } else {
-                          unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                          unassignTask({variables: {taskID: data.findTask.id, userID: userID ?? ''}});
                         }
                       }}
                     />
@@ -381,7 +457,7 @@ const Details: React.FC<DetailsProps> = ({
                     <DeleteChecklistButton
                       color="danger"
                       onClick={() => {
-                        deleteTaskChecklist({ variables: { taskChecklistID: checklistID } });
+                        deleteTaskChecklist({variables: {taskChecklistID: checklistID}});
                         hidePopup();
                       }}
                     >
@@ -403,11 +479,11 @@ const Details: React.FC<DetailsProps> = ({
                     <DueDateManager
                       task={task}
                       onRemoveDueDate={t => {
-                        updateTaskDueDate({ variables: { taskID: t.id, dueDate: null } });
+                        updateTaskDueDate({variables: {taskID: t.id, dueDate: null}});
                         hidePopup();
                       }}
                       onDueDateChange={(t, newDueDate) => {
-                        updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
+                        updateTaskDueDate({variables: {taskID: t.id, dueDate: newDueDate}});
                         hidePopup();
                       }}
                       onCancel={() => {}}

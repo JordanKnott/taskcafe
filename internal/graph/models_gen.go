@@ -124,13 +124,15 @@ type DeleteTeam struct {
 }
 
 type DeleteTeamMember struct {
-	TeamID uuid.UUID `json:"teamID"`
-	UserID uuid.UUID `json:"userID"`
+	TeamID     uuid.UUID  `json:"teamID"`
+	UserID     uuid.UUID  `json:"userID"`
+	NewOwnerID *uuid.UUID `json:"newOwnerID"`
 }
 
 type DeleteTeamMemberPayload struct {
-	TeamID uuid.UUID `json:"teamID"`
-	UserID uuid.UUID `json:"userID"`
+	TeamID           uuid.UUID    `json:"teamID"`
+	UserID           uuid.UUID    `json:"userID"`
+	AffectedProjects []db.Project `json:"affectedProjects"`
 }
 
 type DeleteTeamPayload struct {
@@ -174,6 +176,7 @@ type Member struct {
 	FullName    string       `json:"fullName"`
 	Username    string       `json:"username"`
 	ProfileIcon *ProfileIcon `json:"profileIcon"`
+	Owned       *OwnersList  `json:"owned"`
 }
 
 type NewProject struct {
@@ -227,6 +230,11 @@ type NewUserAccount struct {
 	Initials string `json:"initials"`
 	Password string `json:"password"`
 	RoleCode string `json:"roleCode"`
+}
+
+type OwnersList struct {
+	Projects []uuid.UUID `json:"projects"`
+	Teams    []uuid.UUID `json:"teams"`
 }
 
 type ProfileIcon struct {
@@ -326,9 +334,30 @@ type UpdateProjectName struct {
 	Name      string    `json:"name"`
 }
 
+type UpdateTaskChecklistItemLocation struct {
+	ChecklistID     uuid.UUID `json:"checklistID"`
+	ChecklistItemID uuid.UUID `json:"checklistItemID"`
+	Position        float64   `json:"position"`
+}
+
+type UpdateTaskChecklistItemLocationPayload struct {
+	ChecklistID     uuid.UUID             `json:"checklistID"`
+	PrevChecklistID uuid.UUID             `json:"prevChecklistID"`
+	ChecklistItem   *db.TaskChecklistItem `json:"checklistItem"`
+}
+
 type UpdateTaskChecklistItemName struct {
 	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
 	Name                string    `json:"name"`
+}
+
+type UpdateTaskChecklistLocation struct {
+	ChecklistID uuid.UUID `json:"checklistID"`
+	Position    float64   `json:"position"`
+}
+
+type UpdateTaskChecklistLocationPayload struct {
+	Checklist *db.TaskChecklist `json:"checklist"`
 }
 
 type UpdateTaskChecklistName struct {
@@ -370,6 +399,15 @@ type UpdateTeamMemberRole struct {
 type UpdateTeamMemberRolePayload struct {
 	Ok     bool    `json:"ok"`
 	Member *Member `json:"member"`
+}
+
+type UpdateUserRole struct {
+	UserID   uuid.UUID `json:"userID"`
+	RoleCode RoleCode  `json:"roleCode"`
+}
+
+type UpdateUserRolePayload struct {
+	User *db.UserAccount `json:"user"`
 }
 
 type RoleCode string

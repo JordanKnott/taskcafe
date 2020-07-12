@@ -17,13 +17,13 @@ var Aliases = map[string]interface{}{
 // Runs go mod download and then installs the binary.
 func Generate() error {
 
-	files, err := ioutil.ReadDir("graph/schema/")
+	files, err := ioutil.ReadDir("internal/graph/schema/")
 	if err != nil {
 		panic(err)
 	}
 	var schema strings.Builder
 	for _, file := range files {
-		filename := "graph/schema/" + file.Name()
+		filename := "internal/graph/schema/" + file.Name()
 		fmt.Println(filename)
 		f, err := os.Open(filename)
 		if err != nil {
@@ -37,7 +37,7 @@ func Generate() error {
 	}
 	// return sh.Run("go", "install", "./...")
 	// fmt.Println(schema.String())
-	err = ioutil.WriteFile("graph/schema.graphqls", []byte(schema.String()), os.FileMode(0755))
+	err = ioutil.WriteFile("internal/graph/schema.graphqls", []byte(schema.String()), os.FileMode(0755))
 	if err != nil {
 		panic(err)
 	}

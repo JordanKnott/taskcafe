@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
 import Button from 'shared/components/Button';
+import UserIDContext from 'App/context';
+import Select from 'shared/components/Select';
 import {
   useGetTeamQuery,
   RoleCode,
@@ -155,23 +157,28 @@ export const RemoveMemberButton = styled(Button)`
   width: 100%;
 `;
 type TeamRoleManagerPopupProps = {
-  user: TaskUser;
+  currentUserID: string;
+  subject: TaskUser;
+  members: Array<TaskUser>;
   warning?: string | null;
   canChangeRole: boolean;
   onChangeRole: (roleCode: RoleCode) => void;
-  onRemoveFromTeam?: () => void;
+  onRemoveFromTeam?: (newOwnerID: string | null) => void;
   onChangeTeamOwner?: (userID: string) => void;
 };
 
 const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
+  members,
   warning,
-  user,
+  subject,
+  currentUserID,
   canChangeRole,
   onRemoveFromTeam,
   onChangeTeamOwner,
   onChangeRole,
 }) => {
   const { hidePopup, setTab } = usePopup();
+  const [orphanedProjectOwner, setOrphanedProjectOwner] = useState<{ label: string; value: string } | null>(null);
   return (
     <>
       <Popup title={null} tab={0}>
@@ -186,14 +193,14 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
                 Set as team owner...
               </MiniProfileActionItem>
             )}
-            {user.role && (
+            {subject.role && (
               <MiniProfileActionItem
                 onClick={() => {
                   setTab(1);
                 }}
               >
                 Change permissions...
-                <CurrentPermission>{`(${user.role.name})`}</CurrentPermission>
+                <CurrentPermission>{`(${subject.role.name})`}</CurrentPermission>
               </MiniProfileActionItem>
             )}
             {onRemoveFromTeam && (
@@ -202,7 +209,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
                   setTab(2);
                 }}
               >
-                Remove from team...
+                {currentUserID === subject.id ? 'Leave team...' : 'Remove from team...'}
               </MiniProfileActionItem>
             )}
           </MiniProfileActionWrapper>
@@ -218,13 +225,13 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
         <MiniProfileActions>
           <MiniProfileActionWrapper>
             {permissions
-              .filter(p => (user.role && user.role.code === 'owner') || p.code !== 'owner')
+              .filter(p => (subject.role && subject.role.code === 'owner') || p.code !== 'owner')
               .map(perm => (
                 <MiniProfileActionItem
-                  disabled={user.role && perm.code !== user.role.code && !canChangeRole}
+                  disabled={subject.role && perm.code !== subject.role.code && !canChangeRole}
                   key={perm.code}
                   onClick={() => {
-                    if (onChangeRole && user.role && perm.code !== user.role.code) {
+                    if (onChangeRole && subject.role && perm.code !== subject.role.code) {
                       switch (perm.code) {
                         case 'owner':
                           onChangeRole(RoleCode.Owner);
@@ -244,13 +251,13 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
                 >
                   <RoleName>
                     {perm.name}
-                    {user.role && perm.code === user.role.code && <RoleCheckmark width={12} height={12} />}
+                    {subject.role && perm.code === subject.role.code && <RoleCheckmark width={12} height={12} />}
                   </RoleName>
                   <RoleDescription>{perm.description}</RoleDescription>
                 </MiniProfileActionItem>
               ))}
           </MiniProfileActionWrapper>
-          {user.role && user.role.code === 'owner' && (
+          {subject.role && subject.role.code === 'owner' && (
             <>
               <Separator />
               <WarningText>You can't change roles because there must be an owner.</WarningText>
@@ -261,13 +268,28 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
       <Popup title="Remove from Team?" onClose={() => hidePopup()} tab={2}>
         <Content>
           <DeleteDescription>
-            The member will be removed from all cards on this project. They will receive a notification.
+            The member will be removed from all team project tasks. They will receive a notification.
           </DeleteDescription>
+          {subject.owned && subject.owned.projects.length !== 0 && (
+            <>
+              <DeleteDescription>
+                {`The member is the owner of ${subject.owned.projects.length} project${
+                  subject.owned.projects.length > 1 ? 's' : ''
+                }. You can give the projects a new owner but it is not needed`}
+              </DeleteDescription>
+              <Select
+                label="New projects owner"
+                value={orphanedProjectOwner}
+                onChange={value => setOrphanedProjectOwner(value)}
+                options={members.filter(m => m.id !== subject.id).map(m => ({ label: m.fullName, value: m.id }))}
+              />
+            </>
+          )}
           <RemoveMemberButton
             color="danger"
             onClick={() => {
               if (onRemoveFromTeam) {
-                onRemoveFromTeam();
+                onRemoveFromTeam(orphanedProjectOwner ? orphanedProjectOwner.value : null);
               }
             }}
           >
@@ -278,14 +300,14 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
       <Popup title="Set as Team Owner?" onClose={() => hidePopup()} tab={3}>
         <Content>
           <DeleteDescription>
-            This will change the project owner from you to this user. They will be able to view and edit cards, remove
-            members, and change all settings for the project. They will also be able to delete the project.
+            This will change the project owner from you to this subject. They will be able to view and edit cards,
+            remove members, and change all settings for the project. They will also be able to delete the project.
           </DeleteDescription>
           <RemoveMemberButton
             color="warning"
             onClick={() => {
               if (onChangeTeamOwner) {
-                onChangeTeamOwner(user.id);
+                onChangeTeamOwner(subject.id);
               }
             }}
           >
@@ -421,6 +443,7 @@ type MembersProps = {
 const Members: React.FC<MembersProps> = ({ teamID }) => {
   const { showPopup, hidePopup } = usePopup();
   const { loading, data } = useGetTeamQuery({ variables: { teamID } });
+  const { userID } = useContext(UserIDContext);
   const warning =
     'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
   const [createTeamMember] = useCreateTeamMemberMutation({
@@ -508,7 +531,9 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
                       showPopup(
                         $target,
                         <TeamRoleManagerPopup
-                          user={member}
+                          currentUserID={userID ?? ''}
+                          subject={member}
+                          members={data.findTeam.members}
                           warning={member.role && member.role.code === 'owner' ? warning : null}
                           onChangeTeamOwner={
                             member.role && member.role.code !== 'owner' ? (userID: string) => {} : undefined
@@ -518,8 +543,8 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
                           onRemoveFromTeam={
                             member.role && member.role.code === 'owner'
                               ? undefined
-                              : () => {
-                                  deleteTeamMember({ variables: { teamID, userID: member.id } });
+                              : newOwnerID => {
+                                  deleteTeamMember({ variables: { teamID, newOwnerID, userID: member.id } });
                                   hidePopup();
                                 }
                           }

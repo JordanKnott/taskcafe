@@ -75,6 +75,8 @@ export const Default = () => {
               onDeleteChecklist={action('delete checklist')}
               onOpenAddChecklistPopup={action(' open checklist')}
               onOpenDueDatePopop={action('open due date popup')}
+              onChecklistDrop={action('on checklist drop')}
+              onChecklistItemDrop={action('on checklist item drop')}
             />
           );
         }}

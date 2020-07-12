@@ -35,12 +35,18 @@ type ProfileIcon {
   bgColor: String
 }
 
+type OwnersList  {
+  projects: [UUID!]!
+  teams: [UUID!]!
+}
+
 type Member {
   id: ID!
   role: Role!
   fullName: String!
   username: String!
   profileIcon: ProfileIcon!
+  owned: OwnersList
 }
 
 type RefreshToken {
@@ -361,6 +367,30 @@ extend type Mutation {
   updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
   setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
   deleteTaskChecklistItem(input: DeleteTaskChecklistItem!): DeleteTaskChecklistItemPayload!
+
+  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!): UpdateTaskChecklistLocationPayload!
+  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!): UpdateTaskChecklistItemLocationPayload!
+}
+
+input UpdateTaskChecklistItemLocation {
+  checklistID: UUID!
+  checklistItemID: UUID!
+  position: Float!
+}
+
+type UpdateTaskChecklistItemLocationPayload {
+  checklistID: UUID!
+  prevChecklistID: UUID!
+  checklistItem: TaskChecklistItem!
+}
+
+input UpdateTaskChecklistLocation {
+  checklistID: UUID!
+  position: Float!
+}
+
+type UpdateTaskChecklistLocationPayload {
+  checklist: TaskChecklist!
 }
 
 input CreateTaskChecklist {
@@ -492,11 +522,13 @@ extend type Mutation {
 input DeleteTeamMember {
   teamID: UUID!
   userID: UUID!
+  newOwnerID: UUID
 }
 
 type DeleteTeamMemberPayload {
   teamID: UUID!
   userID: UUID!
+  affectedProjects: [Project!]!
 }
 
 input CreateTeamMember {
@@ -537,6 +569,17 @@ extend type Mutation {
   deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
+
+  updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+}
+
+input UpdateUserRole {
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateUserRolePayload {
+  user: UserAccount!
 }
 
 input NewRefreshToken {

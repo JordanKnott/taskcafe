@@ -426,6 +426,26 @@ func (r *mutationResolver) DeleteTaskChecklistItem(ctx context.Context, input De
 	}, err
 }
 
+func (r *mutationResolver) UpdateTaskChecklistLocation(ctx context.Context, input UpdateTaskChecklistLocation) (*UpdateTaskChecklistLocationPayload, error) {
+	checklist, err := r.Repository.UpdateTaskChecklistPosition(ctx, db.UpdateTaskChecklistPositionParams{Position: input.Position, TaskChecklistID: input.ChecklistID})
+
+	if err != nil {
+		return &UpdateTaskChecklistLocationPayload{}, err
+	}
+
+	return &UpdateTaskChecklistLocationPayload{Checklist: &checklist}, nil
+}
+
+func (r *mutationResolver) UpdateTaskChecklistItemLocation(ctx context.Context, input UpdateTaskChecklistItemLocation) (*UpdateTaskChecklistItemLocationPayload, error) {
+	currentChecklistItem, err := r.Repository.GetTaskChecklistItemByID(ctx, input.ChecklistItemID)
+
+	checklistItem, err := r.Repository.UpdateTaskChecklistItemLocation(ctx, db.UpdateTaskChecklistItemLocationParams{TaskChecklistID: input.ChecklistID, TaskChecklistItemID: input.ChecklistItemID, Position: input.Position})
+	if err != nil {
+		return &UpdateTaskChecklistItemLocationPayload{}, err
+	}
+	return &UpdateTaskChecklistItemLocationPayload{PrevChecklistID: currentChecklistItem.TaskChecklistID, ChecklistID: input.ChecklistID, ChecklistItem: &checklistItem}, err
+}
+
 func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*db.TaskGroup, error) {
 	createdAt := time.Now().UTC()
 	projectID, err := uuid.Parse(input.ProjectID)
@@ -682,13 +702,22 @@ func (r *mutationResolver) UpdateTeamMemberRole(ctx context.Context, input Updat
 }
 
 func (r *mutationResolver) DeleteTeamMember(ctx context.Context, input DeleteTeamMember) (*DeleteTeamMemberPayload, error) {
-	_, err := r.Repository.GetTeamMemberByID(ctx, db.GetTeamMemberByIDParams{TeamID: input.TeamID, UserID: input.UserID})
+	ownedProjects, err := r.Repository.GetOwnedTeamProjectsForUserID(ctx, db.GetOwnedTeamProjectsForUserIDParams{TeamID: input.TeamID, Owner: input.UserID})
+	if err != nil {
+		return &DeleteTeamMemberPayload{}, err
+	}
+	_, err = r.Repository.GetTeamMemberByID(ctx, db.GetTeamMemberByIDParams{TeamID: input.TeamID, UserID: input.UserID})
 	if err != nil {
 		return &DeleteTeamMemberPayload{}, err
 	}
 	err = r.Repository.DeleteTeamMember(ctx, db.DeleteTeamMemberParams{TeamID: input.TeamID, UserID: input.UserID})
 	if err != nil {
 		return &DeleteTeamMemberPayload{}, err
+	}
+	if input.NewOwnerID != nil {
+		for _, projectID := range ownedProjects {
+			_, err = r.Repository.SetProjectOwner(ctx, db.SetProjectOwnerParams{ProjectID: projectID, Owner: *input.NewOwnerID})
+		}
 	}
 	return &DeleteTeamMemberPayload{TeamID: input.TeamID, UserID: input.UserID}, nil
 }
@@ -752,6 +781,15 @@ func (r *mutationResolver) ClearProfileAvatar(ctx context.Context) (*db.UserAcco
 		return &db.UserAccount{}, err
 	}
 	return &user, nil
+}
+
+func (r *mutationResolver) UpdateUserRole(ctx context.Context, input UpdateUserRole) (*UpdateUserRolePayload, error) {
+	user, err := r.Repository.UpdateUserRole(ctx, db.UpdateUserRoleParams{RoleCode: input.RoleCode.String(), UserID: input.UserID})
+	if err != nil {
+		return &UpdateUserRolePayload{}, err
+	}
+	return &UpdateUserRolePayload{User: &user}, nil
+
 }
 
 func (r *organizationResolver) ID(ctx context.Context, obj *db.Organization) (uuid.UUID, error) {
@@ -1095,12 +1133,27 @@ func (r *teamResolver) ID(ctx context.Context, obj *db.Team) (uuid.UUID, error) 
 func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, error) {
 	user, err := r.Repository.GetUserAccountByID(ctx, obj.Owner)
 	members := []Member{}
+	log.WithFields(log.Fields{"teamID": obj.TeamID}).Info("getting members")
 	if err == sql.ErrNoRows {
 		return members, nil
 	}
 	if err != nil {
 		log.WithError(err).Error("get user account by ID")
 		return members, err
+	}
+	ownedProjects, err := r.Repository.GetOwnedTeamProjectsForUserID(ctx, db.GetOwnedTeamProjectsForUserIDParams{TeamID: obj.TeamID, Owner: user.UserID})
+	log.WithFields(log.Fields{"projects": ownedProjects}).Info("retrieved owned project list")
+	if err == sql.ErrNoRows {
+		ownedProjects = []uuid.UUID{}
+	} else if err != nil {
+		log.WithError(err).Error("get owned team projects for user id")
+		return members, err
+	}
+	ownedTeams := []uuid.UUID{}
+	var ownerList *OwnersList
+	if len(ownedTeams) != 0 || len(ownedProjects) != 0 {
+		log.Info("owned list is not empty")
+		ownerList = &OwnersList{Projects: ownedProjects, Teams: ownedTeams}
 	}
 	var url *string
 	if user.ProfileAvatarUrl.Valid {
@@ -1109,7 +1162,7 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 	members = append(members, Member{
 		ID: obj.Owner, FullName: user.FullName, ProfileIcon: profileIcon, Username: user.Username,
-		Role: &db.Role{Code: "owner", Name: "Owner"},
+		Owned: ownerList, Role: &db.Role{Code: "owner", Name: "Owner"},
 	})
 	teamMembers, err := r.Repository.GetTeamMembersForTeamID(ctx, obj.TeamID)
 	if err != nil {
@@ -1132,9 +1185,24 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 			log.WithError(err).Error("get role for projet member by user ID")
 			return members, err
 		}
+		ownedProjects, err := r.Repository.GetOwnedTeamProjectsForUserID(ctx, db.GetOwnedTeamProjectsForUserIDParams{TeamID: obj.TeamID, Owner: user.UserID})
+		log.WithFields(log.Fields{"projects": ownedProjects}).Info("retrieved owned project list")
+		if err == sql.ErrNoRows {
+			ownedProjects = []uuid.UUID{}
+		} else if err != nil {
+			log.WithError(err).Error("get owned team projects for user id")
+			return members, err
+		}
+		ownedTeams := []uuid.UUID{}
+		var ownerList *OwnersList
+		if len(ownedTeams) != 0 || len(ownedProjects) != 0 {
+			log.Info("owned list is not empty")
+			ownerList = &OwnersList{Projects: ownedProjects, Teams: ownedTeams}
+		}
+
 		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 		members = append(members, Member{ID: user.UserID, FullName: user.FullName, ProfileIcon: profileIcon,
-			Username: user.Username, Role: &db.Role{Code: role.Code, Name: role.Name},
+			Username: user.Username, Owned: ownerList, Role: &db.Role{Code: role.Code, Name: role.Name},
 		})
 	}
 	return members, nil

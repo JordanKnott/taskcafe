@@ -76,9 +76,8 @@ export const HeaderTitle = styled.span`
 
 export const Content = styled.div`
   max-height: 632px;
-  overflow-x: hidden;
-  overflow-y: auto;
 `;
+
 export const LabelSearch = styled.input`
   box-sizing: border-box;
   display: block;

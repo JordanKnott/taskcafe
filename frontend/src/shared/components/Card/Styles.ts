@@ -1,9 +1,9 @@
-import styled, { css } from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { mixin } from 'shared/utils/styles';
+import styled, {css} from 'styled-components';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {mixin} from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
-import { CheckCircle } from 'shared/icons';
-import { RefObject } from 'react';
+import {CheckCircle} from 'shared/icons';
+import {RefObject} from 'react';
 
 export const ClockIcon = styled(FontAwesomeIcon)``;
 
@@ -22,7 +22,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   min-height: 54px;
   padding: 0;
   font-size: 14px;
-  line-height: 16px;
+  line-height: 18px;
   color: rgba(${props => props.theme.colors.text.primary});
   &:focus {
     border: none;
@@ -57,7 +57,7 @@ export const DescriptionBadge = styled(ListCardBadge)`
   padding-right: 6px;
 `;
 
-export const DueDateCardBadge = styled(ListCardBadge)<{ isPastDue: boolean }>`
+export const DueDateCardBadge = styled(ListCardBadge) <{isPastDue: boolean}>`
   font-size: 12px;
   ${props =>
     props.isPastDue &&
@@ -76,7 +76,7 @@ export const ListCardBadgeText = styled.span`
   white-space: nowrap;
 `;
 
-export const ListCardContainer = styled.div<{ isActive: boolean; editable: boolean }>`
+export const ListCardContainer = styled.div<{isActive: boolean; editable: boolean}>`
   max-width: 256px;
   margin-bottom: 8px;
   border-radius: 3px;
@@ -93,7 +93,7 @@ export const ListCardInnerContainer = styled.div`
   height: 100%;
 `;
 
-export const ListCardDetails = styled.div<{ complete: boolean }>`
+export const ListCardDetails = styled.div<{complete: boolean}>`
   overflow: hidden;
   padding: 6px 8px 2px;
   position: relative;
@@ -147,7 +147,7 @@ export const CardTitle = styled.span`
   overflow: hidden;
   text-decoration: none;
   word-wrap: break-word;
-  line-height: 16px;
+  line-height: 18px;
   font-size: 14px;
   color: rgba(${props => props.theme.colors.text.primary});
 

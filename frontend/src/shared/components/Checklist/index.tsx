@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { CheckSquare, Trash, Square, CheckSquareOutline, Clock, Cross, AccountPlus } from 'shared/icons';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {
+  isPositionChanged,
+  getSortedDraggables,
+  getNewDraggablePosition,
+  getAfterDropDraggableList,
+} from 'shared/utils/draggables';
 import Button from 'shared/components/Button';
 import TextareaAutosize from 'react-autosize-textarea';
 import Control from 'react-select/src/components/Control';
@@ -84,7 +91,7 @@ const ChecklistProgressBarCurrent = styled.div<{ width: number }>`
   transition: width 0.14s ease-in, background 0.14s ease-in;
 `;
 
-const ChecklistItems = styled.div`
+export const ChecklistItems = styled.div`
   min-height: 8px;
 `;
 
@@ -199,7 +206,7 @@ const TrashButton = styled(Trash)`
   fill: rgba(${props => props.theme.colors.text.primary});
 `;
 
-const ChecklistItemWrapper = styled.div`
+const ChecklistItemWrapper = styled.div<{ ref: any }>`
   user-select: none;
   clear: both;
   padding-left: 40px;
@@ -270,122 +277,121 @@ type ChecklistItemProps = {
   complete: boolean;
   name: string;
   onChangeName: (itemID: string, currentName: string) => void;
+  wrapperProps: any;
+  handleProps: any;
   onToggleItem: (itemID: string, complete: boolean) => void;
   onDeleteItem: (itemID: string) => void;
 };
 
-const ChecklistItem: React.FC<ChecklistItemProps> = ({
-  itemID,
-  complete,
-  name,
-  onChangeName,
-  onToggleItem,
-  onDeleteItem,
-}) => {
-  const $item = useRef<HTMLDivElement>(null);
-  const $editor = useRef<HTMLTextAreaElement>(null);
-  const [editting, setEditting] = useState(false);
-  const [currentName, setCurrentName] = useState(name);
-  useEffect(() => {
-    if (editting && $editor && $editor.current) {
-      $editor.current.focus();
-      $editor.current.select();
-    }
-  }, [editting]);
-  useOnOutsideClick($item, true, () => setEditting(false), null);
-  return (
-    <ChecklistItemWrapper ref={$item}>
-      <ChecklistIcon
-        onClick={e => {
-          e.stopPropagation();
-          onToggleItem(itemID, !complete);
-        }}
-      >
-        {complete ? (
-          <ChecklistItemCheckedIcon width={20} height={20} />
-        ) : (
-          <ChecklistItemUncheckedIcon width={20} height={20} />
-        )}
-      </ChecklistIcon>
-      {editting ? (
-        <>
-          <ChecklistNameEditorWrapper>
-            <ChecklistNameEditor
-              ref={$editor}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  onChangeName(itemID, currentName);
-                  setEditting(false);
-                }
-              }}
-              onChange={e => {
-                setCurrentName(e.currentTarget.value);
-              }}
-              value={currentName}
-            />
-          </ChecklistNameEditorWrapper>
-          <EditControls>
-            <SaveButton
-              onClick={() => {
-                onChangeName(itemID, currentName);
-                setEditting(false);
-              }}
-              variant="relief"
-            >
-              Save
-            </SaveButton>
-            <CancelButton
-              onClick={e => {
-                e.stopPropagation();
-                setEditting(false);
-              }}
-            >
-              <Cross width={20} height={20} />
-            </CancelButton>
-            <Spacer />
-            <EditableDeleteButton
-              onClick={e => {
-                e.stopPropagation();
-                setEditting(false);
-                onDeleteItem(itemID);
-              }}
-            >
-              <Trash width={16} height={16} />
-            </EditableDeleteButton>
-          </EditControls>
-        </>
-      ) : (
-        <ChecklistItemDetails
-          onClick={() => {
-            setEditting(true);
+export const ChecklistItem = React.forwardRef(
+  (
+    { itemID, complete, name, wrapperProps, handleProps, onChangeName, onToggleItem, onDeleteItem }: ChecklistItemProps,
+    $item,
+  ) => {
+    const $editor = useRef<HTMLTextAreaElement>(null);
+    const [editting, setEditting] = useState(false);
+    const [currentName, setCurrentName] = useState(name);
+    useEffect(() => {
+      if (editting && $editor && $editor.current) {
+        $editor.current.focus();
+        $editor.current.select();
+      }
+    }, [editting]);
+    // useOnOutsideClick($item, true, () => setEditting(false), null);
+    return (
+      <ChecklistItemWrapper ref={$item} {...wrapperProps} {...handleProps}>
+        <ChecklistIcon
+          onClick={e => {
+            e.stopPropagation();
+            onToggleItem(itemID, !complete);
           }}
         >
-          <ChecklistItemRow>
-            <ChecklistItemTextControls>
-              <ChecklistItemText complete={complete}>{name}</ChecklistItemText>
-              <ChecklistControls>
-                <ControlButton>
-                  <AssignUserButton width={14} height={14} />
-                </ControlButton>
-                <ControlButton>
-                  <ClockButton width={14} height={14} />
-                </ControlButton>
-                <ControlButton
-                  onClick={e => {
-                    e.stopPropagation();
-                    onDeleteItem(itemID);
-                  }}
-                >
-                  <TrashButton width={14} height={14} />
-                </ControlButton>
-              </ChecklistControls>
-            </ChecklistItemTextControls>
-          </ChecklistItemRow>
-        </ChecklistItemDetails>
-      )}
-    </ChecklistItemWrapper>
-  );
-};
+          {complete ? (
+            <ChecklistItemCheckedIcon width={20} height={20} />
+          ) : (
+            <ChecklistItemUncheckedIcon width={20} height={20} />
+          )}
+        </ChecklistIcon>
+        {editting ? (
+          <>
+            <ChecklistNameEditorWrapper>
+              <ChecklistNameEditor
+                ref={$editor}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    onChangeName(itemID, currentName);
+                    setEditting(false);
+                  }
+                }}
+                onChange={e => {
+                  setCurrentName(e.currentTarget.value);
+                }}
+                value={currentName}
+              />
+            </ChecklistNameEditorWrapper>
+            <EditControls>
+              <SaveButton
+                onClick={() => {
+                  onChangeName(itemID, currentName);
+                  setEditting(false);
+                }}
+                variant="relief"
+              >
+                Save
+              </SaveButton>
+              <CancelButton
+                onClick={e => {
+                  e.stopPropagation();
+                  setEditting(false);
+                }}
+              >
+                <Cross width={20} height={20} />
+              </CancelButton>
+              <Spacer />
+              <EditableDeleteButton
+                onClick={e => {
+                  e.stopPropagation();
+                  setEditting(false);
+                  onDeleteItem(itemID);
+                }}
+              >
+                <Trash width={16} height={16} />
+              </EditableDeleteButton>
+            </EditControls>
+          </>
+        ) : (
+          <ChecklistItemDetails
+            onClick={() => {
+              setEditting(true);
+            }}
+          >
+            <ChecklistItemRow>
+              <ChecklistItemTextControls>
+                <ChecklistItemText complete={complete}>{name}</ChecklistItemText>
+                <ChecklistControls>
+                  <ControlButton>
+                    <AssignUserButton width={14} height={14} />
+                  </ControlButton>
+                  <ControlButton>
+                    <ClockButton width={14} height={14} />
+                  </ControlButton>
+                  <ControlButton
+                    onClick={e => {
+                      e.stopPropagation();
+                      onDeleteItem(itemID);
+                    }}
+                  >
+                    <TrashButton width={14} height={14} />
+                  </ControlButton>
+                </ChecklistControls>
+              </ChecklistItemTextControls>
+            </ChecklistItemRow>
+          </ChecklistItemDetails>
+        )}
+      </ChecklistItemWrapper>
+    );
+  },
+);
 
 type AddNewItemProps = {
   onAddItem: (name: string) => void;
@@ -503,94 +509,112 @@ type ChecklistProps = {
   checklistID: string;
   onDeleteChecklist: ($target: React.RefObject<HTMLElement>, checklistID: string) => void;
   name: string;
+  children: React.ReactNode;
   onChangeName: (item: string) => void;
   onToggleItem: (taskID: string, complete: boolean) => void;
   onChangeItemName: (itemID: string, currentName: string) => void;
+  wrapperProps: any;
+  handleProps: any;
   onDeleteItem: (itemID: string) => void;
   onAddItem: (itemName: string) => void;
   items: Array<TaskChecklistItem>;
 };
 
-const Checklist: React.FC<ChecklistProps> = ({
-  checklistID,
-  onDeleteChecklist,
-  name,
-  items,
-  onToggleItem,
-  onAddItem,
-  onChangeItemName,
-  onChangeName,
-  onDeleteItem,
-}) => {
-  const $name = useRef<HTMLTextAreaElement>(null);
-  const complete = items.reduce((prev, item) => prev + (item.complete ? 1 : 0), 0);
-  const percent = items.length === 0 ? 0 : Math.floor((complete / items.length) * 100);
-  const [editting, setEditting] = useState(false);
-  // useOnOutsideClick($name, true, () => setEditting(false), null);
-  useEffect(() => {
-    if (editting && $name && $name.current) {
-      $name.current.focus();
-      $name.current.select();
-    }
-  }, [editting]);
-  return (
-    <Wrapper>
-      <WindowTitle>
-        <WindowTitleIcon width={24} height={24} />
-        {editting ? (
-          <ChecklistTitleEditor
-            ref={$name}
-            name={name}
-            onChangeName={currentName => {
-              onChangeName(currentName);
-              setEditting(false);
-            }}
-            onCancel={() => {
-              setEditting(false);
-            }}
-          />
-        ) : (
-          <WindowChecklistTitle>
-            <WindowTitleText onClick={() => setEditting(true)}>{name}</WindowTitleText>
-            <WindowOptions>
-              <DeleteButton
-                onClick={$target => {
-                  onDeleteChecklist($target, checklistID);
-                }}
-                color="danger"
-                variant="outline"
-              >
-                Delete
-              </DeleteButton>
-            </WindowOptions>
-          </WindowChecklistTitle>
-        )}
-      </WindowTitle>
-      <ChecklistProgress>
-        <ChecklistProgressPercent>{`${percent}%`}</ChecklistProgressPercent>
-        <ChecklistProgressBar>
-          <ChecklistProgressBarCurrent width={percent} />
-        </ChecklistProgressBar>
-      </ChecklistProgress>
-      <ChecklistItems>
-        {items
-          .slice()
-          .sort((a, b) => a.position - b.position)
-          .map(item => (
-            <ChecklistItem
-              key={item.id}
-              itemID={item.id}
-              name={item.name}
-              complete={item.complete}
-              onDeleteItem={onDeleteItem}
-              onChangeName={onChangeItemName}
-              onToggleItem={onToggleItem}
+const Checklist = React.forwardRef(
+  (
+    {
+      checklistID,
+      children,
+      onDeleteChecklist,
+      name,
+      items,
+      wrapperProps,
+      handleProps,
+      onToggleItem,
+      onAddItem,
+      onChangeItemName,
+      onChangeName,
+      onDeleteItem,
+    }: ChecklistProps,
+    $container,
+  ) => {
+    const $name = useRef<HTMLTextAreaElement>(null);
+    const complete = items.reduce((prev, item) => prev + (item.complete ? 1 : 0), 0);
+    const percent = items.length === 0 ? 0 : Math.floor((complete / items.length) * 100);
+    const [editting, setEditting] = useState(false);
+    // useOnOutsideClick($name, true, () => setEditting(false), null);
+    useEffect(() => {
+      if (editting && $name && $name.current) {
+        $name.current.focus();
+        $name.current.select();
+      }
+    }, [editting]);
+    useEffect(() => {
+      console.log($container);
+    }, [$container]);
+    return (
+      <Wrapper ref={$container} {...wrapperProps}>
+        <WindowTitle>
+          <WindowTitleIcon width={24} height={24} />
+          {editting ? (
+            <ChecklistTitleEditor
+              ref={$name}
+              name={name}
+              onChangeName={currentName => {
+                onChangeName(currentName);
+                setEditting(false);
+              }}
+              onCancel={() => {
+                setEditting(false);
+              }}
             />
-          ))}
-      </ChecklistItems>
-      <AddNewItem onAddItem={onAddItem} />
-    </Wrapper>
-  );
-};
+          ) : (
+            <WindowChecklistTitle {...handleProps}>
+              <WindowTitleText onClick={() => setEditting(true)}>{name}</WindowTitleText>
+              <WindowOptions>
+                <DeleteButton
+                  onClick={$target => {
+                    onDeleteChecklist($target, checklistID);
+                  }}
+                  color="danger"
+                  variant="outline"
+                >
+                  Delete
+                </DeleteButton>
+              </WindowOptions>
+            </WindowChecklistTitle>
+          )}
+        </WindowTitle>
+        <ChecklistProgress>
+          <ChecklistProgressPercent>{`${percent}%`}</ChecklistProgressPercent>
+          <ChecklistProgressBar>
+            <ChecklistProgressBarCurrent width={percent} />
+          </ChecklistProgressBar>
+        </ChecklistProgress>
+        {children}
+        <AddNewItem onAddItem={onAddItem} />
+      </Wrapper>
+    );
+  },
+);
+/*
+  <ChecklistItems>
+    {items
+      .slice()
+      .sort((a, b) => a.position - b.position)
+      .map((item, idx) => (
+        <ChecklistItem
+          index={idx}
+          key={item.id}
+          itemID={item.id}
+          name={item.name}
+          complete={item.complete}
+          onDeleteItem={onDeleteItem}
+          onChangeName={onChangeItemName}
+          onToggleItem={onToggleItem}
+        />
+      ))}
 
+ </ChecklistItems>
+ */
 export default Checklist;

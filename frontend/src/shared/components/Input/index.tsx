@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import styled, { css } from 'styled-components/macro';
+import React, {useState, useEffect} from 'react';
+import styled, {css} from 'styled-components/macro';
 
-const InputWrapper = styled.div<{ width: string }>`
+const InputWrapper = styled.div<{width: string}>`
   position: relative;
   width: ${props => props.width};
   display: flex;
@@ -14,7 +14,7 @@ const InputWrapper = styled.div<{ width: string }>`
   margin-top: 24px;
 `;
 
-const InputLabel = styled.span<{ width: string }>`
+const InputLabel = styled.span<{width: string}>`
   width: ${props => props.width};
   padding: 0.7rem !important;
   color: #c2c6dc;

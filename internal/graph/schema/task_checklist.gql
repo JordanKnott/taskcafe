@@ -6,6 +6,30 @@ extend type Mutation {
   updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
   setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
   deleteTaskChecklistItem(input: DeleteTaskChecklistItem!): DeleteTaskChecklistItemPayload!
+
+  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!): UpdateTaskChecklistLocationPayload!
+  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!): UpdateTaskChecklistItemLocationPayload!
+}
+
+input UpdateTaskChecklistItemLocation {
+  checklistID: UUID!
+  checklistItemID: UUID!
+  position: Float!
+}
+
+type UpdateTaskChecklistItemLocationPayload {
+  checklistID: UUID!
+  prevChecklistID: UUID!
+  checklistItem: TaskChecklistItem!
+}
+
+input UpdateTaskChecklistLocation {
+  checklistID: UUID!
+  position: Float!
+}
+
+type UpdateTaskChecklistLocationPayload {
+  checklist: TaskChecklist!
 }
 
 input CreateTaskChecklist {

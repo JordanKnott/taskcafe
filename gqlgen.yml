@@ -20,7 +20,7 @@ model:
 # Where should the resolver implementations go?
 resolver:
   layout: follow-schema
-  dir: graph
+  dir: internal/graph
   package: graph
 
 # Optional: turn on to use []Thing instead of []*Thing

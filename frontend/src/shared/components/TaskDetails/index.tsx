@@ -2,6 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bin, Cross, Plus } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import ReactMarkdown from 'react-markdown';
+
+import {
+  isPositionChanged,
+  getSortedDraggables,
+  getNewDraggablePosition,
+  getAfterDropDraggableList,
+} from 'shared/utils/draggables';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import moment from 'moment';
 
@@ -46,7 +54,10 @@ import {
   MetaDetailTitle,
   MetaDetailContent,
 } from './Styles';
-import Checklist from '../Checklist';
+import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
+import styled from 'styled-components';
+
+const ChecklistContainer = styled.div``;
 
 type TaskContentProps = {
   onEditContent: () => void;
@@ -145,6 +156,8 @@ type TaskDetailsProps = {
   onChangeChecklistName: (checklistID: string, name: string) => void;
   onDeleteChecklist: ($target: React.RefObject<HTMLElement>, checklistID: string) => void;
   onCloseModal: () => void;
+  onChecklistDrop: (checklist: TaskChecklist) => void;
+  onChecklistItemDrop: (prevChecklistID: string, checklistID: string, checklistItem: TaskChecklistItem) => void;
 };
 
 const TaskDetails: React.FC<TaskDetailsProps> = ({
@@ -153,6 +166,8 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onTaskNameChange,
   onOpenAddChecklistPopup,
   onChangeChecklistName,
+  onChecklistDrop,
+  onChecklistItemDrop,
   onToggleTaskComplete,
   onTaskDescriptionChange,
   onChangeItemName,
@@ -190,14 +205,91 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     onOpenAddMemberPopup(task, $target);
   };
   const onAddChecklist = ($target: React.RefObject<HTMLElement>) => {
-    onOpenAddChecklistPopup(task, $target)
-  }
+    onOpenAddChecklistPopup(task, $target);
+  };
   const $dueDateLabel = useRef<HTMLDivElement>(null);
   const $addLabelRef = useRef<HTMLDivElement>(null);
 
   const onAddLabel = ($target: React.RefObject<HTMLElement>) => {
     onOpenAddLabelPopup(task, $target);
   };
+
+  const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
+    if (typeof destination === 'undefined') return;
+    if (!isPositionChanged(source, destination)) return;
+
+    const isChecklist = type === 'checklist';
+    const isSameChecklist = destination.droppableId === source.droppableId;
+    let droppedDraggable: DraggableElement | null = null;
+    let beforeDropDraggables: Array<DraggableElement> | null = null;
+
+    if (!task.checklists) return;
+    if (isChecklist) {
+      const droppedGroup = task.checklists.find(taskGroup => taskGroup.id === draggableId);
+      if (droppedGroup) {
+        droppedDraggable = {
+          id: draggableId,
+          position: droppedGroup.position,
+        };
+        beforeDropDraggables = getSortedDraggables(
+          task.checklists.map(checklist => {
+            return { id: checklist.id, position: checklist.position };
+          }),
+        );
+        if (droppedDraggable === null || beforeDropDraggables === null) {
+          throw new Error('before drop draggables is null');
+        }
+        const afterDropDraggables = getAfterDropDraggableList(
+          beforeDropDraggables,
+          droppedDraggable,
+          isChecklist,
+          isSameChecklist,
+          destination,
+        );
+        const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
+        console.log(droppedGroup);
+        console.log(`positiion: ${newPosition}`);
+        onChecklistDrop({ ...droppedGroup, position: newPosition });
+      } else {
+        throw { error: 'task group can not be found' };
+      }
+    } else {
+      const targetChecklist = task.checklists.findIndex(
+        checklist => checklist.items.findIndex(item => item.id === draggableId) !== -1,
+      );
+      const droppedChecklistItem = task.checklists[targetChecklist].items.find(item => item.id === draggableId);
+
+      if (droppedChecklistItem) {
+        droppedDraggable = {
+          id: draggableId,
+          position: droppedChecklistItem.position,
+        };
+        beforeDropDraggables = getSortedDraggables(
+          task.checklists[targetChecklist].items.map(item => {
+            return { id: item.id, position: item.position };
+          }),
+        );
+        if (droppedDraggable === null || beforeDropDraggables === null) {
+          throw new Error('before drop draggables is null');
+        }
+        const afterDropDraggables = getAfterDropDraggableList(
+          beforeDropDraggables,
+          droppedDraggable,
+          isChecklist,
+          isSameChecklist,
+          destination,
+        );
+        const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
+        const newItem = {
+          ...droppedChecklistItem,
+          position: newPosition,
+        };
+        onChecklistItemDrop(droppedChecklistItem.taskChecklistID, destination.droppableId, newItem);
+        console.log(newItem);
+      }
+    }
+  };
+
   return (
     <>
       <TaskActions>
@@ -289,33 +381,80 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             ) : (
               <TaskContent description={description} onEditContent={handleClick} />
             )}
-            {task.checklists &&
-              task.checklists
-                .slice()
-                .sort((a, b) => a.position - b.position)
-                .map(checklist => (
-                  <Checklist
-                    key={checklist.id}
-                    name={checklist.name}
-                    checklistID={checklist.id}
-                    items={checklist.items}
-                    onDeleteChecklist={onDeleteChecklist}
-                    onChangeName={newName => onChangeChecklistName(checklist.id, newName)}
-                    onToggleItem={onToggleChecklistItem}
-                    onDeleteItem={onDeleteItem}
-                    onAddItem={n => {
-                      if (task.checklists) {
-                        let position = 65535;
-                        const [lastItem] = checklist.items.sort((a, b) => a.position - b.position).slice(-1);
-                        if (lastItem) {
-                          position = lastItem.position * 2 + 1;
-                        }
-                        onAddItem(checklist.id, n, position);
-                      }
-                    }}
-                    onChangeItemName={onChangeItemName}
-                  />
-                ))}
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable direction="vertical" type="checklist" droppableId="root">
+                {dropProvided => (
+                  <ChecklistContainer {...dropProvided.droppableProps} ref={dropProvided.innerRef}>
+                    {task.checklists &&
+                      task.checklists
+                        .slice()
+                        .sort((a, b) => a.position - b.position)
+                        .map((checklist, idx) => (
+                          <Draggable key={checklist.id} draggableId={checklist.id} index={idx}>
+                            {provided => (
+                              <Checklist
+                                ref={provided.innerRef}
+                                wrapperProps={provided.draggableProps}
+                                handleProps={provided.dragHandleProps}
+                                key={checklist.id}
+                                name={checklist.name}
+                                checklistID={checklist.id}
+                                items={checklist.items}
+                                onDeleteChecklist={onDeleteChecklist}
+                                onChangeName={newName => onChangeChecklistName(checklist.id, newName)}
+                                onToggleItem={onToggleChecklistItem}
+                                onDeleteItem={onDeleteItem}
+                                onAddItem={n => {
+                                  if (task.checklists) {
+                                    let position = 65535;
+                                    const [lastItem] = checklist.items
+                                      .sort((a, b) => a.position - b.position)
+                                      .slice(-1);
+                                    if (lastItem) {
+                                      position = lastItem.position * 2 + 1;
+                                    }
+                                    onAddItem(checklist.id, n, position);
+                                  }
+                                }}
+                                onChangeItemName={onChangeItemName}
+                              >
+                                <Droppable direction="vertical" type="checklistItem" droppableId={checklist.id}>
+                                  {checklistDrop => (
+                                    <ChecklistItems ref={checklistDrop.innerRef} {...checklistDrop.droppableProps}>
+                                      {checklist.items
+                                        .slice()
+                                        .sort((a, b) => a.position - b.position)
+                                        .map((item, itemIdx) => (
+                                          <Draggable key={item.id} draggableId={item.id} index={itemIdx}>
+                                            {itemDrop => (
+                                              <ChecklistItem
+                                                key={item.id}
+                                                itemID={item.id}
+                                                ref={itemDrop.innerRef}
+                                                wrapperProps={itemDrop.draggableProps}
+                                                handleProps={itemDrop.dragHandleProps}
+                                                name={item.name}
+                                                complete={item.complete}
+                                                onDeleteItem={onDeleteItem}
+                                                onChangeName={onChangeItemName}
+                                                onToggleItem={() => {}}
+                                              />
+                                            )}
+                                          </Draggable>
+                                        ))}
+                                      {checklistDrop.placeholder}
+                                    </ChecklistItems>
+                                  )}
+                                </Droppable>
+                              </Checklist>
+                            )}
+                          </Draggable>
+                        ))}
+                    {dropProvided.placeholder}
+                  </ChecklistContainer>
+                )}
+              </Droppable>
+            </DragDropContext>
           </TaskDetailsSection>
         </TaskDetailsContent>
         <TaskDetailsSidebar>

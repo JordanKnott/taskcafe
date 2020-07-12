@@ -51,6 +51,7 @@ type Querier interface {
 	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
 	GetLabelColorByID(ctx context.Context, labelColorID uuid.UUID) (LabelColor, error)
 	GetLabelColors(ctx context.Context) ([]LabelColor, error)
+	GetOwnedTeamProjectsForUserID(ctx context.Context, arg GetOwnedTeamProjectsForUserIDParams) ([]uuid.UUID, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectIDForTask(ctx context.Context, taskID uuid.UUID) (uuid.UUID, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
@@ -87,8 +88,10 @@ type Querier interface {
 	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)
 	UpdateProjectMemberRole(ctx context.Context, arg UpdateProjectMemberRoleParams) (ProjectMember, error)
 	UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNameByIDParams) (Project, error)
+	UpdateTaskChecklistItemLocation(ctx context.Context, arg UpdateTaskChecklistItemLocationParams) (TaskChecklistItem, error)
 	UpdateTaskChecklistItemName(ctx context.Context, arg UpdateTaskChecklistItemNameParams) (TaskChecklistItem, error)
 	UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error)
+	UpdateTaskChecklistPosition(ctx context.Context, arg UpdateTaskChecklistPositionParams) (TaskChecklist, error)
 	UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescriptionParams) (Task, error)
 	UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDateParams) (Task, error)
 	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)
@@ -96,6 +99,7 @@ type Querier interface {
 	UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error)
 	UpdateTeamMemberRole(ctx context.Context, arg UpdateTeamMemberRoleParams) (TeamMember, error)
 	UpdateUserAccountProfileAvatarURL(ctx context.Context, arg UpdateUserAccountProfileAvatarURLParams) (UserAccount, error)
+	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UserAccount, error)
 }
 
 var _ Querier = (*Queries)(nil)

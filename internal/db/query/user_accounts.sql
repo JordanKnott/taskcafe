@@ -22,3 +22,6 @@ DELETE FROM user_account WHERE user_id = $1;
 SELECT username, role.code, role.name FROM user_account
   INNER JOIN role ON role.code = user_account.role_code
 WHERE user_id = $1;
+
+-- name: UpdateUserRole :one
+UPDATE user_account SET role_code = $2 WHERE user_id = $1 RETURNING *;

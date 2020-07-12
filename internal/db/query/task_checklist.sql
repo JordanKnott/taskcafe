@@ -35,3 +35,9 @@ SELECT * FROM task_checklist_item WHERE task_checklist_item_id = $1;
 -- name: UpdateTaskChecklistItemName :one
 UPDATE task_checklist_item SET name = $2 WHERE task_checklist_item_id = $1
   RETURNING *;
+
+-- name: UpdateTaskChecklistPosition :one
+UPDATE task_checklist SET position = $2 WHERE task_checklist_id = $1 RETURNING *;
+
+-- name: UpdateTaskChecklistItemLocation :one
+UPDATE task_checklist_item SET position = $2, task_checklist_id = $3 WHERE task_checklist_item_id = $1 RETURNING *;

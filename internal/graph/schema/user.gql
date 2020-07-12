@@ -4,6 +4,17 @@ extend type Mutation {
   deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
+
+  updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+}
+
+input UpdateUserRole {
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateUserRolePayload {
+  user: UserAccount!
 }
 
 input NewRefreshToken {
