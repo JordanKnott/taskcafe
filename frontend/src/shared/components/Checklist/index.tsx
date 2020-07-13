@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import styled from 'styled-components';
-import { CheckSquare, Trash, Square, CheckSquareOutline, Clock, Cross, AccountPlus } from 'shared/icons';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {CheckSquare, Trash, Square, CheckSquareOutline, Clock, Cross, AccountPlus} from 'shared/icons';
+import {DragDropContext, Droppable, Draggable, DropResult} from 'react-beautiful-dnd';
 import {
   isPositionChanged,
   getSortedDraggables,
@@ -81,7 +81,7 @@ const ChecklistProgressBar = styled.div`
   overflow: hidden;
   position: relative;
 `;
-const ChecklistProgressBarCurrent = styled.div<{ width: number }>`
+const ChecklistProgressBarCurrent = styled.div<{width: number}>`
   width: ${props => props.width}%;
   background: rgba(${props => (props.width === 100 ? props.theme.colors.success : props.theme.colors.primary)});
   bottom: 0;
@@ -129,9 +129,10 @@ const ChecklistItemTextControls = styled.div`
   padding: 6px 0;
   width: 100%;
   display: inline-flex;
+  align-items: center;
 `;
 
-const ChecklistItemText = styled.span<{ complete: boolean }>`
+const ChecklistItemText = styled.span<{complete: boolean}>`
   color: ${props => (props.complete ? '#5e6c84' : `rgba(${props.theme.colors.text.primary})`)};
   ${props => props.complete && 'text-decoration: line-through;'}
   line-height: 20px;
@@ -155,6 +156,11 @@ const ControlButton = styled.div`
   padding: 4px 6px;
   border-radius: 6px;
   background-color: rgba(${props => props.theme.colors.bg.primary}, 0.8);
+      display: flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
   &:hover {
     background-color: rgba(${props => props.theme.colors.primary}, 1);
   }
@@ -206,7 +212,7 @@ const TrashButton = styled(Trash)`
   fill: rgba(${props => props.theme.colors.text.primary});
 `;
 
-const ChecklistItemWrapper = styled.div<{ ref: any }>`
+const ChecklistItemWrapper = styled.div<{ref: any}>`
   user-select: none;
   clear: both;
   padding-left: 40px;
@@ -216,6 +222,9 @@ const ChecklistItemWrapper = styled.div<{ ref: any }>`
   transition-property: transform, opacity, height, padding, margin;
   transition-duration: 0.14s;
   transition-timing-function: ease-in;
+  & ${ControlButton}:last-child {
+    margin-right: 4px;
+  }
 
   &:hover {
     background-color: rgba(${props => props.theme.colors.bg.primary}, 0.4);
@@ -274,18 +283,19 @@ const ChecklistNewItem = styled.div`
 
 type ChecklistItemProps = {
   itemID: string;
+  checklistID: string;
   complete: boolean;
   name: string;
   onChangeName: (itemID: string, currentName: string) => void;
   wrapperProps: any;
   handleProps: any;
   onToggleItem: (itemID: string, complete: boolean) => void;
-  onDeleteItem: (itemID: string) => void;
+  onDeleteItem: (checklistIDID: string, itemID: string) => void;
 };
 
 export const ChecklistItem = React.forwardRef(
   (
-    { itemID, complete, name, wrapperProps, handleProps, onChangeName, onToggleItem, onDeleteItem }: ChecklistItemProps,
+    {itemID, checklistID, complete, name, wrapperProps, handleProps, onChangeName, onToggleItem, onDeleteItem}: ChecklistItemProps,
     $item,
   ) => {
     const $editor = useRef<HTMLTextAreaElement>(null);
@@ -309,8 +319,8 @@ export const ChecklistItem = React.forwardRef(
           {complete ? (
             <ChecklistItemCheckedIcon width={20} height={20} />
           ) : (
-            <ChecklistItemUncheckedIcon width={20} height={20} />
-          )}
+              <ChecklistItemUncheckedIcon width={20} height={20} />
+            )}
         </ChecklistIcon>
         {editting ? (
           <>
@@ -352,7 +362,7 @@ export const ChecklistItem = React.forwardRef(
                 onClick={e => {
                   e.stopPropagation();
                   setEditting(false);
-                  onDeleteItem(itemID);
+                  onDeleteItem(checklistID, itemID);
                 }}
               >
                 <Trash width={16} height={16} />
@@ -360,34 +370,34 @@ export const ChecklistItem = React.forwardRef(
             </EditControls>
           </>
         ) : (
-          <ChecklistItemDetails
-            onClick={() => {
-              setEditting(true);
-            }}
-          >
-            <ChecklistItemRow>
-              <ChecklistItemTextControls>
-                <ChecklistItemText complete={complete}>{name}</ChecklistItemText>
-                <ChecklistControls>
-                  <ControlButton>
-                    <AssignUserButton width={14} height={14} />
-                  </ControlButton>
-                  <ControlButton>
-                    <ClockButton width={14} height={14} />
-                  </ControlButton>
-                  <ControlButton
-                    onClick={e => {
-                      e.stopPropagation();
-                      onDeleteItem(itemID);
-                    }}
-                  >
-                    <TrashButton width={14} height={14} />
-                  </ControlButton>
-                </ChecklistControls>
-              </ChecklistItemTextControls>
-            </ChecklistItemRow>
-          </ChecklistItemDetails>
-        )}
+            <ChecklistItemDetails
+              onClick={() => {
+                setEditting(true);
+              }}
+            >
+              <ChecklistItemRow>
+                <ChecklistItemTextControls>
+                  <ChecklistItemText complete={complete}>{name}</ChecklistItemText>
+                  <ChecklistControls>
+                    <ControlButton>
+                      <AssignUserButton width={14} height={14} />
+                    </ControlButton>
+                    <ControlButton>
+                      <ClockButton width={14} height={14} />
+                    </ControlButton>
+                    <ControlButton
+                      onClick={e => {
+                        e.stopPropagation();
+                        onDeleteItem(checklistID, itemID);
+                      }}
+                    >
+                      <TrashButton width={14} height={14} />
+                    </ControlButton>
+                  </ChecklistControls>
+                </ChecklistItemTextControls>
+              </ChecklistItemRow>
+            </ChecklistItemDetails>
+          )}
       </ChecklistItemWrapper>
     );
   },
@@ -397,7 +407,7 @@ type AddNewItemProps = {
   onAddItem: (name: string) => void;
 };
 
-const AddNewItem: React.FC<AddNewItemProps> = ({ onAddItem }) => {
+const AddNewItem: React.FC<AddNewItemProps> = ({onAddItem}) => {
   const $editor = useRef<HTMLTextAreaElement>(null);
   const $wrapper = useRef<HTMLDivElement>(null);
   const [currentName, setCurrentName] = useState('');
@@ -454,8 +464,8 @@ const AddNewItem: React.FC<AddNewItemProps> = ({ onAddItem }) => {
           </EditControls>
         </>
       ) : (
-        <NewItemButton onClick={() => setEditting(true)}>Add an item</NewItemButton>
-      )}
+          <NewItemButton onClick={() => setEditting(true)}>Add an item</NewItemButton>
+        )}
     </ChecklistNewItem>
   );
 };
@@ -467,7 +477,7 @@ type ChecklistTitleEditorProps = {
 };
 
 const ChecklistTitleEditor = React.forwardRef(
-  ({ name, onChangeName, onCancel }: ChecklistTitleEditorProps, $name: any) => {
+  ({name, onChangeName, onCancel}: ChecklistTitleEditorProps, $name: any) => {
     const [currentName, setCurrentName] = useState(name);
     return (
       <>
@@ -515,7 +525,7 @@ type ChecklistProps = {
   onChangeItemName: (itemID: string, currentName: string) => void;
   wrapperProps: any;
   handleProps: any;
-  onDeleteItem: (itemID: string) => void;
+  onDeleteItem: (checklistID: string, itemID: string) => void;
   onAddItem: (itemName: string) => void;
   items: Array<TaskChecklistItem>;
 };
@@ -569,21 +579,21 @@ const Checklist = React.forwardRef(
               }}
             />
           ) : (
-            <WindowChecklistTitle {...handleProps}>
-              <WindowTitleText onClick={() => setEditting(true)}>{name}</WindowTitleText>
-              <WindowOptions>
-                <DeleteButton
-                  onClick={$target => {
-                    onDeleteChecklist($target, checklistID);
-                  }}
-                  color="danger"
-                  variant="outline"
-                >
-                  Delete
+              <WindowChecklistTitle {...handleProps}>
+                <WindowTitleText onClick={() => setEditting(true)}>{name}</WindowTitleText>
+                <WindowOptions>
+                  <DeleteButton
+                    onClick={$target => {
+                      onDeleteChecklist($target, checklistID);
+                    }}
+                    color="danger"
+                    variant="outline"
+                  >
+                    Delete
                 </DeleteButton>
-              </WindowOptions>
-            </WindowChecklistTitle>
-          )}
+                </WindowOptions>
+              </WindowChecklistTitle>
+            )}
         </WindowTitle>
         <ChecklistProgress>
           <ChecklistProgressPercent>{`${percent}%`}</ChecklistProgressPercent>
