@@ -134,10 +134,9 @@ export const ListCardOperation = styled.span`
   position: absolute;
   right: 2px;
   top: 2px;
-  z-index: 10;
-
+  z-index: 100;
   &:hover {
-    background-color: ${props => mixin.darken('#262c49', 0.45)};
+    background-color: ${props => mixin.darken('#262c49', .25)};
   }
 `;
 

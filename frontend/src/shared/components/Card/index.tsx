@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, {useState, useRef, useEffect} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import TaskAssignee from 'shared/components/TaskAssignee';
-import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
-import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
+import {faPencilAlt, faList} from '@fortawesome/free-solid-svg-icons';
+import {faClock, faCheckSquare, faEye} from '@fortawesome/free-regular-svg-icons';
 import {
   EditorTextarea,
   EditorContent,
@@ -132,7 +132,12 @@ const Card = React.forwardRef(
       >
         <ListCardInnerContainer ref={$innerCardRef}>
           {isActive && (
-            <ListCardOperation>
+            <ListCardOperation onClick={e => {
+              e.stopPropagation();
+              if (onContextMenu) {
+                onContextMenu($innerCardRef, taskID, taskGroupID);
+              }
+            }}>
               <FontAwesomeIcon onClick={onOperationClick} color="#c2c6dc" size="xs" icon={faPencilAlt} />
             </ListCardOperation>
           )}
@@ -164,11 +169,11 @@ const Card = React.forwardRef(
                 />
               </EditorContent>
             ) : (
-              <CardTitle>
-                {complete && <CompleteIcon width={16} height={16} />}
-                {title}
-              </CardTitle>
-            )}
+                <CardTitle>
+                  {complete && <CompleteIcon width={16} height={16} />}
+                  {title}
+                </CardTitle>
+              )}
             <ListCardBadges>
               {watched && (
                 <ListCardBadge>
