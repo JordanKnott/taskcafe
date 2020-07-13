@@ -104,11 +104,12 @@ type SelectProps = {
   onChange: (e: any) => void;
   value: any;
   options: Array<any>;
+  className?: string;
 };
 
-const SelectElement: React.FC<SelectProps> = ({ onChange, value, options, label }) => {
+const SelectElement: React.FC<SelectProps> = ({ onChange, value, options, label, className }) => {
   return (
-    <SelectContainer>
+    <SelectContainer className={className}>
       <Select
         onChange={(e: any) => {
           onChange(e);

@@ -2,6 +2,7 @@ import React, {useState, useRef} from 'react';
 import {UserPlus, Checkmark} from 'shared/icons';
 import styled, {css} from 'styled-components';
 import TaskAssignee from 'shared/components/TaskAssignee';
+import Select from 'shared/components/Select';
 import {User, Plus, Lock, Pencil, Trash} from 'shared/icons';
 import {usePopup, Popup} from 'shared/components/PopupMenu';
 import {RoleCode, useUpdateUserRoleMutation} from 'shared/generated/graphql';
@@ -133,9 +134,10 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
                 <CurrentPermission>{`(${user.role.name})`}</CurrentPermission>
               </MiniProfileActionItem>
             )}
-            <MiniProfileActionItem onClick={() => {}}>Reset password...</MiniProfileActionItem>
-            <MiniProfileActionItem onClick={() => {}}>Lock user...</MiniProfileActionItem>
-            <MiniProfileActionItem onClick={() => {}}>Remove from organzation...</MiniProfileActionItem>
+            <MiniProfileActionItem onClick={() => {
+              setTab(3)
+            }}>Reset password...</MiniProfileActionItem>
+            <MiniProfileActionItem onClick={() =>setTab(5)}>Remove from organzation...</MiniProfileActionItem>
           </MiniProfileActionWrapper>
         </MiniProfileActions>
         {warning && (
@@ -206,13 +208,67 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           </RemoveMemberButton>
         </Content>
       </Popup>
+      <Popup title="Reset password?" onClose={() => hidePopup()} tab={3}>
+        <Content>
+          <DeleteDescription>
+            You can either set the user's new password directly or send the user an email allowing them to reset their own password.
+          </DeleteDescription>
+          <UserPassBar>
+            <UserPassButton onClick={() => setTab(4)} color="warning">Set password...</UserPassButton>
+            <UserPassButton color="warning" variant="outline">Send reset link</UserPassButton>
+          </UserPassBar>
+        </Content>
+      </Popup>
+      <Popup title="Reset password" onClose={() => hidePopup()} tab={4}>
+        <Content>
+          <NewUserPassInput width="100%" variant="alternate" placeholder="New password" />
+          <NewUserPassInput width="100%" variant="alternate" placeholder="New password (confirm)" />
+          <UserPassConfirmButton onClick={() => {}} color="danger">Set password</UserPassConfirmButton>
+        </Content>
+      </Popup>
+      <Popup title="Remove user" onClose={() => hidePopup()} tab={5}>
+        <Content>
+          <DeleteDescription>
+            Removing this user from the organzation will remove them from assigned tasks, projects, and            teams.
+          </DeleteDescription>
+          <DeleteDescription>
+            The user is the owner of 3 projects & 2 teams.
+          </DeleteDescription>
+          <UserSelect onChange={() => {}} value={null} options={[{label: 'Jordan Knott', value: "jordanknott"}]} />
+          <UserPassConfirmButton onClick={() => {}} color="danger">Set password</UserPassConfirmButton>
+        </Content>
+      </Popup>
     </>
   );
 };
+const UserSelect = styled(Select)`
+margin: 8px 0;
+padding: 8px 0;
+`
 
+const NewUserPassInput = styled(Input)`
+margin: 8px 0;
+`
 const InviteMemberButton = styled(Button)`
   padding: 7px 12px;
 `;
+
+const UserPassBar = styled.div`
+display: flex;
+padding-top: 8px;
+`
+const UserPassConfirmButton = styled(Button)`
+  width: 100%;
+  padding: 7px 12px;
+`
+
+const UserPassButton = styled(Button)`
+  width: 50%;
+  padding: 7px 12px;
+  & ~ & {
+  margin-left: 6px;
+  }
+`
 
 const MemberItemOptions = styled.div``;
 
@@ -373,9 +429,6 @@ const ActionButtons = (params: any) => {
     <>
       <ActionButton onClick={() => {}}>
         <EditUserIcon width={16} height={16} />
-      </ActionButton>
-      <ActionButton onClick={() => {}}>
-        <LockUserIcon width={16} height={16} />
       </ActionButton>
       <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
         <DeleteUserIcon width={16} height={16} />
