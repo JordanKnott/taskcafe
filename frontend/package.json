@@ -70,6 +70,7 @@
     "styled-components": "^5.0.1",
     "typescript": "~3.7.2"
   },
+  "proxy": "http://localhost:3333",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

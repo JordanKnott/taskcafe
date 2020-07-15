@@ -185,6 +185,7 @@ type ComplexityRoot struct {
 		UpdateTaskLocation              func(childComplexity int, input NewTaskLocation) int
 		UpdateTaskName                  func(childComplexity int, input UpdateTaskName) int
 		UpdateTeamMemberRole            func(childComplexity int, input UpdateTeamMemberRole) int
+		UpdateUserPassword              func(childComplexity int, input UpdateUserPassword) int
 		UpdateUserRole                  func(childComplexity int, input UpdateUserRole) int
 	}
 
@@ -347,6 +348,11 @@ type ComplexityRoot struct {
 		Ok     func(childComplexity int) int
 	}
 
+	UpdateUserPasswordPayload struct {
+		Ok   func(childComplexity int) int
+		User func(childComplexity int) int
+	}
+
 	UpdateUserRolePayload struct {
 		User func(childComplexity int) int
 	}
@@ -415,6 +421,7 @@ type MutationResolver interface {
 	DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error)
 	LogoutUser(ctx context.Context, input LogoutUser) (bool, error)
 	ClearProfileAvatar(ctx context.Context) (*db.UserAccount, error)
+	UpdateUserPassword(ctx context.Context, input UpdateUserPassword) (*UpdateUserPasswordPayload, error)
 	UpdateUserRole(ctx context.Context, input UpdateUserRole) (*UpdateUserRolePayload, error)
 }
 type OrganizationResolver interface {
@@ -1341,6 +1348,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateTeamMemberRole(childComplexity, args["input"].(UpdateTeamMemberRole)), true
 
+	case "Mutation.updateUserPassword":
+		if e.complexity.Mutation.UpdateUserPassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserPassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserPassword(childComplexity, args["input"].(UpdateUserPassword)), true
+
 	case "Mutation.updateUserRole":
 		if e.complexity.Mutation.UpdateUserRole == nil {
 			break
@@ -2007,6 +2026,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UpdateTeamMemberRolePayload.Ok(childComplexity), true
+
+	case "UpdateUserPasswordPayload.ok":
+		if e.complexity.UpdateUserPasswordPayload.Ok == nil {
+			break
+		}
+
+		return e.complexity.UpdateUserPasswordPayload.Ok(childComplexity), true
+
+	case "UpdateUserPasswordPayload.user":
+		if e.complexity.UpdateUserPasswordPayload.User == nil {
+			break
+		}
+
+		return e.complexity.UpdateUserPasswordPayload.User(childComplexity), true
 
 	case "UpdateUserRolePayload.user":
 		if e.complexity.UpdateUserRolePayload.User == nil {
@@ -2707,7 +2740,18 @@ extend type Mutation {
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
 
+  updateUserPassword(input: UpdateUserPassword!): UpdateUserPasswordPayload!
   updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+}
+
+input UpdateUserPassword {
+  userID: UUID!
+  password: String!
+}
+
+type UpdateUserPasswordPayload {
+  ok: Boolean!
+  user: UserAccount!
 }
 
 input UpdateUserRole {
@@ -3403,6 +3447,20 @@ func (ec *executionContext) field_Mutation_updateTeamMemberRole_args(ctx context
 	var arg0 UpdateTeamMemberRole
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateTeamMemberRole2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateTeamMemberRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserPassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateUserPassword
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateUserPassword2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserPassword(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6761,6 +6819,47 @@ func (ec *executionContext) _Mutation_clearProfileAvatar(ctx context.Context, fi
 	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateUserPassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateUserPassword_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserPassword(rctx, args["input"].(UpdateUserPassword))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateUserPasswordPayload)
+	fc.Result = res
+	return ec.marshalNUpdateUserPasswordPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserPasswordPayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_updateUserRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9945,6 +10044,74 @@ func (ec *executionContext) _UpdateTeamMemberRolePayload_member(ctx context.Cont
 	return ec.marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMember(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UpdateUserPasswordPayload_ok(ctx context.Context, field graphql.CollectedField, obj *UpdateUserPasswordPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateUserPasswordPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Ok, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateUserPasswordPayload_user(ctx context.Context, field graphql.CollectedField, obj *UpdateUserPasswordPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateUserPasswordPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.UserAccount)
+	fc.Result = res
+	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UpdateUserRolePayload_user(ctx context.Context, field graphql.CollectedField, obj *UpdateUserRolePayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12554,6 +12721,30 @@ func (ec *executionContext) unmarshalInputUpdateTeamMemberRole(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateUserPassword(ctx context.Context, obj interface{}) (UpdateUserPassword, error) {
+	var it UpdateUserPassword
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userID":
+			var err error
+			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateUserRole(ctx context.Context, obj interface{}) (UpdateUserRole, error) {
 	var it UpdateUserRole
 	var asMap = obj.(map[string]interface{})
@@ -13337,6 +13528,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "clearProfileAvatar":
 			out.Values[i] = ec._Mutation_clearProfileAvatar(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateUserPassword":
+			out.Values[i] = ec._Mutation_updateUserPassword(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -14654,6 +14850,38 @@ func (ec *executionContext) _UpdateTeamMemberRolePayload(ctx context.Context, se
 			}
 		case "member":
 			out.Values[i] = ec._UpdateTeamMemberRolePayload_member(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateUserPasswordPayloadImplementors = []string{"UpdateUserPasswordPayload"}
+
+func (ec *executionContext) _UpdateUserPasswordPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateUserPasswordPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateUserPasswordPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateUserPasswordPayload")
+		case "ok":
+			out.Values[i] = ec._UpdateUserPasswordPayload_ok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user":
+			out.Values[i] = ec._UpdateUserPasswordPayload_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -16228,6 +16456,24 @@ func (ec *executionContext) marshalNUpdateTeamMemberRolePayload2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._UpdateTeamMemberRolePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateUserPassword2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserPassword(ctx context.Context, v interface{}) (UpdateUserPassword, error) {
+	return ec.unmarshalInputUpdateUserPassword(ctx, v)
+}
+
+func (ec *executionContext) marshalNUpdateUserPasswordPayload2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserPasswordPayload(ctx context.Context, sel ast.SelectionSet, v UpdateUserPasswordPayload) graphql.Marshaler {
+	return ec._UpdateUserPasswordPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateUserPasswordPayload2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserPasswordPayload(ctx context.Context, sel ast.SelectionSet, v *UpdateUserPasswordPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateUserPasswordPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateUserRole2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐUpdateUserRole(ctx context.Context, v interface{}) (UpdateUserRole, error) {

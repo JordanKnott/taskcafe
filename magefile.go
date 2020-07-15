@@ -5,13 +5,28 @@ package main
 import (
 	"fmt"
 	"github.com/magefile/mage/sh"
+	"github.com/shurcooL/vfsgen"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 )
 
 var Aliases = map[string]interface{}{
 	"g": Generate,
+}
+
+func Vfs() error {
+	var fs http.FileSystem = http.Dir("frontend/build")
+	err := vfsgen.Generate(fs, vfsgen.Options{
+		Filename:     "internal/frontend/frontend_generated.go",
+		PackageName:  "frontend",
+		VariableName: "Frontend",
+	})
+	if err != nil {
+		panic(err)
+	}
+	return nil
 }
 
 // Runs go mod download and then installs the binary.

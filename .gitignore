@@ -1,3 +1,6 @@
 node_modules
 uploads/*
 !uploads/.keep
+
+internal/frontend/frontend_generated.go
+citadel

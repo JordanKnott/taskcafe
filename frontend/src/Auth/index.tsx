@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useForm } from 'react-hook-form';
-import { useHistory } from 'react-router';
+import React, {useState, useEffect, useContext} from 'react';
+import {useForm} from 'react-hook-form';
+import {useHistory} from 'react-router';
 
-import { setAccessToken } from 'shared/utils/accessToken';
+import {setAccessToken} from 'shared/utils/accessToken';
 
 import Login from 'shared/components/Login';
-import { Container, LoginWrapper } from './Styles';
+import {Container, LoginWrapper} from './Styles';
 import UserIDContext from 'App/context';
 import JwtDecode from 'jwt-decode';
 
 const Auth = () => {
   const [invalidLoginAttempt, setInvalidLoginAttempt] = useState(0);
   const history = useHistory();
-  const { setUserID } = useContext(UserIDContext);
+  const {setUserID} = useContext(UserIDContext);
   const login = (
     data: LoginFormData,
     setComplete: (val: boolean) => void,
     setError: (field: string, eType: string, message: string) => void,
   ) => {
-    fetch('http://localhost:3333/auth/login', {
+    fetch('/auth/login', {
       credentials: 'include',
       method: 'POST',
       body: JSON.stringify({
@@ -33,7 +33,7 @@ const Auth = () => {
         setComplete(true);
       } else {
         const response = await x.json();
-        const { accessToken } = response;
+        const {accessToken} = response;
         const claims: JWTToken = JwtDecode(accessToken);
         setUserID(claims.userId);
         setComplete(true);
@@ -45,11 +45,11 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    fetch('http://localhost:3333/auth/refresh_token', {
+    fetch('/auth/refresh_token', {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
-      const { status } = x;
+      const {status} = x;
       if (status === 200) {
         history.replace('/projects');
       }

@@ -10,16 +10,61 @@ import (
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/jordanknott/project-citadel/api/internal/config"
 	"github.com/jordanknott/project-citadel/api/internal/db"
+	"github.com/jordanknott/project-citadel/api/internal/frontend"
 	"github.com/jordanknott/project-citadel/api/internal/graph"
 	"github.com/jordanknott/project-citadel/api/internal/logger"
+	"os"
+	"path/filepath"
 )
 
-type CitadelHandler struct {
-	repo db.Repository
+// spaHandler implements the http.Handler interface, so we can use it
+// to respond to HTTP requests. The path to the static directory and
+// path to the index file within that static directory are used to
+// serve the SPA in the given static directory.
+type FrontendHandler struct {
+	staticPath string
+	indexPath  string
 }
 
-func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
+func IsDir(f http.File) bool {
+	fi, err := f.Stat()
+	if err != nil {
+		return false
+	}
+	return fi.IsDir()
+}
+
+func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	path, err := filepath.Abs(r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	f, err := frontend.Frontend.Open(path)
+	if os.IsNotExist(err) || IsDir(f) {
+		index, err := frontend.Frontend.Open("index.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.ServeContent(w, r, "index.html", time.Now(), index)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.ServeContent(w, r, path, time.Now(), f)
+}
+
+type CitadelHandler struct {
+	config config.AppConfig
+	repo   db.Repository
+}
+
+func NewRouter(config config.AppConfig, dbConnection *sqlx.DB) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -47,7 +92,7 @@ func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repository := db.NewRepository(dbConnection)
-	citadelHandler := CitadelHandler{*repository}
+	citadelHandler := CitadelHandler{config, *repository}
 
 	var imgServer = http.FileServer(http.Dir("./uploads/"))
 	r.Group(func(mux chi.Router) {
@@ -59,8 +104,11 @@ func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
 	r.Group(func(mux chi.Router) {
 		mux.Use(AuthenticationMiddleware)
 		mux.Post("/users/me/avatar", citadelHandler.ProfileImageUpload)
-		mux.Handle("/graphql", graph.NewHandler(*repository))
+		mux.Handle("/graphql", graph.NewHandler(config, *repository))
 	})
+
+	frontend := FrontendHandler{staticPath: "build", indexPath: "index.html"}
+	r.Handle("/*", frontend)
 
 	return r, nil
 }

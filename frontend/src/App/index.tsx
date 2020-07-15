@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import jwtDecode from 'jwt-decode';
-import { createBrowserHistory } from 'history';
-import { setAccessToken } from 'shared/utils/accessToken';
-import styled, { ThemeProvider } from 'styled-components';
+import {createBrowserHistory} from 'history';
+import {setAccessToken} from 'shared/utils/accessToken';
+import styled, {ThemeProvider} from 'styled-components';
 import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
-import { theme } from './ThemeStyles';
+import {theme} from './ThemeStyles';
 import Routes from './Routes';
-import { UserIDContext } from './context';
+import {UserIDContext} from './context';
 import Navbar from './Navbar';
-import { Router } from 'react-router';
-import { PopupProvider } from 'shared/components/PopupMenu';
+import {Router} from 'react-router';
+import {PopupProvider} from 'shared/components/PopupMenu';
 
 const history = createBrowserHistory();
 
@@ -19,16 +19,16 @@ const App = () => {
   const [userID, setUserID] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:3333/auth/refresh_token', {
+    fetch('/auth/refresh_token', {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
-      const { status } = x;
+      const {status} = x;
       if (status === 400) {
         history.replace('/login');
       } else {
         const response: RefreshTokenResponse = await x.json();
-        const { accessToken } = response;
+        const {accessToken} = response;
         const claims: JWTToken = jwtDecode(accessToken);
         setUserID(claims.userId);
         setAccessToken(accessToken);
@@ -39,7 +39,7 @@ const App = () => {
 
   return (
     <>
-      <UserIDContext.Provider value={{ userID, setUserID }}>
+      <UserIDContext.Provider value={{userID, setUserID}}>
         <ThemeProvider theme={theme}>
           <NormalizeStyles />
           <BaseStyles />
@@ -48,10 +48,10 @@ const App = () => {
               {loading ? (
                 <div>loading</div>
               ) : (
-                <>
-                  <Routes history={history} />
-                </>
-              )}
+                  <>
+                    <Routes history={history} />
+                  </>
+                )}
             </PopupProvider>
           </Router>
         </ThemeProvider>

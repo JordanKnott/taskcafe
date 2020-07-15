@@ -5,12 +5,26 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
+	"time"
+
 	"github.com/jordanknott/project-citadel/api/internal/db"
+	"github.com/jordanknott/project-citadel/api/internal/frontend"
 )
+
+func (h *CitadelHandler) Frontend(w http.ResponseWriter, r *http.Request) {
+	f, err := frontend.Frontend.Open("index.h")
+	if os.IsNotExist(err) {
+		log.Warning("does not exist")
+	} else if err != nil {
+		log.WithError(err).Error("frontend")
+	}
+	http.ServeContent(w, r, "index.html", time.Now(), f)
+}
 
 func (h *CitadelHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info("preparing to upload file")

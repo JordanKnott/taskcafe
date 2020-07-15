@@ -783,13 +783,24 @@ func (r *mutationResolver) ClearProfileAvatar(ctx context.Context) (*db.UserAcco
 	return &user, nil
 }
 
+func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input UpdateUserPassword) (*UpdateUserPasswordPayload, error) {
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(input.Password), 14)
+	if err != nil {
+		return &UpdateUserPasswordPayload{}, err
+	}
+	user, err := r.Repository.SetUserPassword(ctx, db.SetUserPasswordParams{UserID: input.UserID, PasswordHash: string(hashedPwd)})
+	if err != nil {
+		return &UpdateUserPasswordPayload{}, err
+	}
+	return &UpdateUserPasswordPayload{Ok: true, User: &user}, err
+}
+
 func (r *mutationResolver) UpdateUserRole(ctx context.Context, input UpdateUserRole) (*UpdateUserRolePayload, error) {
 	user, err := r.Repository.UpdateUserRole(ctx, db.UpdateUserRoleParams{RoleCode: input.RoleCode.String(), UserID: input.UserID})
 	if err != nil {
 		return &UpdateUserRolePayload{}, err
 	}
 	return &UpdateUserRolePayload{User: &user}, nil
-
 }
 
 func (r *organizationResolver) ID(ctx context.Context, obj *db.Organization) (uuid.UUID, error) {

@@ -1,5 +1,24 @@
+[general]
+host = '0.0.0.0:3333'
+
+[email_notifications]
+enabled = true
+display_name = "No Reply"
+from_address = "example.com"
+
+[storage]
+storage_system = 'local_storage'
+upload_dir_path = 'uploads'
+
 [database]
 host = '0.0.0.0'
-name = 'citadel'
+name = 'citadel_test'
 user = 'postgres'
 password = 'test'
+
+[smtp]
+username = 'admin@example.com'
+password = 'example'
+server = 'mail.example.com'
+port = 465
+connection_security = 'STARTTLS'

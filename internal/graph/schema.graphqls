@@ -570,7 +570,18 @@ extend type Mutation {
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
 
+  updateUserPassword(input: UpdateUserPassword!): UpdateUserPasswordPayload!
   updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+}
+
+input UpdateUserPassword {
+  userID: UUID!
+  password: String!
+}
+
+type UpdateUserPasswordPayload {
+  ok: Boolean!
+  user: UserAccount!
 }
 
 input UpdateUserRole {

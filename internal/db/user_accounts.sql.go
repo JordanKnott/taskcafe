@@ -162,6 +162,33 @@ func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string)
 	return i, err
 }
 
+const setUserPassword = `-- name: SetUserPassword :one
+UPDATE user_account SET password_hash = $2 WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code
+`
+
+type SetUserPasswordParams struct {
+	UserID       uuid.UUID `json:"user_id"`
+	PasswordHash string    `json:"password_hash"`
+}
+
+func (q *Queries) SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (UserAccount, error) {
+	row := q.db.QueryRowContext(ctx, setUserPassword, arg.UserID, arg.PasswordHash)
+	var i UserAccount
+	err := row.Scan(
+		&i.UserID,
+		&i.CreatedAt,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
+		&i.RoleCode,
+	)
+	return i, err
+}
+
 const updateUserAccountProfileAvatarURL = `-- name: UpdateUserAccountProfileAvatarURL :one
 UPDATE user_account SET profile_avatar_url = $2 WHERE user_id = $1
   RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code

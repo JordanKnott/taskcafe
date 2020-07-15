@@ -1,9 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
-import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
+import React, {useState, useContext, useEffect} from 'react';
+import TopNavbar, {MenuItem} from 'shared/components/TopNavbar';
 import styled from 'styled-components/macro';
-import DropdownMenu, { ProfileMenu } from 'shared/components/DropdownMenu';
-import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
-import { useHistory } from 'react-router';
+import DropdownMenu, {ProfileMenu} from 'shared/components/DropdownMenu';
+import ProjectSettings, {DeleteConfirm, DELETE_INFO} from 'shared/components/ProjectSettings';
+import {useHistory} from 'react-router';
 import UserIDContext from 'App/context';
 import {
   RoleCode,
@@ -12,10 +12,10 @@ import {
   useGetProjectsQuery,
   GetProjectsDocument,
 } from 'shared/generated/graphql';
-import { usePopup, Popup } from 'shared/components/PopupMenu';
-import { History } from 'history';
+import {usePopup, Popup} from 'shared/components/PopupMenu';
+import {History} from 'history';
 import produce from 'immer';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 const TeamContainer = styled.div`
   display: flex;
@@ -45,7 +45,7 @@ const TeamProjectLink = styled(Link)`
   user-select: none;
 `;
 
-const TeamProjectBackground = styled.div<{ color: string }>`
+const TeamProjectBackground = styled.div<{color: string}>`
   background-image: url(null);
   background-color: ${props => props.color};
 
@@ -68,7 +68,7 @@ const TeamProjectBackground = styled.div<{ color: string }>`
   }
 `;
 
-const TeamProjectAvatar = styled.div<{ color: string }>`
+const TeamProjectAvatar = styled.div<{color: string}>`
   background-image: url(null);
   background-color: ${props => props.color};
 
@@ -122,12 +122,12 @@ const TeamProjectContainer = styled.div`
 const colors = ['#e362e3', '#7a6ff0', '#37c5ab', '#aa62e3', '#e8384f'];
 
 const ProjectFinder = () => {
-  const { loading, data } = useGetProjectsQuery();
+  const {loading, data} = useGetProjectsQuery();
   if (loading) {
     return <span>loading</span>;
   }
   if (data) {
-    const { projects, teams, organizations } = data;
+    const {projects, teams, organizations} = data;
     const projectTeams = teams.map(team => {
       return {
         id: team.id,
@@ -166,8 +166,8 @@ type ProjectPopupProps = {
   projectID: string;
 };
 
-export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, projectID }) => {
-  const { hidePopup, setTab } = usePopup();
+export const ProjectPopup: React.FC<ProjectPopupProps> = ({history, name, projectID}) => {
+  const {hidePopup, setTab} = usePopup();
   const [deleteProject] = useDeleteProjectMutation({
     update: (client, deleteData) => {
       const cacheData: any = client.readQuery({
@@ -206,7 +206,7 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, proje
           deletedItems={DELETE_INFO.DELETE_PROJECTS.deletedItems}
           onConfirmDelete={() => {
             if (projectID) {
-              deleteProject({ variables: { projectID } });
+              deleteProject({variables: {projectID}});
               hidePopup();
               history.push('/projects');
             }
@@ -249,16 +249,16 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   nameOnly,
 }) => {
   console.log(popupContent);
-  const { loading, data } = useMeQuery();
-  const { showPopup, hidePopup, setTab } = usePopup();
+  const {loading, data} = useMeQuery();
+  const {showPopup, hidePopup, setTab} = usePopup();
   const history = useHistory();
-  const { userID, setUserID } = useContext(UserIDContext);
+  const {userID, setUserID} = useContext(UserIDContext);
   const onLogout = () => {
-    fetch('http://localhost:3333/auth/logout', {
+    fetch('/auth/logout', {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
-      const { status } = x;
+      const {status} = x;
       if (status === 200) {
         history.replace('/login');
         setUserID(null);

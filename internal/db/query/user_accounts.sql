@@ -25,3 +25,6 @@ WHERE user_id = $1;
 
 -- name: UpdateUserRole :one
 UPDATE user_account SET role_code = $2 WHERE user_id = $1 RETURNING *;
+
+-- name: SetUserPassword :one
+UPDATE user_account SET password_hash = $2 WHERE user_id = $1 RETURNING *;

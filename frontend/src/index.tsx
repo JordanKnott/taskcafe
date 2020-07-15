@@ -2,13 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
-import { ApolloProvider } from '@apollo/react-hooks';
-import { ApolloClient } from 'apollo-client';
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
-import { onError } from 'apollo-link-error';
-import { ApolloLink, Observable, fromPromise } from 'apollo-link';
-import { getAccessToken, getNewToken, setAccessToken } from 'shared/utils/accessToken';
+import {ApolloProvider} from '@apollo/react-hooks';
+import {ApolloClient} from 'apollo-client';
+import {InMemoryCache} from 'apollo-cache-inmemory';
+import {HttpLink} from 'apollo-link-http';
+import {onError} from 'apollo-link-error';
+import {ApolloLink, Observable, fromPromise} from 'apollo-link';
+import {getAccessToken, getNewToken, setAccessToken} from 'shared/utils/accessToken';
 import App from './App';
 
 // https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
@@ -18,7 +18,7 @@ let isRefreshing = false;
 let pendingRequests: any = [];
 
 const refreshAuthLogic = (failedRequest: any) =>
-  axios.post('http://localhost:3333/auth/refresh_token', {}, { withCredentials: true }).then(tokenRefreshResponse => {
+  axios.post('/auth/refresh_token', {}, {withCredentials: true}).then(tokenRefreshResponse => {
     setAccessToken(tokenRefreshResponse.data.accessToken);
     failedRequest.response.config.headers.Authorization = `Bearer ${tokenRefreshResponse.data.accessToken}`;
     return Promise.resolve();
@@ -43,7 +43,7 @@ const setRefreshing = (newVal: boolean) => {
   isRefreshing = newVal;
 };
 
-const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+const errorLink = onError(({graphQLErrors, networkError, operation, forward}) => {
   if (graphQLErrors) {
     for (const err of graphQLErrors) {
       if (err.extensions && err.extensions.code) {
@@ -118,9 +118,9 @@ const requestLink = new ApolloLink(
 
 const client = new ApolloClient({
   link: ApolloLink.from([
-    onError(({ graphQLErrors, networkError }) => {
+    onError(({graphQLErrors, networkError}) => {
       if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path }) =>
+        graphQLErrors.forEach(({message, locations, path}) =>
           console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
         );
       }
@@ -131,7 +131,7 @@ const client = new ApolloClient({
     errorLink,
     requestLink,
     new HttpLink({
-      uri: 'http://localhost:3333/graphql',
+      uri: '/graphql',
       credentials: 'same-origin',
     }),
   ]),

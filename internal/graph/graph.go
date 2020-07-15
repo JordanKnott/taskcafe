@@ -12,13 +12,15 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/google/uuid"
+	"github.com/jordanknott/project-citadel/api/internal/config"
 	"github.com/jordanknott/project-citadel/api/internal/db"
 )
 
 // NewHandler returns a new graphql endpoint handler.
-func NewHandler(repo db.Repository) http.Handler {
+func NewHandler(config config.AppConfig, repo db.Repository) http.Handler {
 	srv := handler.New(NewExecutableSchema(Config{
 		Resolvers: &Resolver{
+			Config:     config,
 			Repository: repo,
 		},
 	}))

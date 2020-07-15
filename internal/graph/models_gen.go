@@ -401,6 +401,16 @@ type UpdateTeamMemberRolePayload struct {
 	Member *Member `json:"member"`
 }
 
+type UpdateUserPassword struct {
+	UserID   uuid.UUID `json:"userID"`
+	Password string    `json:"password"`
+}
+
+type UpdateUserPasswordPayload struct {
+	Ok   bool            `json:"ok"`
+	User *db.UserAccount `json:"user"`
+}
+
 type UpdateUserRole struct {
 	UserID   uuid.UUID `json:"userID"`
 	RoleCode RoleCode  `json:"roleCode"`
