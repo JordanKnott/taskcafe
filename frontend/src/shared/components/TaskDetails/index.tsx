@@ -1,5 +1,5 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {Bin, Cross, Plus} from 'shared/icons';
+import React, { useState, useRef, useEffect } from 'react';
+import { Bin, Cross, Plus } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import ReactMarkdown from 'react-markdown';
 
@@ -9,7 +9,7 @@ import {
   getNewDraggablePosition,
   getAfterDropDraggableList,
 } from 'shared/utils/draggables';
-import {DragDropContext, Droppable, Draggable, DropResult} from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import moment from 'moment';
 
@@ -54,7 +54,7 @@ import {
   MetaDetailTitle,
   MetaDetailContent,
 } from './Styles';
-import Checklist, {ChecklistItem, ChecklistItems} from '../Checklist';
+import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import styled from 'styled-components';
 
 const ChecklistContainer = styled.div``;
@@ -69,7 +69,7 @@ type TaskLabelProps = {
   onClick: ($target: React.RefObject<HTMLElement>) => void;
 };
 
-const TaskLabelItem: React.FC<TaskLabelProps> = ({label, onClick}) => {
+const TaskLabelItem: React.FC<TaskLabelProps> = ({ label, onClick }) => {
   const $label = useRef<HTMLDivElement>(null);
   return (
     <TaskDetailLabel
@@ -84,14 +84,14 @@ const TaskLabelItem: React.FC<TaskLabelProps> = ({label, onClick}) => {
   );
 };
 
-const TaskContent: React.FC<TaskContentProps> = ({description, onEditContent}) => {
+const TaskContent: React.FC<TaskContentProps> = ({ description, onEditContent }) => {
   return description === '' ? (
     <TaskDetailsAddDetailsButton onClick={onEditContent}>Add a more detailed description</TaskDetailsAddDetailsButton>
   ) : (
-      <TaskDetailsMarkdown onClick={onEditContent}>
-        <ReactMarkdown source={description} />
-      </TaskDetailsMarkdown>
-    );
+    <TaskDetailsMarkdown onClick={onEditContent}>
+      <ReactMarkdown source={description} />
+    </TaskDetailsMarkdown>
+  );
 };
 
 type DetailsEditorProps = {
@@ -214,7 +214,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     onOpenAddLabelPopup(task, $target);
   };
 
-  const onDragEnd = ({draggableId, source, destination, type}: DropResult) => {
+  const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
     if (typeof destination === 'undefined') return;
     if (!isPositionChanged(source, destination)) return;
 
@@ -233,7 +233,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         };
         beforeDropDraggables = getSortedDraggables(
           task.checklists.map(checklist => {
-            return {id: checklist.id, position: checklist.position};
+            return { id: checklist.id, position: checklist.position };
           }),
         );
         if (droppedDraggable === null || beforeDropDraggables === null) {
@@ -249,9 +249,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
         console.log(droppedGroup);
         console.log(`positiion: ${newPosition}`);
-        onChecklistDrop({...droppedGroup, position: newPosition});
+        onChecklistDrop({ ...droppedGroup, position: newPosition });
       } else {
-        throw {error: 'task group can not be found'};
+        throw { error: 'task group can not be found' };
       }
     } else {
       const targetChecklist = task.checklists.findIndex(
@@ -266,7 +266,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         };
         beforeDropDraggables = getSortedDraggables(
           task.checklists[targetChecklist].items.map(item => {
-            return {id: item.id, position: item.position};
+            return { id: item.id, position: item.position };
           }),
         );
         if (droppedDraggable === null || beforeDropDraggables === null) {
@@ -379,8 +379,8 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 }}
               />
             ) : (
-                <TaskContent description={description} onEditContent={handleClick} />
-              )}
+              <TaskContent description={description} onEditContent={handleClick} />
+            )}
             <DragDropContext onDragEnd={onDragEnd}>
               <Droppable direction="vertical" type="checklist" droppableId="root">
                 {dropProvided => (
@@ -438,7 +438,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                                                 complete={item.complete}
                                                 onDeleteItem={onDeleteItem}
                                                 onChangeName={onChangeItemName}
-                                                onToggleItem={(itemID, complete) => onToggleChecklistItem(item.id, complete)}
+                                                onToggleItem={(itemID, complete) =>
+                                                  onToggleChecklistItem(item.id, complete)
+                                                }
                                               />
                                             )}
                                           </Draggable>
@@ -461,15 +463,23 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         <TaskDetailsSidebar>
           <ActionButtons>
             <ActionButtonsTitle>ADD TO CARD</ActionButtonsTitle>
-            <ActionButton onClick={() => onToggleTaskComplete(task)}>
+            <ActionButton justifyTextContent="flex-start" onClick={() => onToggleTaskComplete(task)}>
               {task.complete ? 'Mark Incomplete' : 'Mark Complete'}
             </ActionButton>
-            <ActionButton onClick={$target => onAddMember($target)}>Members</ActionButton>
-            <ActionButton onClick={$target => onAddLabel($target)}>Labels</ActionButton>
-            <ActionButton onClick={$target => onAddChecklist($target)}>Checklist</ActionButton>
-            <ActionButton onClick={$target => onOpenDueDatePopop(task, $target)}>Due Date</ActionButton>
-            <ActionButton>Attachment</ActionButton>
-            <ActionButton>Cover</ActionButton>
+            <ActionButton justifyTextContent="flex-start" onClick={$target => onAddMember($target)}>
+              Members
+            </ActionButton>
+            <ActionButton justifyTextContent="flex-start" onClick={$target => onAddLabel($target)}>
+              Labels
+            </ActionButton>
+            <ActionButton justifyTextContent="flex-start" onClick={$target => onAddChecklist($target)}>
+              Checklist
+            </ActionButton>
+            <ActionButton justifyTextContent="flex-start" onClick={$target => onOpenDueDatePopop(task, $target)}>
+              Due Date
+            </ActionButton>
+            <ActionButton justifyTextContent="flex-start">Attachment</ActionButton>
+            <ActionButton justifyTextContent="flex-start">Cover</ActionButton>
           </ActionButtons>
         </TaskDetailsSidebar>
       </TaskDetailsWrapper>

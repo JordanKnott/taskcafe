@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import styled, { css } from 'styled-components/macro';
 
-const Text = styled.span<{ fontSize: string }>`
+const Text = styled.span<{ fontSize: string; justifyTextContent: string }>`
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: ${props => props.justifyTextContent};
   transition: all 0.2s ease;
   font-size: ${props => props.fontSize};
   color: rgba(${props => props.theme.colors.text.secondary});
@@ -112,6 +112,7 @@ type ButtonProps = {
   type?: 'button' | 'submit';
   className?: string;
   onClick?: ($target: React.RefObject<HTMLButtonElement>) => void;
+  justifyTextContent?: string;
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -120,6 +121,7 @@ const Button: React.FC<ButtonProps> = ({
   color = 'primary',
   variant = 'filled',
   type = 'button',
+  justifyTextContent = 'center',
   onClick,
   className,
   children,
@@ -134,7 +136,9 @@ const Button: React.FC<ButtonProps> = ({
     case 'filled':
       return (
         <Filled ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
-          <Text fontSize={fontSize}>{children}</Text>
+          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+            {children}
+          </Text>
         </Filled>
       );
     case 'outline':
@@ -147,13 +151,17 @@ const Button: React.FC<ButtonProps> = ({
           disabled={disabled}
           color={color}
         >
-          <Text fontSize={fontSize}>{children}</Text>
+          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+            {children}
+          </Text>
         </Outline>
       );
     case 'flat':
       return (
         <Flat ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
-          <Text fontSize={fontSize}>{children}</Text>
+          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+            {children}
+          </Text>
         </Flat>
       );
     case 'lineDown':
@@ -166,7 +174,9 @@ const Button: React.FC<ButtonProps> = ({
           disabled={disabled}
           color={color}
         >
-          <Text fontSize={fontSize}>{children}</Text>
+          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+            {children}
+          </Text>
           <LineX color={color} />
         </LineDown>
       );
@@ -180,13 +190,17 @@ const Button: React.FC<ButtonProps> = ({
           disabled={disabled}
           color={color}
         >
-          <Text fontSize={fontSize}>{children}</Text>
+          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+            {children}
+          </Text>
         </Gradient>
       );
     case 'relief':
       return (
         <Relief ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
-          <Text fontSize={fontSize}>{children}</Text>
+          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+            {children}
+          </Text>
         </Relief>
       );
     default:

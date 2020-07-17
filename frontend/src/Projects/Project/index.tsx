@@ -39,6 +39,7 @@ import Input from 'shared/components/Input';
 import Member from 'shared/components/Member';
 import Board from './Board';
 import Details from './Details';
+import EmptyBoard from 'shared/components/EmptyBoard';
 
 const CARD_LABEL_VARIANT_STORAGE_KEY = 'card_label_variant';
 
@@ -202,6 +203,7 @@ const Project = () => {
     return (
       <>
         <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" projectID={null} />
+        <Board loading />
       </>
     );
   }

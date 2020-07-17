@@ -2,9 +2,9 @@ import React, { useState, useRef, useContext, useEffect } from 'react';
 import { MENU_TYPES } from 'shared/components/TopNavbar';
 import updateApolloCache from 'shared/utils/cache';
 import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
+import LabelManagerEditor from '../LabelManagerEditor';
 import styled, { css } from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
-import LabelManagerEditor from '../LabelManagerEditor';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps, useLocation } from 'react-router-dom';
 import {
@@ -47,6 +47,7 @@ import DueDateManager from 'shared/components/DueDateManager';
 import UserIDContext from 'App/context';
 import LabelManager from 'shared/components/PopupMenu/LabelManager';
 import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
+import EmptyBoard from 'shared/components/EmptyBoard';
 
 const ProjectBar = styled.div`
   display: flex;
@@ -103,12 +104,18 @@ const initialQuickCardEditorState: QuickCardEditorState = {
 };
 
 type ProjectBoardProps = {
-  onCardLabelClick: () => void;
-  cardLabelVariant: CardLabelVariant;
-  projectID: string;
+  onCardLabelClick?: () => void;
+  cardLabelVariant?: CardLabelVariant;
+  projectID?: string;
+  loading?: boolean;
 };
 
-const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick, cardLabelVariant }) => {
+const ProjectBoard: React.FC<ProjectBoardProps> = ({
+  projectID,
+  onCardLabelClick,
+  cardLabelVariant,
+  loading: isLoading = false,
+}) => {
   const [assignTask] = useAssignTaskMutation();
   const [unassignTask] = useUnassignTaskMutation();
   const $labelsRef = useRef<HTMLDivElement>(null);
@@ -170,7 +177,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
 
   const [updateTaskGroupName] = useUpdateTaskGroupNameMutation({});
   const { loading, data } = useFindProjectQuery({
-    variables: { projectId: projectID },
+    variables: { projectId: projectID ?? '' },
   });
 
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation();
@@ -256,7 +263,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   };
 
   const onCreateList = (listName: string) => {
-    if (data) {
+    if (data && projectID) {
       const [lastColumn] = data.findProject.taskGroups.sort((a, b) => a.position - b.position).slice(-1);
       let position = 65535;
       if (lastColumn) {
@@ -266,8 +273,42 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
     }
   };
 
-  if (loading) {
-    return <span>loading</span>;
+  if (loading || isLoading) {
+    return (
+      <>
+        <ProjectBar>
+          <ProjectActions>
+            <ProjectAction disabled>
+              <CheckCircle width={13} height={13} />
+              <ProjectActionText>All Tasks</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction disabled>
+              <Filter width={13} height={13} />
+              <ProjectActionText>Filter</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction disabled>
+              <Sort width={13} height={13} />
+              <ProjectActionText>Sort</ProjectActionText>
+            </ProjectAction>
+          </ProjectActions>
+          <ProjectActions>
+            <ProjectAction>
+              <Tags width={13} height={13} />
+              <ProjectActionText>Labels</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction disabled>
+              <ToggleOn width={13} height={13} />
+              <ProjectActionText>Fields</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction disabled>
+              <Bolt width={13} height={13} />
+              <ProjectActionText>Rules</ProjectActionText>
+            </ProjectAction>
+          </ProjectActions>
+        </ProjectBar>
+        <EmptyBoard />
+      </>
+    );
   }
   if (data) {
     labelsRef.current = data.findProject.labels;
@@ -323,7 +364,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                     taskLabels={null}
                     labelColors={data.labelColors}
                     labels={labelsRef}
-                    projectID={projectID}
+                    projectID={projectID ?? ''}
                   />,
                 );
               }}
@@ -345,8 +386,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
           onTaskClick={task => {
             history.push(`${match.url}/c/${task.id}`);
           }}
-          onCardLabelClick={onCardLabelClick}
-          cardLabelVariant={cardLabelVariant}
+          onCardLabelClick={onCardLabelClick ?? (() => {})}
+          cardLabelVariant={cardLabelVariant ?? 'large'}
           onTaskDrop={(droppedTask, previousTaskGroupID) => {
             updateTaskLocation({
               variables: {
@@ -475,7 +516,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                   labelColors={data.labelColors}
                   labels={labelsRef}
                   taskLabels={taskLabelsRef}
-                  projectID={projectID}
+                  projectID={projectID ?? ''}
                 />,
               );
             }}
