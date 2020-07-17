@@ -253,7 +253,7 @@ const Project = () => {
           path={`${match.path}/board`}
           render={() => (
             <Board
-              cardLabelVariant={value === 'small' ? 'large' : 'small'}
+              cardLabelVariant={value === 'small' ? 'small' : 'large'}
               onCardLabelClick={() => {
                 const variant = value === 'small' ? 'large' : 'small';
                 setValue(() => variant);
