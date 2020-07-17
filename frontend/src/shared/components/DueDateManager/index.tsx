@@ -17,7 +17,7 @@ import {
 
 import 'react-datepicker/dist/react-datepicker.css';
 import { getYear, getMonth } from 'date-fns';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 
 type DueDateManagerProps = {
   task: Task;
@@ -147,7 +147,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     'November',
     'December',
   ];
-  const { register, handleSubmit, errors, setValue, setError, formState } = useForm<DueDateFormData>();
+  const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
   const saveDueDate = (data: any) => {
     console.log(data);
     const newDate = moment(`${data.endDate} ${data.endTime}`, 'YYYY-MM-DD h:mm A');
@@ -155,27 +155,16 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
       onDueDateChange(task, newDate.toDate());
     }
   };
-  console.log(errors);
-  register({ name: 'endTime' }, { required: 'End time is required' });
-  useEffect(() => {
-    setValue('endTime', now.format('h:mm A'));
-  }, []);
   const CustomTimeInput = forwardRef(({ value, onClick }: any, $ref: any) => {
     return (
       <DueDateInput
         id="endTime"
         name="endTime"
         ref={$ref}
-        onChange={e => {
-          console.log(`onCahnge ${e.currentTarget.value}`);
-          setTextEndTime(e.currentTarget.value);
-          setValue('endTime', e.currentTarget.value);
-        }}
         width="100%"
         variant="alternate"
         label="Date"
         onClick={onClick}
-        value={value}
       />
     );
   });
@@ -190,30 +179,29 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
             width="100%"
             variant="alternate"
             label="Date"
-            onChange={e => {
-              setTextStartDate(e.currentTarget.value);
-            }}
-            value={textStartDate}
+            defaultValue={textStartDate}
             ref={register({
               required: 'End date is required.',
             })}
           />
         </FormField>
         <FormField>
-          <DatePicker
-            selected={endTime}
-            onChange={date => {
-              const changedDate = moment(date ?? new Date());
-              console.log(`changed ${date}`);
-              setEndTime(changedDate.toDate());
-              setValue('endTime', changedDate.format('h:mm A'));
-            }}
-            showTimeSelect
-            showTimeSelectOnly
-            timeIntervals={15}
-            timeCaption="Time"
-            dateFormat="h:mm aa"
-            customInput={<CustomTimeInput />}
+          <Controller
+            control={control}
+            name="endTime"
+            render={({ onChange, onBlur, value }) => (
+              <DatePicker
+                onChange={onChange}
+                selected={value}
+                onBlur={onBlur}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="h:mm aa"
+                customInput={<CustomTimeInput />}
+              />
+            )}
           />
         </FormField>
         <DueDatePickerWrapper>

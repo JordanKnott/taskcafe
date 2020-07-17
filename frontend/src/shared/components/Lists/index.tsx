@@ -26,17 +26,21 @@ interface SimpleProps {
   onCreateTaskGroup: (listName: string) => void;
   onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
   onCardMemberClick: OnCardMemberClick;
+  onCardLabelClick: () => void;
+  cardLabelVariant: CardLabelVariant;
 }
 
 const SimpleLists: React.FC<SimpleProps> = ({
   taskGroups,
   onTaskDrop,
   onChangeTaskGroupName,
+  onCardLabelClick,
   onTaskGroupDrop,
   onTaskClick,
   onCreateTask,
   onQuickEditorOpen,
   onCreateTaskGroup,
+  cardLabelVariant,
   onExtraMenuOpen,
   onCardMemberClick,
 }) => {
@@ -158,10 +162,12 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                           {taskProvided => {
                                             return (
                                               <Card
+                                                labelVariant={cardLabelVariant}
                                                 wrapperProps={{
                                                   ...taskProvided.draggableProps,
                                                   ...taskProvided.dragHandleProps,
                                                 }}
+                                                onCardLabelClick={onCardLabelClick}
                                                 ref={taskProvided.innerRef}
                                                 taskID={task.id}
                                                 complete={task.complete ?? false}

@@ -267,6 +267,7 @@ export type Mutation = {
   updateTaskLocation: UpdateTaskLocationPayload;
   updateTaskName: Task;
   updateTeamMemberRole: UpdateTeamMemberRolePayload;
+  updateUserPassword: UpdateUserPasswordPayload;
   updateUserRole: UpdateUserRolePayload;
 };
 
@@ -503,6 +504,11 @@ export type MutationUpdateTaskNameArgs = {
 
 export type MutationUpdateTeamMemberRoleArgs = {
   input: UpdateTeamMemberRole;
+};
+
+
+export type MutationUpdateUserPasswordArgs = {
+  input: UpdateUserPassword;
 };
 
 
@@ -860,6 +866,17 @@ export type SetTeamOwnerPayload = {
   ok: Scalars['Boolean'];
   prevOwner: Member;
   newOwner: Member;
+};
+
+export type UpdateUserPassword = {
+  userID: Scalars['UUID'];
+  password: Scalars['String'];
+};
+
+export type UpdateUserPasswordPayload = {
+   __typename?: 'UpdateUserPasswordPayload';
+  ok: Scalars['Boolean'];
+  user: UserAccount;
 };
 
 export type UpdateUserRole = {

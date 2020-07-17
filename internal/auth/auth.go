@@ -9,8 +9,16 @@ import (
 
 var jwtKey = []byte("citadel_test_key")
 
+type RestrictedMode string
+
+const (
+	Unrestricted RestrictedMode = "unrestricted"
+	InstallOnly                 = "install_only"
+)
+
 type AccessTokenClaims struct {
-	UserID string `json:"userId"`
+	UserID     string         `json:"userId"`
+	Restricted RestrictedMode `json:"restricted"`
 	jwt.StandardClaims
 }
 
@@ -31,10 +39,11 @@ func (r *ErrMalformedToken) Error() string {
 	return "token is malformed"
 }
 
-func NewAccessToken(userID string) (string, error) {
+func NewAccessToken(userID string, restrictedMode RestrictedMode) (string, error) {
 	accessExpirationTime := time.Now().Add(5 * time.Second)
 	accessClaims := &AccessTokenClaims{
 		UserID:         userID,
+		Restricted:     restrictedMode,
 		StandardClaims: jwt.StandardClaims{ExpiresAt: accessExpirationTime.Unix()},
 	}
 
@@ -50,6 +59,7 @@ func NewAccessTokenCustomExpiration(userID string, dur time.Duration) (string, e
 	accessExpirationTime := time.Now().Add(dur)
 	accessClaims := &AccessTokenClaims{
 		UserID:         userID,
+		Restricted:     Unrestricted,
 		StandardClaims: jwt.StandardClaims{ExpiresAt: accessExpirationTime.Unix()},
 	}
 

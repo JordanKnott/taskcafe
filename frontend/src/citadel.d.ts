@@ -47,6 +47,7 @@ type TaskUser = {
 
 type RefreshTokenResponse = {
   accessToken: string;
+  isInstalled: boolean;
 };
 
 type LoginFormData = {
@@ -54,16 +55,41 @@ type LoginFormData = {
   password: string;
 };
 
+type RegisterFormData = {
+  username: string;
+  fullname: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+  initials: string;
+};
+
 type DueDateFormData = {
   endDate: string;
   endTime: string;
+};
+type ErrorOption =
+  | {
+      types: MultipleFieldErrors;
+    }
+  | {
+      message?: Message;
+      type: string;
+    };
+
+type RegisterProps = {
+  onSubmit: (
+    data: RegisterFormData,
+    setComplete: (val: boolean) => void,
+    setError: (name: 'username' | 'email' | 'password' | 'password_confirm' | 'initials', error: ErrorOption) => void,
+  ) => void;
 };
 
 type LoginProps = {
   onSubmit: (
     data: LoginFormData,
     setComplete: (val: boolean) => void,
-    setError: (field: string, eType: string, message: string) => void,
+    setError: (name: 'username' | 'password', error: ErrorOption) => void,
   ) => void;
 };
 
@@ -85,3 +111,5 @@ type ElementBounds = {
   size: ElementSize;
   position: ElementPosition;
 };
+
+type CardLabelVariant = 'large' | 'small';

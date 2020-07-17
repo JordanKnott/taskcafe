@@ -40,7 +40,7 @@ export const ListSeparator = styled.hr`
 type Props = {
   onDeleteProject: () => void;
 };
-const ProjectSettings: React.FC<Props> = ({ onDeleteProject }) => {
+const ProjectSettings: React.FC<Props> = ({onDeleteProject}) => {
   return (
     <>
       <ListActionsWrapper>
@@ -55,7 +55,7 @@ const ProjectSettings: React.FC<Props> = ({ onDeleteProject }) => {
 type TeamSettingsProps = {
   onDeleteTeam: () => void;
 };
-export const TeamSettings: React.FC<TeamSettingsProps> = ({ onDeleteTeam }) => {
+export const TeamSettings: React.FC<TeamSettingsProps> = ({onDeleteTeam}) => {
   return (
     <>
       <ListActionsWrapper>
@@ -74,6 +74,7 @@ const ConfirmSubTitle = styled.h3`
 `;
 
 const ConfirmDescription = styled.div`
+  margin: 0 12px;
   font-size: 14px;
 `;
 
@@ -83,7 +84,7 @@ const DeleteList = styled.ul`
 const DeleteListItem = styled.li`
   padding: 6px 0;
   list-style: disc;
-  margin-left: 12px;
+  margin-left: 16px;
 `;
 
 const ConfirmDeleteButton = styled(Button)`
@@ -108,7 +109,7 @@ export const DELETE_INFO = {
   },
 };
 
-const DeleteConfirm: React.FC<DeleteConfirmProps> = ({ description, deletedItems, onConfirmDelete }) => {
+const DeleteConfirm: React.FC<DeleteConfirmProps> = ({description, deletedItems, onConfirmDelete}) => {
   return (
     <ConfirmWrapper>
       <ConfirmDescription>
@@ -126,5 +127,5 @@ const DeleteConfirm: React.FC<DeleteConfirmProps> = ({ description, deletedItems
   );
 };
 
-export { DeleteConfirm };
+export {DeleteConfirm};
 export default ProjectSettings;

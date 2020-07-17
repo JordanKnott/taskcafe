@@ -40,13 +40,19 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, err := uuid.Parse(accessClaims.UserID)
-		if err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
+		var userID uuid.UUID
+		if accessClaims.Restricted == auth.InstallOnly {
+			userID = uuid.New()
+		} else {
+			userID, err = uuid.Parse(accessClaims.UserID)
+			if err != nil {
+				log.WithError(err).Error("middleware access token userID parse")
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 		}
 		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx = context.WithValue(ctx, "restricted_mode", accessClaims.Restricted)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

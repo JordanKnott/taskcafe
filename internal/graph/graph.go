@@ -12,6 +12,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/google/uuid"
+	"github.com/jordanknott/project-citadel/api/internal/auth"
 	"github.com/jordanknott/project-citadel/api/internal/config"
 	"github.com/jordanknott/project-citadel/api/internal/db"
 )
@@ -49,7 +50,13 @@ func NewHandler(config config.AppConfig, repo db.Repository) http.Handler {
 func NewPlaygroundHandler(endpoint string) http.Handler {
 	return playground.Handler("GraphQL Playground", endpoint)
 }
+
 func GetUserID(ctx context.Context) (uuid.UUID, bool) {
 	userID, ok := ctx.Value("userID").(uuid.UUID)
 	return userID, ok
+}
+
+func GetRestrictedMode(ctx context.Context) (auth.RestrictedMode, bool) {
+	restricted, ok := ctx.Value("restricted_mode").(auth.RestrictedMode)
+	return restricted, ok
 }

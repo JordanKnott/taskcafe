@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import styled, {css} from 'styled-components/macro';
+import React, { useState, useEffect } from 'react';
+import styled, { css } from 'styled-components/macro';
 
-const InputWrapper = styled.div<{width: string}>`
+const InputWrapper = styled.div<{ width: string }>`
   position: relative;
   width: ${props => props.width};
   display: flex;
@@ -14,7 +14,7 @@ const InputWrapper = styled.div<{width: string}>`
   margin-top: 24px;
 `;
 
-const InputLabel = styled.span<{width: string}>`
+const InputLabel = styled.span<{ width: string }>`
   width: ${props => props.width};
   padding: 0.7rem !important;
   color: #c2c6dc;
@@ -87,9 +87,8 @@ type InputProps = {
   id?: string;
   name?: string;
   className?: string;
-  value?: string;
+  defaultValue?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 const Input = React.forwardRef(
@@ -102,40 +101,34 @@ const Input = React.forwardRef(
       placeholder,
       icon,
       name,
-      onChange,
       className,
       onClick,
       floatingLabel,
-      value: initialValue,
+      defaultValue,
       id,
     }: InputProps,
     $ref: any,
   ) => {
-    const [value, setValue] = useState(initialValue ?? '');
-    useEffect(() => {
-      if (initialValue) {
-        setValue(initialValue);
-      }
-    }, [initialValue]);
+    const [hasValue, setHasValue] = useState(false);
     const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
     const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setValue(e.currentTarget.value);
-      if (onChange) {
-        onChange(e);
-      }
-    };
     return (
       <InputWrapper className={className} width={width}>
         <InputInput
-          hasValue={floatingLabel || value !== ''}
+          onChange={() => {
+            console.log(`change ${$ref}!`);
+            if ($ref && $ref.current) {
+              console.log(`value : ${$ref.current.value}`);
+              setHasValue(($ref.current.value !== '' || floatingLabel) ?? false);
+            }
+          }}
+          hasValue={hasValue}
           ref={$ref}
           id={id}
           name={name}
           onClick={onClick}
-          onChange={handleChange}
           autoComplete={autocomplete ? 'on' : 'off'}
-          value={value}
+          defaultValue={defaultValue}
           hasIcon={typeof icon !== 'undefined'}
           width={width}
           placeholder={placeholder}

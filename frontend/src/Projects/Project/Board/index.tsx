@@ -1,12 +1,12 @@
-import React, {useState, useRef, useContext, useEffect} from 'react';
-import {MENU_TYPES} from 'shared/components/TopNavbar';
+import React, { useState, useRef, useContext, useEffect } from 'react';
+import { MENU_TYPES } from 'shared/components/TopNavbar';
 import updateApolloCache from 'shared/utils/cache';
-import GlobalTopNavbar, {ProjectPopup} from 'App/TopNavbar';
-import styled, {css} from 'styled-components/macro';
-import {Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter} from 'shared/icons';
-import LabelManagerEditor from '../LabelManagerEditor'
-import {usePopup, Popup} from 'shared/components/PopupMenu';
-import {useParams, Route, useRouteMatch, useHistory, RouteComponentProps, useLocation} from 'react-router-dom';
+import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
+import styled, { css } from 'styled-components/macro';
+import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
+import LabelManagerEditor from '../LabelManagerEditor';
+import { usePopup, Popup } from 'shared/components/PopupMenu';
+import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps, useLocation } from 'react-router-dom';
 import {
   useSetProjectOwnerMutation,
   useUpdateProjectMemberRoleMutation,
@@ -61,7 +61,7 @@ const ProjectActions = styled.div`
   align-items: center;
 `;
 
-const ProjectAction = styled.div<{disabled?: boolean}>`
+const ProjectAction = styled.div<{ disabled?: boolean }>`
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -103,18 +103,21 @@ const initialQuickCardEditorState: QuickCardEditorState = {
 };
 
 type ProjectBoardProps = {
+  onCardLabelClick: () => void;
+  cardLabelVariant: CardLabelVariant;
   projectID: string;
 };
-const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
+
+const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick, cardLabelVariant }) => {
   const [assignTask] = useAssignTaskMutation();
   const [unassignTask] = useUnassignTaskMutation();
   const $labelsRef = useRef<HTMLDivElement>(null);
   const match = useRouteMatch();
   const labelsRef = useRef<Array<ProjectLabel>>([]);
-  const {showPopup, hidePopup} = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
-  const {userID} = useContext(UserIDContext);
+  const { userID } = useContext(UserIDContext);
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation({});
   const history = useHistory();
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
@@ -128,7 +131,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
               (taskGroup: TaskGroup) => taskGroup.id !== deletedTaskGroupData.data.deleteTaskGroup.taskGroup.id,
             );
           }),
-        {projectId: projectID},
+        { projectId: projectID },
       );
     },
   });
@@ -140,13 +143,13 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            const {taskGroups} = cache.findProject;
+            const { taskGroups } = cache.findProject;
             const idx = taskGroups.findIndex(taskGroup => taskGroup.id === newTaskData.data.createTask.taskGroup.id);
             if (idx !== -1) {
-              draftCache.findProject.taskGroups[idx].tasks.push({...newTaskData.data.createTask});
+              draftCache.findProject.taskGroups[idx].tasks.push({ ...newTaskData.data.createTask });
             }
           }),
-        {projectId: projectID},
+        { projectId: projectID },
       );
     },
   });
@@ -156,17 +159,18 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache => produce(cache, draftCache => {
-          draftCache.findProject.taskGroups.push({...newTaskGroupData.data.createTaskGroup, tasks: []});
-        }),
-        {projectId: projectID},
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.taskGroups.push({ ...newTaskGroupData.data.createTaskGroup, tasks: [] });
+          }),
+        { projectId: projectID },
       );
     },
   });
 
   const [updateTaskGroupName] = useUpdateTaskGroupNameMutation({});
-  const {loading, data} = useFindProjectQuery({
-    variables: {projectId: projectID},
+  const { loading, data } = useFindProjectQuery({
+    variables: { projectId: projectID },
   });
 
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation();
@@ -178,9 +182,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            const {previousTaskGroupID, task} = newTask.data.updateTaskLocation;
+            const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
             if (previousTaskGroupID !== task.taskGroup.id) {
-              const {taskGroups} = cache.findProject;
+              const { taskGroups } = cache.findProject;
               const oldTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
               const newTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
               if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
@@ -189,12 +193,12 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
                 );
                 draftCache.findProject.taskGroups[newTaskGroupIdx].tasks = [
                   ...taskGroups[newTaskGroupIdx].tasks,
-                  {...task},
+                  { ...task },
                 ];
               }
             }
           }),
-        {projectId: projectID},
+        { projectId: projectID },
       );
     },
   });
@@ -222,7 +226,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
 
         console.log(`position ${position}`);
         createTask({
-          variables: {taskGroupID, name, position},
+          variables: { taskGroupID, name, position },
           optimisticResponse: {
             __typename: 'Mutation',
             createTask: {
@@ -258,7 +262,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
       if (lastColumn) {
         position = lastColumn.position * 2 + 1;
       }
-      createTaskGroup({variables: {projectID, name: listName, position}});
+      createTaskGroup({ variables: { projectID, name: listName, position } });
     }
   };
 
@@ -341,6 +345,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
           onTaskClick={task => {
             history.push(`${match.url}/c/${task.id}`);
           }}
+          onCardLabelClick={onCardLabelClick}
+          cardLabelVariant={cardLabelVariant}
           onTaskDrop={(droppedTask, previousTaskGroupID) => {
             updateTaskLocation({
               variables: {
@@ -370,7 +376,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
           }}
           onTaskGroupDrop={droppedTaskGroup => {
             updateTaskGroupLocation({
-              variables: {taskGroupID: droppedTaskGroup.id, position: droppedTaskGroup.position},
+              variables: { taskGroupID: droppedTaskGroup.id, position: droppedTaskGroup.position },
               optimisticResponse: {
                 __typename: 'Mutation',
                 updateTaskGroupLocation: {
@@ -400,7 +406,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
             }
           }}
           onChangeTaskGroupName={(taskGroupID, name) => {
-            updateTaskGroupName({variables: {taskGroupID, name}});
+            updateTaskGroupName({ variables: { taskGroupID, name } });
           }}
           onQuickEditorOpen={onQuickEditorOpen}
           onExtraMenuOpen={(taskGroupID: string, $targetRef: any) => {
@@ -410,7 +416,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
                 <ListActions
                   taskGroupID={taskGroupID}
                   onArchiveTaskGroup={tgID => {
-                    deleteTaskGroup({variables: {taskGroupID: tgID}});
+                    deleteTaskGroup({ variables: { taskGroupID: tgID } });
                     hidePopup();
                   }}
                 />
@@ -423,7 +429,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
             task={currentQuickTask}
             onCloseEditor={() => setQuickCardEditor(initialQuickCardEditorState)}
             onEditCard={(_taskGroupID: string, taskID: string, cardName: string) => {
-              updateTaskName({variables: {taskID, name: cardName}});
+              updateTaskName({ variables: { taskID, name: cardName } });
             }}
             onOpenMembersPopup={($targetRef, task) => {
               showPopup(
@@ -434,9 +440,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
                     activeMembers={task.assigned ?? []}
                     onMemberChange={(member, isActive) => {
                       if (isActive) {
-                        assignTask({variables: {taskID: task.id, userID: userID ?? ''}});
+                        assignTask({ variables: { taskID: task.id, userID: userID ?? '' } });
                       } else {
-                        unassignTask({variables: {taskID: task.id, userID: userID ?? ''}});
+                        unassignTask({ variables: { taskID: task.id, userID: userID ?? '' } });
                       }
                     }}
                   />
@@ -464,7 +470,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
                 $targetRef,
                 <LabelManagerEditor
                   onLabelToggle={labelID => {
-                    toggleTaskLabel({variables: {taskID: task.id, projectLabelID: labelID}});
+                    toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
                   }}
                   labelColors={data.labelColors}
                   labels={labelsRef}
@@ -475,7 +481,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
             }}
             onArchiveCard={(_listId: string, cardId: string) =>
               deleteTask({
-                variables: {taskID: cardId},
+                variables: { taskID: cardId },
                 update: client => {
                   updateApolloCache<FindProjectQuery>(
                     client,
@@ -487,7 +493,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
                           tasks: taskGroup.tasks.filter(t => t.id !== cardId),
                         }));
                       }),
-                    {projectId: projectID},
+                    { projectId: projectID },
                   );
                 },
               })
@@ -499,11 +505,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
                   <DueDateManager
                     task={task}
                     onRemoveDueDate={t => {
-                      updateTaskDueDate({variables: {taskID: t.id, dueDate: null}});
+                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: null } });
                       hidePopup();
                     }}
                     onDueDateChange={(t, newDueDate) => {
-                      updateTaskDueDate({variables: {taskID: t.id, dueDate: newDueDate}});
+                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
                       hidePopup();
                     }}
                     onCancel={() => {}}
@@ -512,7 +518,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({projectID}) => {
               );
             }}
             onToggleComplete={task => {
-              setTaskComplete({variables: {taskID: task.id, complete: !task.complete}});
+              setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
             }}
             target={quickCardEditor.target}
           />

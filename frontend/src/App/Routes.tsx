@@ -1,5 +1,5 @@
 import React from 'react';
-import { Router, Switch, Route } from 'react-router-dom';
+import {Router, Switch, Route} from 'react-router-dom';
 import * as H from 'history';
 
 import Dashboard from 'Dashboard';
@@ -8,6 +8,7 @@ import Projects from 'Projects';
 import Project from 'Projects/Project';
 import Teams from 'Teams';
 import Login from 'Auth';
+import Install from 'Install';
 import Profile from 'Profile';
 import styled from 'styled-components';
 
@@ -23,9 +24,10 @@ type RoutesProps = {
   history: H.History;
 };
 
-const Routes = ({ history }: RoutesProps) => (
+const Routes = ({history}: RoutesProps) => (
   <Switch>
     <Route exact path="/login" component={Login} />
+    <Route exact path="/install" component={Install} />
     <MainContent>
       <Route exact path="/" component={Dashboard} />
       <Route exact path="/projects" component={Projects} />

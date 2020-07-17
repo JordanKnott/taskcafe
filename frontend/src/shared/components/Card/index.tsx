@@ -1,8 +1,8 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React, { useState, useRef, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import TaskAssignee from 'shared/components/TaskAssignee';
-import {faPencilAlt, faList} from '@fortawesome/free-solid-svg-icons';
-import {faClock, faCheckSquare, faEye} from '@fortawesome/free-regular-svg-icons';
+import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
 import {
   EditorTextarea,
   EditorContent,
@@ -18,6 +18,7 @@ import {
   ClockIcon,
   ListCardLabels,
   ListCardLabel,
+  ListCardLabelText,
   ListCardOperation,
   CardTitle,
   CardMembers,
@@ -47,10 +48,12 @@ type Props = {
   watched?: boolean;
   wrapperProps?: any;
   members?: Array<TaskUser> | null;
+  onCardLabelClick?: () => void;
   onCardMemberClick?: OnCardMemberClick;
   editable?: boolean;
   onEditCard?: (taskGroupID: string, taskID: string, cardName: string) => void;
   onCardTitleChange?: (name: string) => void;
+  labelVariant?: CardLabelVariant;
 };
 
 const Card = React.forwardRef(
@@ -69,14 +72,20 @@ const Card = React.forwardRef(
       checklists,
       watched,
       members,
+      labelVariant,
       onCardMemberClick,
       editable,
+      onCardLabelClick,
       onEditCard,
       onCardTitleChange,
     }: Props,
     $cardRef: any,
   ) => {
     const [currentCardTitle, setCardTitle] = useState(title);
+    const [toggleLabels, setToggleLabels] = useState(false);
+    const [toggleDirection, setToggleDirection] = useState<'shrink' | 'expand'>(
+      labelVariant === 'large' ? 'shrink' : 'expand',
+    );
     const $editorRef: any = useRef();
 
     useEffect(() => {
@@ -132,21 +141,39 @@ const Card = React.forwardRef(
       >
         <ListCardInnerContainer ref={$innerCardRef}>
           {isActive && (
-            <ListCardOperation onClick={e => {
-              e.stopPropagation();
-              if (onContextMenu) {
-                onContextMenu($innerCardRef, taskID, taskGroupID);
-              }
-            }}>
+            <ListCardOperation
+              onClick={e => {
+                e.stopPropagation();
+                if (onContextMenu) {
+                  onContextMenu($innerCardRef, taskID, taskGroupID);
+                }
+              }}
+            >
               <FontAwesomeIcon onClick={onOperationClick} color="#c2c6dc" size="xs" icon={faPencilAlt} />
             </ListCardOperation>
           )}
           <ListCardDetails complete={complete ?? false}>
-            <ListCardLabels>
+            <ListCardLabels
+              toggleLabels={toggleLabels}
+              toggleDirection={toggleDirection}
+              onClick={e => {
+                e.stopPropagation();
+                if (onCardLabelClick) {
+                  setToggleLabels(true);
+                  setToggleDirection(labelVariant === 'large' ? 'shrink' : 'expand');
+                  onCardLabelClick();
+                }
+              }}
+            >
               {labels &&
                 labels.map(label => (
-                  <ListCardLabel color={label.labelColor.colorHex} key={label.id}>
-                    {label.name}
+                  <ListCardLabel
+                    onAnimationEnd={() => setToggleLabels(false)}
+                    variant={labelVariant ?? 'large'}
+                    color={label.labelColor.colorHex}
+                    key={label.id}
+                  >
+                    <ListCardLabelText>{label.name}</ListCardLabelText>
                   </ListCardLabel>
                 ))}
             </ListCardLabels>
@@ -169,11 +196,11 @@ const Card = React.forwardRef(
                 />
               </EditorContent>
             ) : (
-                <CardTitle>
-                  {complete && <CompleteIcon width={16} height={16} />}
-                  {title}
-                </CardTitle>
-              )}
+              <CardTitle>
+                {complete && <CompleteIcon width={16} height={16} />}
+                {title}
+              </CardTitle>
+            )}
             <ListCardBadges>
               {watched && (
                 <ListCardBadge>

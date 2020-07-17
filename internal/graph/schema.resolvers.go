@@ -706,6 +706,7 @@ func (r *mutationResolver) DeleteTeamMember(ctx context.Context, input DeleteTea
 	if err != nil {
 		return &DeleteTeamMemberPayload{}, err
 	}
+
 	_, err = r.Repository.GetTeamMemberByID(ctx, db.GetTeamMemberByIDParams{TeamID: input.TeamID, UserID: input.UserID})
 	if err != nil {
 		return &DeleteTeamMemberPayload{}, err
@@ -992,7 +993,10 @@ func (r *queryResolver) Me(ctx context.Context) (*db.UserAccount, error) {
 		return &db.UserAccount{}, fmt.Errorf("internal server error")
 	}
 	user, err := r.Repository.GetUserAccountByID(ctx, userID)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		log.WithFields(log.Fields{"userID": userID}).Warning("can not find user for me query")
+		return &db.UserAccount{}, nil
+	} else if err != nil {
 		return &db.UserAccount{}, err
 	}
 	return &user, err

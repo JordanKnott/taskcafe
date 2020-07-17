@@ -19,20 +19,20 @@ export const RoleCheckmark = styled(Checkmark)`
 `;
 
 const permissions = [
-    {
-        code: 'owner',
-        name: 'Owner',
-        description:
-            'Can view, create and edit team projects, and change settings for the team. Will have admin rights on all projects in this team. Can delete the team and all team projects.',
-    },
-    {
-        code: 'admin',
-        name: 'Admin',
-        description:
-            'Can view, create and edit team projects, and change settings for the team. Will have admin rights on all projects in this team.',
-    },
+  {
+    code: 'owner',
+    name: 'Owner',
+    description:
+      'Can view, create and edit team projects, and change settings for the team. Will have admin rights on all projects in this team. Can delete the team and all team projects.',
+  },
+  {
+    code: 'admin',
+    name: 'Admin',
+    description:
+      'Can view, create and edit team projects, and change settings for the team. Will have admin rights on all projects in this team.',
+  },
 
-    { code: 'member', name: 'Member', description: 'Can view, create, and edit team projects, but not change settings.' },
+  { code: 'member', name: 'Member', description: 'Can view, create, and edit team projects, but not change settings.' },
 ];
 
 export const RoleName = styled.div`
@@ -59,13 +59,13 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
   text-decoration: none;
 
   ${props =>
-        props.disabled
-            ? css`
+    props.disabled
+      ? css`
           user-select: none;
           pointer-events: none;
           color: rgba(${props.theme.colors.text.primary}, 0.4);
         `
-            : css`
+      : css`
           cursor: pointer;
           &:hover {
             background: rgb(115, 103, 240);
@@ -104,178 +104,198 @@ export const RemoveMemberButton = styled(Button)`
   width: 100%;
 `;
 type TeamRoleManagerPopupProps = {
-    user: TaskUser;
-    warning?: string | null;
-    canChangeRole: boolean;
-    onChangeRole: (roleCode: RoleCode) => void;
-    updateUserPassword?: (user: TaskUser, password: string) => void;
-    onRemoveFromTeam?: () => void;
+  user: TaskUser;
+  warning?: string | null;
+  canChangeRole: boolean;
+  onChangeRole: (roleCode: RoleCode) => void;
+  updateUserPassword?: (user: TaskUser, password: string) => void;
+  onRemoveFromTeam?: () => void;
 };
 
 const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
-    warning,
-    user,
-    canChangeRole,
-    onRemoveFromTeam,
-    updateUserPassword,
-    onChangeRole,
+  warning,
+  user,
+  canChangeRole,
+  onRemoveFromTeam,
+  updateUserPassword,
+  onChangeRole,
 }) => {
-    const { hidePopup, setTab } = usePopup();
-    const [userPass, setUserPass] = useState({ pass: "", passConfirm: "" });
-    return (
-        <>
-            <Popup title={null} tab={0}>
-                <MiniProfileActions>
-                    <MiniProfileActionWrapper>
-                        {user.role && (
-                            <MiniProfileActionItem
-                                onClick={() => {
-                                    setTab(1);
-                                }}
-                            >
-                                Change permissions...
+  const { hidePopup, setTab } = usePopup();
+  const [userPass, setUserPass] = useState({ pass: '', passConfirm: '' });
+  return (
+    <>
+      <Popup title={null} tab={0}>
+        <MiniProfileActions>
+          <MiniProfileActionWrapper>
+            {user.role && (
+              <MiniProfileActionItem
+                onClick={() => {
+                  setTab(1);
+                }}
+              >
+                Change permissions...
                 <CurrentPermission>{`(${user.role.name})`}</CurrentPermission>
-                            </MiniProfileActionItem>
-                        )}
-                        <MiniProfileActionItem onClick={() => {
-                            setTab(3)
-                        }}>Reset password...</MiniProfileActionItem>
-                        <MiniProfileActionItem onClick={() => setTab(5)}>Remove from organzation...</MiniProfileActionItem>
-                    </MiniProfileActionWrapper>
-                </MiniProfileActions>
-                {warning && (
-                    <>
-                        <Separator />
-                        <WarningText>{warning}</WarningText>
-                    </>
-                )}
-            </Popup>
-            <Popup title="Change Permissions" onClose={() => hidePopup()} tab={1}>
-                <MiniProfileActions>
-                    <MiniProfileActionWrapper>
-                        {permissions
-                            .filter(p => (user.role && user.role.code === 'owner') || p.code !== 'owner')
-                            .map(perm => (
-                                <MiniProfileActionItem
-                                    disabled={user.role && perm.code !== user.role.code && !canChangeRole}
-                                    key={perm.code}
-                                    onClick={() => {
-                                        if (onChangeRole && user.role && perm.code !== user.role.code) {
-                                            switch (perm.code) {
-                                                case 'owner':
-                                                    onChangeRole(RoleCode.Owner);
-                                                    break;
-                                                case 'admin':
-                                                    onChangeRole(RoleCode.Admin);
-                                                    break;
-                                                case 'member':
-                                                    onChangeRole(RoleCode.Member);
-                                                    break;
-                                                default:
-                                                    break;
-                                            }
-                                            hidePopup();
-                                        }
-                                    }}
-                                >
-                                    <RoleName>
-                                        {perm.name}
-                                        {user.role && perm.code === user.role.code && <RoleCheckmark width={12} height={12} />}
-                                    </RoleName>
-                                    <RoleDescription>{perm.description}</RoleDescription>
-                                </MiniProfileActionItem>
-                            ))}
-                    </MiniProfileActionWrapper>
-                    {user.role && user.role.code === 'owner' && (
-                        <>
-                            <Separator />
-                            <WarningText>You can't change roles because there must be an owner.</WarningText>
-                        </>
-                    )}
-                </MiniProfileActions>
-            </Popup>
-            <Popup title="Remove from Team?" onClose={() => hidePopup()} tab={2}>
-                <Content>
-                    <DeleteDescription>
-                        The member will be removed from all cards on this project. They will receive a notification.
+              </MiniProfileActionItem>
+            )}
+            <MiniProfileActionItem
+              onClick={() => {
+                setTab(3);
+              }}
+            >
+              Reset password...
+            </MiniProfileActionItem>
+            <MiniProfileActionItem onClick={() => setTab(5)}>Remove from organzation...</MiniProfileActionItem>
+          </MiniProfileActionWrapper>
+        </MiniProfileActions>
+        {warning && (
+          <>
+            <Separator />
+            <WarningText>{warning}</WarningText>
+          </>
+        )}
+      </Popup>
+      <Popup title="Change Permissions" onClose={() => hidePopup()} tab={1}>
+        <MiniProfileActions>
+          <MiniProfileActionWrapper>
+            {permissions
+              .filter(p => (user.role && user.role.code === 'owner') || p.code !== 'owner')
+              .map(perm => (
+                <MiniProfileActionItem
+                  disabled={user.role && perm.code !== user.role.code && !canChangeRole}
+                  key={perm.code}
+                  onClick={() => {
+                    if (onChangeRole && user.role && perm.code !== user.role.code) {
+                      switch (perm.code) {
+                        case 'owner':
+                          onChangeRole(RoleCode.Owner);
+                          break;
+                        case 'admin':
+                          onChangeRole(RoleCode.Admin);
+                          break;
+                        case 'member':
+                          onChangeRole(RoleCode.Member);
+                          break;
+                        default:
+                          break;
+                      }
+                      hidePopup();
+                    }
+                  }}
+                >
+                  <RoleName>
+                    {perm.name}
+                    {user.role && perm.code === user.role.code && <RoleCheckmark width={12} height={12} />}
+                  </RoleName>
+                  <RoleDescription>{perm.description}</RoleDescription>
+                </MiniProfileActionItem>
+              ))}
+          </MiniProfileActionWrapper>
+          {user.role && user.role.code === 'owner' && (
+            <>
+              <Separator />
+              <WarningText>You can't change roles because there must be an owner.</WarningText>
+            </>
+          )}
+        </MiniProfileActions>
+      </Popup>
+      <Popup title="Remove from Team?" onClose={() => hidePopup()} tab={2}>
+        <Content>
+          <DeleteDescription>
+            The member will be removed from all cards on this project. They will receive a notification.
           </DeleteDescription>
-                    <RemoveMemberButton
-                        color="danger"
-                        onClick={() => {
-                            if (onRemoveFromTeam) {
-                                onRemoveFromTeam();
-                            }
-                        }}
-                    >
-                        Remove Member
+          <RemoveMemberButton
+            color="danger"
+            onClick={() => {
+              if (onRemoveFromTeam) {
+                onRemoveFromTeam();
+              }
+            }}
+          >
+            Remove Member
           </RemoveMemberButton>
-                </Content>
-            </Popup>
-            <Popup title="Reset password?" onClose={() => hidePopup()} tab={3}>
-                <Content>
-                    <DeleteDescription>
-                        You can either set the user's new password directly or send the user an email allowing them to reset their own password.
+        </Content>
+      </Popup>
+      <Popup title="Reset password?" onClose={() => hidePopup()} tab={3}>
+        <Content>
+          <DeleteDescription>
+            You can either set the user's new password directly or send the user an email allowing them to reset their
+            own password.
           </DeleteDescription>
-                    <UserPassBar>
-                        <UserPassButton onClick={() => setTab(4)} color="warning">Set password...</UserPassButton>
-                        <UserPassButton color="warning" variant="outline">Send reset link</UserPassButton>
-                    </UserPassBar>
-                </Content>
-            </Popup>
-            <Popup title="Reset password" onClose={() => hidePopup()} tab={4}>
-                <Content>
-                    <NewUserPassInput onChange={e => setUserPass({ pass: e.currentTarget.value, passConfirm: userPass.passConfirm })} value={userPass.pass} width="100%" variant="alternate" placeholder="New password" />
-                    <NewUserPassInput onChange={e => setUserPass({ passConfirm: e.currentTarget.value, pass: userPass.pass })} value={userPass.passConfirm} width="100%" variant="alternate" placeholder="New password (confirm)" />
-                    <UserPassConfirmButton disabled={userPass.pass === "" || userPass.passConfirm === ""} onClick={() => {
-                        if (userPass.pass === userPass.passConfirm && updateUserPassword) {
-                            updateUserPassword(user, userPass.pass)
-                        }
-                    }} color="danger">Set password</UserPassConfirmButton>
-                </Content>
-            </Popup>
-            <Popup title="Remove user" onClose={() => hidePopup()} tab={5}>
-                <Content>
-                    <DeleteDescription>
-                        Removing this user from the organzation will remove them from assigned tasks, projects, and            teams.
+          <UserPassBar>
+            <UserPassButton onClick={() => setTab(4)} color="warning">
+              Set password...
+            </UserPassButton>
+            <UserPassButton color="warning" variant="outline">
+              Send reset link
+            </UserPassButton>
+          </UserPassBar>
+        </Content>
+      </Popup>
+      <Popup title="Reset password" onClose={() => hidePopup()} tab={4}>
+        <Content>
+          <NewUserPassInput defaultValue={userPass.pass} width="100%" variant="alternate" placeholder="New password" />
+          <NewUserPassInput
+            defaultValue={userPass.passConfirm}
+            width="100%"
+            variant="alternate"
+            placeholder="New password (confirm)"
+          />
+          <UserPassConfirmButton
+            disabled={userPass.pass === '' || userPass.passConfirm === ''}
+            onClick={() => {
+              if (userPass.pass === userPass.passConfirm && updateUserPassword) {
+                updateUserPassword(user, userPass.pass);
+              }
+            }}
+            color="danger"
+          >
+            Set password
+          </UserPassConfirmButton>
+        </Content>
+      </Popup>
+      <Popup title="Remove user" onClose={() => hidePopup()} tab={5}>
+        <Content>
+          <DeleteDescription>
+            Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
-                    <DeleteDescription>
-                        The user is the owner of 3 projects & 2 teams.
-          </DeleteDescription>
-                    <UserSelect onChange={() => { }} value={null} options={[{ label: 'Jordan Knott', value: "jordanknott" }]} />
-                    <UserPassConfirmButton onClick={() => { }} color="danger">Set password</UserPassConfirmButton>
-                </Content>
-            </Popup>
-        </>
-    );
+          <DeleteDescription>The user is the owner of 3 projects & 2 teams.</DeleteDescription>
+          <UserSelect onChange={() => {}} value={null} options={[{ label: 'Jordan Knott', value: 'jordanknott' }]} />
+          <UserPassConfirmButton onClick={() => {}} color="danger">
+            Set password
+          </UserPassConfirmButton>
+        </Content>
+      </Popup>
+    </>
+  );
 };
 const UserSelect = styled(Select)`
-margin: 8px 0;
-padding: 8px 0;
-`
+  margin: 8px 0;
+  padding: 8px 0;
+`;
 
 const NewUserPassInput = styled(Input)`
-margin: 8px 0;
-`
+  margin: 8px 0;
+`;
 const InviteMemberButton = styled(Button)`
   padding: 7px 12px;
 `;
 
 const UserPassBar = styled.div`
-display: flex;
-padding-top: 8px;
-`
+  display: flex;
+  padding-top: 8px;
+`;
 const UserPassConfirmButton = styled(Button)`
   width: 100%;
   padding: 7px 12px;
-`
+`;
 
 const UserPassButton = styled(Button)`
   width: 50%;
   padding: 7px 12px;
   & ~ & {
-  margin-left: 6px;
+    margin-left: 6px;
   }
-`
+`;
 
 const MemberItemOptions = styled.div``;
 
@@ -413,7 +433,7 @@ const LockUserIcon = styled(Lock)``;
 const DeleteUserIcon = styled(Trash)``;
 
 type ActionButtonProps = {
-    onClick: ($target: React.RefObject<HTMLElement>) => void;
+  onClick: ($target: React.RefObject<HTMLElement>) => void;
 };
 
 const ActionButtonWrapper = styled.div`
@@ -423,84 +443,84 @@ const ActionButtonWrapper = styled.div`
 `;
 
 const ActionButton: React.FC<ActionButtonProps> = ({ onClick, children }) => {
-    const $wrapper = useRef<HTMLDivElement>(null);
-    return (
-        <ActionButtonWrapper onClick={() => onClick($wrapper)} ref={$wrapper}>
-            {children}
-        </ActionButtonWrapper>
-    );
+  const $wrapper = useRef<HTMLDivElement>(null);
+  return (
+    <ActionButtonWrapper onClick={() => onClick($wrapper)} ref={$wrapper}>
+      {children}
+    </ActionButtonWrapper>
+  );
 };
 
 const ActionButtons = (params: any) => {
-    return (
-        <>
-            <ActionButton onClick={() => { }}>
-                <EditUserIcon width={16} height={16} />
-            </ActionButton>
-            <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
-                <DeleteUserIcon width={16} height={16} />
-            </ActionButton>
-        </>
-    );
+  return (
+    <>
+      <ActionButton onClick={() => {}}>
+        <EditUserIcon width={16} height={16} />
+      </ActionButton>
+      <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
+        <DeleteUserIcon width={16} height={16} />
+      </ActionButton>
+    </>
+  );
 };
 
 type ListTableProps = {
-    users: Array<User>;
-    onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
+  users: Array<User>;
+  onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
 };
 
 const ListTable: React.FC<ListTableProps> = ({ users, onDeleteUser }) => {
-    const data = {
-        defaultColDef: {
-            resizable: true,
-            sortable: true,
+  const data = {
+    defaultColDef: {
+      resizable: true,
+      sortable: true,
+    },
+    columnDefs: [
+      {
+        minWidth: 55,
+        width: 55,
+        headerCheckboxSelection: true,
+        checkboxSelection: true,
+      },
+      { minWidth: 210, headerName: 'Username', editable: true, field: 'username' },
+      { minWidth: 225, headerName: 'Email', field: 'email' },
+      { minWidth: 200, headerName: 'Name', editable: true, field: 'fullName' },
+      { minWidth: 200, headerName: 'Role', editable: true, field: 'roleName' },
+      {
+        minWidth: 200,
+        headerName: 'Actions',
+        field: 'id',
+        cellRenderer: 'actionButtons',
+        cellRendererParams: {
+          onDeleteUser: (target: any, userID: any) => {
+            onDeleteUser(target, userID);
+          },
         },
-        columnDefs: [
-            {
-                minWidth: 55,
-                width: 55,
-                headerCheckboxSelection: true,
-                checkboxSelection: true,
-            },
-            { minWidth: 210, headerName: 'Username', editable: true, field: 'username' },
-            { minWidth: 225, headerName: 'Email', field: 'email' },
-            { minWidth: 200, headerName: 'Name', editable: true, field: 'fullName' },
-            { minWidth: 200, headerName: 'Role', editable: true, field: 'roleName' },
-            {
-                minWidth: 200,
-                headerName: 'Actions',
-                field: 'id',
-                cellRenderer: 'actionButtons',
-                cellRendererParams: {
-                    onDeleteUser: (target: any, userID: any) => {
-                        onDeleteUser(target, userID);
-                    },
-                },
-            },
-        ],
-        frameworkComponents: {
-            actionButtons: ActionButtons,
-        },
-    };
-    return (
-        <Root>
-            <div className="ag-theme-material" style={{ height: '296px', width: '100%' }}>
-                <AgGridReact
-                    rowSelection="multiple"
-                    defaultColDef={data.defaultColDef}
-                    columnDefs={data.columnDefs}
-                    rowData={users.map(u => ({ ...u, roleName: u.role.name }))}
-                    frameworkComponents={data.frameworkComponents}
-                    onFirstDataRendered={params => {
-                        params.api.sizeColumnsToFit();
-                    }}
-                    onGridSizeChanged={params => {
-                        params.api.sizeColumnsToFit();
-                    }}
-                />
-            </div>
-        </Root>
-    );
+      },
+    ],
+    frameworkComponents: {
+      actionButtons: ActionButtons,
+    },
+  };
+  return (
+    <Root>
+      <div className="ag-theme-material" style={{ height: '296px', width: '100%' }}>
+        <AgGridReact
+          rowSelection="multiple"
+          defaultColDef={data.defaultColDef}
+          columnDefs={data.columnDefs}
+          rowData={users.map(u => ({ ...u, roleName: u.role.name }))}
+          frameworkComponents={data.frameworkComponents}
+          onFirstDataRendered={params => {
+            params.api.sizeColumnsToFit();
+          }}
+          onGridSizeChanged={params => {
+            params.api.sizeColumnsToFit();
+          }}
+        />
+      </div>
+    </Root>
+  );
 };
 
 const Wrapper = styled.div`
@@ -604,138 +624,145 @@ const TabContent = styled.div`
 const items = [{ name: 'Members' }, { name: 'Settings' }];
 
 type NavItemProps = {
-    active: boolean;
-    name: string;
-    tab: number;
-    onClick: (tab: number, top: number) => void;
+  active: boolean;
+  name: string;
+  tab: number;
+  onClick: (tab: number, top: number) => void;
 };
 const NavItem: React.FC<NavItemProps> = ({ active, name, tab, onClick }) => {
-    const $item = useRef<HTMLLIElement>(null);
-    return (
-        <TabNavItem
-            key={name}
-            ref={$item}
-            onClick={() => {
-                if ($item && $item.current) {
-                    const pos = $item.current.getBoundingClientRect();
-                    onClick(tab, pos.top);
-                }
-            }}
-        >
-            <TabNavItemButton active={active}>
-                <User size={14} color={active ? 'rgba(115, 103, 240)' : '#c2c6dc'} />
-                <TabNavItemSpan>{name}</TabNavItemSpan>
-            </TabNavItemButton>
-        </TabNavItem>
-    );
+  const $item = useRef<HTMLLIElement>(null);
+  return (
+    <TabNavItem
+      key={name}
+      ref={$item}
+      onClick={() => {
+        if ($item && $item.current) {
+          const pos = $item.current.getBoundingClientRect();
+          onClick(tab, pos.top);
+        }
+      }}
+    >
+      <TabNavItemButton active={active}>
+        <User size={14} color={active ? 'rgba(115, 103, 240)' : '#c2c6dc'} />
+        <TabNavItemSpan>{name}</TabNavItemSpan>
+      </TabNavItemButton>
+    </TabNavItem>
+  );
 };
 
 type AdminProps = {
-    initialTab: number;
-    onAddUser: ($target: React.RefObject<HTMLElement>) => void;
-    onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
-    onInviteUser: ($target: React.RefObject<HTMLElement>) => void;
-    users: Array<User>;
-    onUpdateUserPassword: (user: TaskUser, password: string) => void;
+  initialTab: number;
+  onAddUser: ($target: React.RefObject<HTMLElement>) => void;
+  onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
+  onInviteUser: ($target: React.RefObject<HTMLElement>) => void;
+  users: Array<User>;
+  onUpdateUserPassword: (user: TaskUser, password: string) => void;
 };
 
-const Admin: React.FC<AdminProps> = ({ initialTab, onAddUser, onUpdateUserPassword, onDeleteUser, onInviteUser, users }) => {
-    const warning =
-        'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
-    const [currentTop, setTop] = useState(initialTab * 48);
-    const [currentTab, setTab] = useState(initialTab);
-    const { showPopup, hidePopup } = usePopup();
-    const $tabNav = useRef<HTMLDivElement>(null);
+const Admin: React.FC<AdminProps> = ({
+  initialTab,
+  onAddUser,
+  onUpdateUserPassword,
+  onDeleteUser,
+  onInviteUser,
+  users,
+}) => {
+  const warning =
+    'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
+  const [currentTop, setTop] = useState(initialTab * 48);
+  const [currentTab, setTab] = useState(initialTab);
+  const { showPopup, hidePopup } = usePopup();
+  const $tabNav = useRef<HTMLDivElement>(null);
 
-    const [updateUserRole] = useUpdateUserRoleMutation()
-    return (
-        <Container>
-            <TabNav ref={$tabNav}>
-                <TabNavContent>
-                    {items.map((item, idx) => (
-                        <NavItem
-                            onClick={(tab, top) => {
-                                if ($tabNav && $tabNav.current) {
-                                    const pos = $tabNav.current.getBoundingClientRect();
-                                    setTab(tab);
-                                    setTop(top - pos.top);
-                                }
-                            }}
-                            name={item.name}
-                            tab={idx}
-                            active={idx === currentTab}
-                        />
-                    ))}
-                    <TabNavLine top={currentTop} />
-                </TabNavContent>
-            </TabNav>
-            <TabContentWrapper>
-                <TabContent>
-                    <MemberListWrapper>
-                        <MemberListHeader>
-                            <ListTitle>{`Users (${users.length})`}</ListTitle>
-                            <ListDesc>
-                                Team members can view and join all Team Visible boards and create new boards in the team.
+  const [updateUserRole] = useUpdateUserRoleMutation();
+  return (
+    <Container>
+      <TabNav ref={$tabNav}>
+        <TabNavContent>
+          {items.map((item, idx) => (
+            <NavItem
+              onClick={(tab, top) => {
+                if ($tabNav && $tabNav.current) {
+                  const pos = $tabNav.current.getBoundingClientRect();
+                  setTab(tab);
+                  setTop(top - pos.top);
+                }
+              }}
+              name={item.name}
+              tab={idx}
+              active={idx === currentTab}
+            />
+          ))}
+          <TabNavLine top={currentTop} />
+        </TabNavContent>
+      </TabNav>
+      <TabContentWrapper>
+        <TabContent>
+          <MemberListWrapper>
+            <MemberListHeader>
+              <ListTitle>{`Users (${users.length})`}</ListTitle>
+              <ListDesc>
+                Team members can view and join all Team Visible boards and create new boards in the team.
               </ListDesc>
-                            <ListActions>
-                                <FilterSearch width="250px" variant="alternate" placeholder="Filter by name" />
-                                <InviteMemberButton
-                                    onClick={$target => {
-                                        onAddUser($target);
-                                    }}
-                                >
-                                    <InviteIcon width={16} height={16} />
-                                    New Member
+              <ListActions>
+                <FilterSearch width="250px" variant="alternate" placeholder="Filter by name" />
+                <InviteMemberButton
+                  onClick={$target => {
+                    onAddUser($target);
+                  }}
+                >
+                  <InviteIcon width={16} height={16} />
+                  New Member
                 </InviteMemberButton>
-                            </ListActions>
-                        </MemberListHeader>
-                        <MemberList>
-                            {users.map(member => (
-                                <MemberListItem>
-                                    <MemberProfile showRoleIcons size={32} onMemberProfile={() => { }} member={member} />
-                                    <MemberListItemDetails>
-                                        <MemberItemName>{member.fullName}</MemberItemName>
-                                        <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>
-                                    </MemberListItemDetails>
-                                    <MemberItemOptions>
-                                        <MemberItemOption variant="flat">On 6 projects</MemberItemOption>
-                                        <MemberItemOption
-                                            variant="outline"
-                                            onClick={$target => {
-                                                showPopup(
-                                                    $target,
-                                                    <TeamRoleManagerPopup
-                                                        user={member}
-                                                        warning={member.role && member.role.code === 'owner' ? warning : null}
-                                                        updateUserPassword={(user, password) => {
-                                                            onUpdateUserPassword(user, password)
-                                                        }}
-                                                        canChangeRole={member.role && member.role.code !== 'owner'}
-                                                        onChangeRole={roleCode => {
-                                                            updateUserRole({ variables: { userID: member.id, roleCode } })
-                                                        }}
-                                                        onRemoveFromTeam={
-                                                            member.role && member.role.code === 'owner'
-                                                                ? undefined
-                                                                : () => {
-                                                                    hidePopup();
-                                                                }
-                                                        }
-                                                    />,
-                                                );
-                                            }}
-                                        >
-                                            Manage
+              </ListActions>
+            </MemberListHeader>
+            <MemberList>
+              {users.map(member => (
+                <MemberListItem>
+                  <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
+                  <MemberListItemDetails>
+                    <MemberItemName>{member.fullName}</MemberItemName>
+                    <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>
+                  </MemberListItemDetails>
+                  <MemberItemOptions>
+                    <MemberItemOption variant="flat">On 6 projects</MemberItemOption>
+                    <MemberItemOption
+                      variant="outline"
+                      onClick={$target => {
+                        showPopup(
+                          $target,
+                          <TeamRoleManagerPopup
+                            user={member}
+                            warning={member.role && member.role.code === 'owner' ? warning : null}
+                            updateUserPassword={(user, password) => {
+                              onUpdateUserPassword(user, password);
+                            }}
+                            canChangeRole={member.role && member.role.code !== 'owner'}
+                            onChangeRole={roleCode => {
+                              updateUserRole({ variables: { userID: member.id, roleCode } });
+                            }}
+                            onRemoveFromTeam={
+                              member.role && member.role.code === 'owner'
+                                ? undefined
+                                : () => {
+                                    hidePopup();
+                                  }
+                            }
+                          />,
+                        );
+                      }}
+                    >
+                      Manage
                     </MemberItemOption>
-                                    </MemberItemOptions>
-                                </MemberListItem>
-                            ))}
-                        </MemberList>
-                    </MemberListWrapper>
-                </TabContent>
-            </TabContentWrapper>
-        </Container>
-    );
+                  </MemberItemOptions>
+                </MemberListItem>
+              ))}
+            </MemberList>
+          </MemberListWrapper>
+        </TabContent>
+      </TabContentWrapper>
+    </Container>
+  );
 };
 
 export default Admin;

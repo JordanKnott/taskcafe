@@ -58,6 +58,12 @@ type Role struct {
 	Name string `json:"name"`
 }
 
+type SystemOption struct {
+	OptionID uuid.UUID      `json:"option_id"`
+	Key      string         `json:"key"`
+	Value    sql.NullString `json:"value"`
+}
+
 type Task struct {
 	TaskID      uuid.UUID      `json:"task_id"`
 	TaskGroupID uuid.UUID      `json:"task_group_id"`

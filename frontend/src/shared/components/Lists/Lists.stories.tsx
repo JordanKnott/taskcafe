@@ -93,6 +93,8 @@ export const Default = () => {
       onTaskDrop={onCardDrop}
       onTaskGroupDrop={onListDrop}
       onChangeTaskGroupName={action('change group name')}
+      cardLabelVariant="large"
+      onCardLabelClick={action('label click')}
       onCreateTaskGroup={action('create list')}
       onExtraMenuOpen={action('extra menu open')}
       onCardMemberClick={action('card member click')}

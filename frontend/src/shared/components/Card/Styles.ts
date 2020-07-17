@@ -1,9 +1,9 @@
-import styled, {css} from 'styled-components';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {mixin} from 'shared/utils/styles';
+import styled, { css, keyframes } from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
-import {CheckCircle} from 'shared/icons';
-import {RefObject} from 'react';
+import { CheckCircle } from 'shared/icons';
+import { RefObject } from 'react';
 
 export const ClockIcon = styled(FontAwesomeIcon)``;
 
@@ -57,7 +57,7 @@ export const DescriptionBadge = styled(ListCardBadge)`
   padding-right: 6px;
 `;
 
-export const DueDateCardBadge = styled(ListCardBadge) <{isPastDue: boolean}>`
+export const DueDateCardBadge = styled(ListCardBadge)<{ isPastDue: boolean }>`
   font-size: 12px;
   ${props =>
     props.isPastDue &&
@@ -76,7 +76,7 @@ export const ListCardBadgeText = styled.span`
   white-space: nowrap;
 `;
 
-export const ListCardContainer = styled.div<{isActive: boolean; editable: boolean}>`
+export const ListCardContainer = styled.div<{ isActive: boolean; editable: boolean }>`
   max-width: 256px;
   margin-bottom: 8px;
   border-radius: 3px;
@@ -93,7 +93,7 @@ export const ListCardInnerContainer = styled.div`
   height: 100%;
 `;
 
-export const ListCardDetails = styled.div<{complete: boolean}>`
+export const ListCardDetails = styled.div<{ complete: boolean }>`
   overflow: hidden;
   padding: 6px 8px 2px;
   position: relative;
@@ -102,28 +102,93 @@ export const ListCardDetails = styled.div<{complete: boolean}>`
   ${props => props.complete && 'opacity: 0.6;'}
 `;
 
-export const ListCardLabels = styled.div`
-  overflow: auto;
-  position: relative;
+const labelVariantExpandAnimation = keyframes`
+  0%   {min-width: 40px; height: 8px;}
+  50%  {min-width: 56px; height: 8px;}
+  100% {min-width: 56px; height: 16px;}
 `;
 
-export const ListCardLabel = styled.span`
-  height: 16px;
+const labelTextVariantExpandAnimation = keyframes`
+  0%   {transform: scale(0); visibility: hidden; pointer-events: none;}
+  75%   {transform: scale(0); visibility: hidden; pointer-events: none;}
+  100%   {transform: scale(1); visibility: visible; pointer-events: all;}
+`;
+
+const labelVariantShrinkAnimation = keyframes`
+  0% {min-width: 56px; height: 16px;}
+  50%  {min-width: 56px; height: 8px;}
+  100%   {min-width: 40px; height: 8px;}
+`;
+
+const labelTextVariantShrinkAnimation = keyframes`
+  0%   {transform: scale(1); visibility: visible; pointer-events: all;}
+  75%   {transform: scale(0); visibility: hidden; pointer-events: none;}
+  100%   {transform: scale(0); visibility: hidden; pointer-events: none;}
+`;
+export const ListCardLabelText = styled.span`
+  font-size: 12px;
+  font-weight: 700;
   line-height: 16px;
+`;
+
+export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
+  ${props =>
+    props.variant === 'small'
+      ? css`
+          height: 8px;
+          min-width: 40px;
+          & ${ListCardLabelText} {
+            transform: scale(0);
+            visibility: hidden;
+            pointer-events: none;
+          }
+        `
+      : css`
+          height: 16px;
+          min-width: 56px;
+        `}
+
   padding: 0 8px;
   max-width: 198px;
   float: left;
-  font-size: 12px;
-  font-weight: 700;
   margin: 0 4px 4px 0;
   width: auto;
   border-radius: 4px;
   color: #fff;
-  display: block;
+  display: flex;
   position: relative;
   background-color: ${props => props.color};
 `;
 
+export const ListCardLabels = styled.div<{ toggleLabels: boolean; toggleDirection: 'expand' | 'shrink' }>`
+  overflow: auto;
+  position: relative;
+  &:hover {
+    opacity: 0.8;
+  }
+  ${props =>
+    props.toggleLabels &&
+    props.toggleDirection === 'expand' &&
+    css`
+      & ${ListCardLabel} {
+        animation: ${labelVariantExpandAnimation} 0.45s ease-out;
+      }
+      & ${ListCardLabelText} {
+        animation: ${labelTextVariantExpandAnimation} 0.45s ease-out;
+      }
+    `}
+  ${props =>
+    props.toggleLabels &&
+    props.toggleDirection === 'shrink' &&
+    css`
+      & ${ListCardLabel} {
+        animation: ${labelVariantShrinkAnimation} 0.45s ease-out;
+      }
+      & ${ListCardLabelText} {
+        animation: ${labelTextVariantShrinkAnimation} 0.45s ease-out;
+      }
+    `}
+`;
 export const ListCardOperation = styled.span`
   display: flex;
   align-content: center;
@@ -136,7 +201,7 @@ export const ListCardOperation = styled.span`
   top: 2px;
   z-index: 100;
   &:hover {
-    background-color: ${props => mixin.darken('#262c49', .25)};
+    background-color: ${props => mixin.darken('#262c49', 0.25)};
   }
 `;
 

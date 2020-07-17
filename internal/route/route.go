@@ -104,6 +104,7 @@ func NewRouter(config config.AppConfig, dbConnection *sqlx.DB) (chi.Router, erro
 	r.Group(func(mux chi.Router) {
 		mux.Use(AuthenticationMiddleware)
 		mux.Post("/users/me/avatar", citadelHandler.ProfileImageUpload)
+		mux.Post("/auth/install", citadelHandler.InstallHandler)
 		mux.Handle("/graphql", graph.NewHandler(config, *repository))
 	})
 

@@ -1,22 +1,22 @@
-import React, {useState, useEffect, useContext} from 'react';
-import {useForm} from 'react-hook-form';
-import {useHistory} from 'react-router';
+import React, { useState, useEffect, useContext } from 'react';
+import { useForm } from 'react-hook-form';
+import { useHistory } from 'react-router';
 
-import {setAccessToken} from 'shared/utils/accessToken';
+import { setAccessToken } from 'shared/utils/accessToken';
 
 import Login from 'shared/components/Login';
-import {Container, LoginWrapper} from './Styles';
+import { Container, LoginWrapper } from './Styles';
 import UserIDContext from 'App/context';
 import JwtDecode from 'jwt-decode';
 
 const Auth = () => {
   const [invalidLoginAttempt, setInvalidLoginAttempt] = useState(0);
   const history = useHistory();
-  const {setUserID} = useContext(UserIDContext);
+  const { setUserID } = useContext(UserIDContext);
   const login = (
     data: LoginFormData,
     setComplete: (val: boolean) => void,
-    setError: (field: string, eType: string, message: string) => void,
+    setError: (name: 'username' | 'password', error: ErrorOption) => void,
   ) => {
     fetch('/auth/login', {
       credentials: 'include',
@@ -28,12 +28,12 @@ const Auth = () => {
     }).then(async x => {
       if (x.status === 401) {
         setInvalidLoginAttempt(invalidLoginAttempt + 1);
-        setError('username', 'invalid', 'Invalid username');
-        setError('password', 'invalid', 'Invalid password');
+        setError('username', { type: 'error', message: 'Invalid username' });
+        setError('password', { type: 'error', message: 'Invalid password' });
         setComplete(true);
       } else {
         const response = await x.json();
-        const {accessToken} = response;
+        const { accessToken } = response;
         const claims: JWTToken = JwtDecode(accessToken);
         setUserID(claims.userId);
         setComplete(true);
@@ -49,7 +49,7 @@ const Auth = () => {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
-      const {status} = x;
+      const { status } = x;
       if (status === 200) {
         history.replace('/projects');
       }

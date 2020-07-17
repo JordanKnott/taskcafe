@@ -196,7 +196,7 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({history, name, projec
       <Popup title={null} tab={0}>
         <ProjectSettings
           onDeleteProject={() => {
-            setTab(1);
+            setTab(1, 300);
           }}
         />
       </Popup>

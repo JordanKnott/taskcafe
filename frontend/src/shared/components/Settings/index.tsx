@@ -263,13 +263,13 @@ const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAva
             onProfileAvatarChange={onProfileAvatarChange}
             profile={profile.profileIcon}
           />
-          <Input value={profile.fullName} width="100%" label="Name" />
+          <Input defaultValue={profile.fullName} width="100%" label="Name" />
           <Input
-            value={profile.profileIcon && profile.profileIcon.initials ? profile.profileIcon.initials : ''}
+            defaultValue={profile.profileIcon && profile.profileIcon.initials ? profile.profileIcon.initials : ''}
             width="100%"
             label="Initials "
           />
-          <Input value={profile.username ?? ''} width="100%" label="Username " />
+          <Input defaultValue={profile.username ?? ''} width="100%" label="Username " />
           <Input width="100%" label="Email" />
           <Input width="100%" label="Bio" />
           <SettingActions>
