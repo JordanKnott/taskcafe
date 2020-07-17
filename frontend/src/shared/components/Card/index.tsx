@@ -142,7 +142,7 @@ const Card = React.forwardRef(
         {...wrapperProps}
       >
         <ListCardInnerContainer ref={$innerCardRef}>
-          {isActive && (
+          {isActive && !editable && (
             <ListCardOperation
               onClick={e => {
                 e.stopPropagation();
