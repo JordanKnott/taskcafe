@@ -62,7 +62,7 @@ func (q *Queries) DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) e
 }
 
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
-SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code FROM user_account
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code FROM user_account WHERE username != 'system'
 `
 
 func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error) {

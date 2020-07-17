@@ -218,6 +218,7 @@ func (h *CitadelHandler) InstallHandler(w http.ResponseWriter, r *http.Request) 
 	createdAt := time.Now().UTC()
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(requestData.User.Password), 14)
 	user, err := h.repo.CreateUserAccount(r.Context(), db.CreateUserAccountParams{
+		FullName:     requestData.User.FullName,
 		Username:     requestData.User.Username,
 		Initials:     requestData.User.Initials,
 		Email:        requestData.User.Email,

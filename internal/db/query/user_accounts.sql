@@ -2,7 +2,7 @@
 SELECT * FROM user_account WHERE user_id = $1;
 
 -- name: GetAllUserAccounts :many
-SELECT * FROM user_account;
+SELECT * FROM user_account WHERE username != 'system';
 
 -- name: GetUserAccountByUsername :one
 SELECT * FROM user_account WHERE username = $1;
