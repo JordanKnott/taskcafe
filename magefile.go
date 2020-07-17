@@ -4,19 +4,33 @@ package main
 
 import (
 	"fmt"
-	"github.com/magefile/mage/sh"
-	"github.com/shurcooL/vfsgen"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
+	"github.com/shurcooL/vfsgen"
 )
 
 var Aliases = map[string]interface{}{
-	"g": Generate,
+	"s": Backend.Schema,
 }
 
-func Vfs() error {
+type Frontend mg.Namespace
+
+func (Frontend) Install() error {
+	return sh.Run("yarn", "install", "--cwd", "frontend")
+}
+
+func (Frontend) Build() error {
+	return sh.Run("yarn", "build", "--cwd", "frontend")
+}
+
+type Backend mg.Namespace
+
+func (Backend) GenFrontend() error {
 	var fs http.FileSystem = http.Dir("frontend/build")
 	err := vfsgen.Generate(fs, vfsgen.Options{
 		Filename:     "internal/frontend/frontend_generated.go",
@@ -29,9 +43,11 @@ func Vfs() error {
 	return nil
 }
 
-// Runs go mod download and then installs the binary.
-func Generate() error {
+func (Backend) Build() error {
+	return sh.Run("go", "build", "-o", "dist/citadel", "cmd/citadel/main.go")
+}
 
+func (Backend) Schema() error {
 	files, err := ioutil.ReadDir("internal/graph/schema/")
 	if err != nil {
 		panic(err)
@@ -50,11 +66,13 @@ func Generate() error {
 		}
 		fmt.Fprintln(&schema, string(content))
 	}
-	// return sh.Run("go", "install", "./...")
-	// fmt.Println(schema.String())
 	err = ioutil.WriteFile("internal/graph/schema.graphqls", []byte(schema.String()), os.FileMode(0755))
 	if err != nil {
 		panic(err)
 	}
 	return sh.Run("gqlgen")
+}
+
+func Build() {
+	mg.SerialDeps(Frontend.Install, Frontend.Build, Backend.GenFrontend, Backend.Build)
 }

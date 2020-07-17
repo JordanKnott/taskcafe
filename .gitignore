@@ -1,6 +1,7 @@
 node_modules
+dist/
 uploads/*
 !uploads/.keep
-
 internal/frontend/frontend_generated.go
 citadel
+conf/app.toml

@@ -12,7 +12,7 @@ upload_dir_path = 'uploads'
 
 [database]
 host = '0.0.0.0'
-name = 'citadel_test'
+name = 'citadel'
 user = 'postgres'
 password = 'test'
 
