@@ -117,12 +117,8 @@ const Input = React.forwardRef(
     return (
       <InputWrapper className={className} width={width}>
         <InputInput
-          onChange={() => {
-            console.log(`change ${$ref}!`);
-            if ($ref && $ref.current) {
-              console.log(`value : ${$ref.current.value}`);
-              setHasValue(($ref.current.value !== '' || floatingLabel) ?? false);
-            }
+          onChange={e => {
+            setHasValue((e.currentTarget.value !== '' || floatingLabel) ?? false);
           }}
           hasValue={hasValue}
           ref={$ref}
