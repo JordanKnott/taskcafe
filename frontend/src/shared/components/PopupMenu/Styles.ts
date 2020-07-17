@@ -1,5 +1,7 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
+import Input from '../Input';
+import ControlledInput from 'shared/components/ControlledInput';
 
 export const Container = styled.div<{
   invertY: boolean;
@@ -78,35 +80,13 @@ export const Content = styled.div`
   max-height: 632px;
 `;
 
-export const LabelSearch = styled.input`
-  box-sizing: border-box;
-  display: block;
-  transition-property: background-color, border-color, box-shadow;
-  transition-duration: 85ms;
-  transition-timing-function: ease;
-  margin: 4px 0 12px;
-  width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-  line-height: 20px;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-family: 'Droid Sans';
-  font-weight: 400;
-
-  background: #262c49;
-  outline: none;
-  color: #c2c6dc;
-  border-color: #414561;
-
-  &:focus {
-    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
-    background: ${mixin.darken('#262c49', 0.15)};
-  }
+export const LabelSearch = styled(ControlledInput)`
+  margin: 12px 12px 0 12px;
 `;
 
 export const Section = styled.div`
   margin-top: 12px;
+  margin: 12px 12px 0 12px;
 `;
 
 export const SectionTitle = styled.h4`

@@ -22,24 +22,18 @@ type Props = {
 };
 
 const LabelManager: React.FC<Props> = ({ labels, taskLabels, onLabelToggle, onLabelEdit, onLabelCreate }) => {
-  const $fieldName = useRef<HTMLInputElement>(null);
   const [currentLabel, setCurrentLabel] = useState('');
   const [currentSearch, setCurrentSearch] = useState('');
-  useEffect(() => {
-    if ($fieldName.current) {
-      $fieldName.current.focus();
-    }
-  }, []);
   return (
     <>
       <LabelSearch
-        type="text"
-        ref={$fieldName}
-        placeholder="search labels..."
-        onChange={e => {
-          setCurrentSearch(e.currentTarget.value);
-        }}
+        autoFocus
         value={currentSearch}
+        variant="alternate"
+        width="100%"
+        onChange={e => setCurrentSearch(e.currentTarget.value)}
+        type="text"
+        placeholder="search labels..."
       />
       <Section>
         <SectionTitle>Labels</SectionTitle>

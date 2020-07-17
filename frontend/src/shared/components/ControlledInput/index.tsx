@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components/macro';
 
 const InputWrapper = styled.div<{ width: string }>`
   position: relative;
-  width: ${props => props.width};
+  width: auto;
   display: flex;
   align-items: flex-start;
   flex-direction: column;
@@ -76,7 +76,7 @@ const Icon = styled.div`
   position: absolute;
 `;
 
-type InputProps = {
+type ControlledInputProps = {
   variant?: 'normal' | 'alternate';
   label?: string;
   width?: string;
@@ -85,64 +85,71 @@ type InputProps = {
   icon?: JSX.Element;
   type?: string;
   autocomplete?: boolean;
+  autoFocus?: boolean;
   id?: string;
   name?: string;
   className?: string;
   defaultValue?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
 };
 
-const Input = React.forwardRef(
-  (
-    {
-      width = 'auto',
-      variant = 'normal',
-      type = 'text',
-      autocomplete,
-      label,
-      placeholder,
-      icon,
-      name,
-      className,
-      onClick,
-      floatingLabel,
-      defaultValue,
-      id,
-    }: InputProps,
-    $ref: any,
-  ) => {
-    const [hasValue, setHasValue] = useState(false);
-    const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
-    const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
-    return (
-      <InputWrapper className={className} width={width}>
-        <InputInput
-          onChange={() => {
-            console.log(`change ${$ref}!`);
-            if ($ref && $ref.current) {
-              console.log(`value : ${$ref.current.value}`);
-              setHasValue(($ref.current.value !== '' || floatingLabel) ?? false);
-            }
-          }}
-          hasValue={hasValue}
-          ref={$ref}
-          id={id}
-          type={type}
-          name={name}
-          onClick={onClick}
-          autoComplete={autocomplete ? 'on' : 'off'}
-          defaultValue={defaultValue}
-          hasIcon={typeof icon !== 'undefined'}
-          width={width}
-          placeholder={placeholder}
-          focusBg={focusBg}
-          borderColor={borderColor}
-        />
-        {label && <InputLabel width={width}>{label}</InputLabel>}
-        <Icon>{icon && icon}</Icon>
-      </InputWrapper>
-    );
-  },
-);
+const ControlledInput = ({
+  width = 'auto',
+  variant = 'normal',
+  type = 'text',
+  autocomplete,
+  autoFocus = false,
+  label,
+  placeholder,
+  icon,
+  name,
+  className,
+  onChange,
+  value,
+  onClick,
+  floatingLabel = false,
+  defaultValue,
+  id,
+}: ControlledInputProps) => {
+  const $input = useRef<HTMLInputElement>(null);
+  const [hasValue, setHasValue] = useState(false);
+  const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
+  const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
+  useEffect(() => {
+    if (autoFocus && $input && $input.current) {
+      $input.current.focus();
+    }
+  }, []);
+  return (
+    <InputWrapper className={className} width={width}>
+      <InputInput
+        hasValue={hasValue}
+        onChange={e => {
+          if (onChange) {
+            setHasValue(e.currentTarget.value !== '' || floatingLabel);
+            onChange(e);
+          }
+        }}
+        value={value}
+        id={id}
+        type={type}
+        name={name}
+        ref={$input}
+        onClick={onClick}
+        autoComplete={autocomplete ? 'on' : 'off'}
+        defaultValue={defaultValue}
+        hasIcon={typeof icon !== 'undefined'}
+        width={width}
+        placeholder={placeholder}
+        focusBg={focusBg}
+        borderColor={borderColor}
+      />
+      {label && <InputLabel width={width}>{label}</InputLabel>}
+      <Icon>{icon && icon}</Icon>
+    </InputWrapper>
+  );
+};
 
-export default Input;
+export default ControlledInput;
