@@ -33,3 +33,7 @@ export const ListSeparator = styled.hr`
   padding: 0;
   width: 100%;
 `;
+
+export const InnerContent = styled.div`
+  margin: 0 12px;
+`;

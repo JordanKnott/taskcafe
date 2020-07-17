@@ -1,5 +1,5 @@
 import React from 'react';
-import { ListActionsWrapper, ListActionItemWrapper, ListActionItem, ListSeparator } from './Styles';
+import { InnerContent, ListActionsWrapper, ListActionItemWrapper, ListActionItem, ListSeparator } from './Styles';
 
 type Props = {
   taskGroupID: string;
@@ -8,7 +8,7 @@ type Props = {
 };
 const LabelManager: React.FC<Props> = ({ taskGroupID, onArchiveTaskGroup }) => {
   return (
-    <>
+    <InnerContent>
       <ListActionsWrapper>
         <ListActionItemWrapper>
           <ListActionItem>Add card...</ListActionItem>
@@ -44,7 +44,7 @@ const LabelManager: React.FC<Props> = ({ taskGroupID, onArchiveTaskGroup }) => {
           <ListActionItem>Archive This List</ListActionItem>
         </ListActionItemWrapper>
       </ListActionsWrapper>
-    </>
+    </InnerContent>
   );
 };
 export default LabelManager;

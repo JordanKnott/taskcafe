@@ -18,13 +18,14 @@ import styled, { css } from 'styled-components/macro';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import Member from 'shared/components/Member';
+import ControlledInput from 'shared/components/ControlledInput';
 
 const MemberListWrapper = styled.div`
   flex: 1 1;
 `;
 
-const SearchInput = styled(Input)`
-  margin: 0;
+const SearchInput = styled(ControlledInput)`
+  margin: 0 12px;
 `;
 
 const UserMember = styled(Member)`
@@ -37,7 +38,7 @@ const UserMember = styled(Member)`
 `;
 
 const TeamMemberList = styled.div`
-  margin: 8px 0;
+  margin: 8px 12px;
 `;
 
 type UserManagementPopupProps = {

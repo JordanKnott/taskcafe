@@ -5,7 +5,7 @@ import Button from 'shared/components/Button';
 
 export const ListActionsWrapper = styled.ul`
   list-style-type: none;
-  margin: 0;
+  margin: 0 12px;
   padding: 0;
 `;
 
@@ -40,7 +40,7 @@ export const ListSeparator = styled.hr`
 type Props = {
   onDeleteProject: () => void;
 };
-const ProjectSettings: React.FC<Props> = ({onDeleteProject}) => {
+const ProjectSettings: React.FC<Props> = ({ onDeleteProject }) => {
   return (
     <>
       <ListActionsWrapper>
@@ -55,7 +55,7 @@ const ProjectSettings: React.FC<Props> = ({onDeleteProject}) => {
 type TeamSettingsProps = {
   onDeleteTeam: () => void;
 };
-export const TeamSettings: React.FC<TeamSettingsProps> = ({onDeleteTeam}) => {
+export const TeamSettings: React.FC<TeamSettingsProps> = ({ onDeleteTeam }) => {
   return (
     <>
       <ListActionsWrapper>
@@ -109,7 +109,7 @@ export const DELETE_INFO = {
   },
 };
 
-const DeleteConfirm: React.FC<DeleteConfirmProps> = ({description, deletedItems, onConfirmDelete}) => {
+const DeleteConfirm: React.FC<DeleteConfirmProps> = ({ description, deletedItems, onConfirmDelete }) => {
   return (
     <ConfirmWrapper>
       <ConfirmDescription>
@@ -127,5 +127,5 @@ const DeleteConfirm: React.FC<DeleteConfirmProps> = ({description, deletedItems,
   );
 };
 
-export {DeleteConfirm};
+export { DeleteConfirm };
 export default ProjectSettings;
