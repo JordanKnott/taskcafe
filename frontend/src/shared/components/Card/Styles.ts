@@ -103,9 +103,9 @@ export const ListCardDetails = styled.div<{ complete: boolean }>`
 `;
 
 const labelVariantExpandAnimation = keyframes`
-  0%   {min-width: 40px; height: 8px;}
-  50%  {min-width: 56px; height: 8px;}
-  100% {min-width: 56px; height: 16px;}
+  0%   {min-width: 40px; width: 40px; height: 8px;}
+  50%  {min-width: 56px; width: auto; height: 8px;}
+  100% {min-width: 56px; width: auto; height: 16px;}
 `;
 
 const labelTextVariantExpandAnimation = keyframes`
@@ -115,9 +115,9 @@ const labelTextVariantExpandAnimation = keyframes`
 `;
 
 const labelVariantShrinkAnimation = keyframes`
-  0% {min-width: 56px; height: 16px;}
-  50%  {min-width: 56px; height: 8px;}
-  100%   {min-width: 40px; height: 8px;}
+  0% {min-width: 56px; width: auto; height: 16px;}
+  50%  {min-width: 56px; width: auto; height: 8px;}
+  100%   {min-width: 40px; width: 40px; height: 8px;}
 `;
 
 const labelTextVariantShrinkAnimation = keyframes`
@@ -137,6 +137,7 @@ export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
       ? css`
           height: 8px;
           min-width: 40px;
+          width: 40px;
           & ${ListCardLabelText} {
             transform: scale(0);
             visibility: hidden;
@@ -146,13 +147,13 @@ export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
       : css`
           height: 16px;
           min-width: 56px;
+          width: auto;
         `}
 
   padding: 0 8px;
   max-width: 198px;
   float: left;
   margin: 0 4px 4px 0;
-  width: auto;
   border-radius: 4px;
   color: #fff;
   display: flex;

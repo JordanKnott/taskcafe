@@ -51,9 +51,12 @@ type Props = {
   onCardLabelClick?: () => void;
   onCardMemberClick?: OnCardMemberClick;
   editable?: boolean;
+  setToggleLabels?: (toggle: false) => void;
   onEditCard?: (taskGroupID: string, taskID: string, cardName: string) => void;
   onCardTitleChange?: (name: string) => void;
   labelVariant?: CardLabelVariant;
+  toggleLabels?: boolean;
+  toggleDirection?: 'shrink' | 'expand';
 };
 
 const Card = React.forwardRef(
@@ -64,6 +67,9 @@ const Card = React.forwardRef(
       taskID,
       taskGroupID,
       complete,
+      toggleLabels = false,
+      toggleDirection = 'shrink',
+      setToggleLabels,
       onClick,
       labels,
       title,
@@ -82,10 +88,6 @@ const Card = React.forwardRef(
     $cardRef: any,
   ) => {
     const [currentCardTitle, setCardTitle] = useState(title);
-    const [toggleLabels, setToggleLabels] = useState(false);
-    const [toggleDirection, setToggleDirection] = useState<'shrink' | 'expand'>(
-      labelVariant === 'large' ? 'shrink' : 'expand',
-    );
     const $editorRef: any = useRef();
 
     useEffect(() => {
@@ -159,8 +161,6 @@ const Card = React.forwardRef(
               onClick={e => {
                 e.stopPropagation();
                 if (onCardLabelClick) {
-                  setToggleLabels(true);
-                  setToggleDirection(labelVariant === 'large' ? 'shrink' : 'expand');
                   onCardLabelClick();
                 }
               }}
@@ -168,7 +168,11 @@ const Card = React.forwardRef(
               {labels &&
                 labels.map(label => (
                   <ListCardLabel
-                    onAnimationEnd={() => setToggleLabels(false)}
+                    onAnimationEnd={() => {
+                      if (setToggleLabels) {
+                        setToggleLabels(false);
+                      }
+                    }}
                     variant={labelVariant ?? 'large'}
                     color={label.labelColor.colorHex}
                     key={label.id}

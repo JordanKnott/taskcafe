@@ -123,6 +123,11 @@ const SimpleLists: React.FC<SimpleProps> = ({
   };
 
   const [currentComposer, setCurrentComposer] = useState('');
+  const [toggleLabels, setToggleLabels] = useState(false);
+  const [toggleDirection, setToggleDirection] = useState<'shrink' | 'expand'>(
+    cardLabelVariant === 'large' ? 'shrink' : 'expand',
+  );
+
   return (
     <BoardContainer>
       <BoardWrapper>
@@ -162,12 +167,23 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                           {taskProvided => {
                                             return (
                                               <Card
+                                                toggleDirection={toggleDirection}
+                                                toggleLabels={toggleLabels}
                                                 labelVariant={cardLabelVariant}
                                                 wrapperProps={{
                                                   ...taskProvided.draggableProps,
                                                   ...taskProvided.dragHandleProps,
                                                 }}
-                                                onCardLabelClick={onCardLabelClick}
+                                                setToggleLabels={setToggleLabels}
+                                                onCardLabelClick={() => {
+                                                  setToggleLabels(true);
+                                                  setToggleDirection(
+                                                    cardLabelVariant === 'large' ? 'shrink' : 'expand',
+                                                  );
+                                                  if (onCardLabelClick) {
+                                                    onCardLabelClick();
+                                                  }
+                                                }}
                                                 ref={taskProvided.innerRef}
                                                 taskID={task.id}
                                                 complete={task.complete ?? false}
