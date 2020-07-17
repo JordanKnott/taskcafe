@@ -11,7 +11,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   overflow: hidden;
   overflow-wrap: break-word;
   resize: none;
-  height: 54px;
+  height: 90px;
   width: 100%;
 
   background: none;
