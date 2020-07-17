@@ -166,20 +166,23 @@ const Card = React.forwardRef(
               }}
             >
               {labels &&
-                labels.map(label => (
-                  <ListCardLabel
-                    onAnimationEnd={() => {
-                      if (setToggleLabels) {
-                        setToggleLabels(false);
-                      }
-                    }}
-                    variant={labelVariant ?? 'large'}
-                    color={label.labelColor.colorHex}
-                    key={label.id}
-                  >
-                    <ListCardLabelText>{label.name}</ListCardLabelText>
-                  </ListCardLabel>
-                ))}
+                labels
+                  .slice()
+                  .sort((a, b) => a.labelColor.position - b.labelColor.position)
+                  .map(label => (
+                    <ListCardLabel
+                      onAnimationEnd={() => {
+                        if (setToggleLabels) {
+                          setToggleLabels(false);
+                        }
+                      }}
+                      variant={labelVariant ?? 'large'}
+                      color={label.labelColor.colorHex}
+                      key={label.id}
+                    >
+                      <ListCardLabelText>{label.name}</ListCardLabelText>
+                    </ListCardLabel>
+                  ))}
             </ListCardLabels>
             {editable ? (
               <EditorContent>
