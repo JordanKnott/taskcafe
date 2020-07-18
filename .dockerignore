@@ -1,0 +1,5 @@
+.git
+dist
+uploads
+frontend/node_modules
+internal/frontend/frontend_generated.go

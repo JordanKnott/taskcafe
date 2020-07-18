@@ -1,19 +1,29 @@
 version: "3"
 services:
-  mailhog:
-    image: mailhog/mailhog:latest
-    restart: always
+  web:
+    build: .
     ports:
-      - 1025:1025
-      - 8025:8025
-  broker:
-    image: rabbitmq:3-management
+      - "3333:3333"
+    depends_on:
+      - postgres
+    networks:
+      - citadel-test
+  postgres:
+    image: postgres:12.3-alpine
     restart: always
-    ports:
-      - 8060:15672
-      - 5672:5672
-  result_store:
-    image: memcached:1.6-alpine
-    restart: always
-    ports:
-      - 11211:11211
+    networks:
+      - citadel-test
+    environment:
+      POSTGRES_USER: citadel
+      POSTGRES_PASSWORD: citadel_test
+      POSTGRES_DB: citadel
+    volumes:
+    - citadel-postgres:/var/lib/postgresql/data
+
+volumes:
+  citadel-postgres:
+    external: false
+
+networks:
+  citadel-test:
+    driver: bridge

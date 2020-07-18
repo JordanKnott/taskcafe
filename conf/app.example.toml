@@ -11,10 +11,10 @@ storage_system = 'local_storage'
 upload_dir_path = 'uploads'
 
 [database]
-host = '0.0.0.0'
+host = 'postgres'
 name = 'citadel'
-user = 'postgres'
-password = 'test'
+user = 'citadel'
+password = 'citadel_test'
 
 [smtp]
 username = 'admin@example.com'

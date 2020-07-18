@@ -15,7 +15,8 @@ import (
 )
 
 var Aliases = map[string]interface{}{
-	"s": Backend.Schema,
+	"s":  Backend.Schema,
+	"up": Docker.Up,
 }
 
 type Frontend mg.Namespace
@@ -77,6 +78,17 @@ func (Backend) Schema() error {
 func Install() {
 	mg.SerialDeps(Frontend.Install)
 }
+
 func Build() {
 	mg.SerialDeps(Frontend.Build, Backend.GenFrontend, Backend.Build)
+}
+
+type Docker mg.Namespace
+
+func (Docker) Up() error {
+	return sh.RunV("docker-compose", "-p", "citadel", "up", "-d")
+}
+
+func (Docker) Migrate() error {
+	return sh.RunV("docker-compose", "-p", "citadel", "-f", "docker-compose.yml", "-f", "docker-compose.migrate.yml", "run", "--rm", "migrate")
 }

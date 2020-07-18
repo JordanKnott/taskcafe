@@ -21,6 +21,27 @@ Currently you can do the following to tasks:
 
 ## Installation
 
+### With docker & docker-compose
+
+You'll need both [docker](https://www.docker.com/) & [docker-compose](https://docs.docker.com/compose/install/) installed.
+
+You will also need to install [Mage](https://github.com/magefile/mage/releases) or if you have Go installed already
+you can replace the `mage` command below with `go run cmd/mage/main.go`.
+
+Now do the following:
+
+``` bash
+mage up
+mage docker:migrate
+```
+
+This will start a postgres instance as well as a citadel instance.
+
+The second command runs the database shema migrations.
+
+If you visit [http://localhost:3333](http://localhost:3333), you will get redirected to the installation
+screen so that you can create the first system user.
+
 ### From Source
 
 You'll need [Golang](https://golang.org/dl/) installed on your machine.
@@ -48,6 +69,14 @@ This will:
 The newly created `citadel` binary can be found in the __dist__ folder.
 
 It contains everything neccessary to run except the config file. An example config file can be found in `conf/app.example.toml`
+
+The config will need to be copied to a `conf/app.toml` in the same place the binary is.
+
+Make sure to fill out the database section of the config in order to connect it to your database.
+
+Then run the database migrations with `citadel migrate`.
+
+Now you can run the web interface by running `citadel web`
 
 ## Roadmap
 
