@@ -21,11 +21,11 @@ var Aliases = map[string]interface{}{
 type Frontend mg.Namespace
 
 func (Frontend) Install() error {
-	return sh.Run("yarn", "install", "--cwd", "frontend")
+	return sh.RunV("yarn", "--cwd", "frontend", "install")
 }
 
 func (Frontend) Build() error {
-	return sh.Run("yarn", "build", "--cwd", "frontend")
+	return sh.RunV("yarn", "--cwd", "frontend", "build")
 }
 
 type Backend mg.Namespace
@@ -44,6 +44,7 @@ func (Backend) GenFrontend() error {
 }
 
 func (Backend) Build() error {
+	fmt.Println("compiling binary dist/citadel")
 	return sh.Run("go", "build", "-o", "dist/citadel", "cmd/citadel/main.go")
 }
 
@@ -73,6 +74,9 @@ func (Backend) Schema() error {
 	return sh.Run("gqlgen")
 }
 
+func Install() {
+	mg.SerialDeps(Frontend.Install)
+}
 func Build() {
-	mg.SerialDeps(Frontend.Install, Frontend.Build, Backend.GenFrontend, Backend.Build)
+	mg.SerialDeps(Frontend.Build, Backend.GenFrontend, Backend.Build)
 }

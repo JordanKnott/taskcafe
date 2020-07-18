@@ -34,6 +34,7 @@ git clone https://github.com/JordanKnott/project-citadel && cd project-citadel
 Next we need to build the binary. This project uses [Mage](https://magefile.org/) for its build tool.
 
 ``` bash
+go run cmd/mage/main.go install
 go run cmd/mage/main.go build
 ```
 
