@@ -158,6 +158,66 @@ func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) (
 	return items, nil
 }
 
+const getMemberProjectIDsForUserID = `-- name: GetMemberProjectIDsForUserID :many
+SELECT project_id FROM project_member WHERE user_id = $1
+`
+
+func (q *Queries) GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getMemberProjectIDsForUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var project_id uuid.UUID
+		if err := rows.Scan(&project_id); err != nil {
+			return nil, err
+		}
+		items = append(items, project_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getOwnedProjectsForUserID = `-- name: GetOwnedProjectsForUserID :many
+SELECT project_id, team_id, created_at, name, owner FROM project WHERE owner = $1
+`
+
+func (q *Queries) GetOwnedProjectsForUserID(ctx context.Context, owner uuid.UUID) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getOwnedProjectsForUserID, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Project
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.TeamID,
+			&i.CreatedAt,
+			&i.Name,
+			&i.Owner,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getOwnedTeamProjectsForUserID = `-- name: GetOwnedTeamProjectsForUserID :many
 SELECT project_id FROM project WHERE owner = $1 AND team_id = $2
 `

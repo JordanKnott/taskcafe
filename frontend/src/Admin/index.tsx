@@ -12,7 +12,7 @@ import {
 import Input from 'shared/components/Input';
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import updateApolloCache from 'shared/utils/cache';
@@ -45,14 +45,19 @@ const DeleteUserPopup: React.FC<DeleteUserPopupProps> = ({ onDeleteUser }) => {
     </DeleteUserWrapper>
   );
 };
+type RoleCodeOption = {
+  label: string;
+  value: string;
+};
 type CreateUserData = {
   email: string;
   username: string;
   fullName: string;
   initials: string;
   password: string;
-  roleCode: string;
+  roleCode: RoleCodeOption;
 };
+
 const CreateUserForm = styled.form`
   display: flex;
   flex-direction: column;
@@ -78,11 +83,11 @@ type AddUserPopupProps = {
 };
 
 const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
-  const { register, handleSubmit, errors, setValue } = useForm<CreateUserData>();
-  const [role, setRole] = useState<string | null>(null);
-  register({ name: 'roleCode' }, { required: true });
+  const { register, handleSubmit, errors, setValue, control } = useForm<CreateUserData>();
 
+  console.log(errors);
   const createUser = (data: CreateUserData) => {
+    console.log(data);
     onAddUser(data);
   };
   return (
@@ -106,19 +111,23 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
         variant="alternate"
         ref={register({ required: 'Email is required' })}
       />
-      <Select
-        label="Role"
-        value={role}
-        options={[
-          { label: 'Admin', value: 'admin' },
-          { label: 'Member', value: 'member' },
-        ]}
-        onChange={newRole => {
-          setRole(newRole);
-          setValue('roleCode', newRole.value);
-        }}
+      <Controller
+        control={control}
+        name="roleCode"
+        rules={{ required: 'Role is required' }}
+        render={({ onChange, onBlur, value }) => (
+          <Select
+            label="Role"
+            value={value}
+            onChange={onChange}
+            options={[
+              { label: 'Admin', value: 'admin' },
+              { label: 'Member', value: 'member' },
+            ]}
+          />
+        )}
       />
-      {errors.email && <InputError>{errors.email.message}</InputError>}
+      {errors.roleCode && errors.roleCode.value && <InputError>{errors.roleCode.value.message}</InputError>}
       <AddUserInput
         floatingLabel
         width="100%"
@@ -146,6 +155,7 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
         id="password"
         name="password"
         variant="alternate"
+        type="password"
         ref={register({ required: 'Password is required' })}
       />
       {errors.password && <InputError>{errors.password.message}</InputError>}
@@ -196,7 +206,7 @@ const AdminRoute = () => {
       <>
         <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
         <Admin
-          initialTab={1}
+          initialTab={0}
           users={data.users}
           onInviteUser={() => {}}
           onUpdateUserPassword={(user, password) => {
@@ -223,7 +233,8 @@ const AdminRoute = () => {
               <Popup tab={0} title="Add member" onClose={() => hidePopup()}>
                 <AddUserPopup
                   onAddUser={user => {
-                    createUser({ variables: { ...user } });
+                    const { roleCode, ...userData } = user;
+                    createUser({ variables: { ...userData, roleCode: roleCode.value } });
                     hidePopup();
                   }}
                 />

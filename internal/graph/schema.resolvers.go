@@ -113,16 +113,13 @@ func (r *mutationResolver) CreateProjectMember(ctx context.Context, input Create
 	return &CreateProjectMemberPayload{Ok: true, Member: &Member{
 		ID:          input.UserID,
 		FullName:    user.FullName,
+		Username:    user.Username,
 		ProfileIcon: profileIcon,
 		Role:        &db.Role{Code: role.Code, Name: role.Name},
 	}}, nil
 }
 
 func (r *mutationResolver) DeleteProjectMember(ctx context.Context, input DeleteProjectMember) (*DeleteProjectMemberPayload, error) {
-	err := r.Repository.DeleteProjectMember(ctx, db.DeleteProjectMemberParams{UserID: input.UserID, ProjectID: input.ProjectID})
-	if err != nil {
-		return &DeleteProjectMemberPayload{Ok: false}, err
-	}
 	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
 	if err != nil {
 		return &DeleteProjectMemberPayload{Ok: false}, err
@@ -133,6 +130,10 @@ func (r *mutationResolver) DeleteProjectMember(ctx context.Context, input Delete
 	}
 	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 	role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: input.UserID, ProjectID: input.ProjectID})
+	if err != nil {
+		return &DeleteProjectMemberPayload{Ok: false}, err
+	}
+	err = r.Repository.DeleteProjectMember(ctx, db.DeleteProjectMemberParams{UserID: input.UserID, ProjectID: input.ProjectID})
 	if err != nil {
 		return &DeleteProjectMemberPayload{Ok: false}, err
 	}
@@ -1156,20 +1157,15 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 		log.WithError(err).Error("get user account by ID")
 		return members, err
 	}
-	ownedProjects, err := r.Repository.GetOwnedTeamProjectsForUserID(ctx, db.GetOwnedTeamProjectsForUserIDParams{TeamID: obj.TeamID, Owner: user.UserID})
-	log.WithFields(log.Fields{"projects": ownedProjects}).Info("retrieved owned project list")
-	if err == sql.ErrNoRows {
-		ownedProjects = []uuid.UUID{}
-	} else if err != nil {
-		log.WithError(err).Error("get owned team projects for user id")
+	ownedList, err := GetOwnedList(ctx, r.Repository, user)
+	if err != nil {
 		return members, err
 	}
-	ownedTeams := []uuid.UUID{}
-	var ownerList *OwnersList
-	if len(ownedTeams) != 0 || len(ownedProjects) != 0 {
-		log.Info("owned list is not empty")
-		ownerList = &OwnersList{Projects: ownedProjects, Teams: ownedTeams}
+	memberList, err := GetMemberList(ctx, r.Repository, user)
+	if err != nil {
+		return members, err
 	}
+
 	var url *string
 	if user.ProfileAvatarUrl.Valid {
 		url = &user.ProfileAvatarUrl.String
@@ -1177,7 +1173,7 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 	members = append(members, Member{
 		ID: obj.Owner, FullName: user.FullName, ProfileIcon: profileIcon, Username: user.Username,
-		Owned: ownerList, Role: &db.Role{Code: "owner", Name: "Owner"},
+		Owned: ownedList, Member: memberList, Role: &db.Role{Code: "owner", Name: "Owner"},
 	})
 	teamMembers, err := r.Repository.GetTeamMembersForTeamID(ctx, obj.TeamID)
 	if err != nil {
@@ -1200,24 +1196,19 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 			log.WithError(err).Error("get role for projet member by user ID")
 			return members, err
 		}
-		ownedProjects, err := r.Repository.GetOwnedTeamProjectsForUserID(ctx, db.GetOwnedTeamProjectsForUserIDParams{TeamID: obj.TeamID, Owner: user.UserID})
-		log.WithFields(log.Fields{"projects": ownedProjects}).Info("retrieved owned project list")
-		if err == sql.ErrNoRows {
-			ownedProjects = []uuid.UUID{}
-		} else if err != nil {
-			log.WithError(err).Error("get owned team projects for user id")
+
+		ownedList, err := GetOwnedList(ctx, r.Repository, user)
+		if err != nil {
 			return members, err
 		}
-		ownedTeams := []uuid.UUID{}
-		var ownerList *OwnersList
-		if len(ownedTeams) != 0 || len(ownedProjects) != 0 {
-			log.Info("owned list is not empty")
-			ownerList = &OwnersList{Projects: ownedProjects, Teams: ownedTeams}
+		memberList, err := GetMemberList(ctx, r.Repository, user)
+		if err != nil {
+			return members, err
 		}
 
 		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 		members = append(members, Member{ID: user.UserID, FullName: user.FullName, ProfileIcon: profileIcon,
-			Username: user.Username, Owned: ownerList, Role: &db.Role{Code: role.Code, Name: role.Name},
+			Username: user.Username, Owned: ownedList, Member: memberList, Role: &db.Role{Code: role.Code, Name: role.Name},
 		})
 	}
 	return members, nil
@@ -1244,6 +1235,47 @@ func (r *userAccountResolver) ProfileIcon(ctx context.Context, obj *db.UserAccou
 	}
 	profileIcon := &ProfileIcon{url, &obj.Initials, &obj.ProfileBgColor}
 	return profileIcon, nil
+}
+
+func (r *userAccountResolver) Owned(ctx context.Context, obj *db.UserAccount) (*OwnedList, error) {
+	ownedTeams, err := r.Repository.GetOwnedTeamsForUserID(ctx, obj.UserID)
+	if err != sql.ErrNoRows && err != nil {
+		return &OwnedList{}, err
+	}
+	ownedProjects, err := r.Repository.GetOwnedProjectsForUserID(ctx, obj.UserID)
+	if err != sql.ErrNoRows && err != nil {
+		return &OwnedList{}, err
+	}
+	return &OwnedList{Teams: ownedTeams, Projects: ownedProjects}, nil
+}
+
+func (r *userAccountResolver) Member(ctx context.Context, obj *db.UserAccount) (*MemberList, error) {
+	projectMemberIDs, err := r.Repository.GetMemberProjectIDsForUserID(ctx, obj.UserID)
+	if err != sql.ErrNoRows && err != nil {
+		return &MemberList{}, err
+	}
+	var projects []db.Project
+	for _, projectID := range projectMemberIDs {
+		project, err := r.Repository.GetProjectByID(ctx, projectID)
+		if err != nil {
+			return &MemberList{}, err
+		}
+		projects = append(projects, project)
+	}
+	teamMemberIDs, err := r.Repository.GetMemberTeamIDsForUserID(ctx, obj.UserID)
+	if err != sql.ErrNoRows && err != nil {
+		return &MemberList{}, err
+	}
+	var teams []db.Team
+	for _, teamID := range teamMemberIDs {
+		team, err := r.Repository.GetTeamByID(ctx, teamID)
+		if err != nil {
+			return &MemberList{}, err
+		}
+		teams = append(teams, team)
+	}
+
+	return &MemberList{Teams: teams, Projects: projects}, err
 }
 
 // LabelColor returns LabelColorResolver implementation.
@@ -1274,7 +1306,9 @@ func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklistResolver{r} }
 
 // TaskChecklistItem returns TaskChecklistItemResolver implementation.
-func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver { return &taskChecklistItemResolver{r} }
+func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver {
+	return &taskChecklistItemResolver{r}
+}
 
 // TaskGroup returns TaskGroupResolver implementation.
 func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }

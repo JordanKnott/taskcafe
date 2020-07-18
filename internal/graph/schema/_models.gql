@@ -46,7 +46,8 @@ type Member {
   fullName: String!
   username: String!
   profileIcon: ProfileIcon!
-  owned: OwnersList
+  owned: OwnedList!
+  member: MemberList!
 }
 
 type RefreshToken {
@@ -61,6 +62,16 @@ type Role {
   name: String!
 }
 
+type OwnedList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
+type MemberList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
 type UserAccount {
   id: ID!
   email: String!
@@ -70,6 +81,8 @@ type UserAccount {
   role: Role!
   username: String!
   profileIcon: ProfileIcon!
+  owned: OwnedList!
+  member: MemberList!
 }
 
 type Team {

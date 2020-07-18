@@ -130,10 +130,16 @@ type ComplexityRoot struct {
 	Member struct {
 		FullName    func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Member      func(childComplexity int) int
 		Owned       func(childComplexity int) int
 		ProfileIcon func(childComplexity int) int
 		Role        func(childComplexity int) int
 		Username    func(childComplexity int) int
+	}
+
+	MemberList struct {
+		Projects func(childComplexity int) int
+		Teams    func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -192,6 +198,11 @@ type ComplexityRoot struct {
 	Organization struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
+	}
+
+	OwnedList struct {
+		Projects func(childComplexity int) int
+		Teams    func(childComplexity int) int
 	}
 
 	OwnersList struct {
@@ -363,6 +374,8 @@ type ComplexityRoot struct {
 		FullName    func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Initials    func(childComplexity int) int
+		Member      func(childComplexity int) int
+		Owned       func(childComplexity int) int
 		ProfileIcon func(childComplexity int) int
 		Role        func(childComplexity int) int
 		Username    func(childComplexity int) int
@@ -501,6 +514,8 @@ type UserAccountResolver interface {
 	Role(ctx context.Context, obj *db.UserAccount) (*db.Role, error)
 
 	ProfileIcon(ctx context.Context, obj *db.UserAccount) (*ProfileIcon, error)
+	Owned(ctx context.Context, obj *db.UserAccount) (*OwnedList, error)
+	Member(ctx context.Context, obj *db.UserAccount) (*MemberList, error)
 }
 
 type executableSchema struct {
@@ -749,6 +764,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Member.ID(childComplexity), true
 
+	case "Member.member":
+		if e.complexity.Member.Member == nil {
+			break
+		}
+
+		return e.complexity.Member.Member(childComplexity), true
+
 	case "Member.owned":
 		if e.complexity.Member.Owned == nil {
 			break
@@ -776,6 +798,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Member.Username(childComplexity), true
+
+	case "MemberList.projects":
+		if e.complexity.MemberList.Projects == nil {
+			break
+		}
+
+		return e.complexity.MemberList.Projects(childComplexity), true
+
+	case "MemberList.teams":
+		if e.complexity.MemberList.Teams == nil {
+			break
+		}
+
+		return e.complexity.MemberList.Teams(childComplexity), true
 
 	case "Mutation.addTaskLabel":
 		if e.complexity.Mutation.AddTaskLabel == nil {
@@ -1385,6 +1421,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organization.Name(childComplexity), true
+
+	case "OwnedList.projects":
+		if e.complexity.OwnedList.Projects == nil {
+			break
+		}
+
+		return e.complexity.OwnedList.Projects(childComplexity), true
+
+	case "OwnedList.teams":
+		if e.complexity.OwnedList.Teams == nil {
+			break
+		}
+
+		return e.complexity.OwnedList.Teams(childComplexity), true
 
 	case "OwnersList.projects":
 		if e.complexity.OwnersList.Projects == nil {
@@ -2083,6 +2133,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserAccount.Initials(childComplexity), true
 
+	case "UserAccount.member":
+		if e.complexity.UserAccount.Member == nil {
+			break
+		}
+
+		return e.complexity.UserAccount.Member(childComplexity), true
+
+	case "UserAccount.owned":
+		if e.complexity.UserAccount.Owned == nil {
+			break
+		}
+
+		return e.complexity.UserAccount.Owned(childComplexity), true
+
 	case "UserAccount.profileIcon":
 		if e.complexity.UserAccount.ProfileIcon == nil {
 			break
@@ -2216,7 +2280,8 @@ type Member {
   fullName: String!
   username: String!
   profileIcon: ProfileIcon!
-  owned: OwnersList
+  owned: OwnedList!
+  member: MemberList!
 }
 
 type RefreshToken {
@@ -2231,6 +2296,16 @@ type Role {
   name: String!
 }
 
+type OwnedList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
+type MemberList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
 type UserAccount {
   id: ID!
   email: String!
@@ -2240,6 +2315,8 @@ type UserAccount {
   role: Role!
   username: String!
   profileIcon: ProfileIcon!
+  owned: OwnedList!
+  member: MemberList!
 }
 
 type Team {
@@ -4851,11 +4928,116 @@ func (ec *executionContext) _Member_owned(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*OwnersList)
+	res := resTmp.(*OwnedList)
 	fc.Result = res
-	return ec.marshalOOwnersList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnersList(ctx, field.Selections, res)
+	return ec.marshalNOwnedList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnedList(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_member(ctx context.Context, field graphql.CollectedField, obj *Member) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Member",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Member, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*MemberList)
+	fc.Result = res
+	return ec.marshalNMemberList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMemberList(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MemberList_teams(ctx context.Context, field graphql.CollectedField, obj *MemberList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MemberList",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Teams, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐTeamᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MemberList_projects(ctx context.Context, field graphql.CollectedField, obj *MemberList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MemberList",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Projects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐProjectᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6967,6 +7149,74 @@ func (ec *executionContext) _Organization_name(ctx context.Context, field graphq
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OwnedList_teams(ctx context.Context, field graphql.CollectedField, obj *OwnedList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "OwnedList",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Teams, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐTeamᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OwnedList_projects(ctx context.Context, field graphql.CollectedField, obj *OwnedList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "OwnedList",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Projects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚕgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋdbᚐProjectᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OwnersList_projects(ctx context.Context, field graphql.CollectedField, obj *OwnersList) (ret graphql.Marshaler) {
@@ -10418,6 +10668,74 @@ func (ec *executionContext) _UserAccount_profileIcon(ctx context.Context, field 
 	return ec.marshalNProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐProfileIcon(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserAccount_owned(ctx context.Context, field graphql.CollectedField, obj *db.UserAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserAccount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserAccount().Owned(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*OwnedList)
+	fc.Result = res
+	return ec.marshalNOwnedList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnedList(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserAccount_member(ctx context.Context, field graphql.CollectedField, obj *db.UserAccount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserAccount",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserAccount().Member(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*MemberList)
+	fc.Result = res
+	return ec.marshalNMemberList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMemberList(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13265,6 +13583,46 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "owned":
 			out.Values[i] = ec._Member_owned(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "member":
+			out.Values[i] = ec._Member_member(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var memberListImplementors = []string{"MemberList"}
+
+func (ec *executionContext) _MemberList(ctx context.Context, sel ast.SelectionSet, obj *MemberList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, memberListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MemberList")
+		case "teams":
+			out.Values[i] = ec._MemberList_teams(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projects":
+			out.Values[i] = ec._MemberList_projects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13581,6 +13939,38 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var ownedListImplementors = []string{"OwnedList"}
+
+func (ec *executionContext) _OwnedList(ctx context.Context, sel ast.SelectionSet, obj *OwnedList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, ownedListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OwnedList")
+		case "teams":
+			out.Values[i] = ec._OwnedList_teams(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projects":
+			out.Values[i] = ec._OwnedList_projects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -15001,6 +15391,34 @@ func (ec *executionContext) _UserAccount(ctx context.Context, sel ast.SelectionS
 				}
 				return res
 			})
+		case "owned":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserAccount_owned(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "member":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserAccount_member(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15645,6 +16063,20 @@ func (ec *executionContext) marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋproje
 	return ec._Member(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNMemberList2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMemberList(ctx context.Context, sel ast.SelectionSet, v MemberList) graphql.Marshaler {
+	return ec._MemberList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMemberList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐMemberList(ctx context.Context, sel ast.SelectionSet, v *MemberList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._MemberList(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNNewProject2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐNewProject(ctx context.Context, v interface{}) (NewProject, error) {
 	return ec.unmarshalInputNewProject(ctx, v)
 }
@@ -15720,6 +16152,20 @@ func (ec *executionContext) marshalNOrganization2ᚕgithubᚗcomᚋjordanknott�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNOwnedList2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnedList(ctx context.Context, sel ast.SelectionSet, v OwnedList) graphql.Marshaler {
+	return ec._OwnedList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOwnedList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnedList(ctx context.Context, sel ast.SelectionSet, v *OwnedList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OwnedList(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNProfileIcon2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐProfileIcon(ctx context.Context, sel ast.SelectionSet, v ProfileIcon) graphql.Marshaler {
@@ -16827,17 +17273,6 @@ func (ec *executionContext) marshalOChecklistBadge2ᚖgithubᚗcomᚋjordanknott
 		return graphql.Null
 	}
 	return ec._ChecklistBadge(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOOwnersList2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnersList(ctx context.Context, sel ast.SelectionSet, v OwnersList) graphql.Marshaler {
-	return ec._OwnersList(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOOwnersList2ᚖgithubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐOwnersList(ctx context.Context, sel ast.SelectionSet, v *OwnersList) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._OwnersList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOProjectsFilter2githubᚗcomᚋjordanknottᚋprojectᚑcitadelᚋapiᚋinternalᚋgraphᚐProjectsFilter(ctx context.Context, v interface{}) (ProjectsFilter, error) {

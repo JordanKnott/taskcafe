@@ -67,7 +67,8 @@ export type Member = {
   fullName: Scalars['String'];
   username: Scalars['String'];
   profileIcon: ProfileIcon;
-  owned?: Maybe<OwnersList>;
+  owned: OwnedList;
+  member: MemberList;
 };
 
 export type RefreshToken = {
@@ -84,6 +85,18 @@ export type Role = {
   name: Scalars['String'];
 };
 
+export type OwnedList = {
+   __typename?: 'OwnedList';
+  teams: Array<Team>;
+  projects: Array<Project>;
+};
+
+export type MemberList = {
+   __typename?: 'MemberList';
+  teams: Array<Team>;
+  projects: Array<Project>;
+};
+
 export type UserAccount = {
    __typename?: 'UserAccount';
   id: Scalars['ID'];
@@ -94,6 +107,8 @@ export type UserAccount = {
   role: Role;
   username: Scalars['String'];
   profileIcon: ProfileIcon;
+  owned: OwnedList;
+  member: MemberList;
 };
 
 export type Team = {
@@ -1096,6 +1111,24 @@ export type FindProjectQuery = (
     ), profileIcon: (
       { __typename?: 'ProfileIcon' }
       & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
+    ), owned: (
+      { __typename?: 'OwnedList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
+    ), member: (
+      { __typename?: 'MemberList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
     ) }
   )> }
 );
@@ -1611,12 +1644,27 @@ export type GetTeamQuery = (
       & { role: (
         { __typename?: 'Role' }
         & Pick<Role, 'code' | 'name'>
-      ), owned?: Maybe<(
-        { __typename?: 'OwnersList' }
-        & Pick<OwnersList, 'projects' | 'teams'>
-      )>, profileIcon: (
+      ), profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
+      ), owned: (
+        { __typename?: 'OwnedList' }
+        & { teams: Array<(
+          { __typename?: 'Team' }
+          & Pick<Team, 'id' | 'name'>
+        )>, projects: Array<(
+          { __typename?: 'Project' }
+          & Pick<Project, 'id' | 'name'>
+        )> }
+      ), member: (
+        { __typename?: 'MemberList' }
+        & { teams: Array<(
+          { __typename?: 'Team' }
+          & Pick<Team, 'id' | 'name'>
+        )>, projects: Array<(
+          { __typename?: 'Project' }
+          & Pick<Project, 'id' | 'name'>
+        )> }
       ) }
     )> }
   ), projects: Array<(
@@ -1635,6 +1683,24 @@ export type GetTeamQuery = (
     ), profileIcon: (
       { __typename?: 'ProfileIcon' }
       & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
+    ), owned: (
+      { __typename?: 'OwnedList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
+    ), member: (
+      { __typename?: 'MemberList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
     ) }
   )> }
 );
@@ -1876,6 +1942,24 @@ export type UsersQuery = (
     ), profileIcon: (
       { __typename?: 'ProfileIcon' }
       & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
+    ), owned: (
+      { __typename?: 'OwnedList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
+    ), member: (
+      { __typename?: 'MemberList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
     ) }
   )> }
 );
@@ -2277,6 +2361,26 @@ export const FindProjectDocument = gql`
       url
       initials
       bgColor
+    }
+    owned {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
+    member {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
     }
   }
 }
@@ -3288,14 +3392,30 @@ export const GetTeamDocument = gql`
         code
         name
       }
-      owned {
-        projects
-        teams
-      }
       profileIcon {
         url
         initials
         bgColor
+      }
+      owned {
+        teams {
+          id
+          name
+        }
+        projects {
+          id
+          name
+        }
+      }
+      member {
+        teams {
+          id
+          name
+        }
+        projects {
+          id
+          name
+        }
       }
     }
   }
@@ -3320,6 +3440,26 @@ export const GetTeamDocument = gql`
       url
       initials
       bgColor
+    }
+    owned {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
+    member {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
     }
   }
 }
@@ -3833,6 +3973,26 @@ export const UsersDocument = gql`
       url
       initials
       bgColor
+    }
+    owned {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
+    member {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
     }
   }
 }

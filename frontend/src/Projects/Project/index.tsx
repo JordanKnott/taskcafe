@@ -178,6 +178,8 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
+            console.log(cache);
+            console.log(response);
             draftCache.findProject.members = cache.findProject.members.filter(
               m => m.id !== response.data.deleteProjectMember.member.id,
             );

@@ -176,7 +176,13 @@ type Member struct {
 	FullName    string       `json:"fullName"`
 	Username    string       `json:"username"`
 	ProfileIcon *ProfileIcon `json:"profileIcon"`
-	Owned       *OwnersList  `json:"owned"`
+	Owned       *OwnedList   `json:"owned"`
+	Member      *MemberList  `json:"member"`
+}
+
+type MemberList struct {
+	Teams    []db.Team    `json:"teams"`
+	Projects []db.Project `json:"projects"`
 }
 
 type NewProject struct {
@@ -230,6 +236,11 @@ type NewUserAccount struct {
 	Initials string `json:"initials"`
 	Password string `json:"password"`
 	RoleCode string `json:"roleCode"`
+}
+
+type OwnedList struct {
+	Teams    []db.Team    `json:"teams"`
+	Projects []db.Project `json:"projects"`
 }
 
 type OwnersList struct {

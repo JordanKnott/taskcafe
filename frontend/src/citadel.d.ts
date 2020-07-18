@@ -22,13 +22,19 @@ type Role = {
   name: string;
 };
 
-type User = {
+type UserProject = {
   id: string;
-  fullName: string;
-  username: string;
-  email: string;
-  role: Role;
-  profileIcon: ProfileIcon;
+  name: string;
+};
+
+type UserTeam = {
+  id: string;
+  name: string;
+};
+
+type RelatedList = {
+  teams: Array<UserTeam>;
+  projects: Array<UserProject>;
 };
 
 type OwnedList = {
@@ -42,7 +48,12 @@ type TaskUser = {
   profileIcon: ProfileIcon;
   username?: string;
   role?: Role;
-  owned?: OwnedList | null;
+};
+
+type User = TaskUser & {
+  email?: string;
+  member: RelatedList;
+  owned: RelatedList;
 };
 
 type RefreshTokenResponse = {

@@ -159,8 +159,8 @@ export const RemoveMemberButton = styled(Button)`
 `;
 type TeamRoleManagerPopupProps = {
   currentUserID: string;
-  subject: TaskUser;
-  members: Array<TaskUser>;
+  subject: User;
+  members: Array<User>;
   warning?: string | null;
   canChangeRole: boolean;
   onChangeRole: (roleCode: RoleCode) => void;

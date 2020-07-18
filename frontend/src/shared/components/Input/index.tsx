@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components/macro';
 
 const InputWrapper = styled.div<{ width: string }>`
@@ -85,6 +85,8 @@ type InputProps = {
   icon?: JSX.Element;
   type?: string;
   autocomplete?: boolean;
+  autoFocus?: boolean;
+  autoSelect?: boolean;
   id?: string;
   name?: string;
   className?: string;
@@ -92,12 +94,32 @@ type InputProps = {
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
 };
 
+function useCombinedRefs(...refs: any) {
+  const targetRef = React.useRef();
+
+  React.useEffect(() => {
+    refs.forEach((ref: any) => {
+      if (!ref) return;
+
+      if (typeof ref === 'function') {
+        ref(targetRef.current);
+      } else {
+        ref.current = targetRef.current;
+      }
+    });
+  }, [refs]);
+
+  return targetRef;
+}
+
 const Input = React.forwardRef(
   (
     {
       width = 'auto',
       variant = 'normal',
       type = 'text',
+      autoFocus = false,
+      autoSelect = false,
       autocomplete,
       label,
       placeholder,
@@ -111,9 +133,25 @@ const Input = React.forwardRef(
     }: InputProps,
     $ref: any,
   ) => {
-    const [hasValue, setHasValue] = useState(false);
+    const [hasValue, setHasValue] = useState(defaultValue !== '');
     const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
     const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
+
+    // Merge forwarded ref and internal ref in order to be able to access the ref in the useEffect
+    // The forwarded ref is not accessible by itself, which is what the innerRef & combined ref is for
+    // TODO(jordanknott): This is super ugly, find a better approach?
+    const $innerRef = React.useRef<HTMLInputElement>(null);
+    const combinedRef: any = useCombinedRefs($ref, $innerRef);
+    useEffect(() => {
+      if (combinedRef && combinedRef.current) {
+        if (autoFocus) {
+          combinedRef.current.focus();
+        }
+        if (autoSelect) {
+          combinedRef.current.select();
+        }
+      }
+    }, []);
     return (
       <InputWrapper className={className} width={width}>
         <InputInput
@@ -121,7 +159,7 @@ const Input = React.forwardRef(
             setHasValue((e.currentTarget.value !== '' || floatingLabel) ?? false);
           }}
           hasValue={hasValue}
-          ref={$ref}
+          ref={combinedRef}
           id={id}
           type={type}
           name={name}

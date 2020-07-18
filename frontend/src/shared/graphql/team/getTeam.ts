@@ -14,14 +14,30 @@ export const GET_TEAM_QUERY = gql`
           code
           name
         }
-        owned {
-          projects
-          teams
-        }
         profileIcon {
           url
           initials
           bgColor
+        }
+        owned {
+          teams {
+            id
+            name
+          }
+          projects {
+            id
+            name
+          }
+        }
+        member {
+          teams {
+            id
+            name
+          }
+          projects {
+            id
+            name
+          }
         }
       }
     }
@@ -46,6 +62,26 @@ export const GET_TEAM_QUERY = gql`
         url
         initials
         bgColor
+      }
+      owned {
+        teams {
+          id
+          name
+        }
+        projects {
+          id
+          name
+        }
+      }
+      member {
+        teams {
+          id
+          name
+        }
+        projects {
+          id
+          name
+        }
       }
     }
   }

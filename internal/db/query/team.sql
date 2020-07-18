@@ -15,3 +15,9 @@ SELECT * FROM team WHERE organization_id = $1;
 
 -- name: SetTeamOwner :one
 UPDATE team SET owner = $2 WHERE team_id = $1 RETURNING *;
+
+-- name: GetOwnedTeamsForUserID :many
+SELECT * FROM team WHERE owner = $1;
+
+-- name: GetMemberTeamIDsForUserID :many
+SELECT team_id FROM team_member WHERE user_id = $1;

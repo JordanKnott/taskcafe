@@ -509,7 +509,7 @@ const ListTable: React.FC<ListTableProps> = ({ users, onDeleteUser }) => {
           rowSelection="multiple"
           defaultColDef={data.defaultColDef}
           columnDefs={data.columnDefs}
-          rowData={users.map(u => ({ ...u, roleName: u.role.name }))}
+          rowData={users.map(u => ({ ...u, roleName: 'member' }))}
           frameworkComponents={data.frameworkComponents}
           onFirstDataRendered={params => {
             params.api.sizeColumnsToFit();
@@ -717,46 +717,49 @@ const Admin: React.FC<AdminProps> = ({
               </ListActions>
             </MemberListHeader>
             <MemberList>
-              {users.map(member => (
-                <MemberListItem>
-                  <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
-                  <MemberListItemDetails>
-                    <MemberItemName>{member.fullName}</MemberItemName>
-                    <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>
-                  </MemberListItemDetails>
-                  <MemberItemOptions>
-                    <MemberItemOption variant="flat">On 6 projects</MemberItemOption>
-                    <MemberItemOption
-                      variant="outline"
-                      onClick={$target => {
-                        showPopup(
-                          $target,
-                          <TeamRoleManagerPopup
-                            user={member}
-                            warning={member.role && member.role.code === 'owner' ? warning : null}
-                            updateUserPassword={(user, password) => {
-                              onUpdateUserPassword(user, password);
-                            }}
-                            canChangeRole={member.role && member.role.code !== 'owner'}
-                            onChangeRole={roleCode => {
-                              updateUserRole({ variables: { userID: member.id, roleCode } });
-                            }}
-                            onRemoveFromTeam={
-                              member.role && member.role.code === 'owner'
-                                ? undefined
-                                : () => {
-                                    hidePopup();
-                                  }
-                            }
-                          />,
-                        );
-                      }}
-                    >
-                      Manage
-                    </MemberItemOption>
-                  </MemberItemOptions>
-                </MemberListItem>
-              ))}
+              {users.map(member => {
+                const projectTotal = member.owned.projects.length + member.member.projects.length;
+                return (
+                  <MemberListItem>
+                    <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
+                    <MemberListItemDetails>
+                      <MemberItemName>{member.fullName}</MemberItemName>
+                      <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>
+                    </MemberListItemDetails>
+                    <MemberItemOptions>
+                      <MemberItemOption variant="flat">{`On ${projectTotal} projects`}</MemberItemOption>
+                      <MemberItemOption
+                        variant="outline"
+                        onClick={$target => {
+                          showPopup(
+                            $target,
+                            <TeamRoleManagerPopup
+                              user={member}
+                              warning={member.role && member.role.code === 'owner' ? warning : null}
+                              updateUserPassword={(user, password) => {
+                                onUpdateUserPassword(user, password);
+                              }}
+                              canChangeRole={(member.role && member.role.code !== 'owner') ?? false}
+                              onChangeRole={roleCode => {
+                                updateUserRole({ variables: { userID: member.id, roleCode } });
+                              }}
+                              onRemoveFromTeam={
+                                member.role && member.role.code === 'owner'
+                                  ? undefined
+                                  : () => {
+                                      hidePopup();
+                                    }
+                              }
+                            />,
+                          );
+                        }}
+                      >
+                        Manage
+                      </MemberItemOption>
+                    </MemberItemOptions>
+                  </MemberListItem>
+                );
+              })}
             </MemberList>
           </MemberListWrapper>
         </TabContent>

@@ -87,11 +87,12 @@ const CreateChecklistPopup: React.FC<CreateChecklistPopupProps> = ({ onCreateChe
   const createUser = (data: CreateChecklistData) => {
     onCreateChecklist(data);
   };
-  console.log(errors);
   return (
     <CreateChecklistForm onSubmit={handleSubmit(createUser)}>
       <CreateChecklistInput
         floatingLabel
+        autoFocus
+        autoSelect
         defaultValue="Checklist"
         width="100%"
         label="Name"
@@ -437,7 +438,7 @@ const Details: React.FC<DetailsProps> = ({
                 showPopup(
                   $target,
                   <Popup
-                    title={'Add checklist'}
+                    title="Add checklist"
                     tab={0}
                     onClose={() => {
                       hidePopup();

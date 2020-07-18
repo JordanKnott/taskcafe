@@ -59,6 +59,26 @@ query findProject($projectId: String!) {
       initials
       bgColor
     }
+    owned {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
+    member {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
   }
   ${TASK_FRAGMENT}
 }

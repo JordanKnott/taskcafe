@@ -39,3 +39,9 @@ UPDATE project_member SET role_code = $3 WHERE project_id = $1 AND user_id = $2
 
 -- name: GetOwnedTeamProjectsForUserID :many
 SELECT project_id FROM project WHERE owner = $1 AND team_id = $2;
+
+-- name: GetOwnedProjectsForUserID :many
+SELECT * FROM project WHERE owner = $1;
+
+-- name: GetMemberProjectIDsForUserID :many
+SELECT project_id FROM project_member WHERE user_id = $1;
