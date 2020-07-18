@@ -8,7 +8,7 @@ windows:
       root: ./
       panes:
         - api:
-          - go run cmd/citadel/main.go
+          - go run cmd/citadel/main.go web
         - yarn:
           - cd frontend
           - yarn start
