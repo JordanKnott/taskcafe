@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
 import { mixin } from 'shared/utils/styles';
+import Member from '../Member';
 
 export const MemberManagerWrapper = styled.div``;
 
@@ -48,7 +49,7 @@ export const BoardMembersList = styled.ul`
 
 export const BoardMembersListItem = styled.li``;
 
-export const BoardMemberListItemContent = styled.div`
+export const BoardMemberListItemContent = styled(Member)`
   background-color: rgba(9, 30, 66, 0.04);
   padding-right: 28px;
   border-radius: 3px;
@@ -64,6 +65,11 @@ export const BoardMemberListItemContent = styled.div`
   padding: 4px;
   margin-bottom: 2px;
   color: #c2c6dc;
+
+  &:hover {
+    background-color: rgba(${props => props.theme.colors.primary});
+    color: rgba(${props => props.theme.colors.text.secondary});
+  }
 `;
 
 export const ProfileIcon = styled.div`

@@ -335,7 +335,6 @@ const Details: React.FC<DetailsProps> = ({
               onChecklistItemDrop={(prevChecklistID, checklistID, checklistItem) => {
                 updateTaskChecklistItemLocation({
                   variables: { checklistID, checklistItemID: checklistItem.id, position: checklistItem.position },
-
                   optimisticResponse: {
                     __typename: 'Mutation',
                     updateTaskChecklistItemLocation: {

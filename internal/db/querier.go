@@ -95,6 +95,7 @@ type Querier interface {
 	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)
 	UpdateProjectMemberRole(ctx context.Context, arg UpdateProjectMemberRoleParams) (ProjectMember, error)
 	UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNameByIDParams) (Project, error)
+	UpdateProjectOwnerByOwnerID(ctx context.Context, arg UpdateProjectOwnerByOwnerIDParams) ([]uuid.UUID, error)
 	UpdateTaskChecklistItemLocation(ctx context.Context, arg UpdateTaskChecklistItemLocationParams) (TaskChecklistItem, error)
 	UpdateTaskChecklistItemName(ctx context.Context, arg UpdateTaskChecklistItemNameParams) (TaskChecklistItem, error)
 	UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error)
@@ -105,6 +106,7 @@ type Querier interface {
 	UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocationParams) (Task, error)
 	UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error)
 	UpdateTeamMemberRole(ctx context.Context, arg UpdateTeamMemberRoleParams) (TeamMember, error)
+	UpdateTeamOwnerByOwnerID(ctx context.Context, arg UpdateTeamOwnerByOwnerIDParams) ([]uuid.UUID, error)
 	UpdateUserAccountProfileAvatarURL(ctx context.Context, arg UpdateUserAccountProfileAvatarURLParams) (UserAccount, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UserAccount, error)
 }

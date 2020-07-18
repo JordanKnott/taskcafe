@@ -33,6 +33,26 @@ export const CREATE_USER_MUTATION = gql`
         code
         name
       }
+      owned {
+        teams {
+          id
+          name
+        }
+        projects {
+          id
+          name
+        }
+      }
+      member {
+        teams {
+          id
+          name
+        }
+        projects {
+          id
+          name
+        }
+      }
     }
   }
 `;

@@ -74,7 +74,13 @@ export const EditorButton = styled.div`
   margin: 0 0 4px 8px;
   padding: 6px 12px 6px 8px;
   text-decoration: none;
-  transition: transform 85ms ease-in;
+  transition: all 85ms ease-in;
+
+  &:hover {
+    transform: translateX(5px);
+    background: rgba(0, 0, 0, 1);
+    color: #fff;
+  }
 `;
 
 export const CloseButton = styled.div`

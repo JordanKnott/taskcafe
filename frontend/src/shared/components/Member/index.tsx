@@ -1,6 +1,14 @@
 import React, { useRef } from 'react';
 import styled from 'styled-components';
+import TaskAssignee from 'shared/components/TaskAssignee';
+import { Checkmark } from 'shared/icons';
 
+const CardCheckmark = styled(Checkmark)`
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 11px;
+`;
 const CardMember = styled.div<{ bgColor: string }>`
   height: 28px;
   width: 28px;
@@ -34,6 +42,7 @@ type MemberProps = {
   member: TaskUser;
   showName?: boolean;
   className?: string;
+  showCheckmark?: boolean;
 };
 
 const CardMemberWrapper = styled.div<{ ref: any }>`
@@ -46,7 +55,14 @@ const CardMemberName = styled.span`
   padding-left: 8px;
 `;
 
-const Member: React.FC<MemberProps> = ({ onCardMemberClick, taskID, member, showName, className }) => {
+const Member: React.FC<MemberProps> = ({
+  onCardMemberClick,
+  taskID,
+  member,
+  showName,
+  showCheckmark = false,
+  className,
+}) => {
   const $targetRef = useRef<HTMLDivElement>();
   return (
     <CardMemberWrapper
@@ -60,10 +76,9 @@ const Member: React.FC<MemberProps> = ({ onCardMemberClick, taskID, member, show
         }
       }}
     >
-      <CardMember bgColor={member.profileIcon.bgColor ?? '#7367F0'}>
-        <CardMemberInitials>{member.profileIcon.initials}</CardMemberInitials>
-      </CardMember>
+      <TaskAssignee onMemberProfile={() => {}} size={28} member={member} />
       {showName && <CardMemberName>{member.fullName}</CardMemberName>}
+      {showCheckmark && <CardCheckmark width={12} height={12} />}
     </CardMemberWrapper>
   );
 };

@@ -923,6 +923,7 @@ export type LogoutUser = {
 
 export type DeleteUserAccount = {
   userID: Scalars['UUID'];
+  newOwnerID?: Maybe<Scalars['UUID']>;
 };
 
 export type DeleteUserAccountPayload = {
@@ -1886,12 +1887,31 @@ export type CreateUserAccountMutation = (
     ), role: (
       { __typename?: 'Role' }
       & Pick<Role, 'code' | 'name'>
+    ), owned: (
+      { __typename?: 'OwnedList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
+    ), member: (
+      { __typename?: 'MemberList' }
+      & { teams: Array<(
+        { __typename?: 'Team' }
+        & Pick<Team, 'id' | 'name'>
+      )>, projects: Array<(
+        { __typename?: 'Project' }
+        & Pick<Project, 'id' | 'name'>
+      )> }
     ) }
   ) }
 );
 
 export type DeleteUserAccountMutationVariables = {
   userID: Scalars['UUID'];
+  newOwnerID?: Maybe<Scalars['UUID']>;
 };
 
 
@@ -3851,6 +3871,26 @@ export const CreateUserAccountDocument = gql`
       code
       name
     }
+    owned {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
+    member {
+      teams {
+        id
+        name
+      }
+      projects {
+        id
+        name
+      }
+    }
   }
 }
     `;
@@ -3885,8 +3925,8 @@ export type CreateUserAccountMutationHookResult = ReturnType<typeof useCreateUse
 export type CreateUserAccountMutationResult = ApolloReactCommon.MutationResult<CreateUserAccountMutation>;
 export type CreateUserAccountMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateUserAccountMutation, CreateUserAccountMutationVariables>;
 export const DeleteUserAccountDocument = gql`
-    mutation deleteUserAccount($userID: UUID!) {
-  deleteUserAccount(input: {userID: $userID}) {
+    mutation deleteUserAccount($userID: UUID!, $newOwnerID: UUID) {
+  deleteUserAccount(input: {userID: $userID, newOwnerID: $newOwnerID}) {
     ok
     userAccount {
       id
@@ -3910,6 +3950,7 @@ export type DeleteUserAccountMutationFn = ApolloReactCommon.MutationFunction<Del
  * const [deleteUserAccountMutation, { data, loading, error }] = useDeleteUserAccountMutation({
  *   variables: {
  *      userID: // value for 'userID'
+ *      newOwnerID: // value for 'newOwnerID'
  *   },
  * });
  */

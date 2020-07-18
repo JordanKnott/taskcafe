@@ -756,6 +756,30 @@ func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUs
 		return &DeleteUserAccountPayload{Ok: false}, err
 	}
 
+	var newOwnerID uuid.UUID
+	if input.NewOwnerID == nil {
+		sysUser, err := r.Repository.GetUserAccountByUsername(ctx, "system")
+		if err != nil {
+			return &DeleteUserAccountPayload{Ok: false}, err
+		}
+		newOwnerID = sysUser.UserID
+	} else {
+		newOwnerID = *input.NewOwnerID
+	}
+	projectIDs, err := r.Repository.UpdateProjectOwnerByOwnerID(ctx, db.UpdateProjectOwnerByOwnerIDParams{Owner: user.UserID, Owner_2: newOwnerID})
+	if err != sql.ErrNoRows && err != nil {
+		return &DeleteUserAccountPayload{Ok: false}, err
+	}
+	for _, projectID := range projectIDs {
+		r.Repository.DeleteProjectMember(ctx, db.DeleteProjectMemberParams{UserID: newOwnerID, ProjectID: projectID})
+	}
+	teamIDs, err := r.Repository.UpdateTeamOwnerByOwnerID(ctx, db.UpdateTeamOwnerByOwnerIDParams{Owner: user.UserID, Owner_2: newOwnerID})
+	if err != sql.ErrNoRows && err != nil {
+		return &DeleteUserAccountPayload{Ok: false}, err
+	}
+	for _, teamID := range teamIDs {
+		r.Repository.DeleteTeamMember(ctx, db.DeleteTeamMemberParams{UserID: newOwnerID, TeamID: teamID})
+	}
 	err = r.Repository.DeleteUserAccountByID(ctx, input.UserID)
 	if err != nil {
 		return &DeleteUserAccountPayload{Ok: false}, err

@@ -384,3 +384,35 @@ func (q *Queries) UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNa
 	)
 	return i, err
 }
+
+const updateProjectOwnerByOwnerID = `-- name: UpdateProjectOwnerByOwnerID :many
+UPDATE project SET owner = $2 WHERE owner = $1 RETURNING project_id
+`
+
+type UpdateProjectOwnerByOwnerIDParams struct {
+	Owner   uuid.UUID `json:"owner"`
+	Owner_2 uuid.UUID `json:"owner_2"`
+}
+
+func (q *Queries) UpdateProjectOwnerByOwnerID(ctx context.Context, arg UpdateProjectOwnerByOwnerIDParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, updateProjectOwnerByOwnerID, arg.Owner, arg.Owner_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var project_id uuid.UUID
+		if err := rows.Scan(&project_id); err != nil {
+			return nil, err
+		}
+		items = append(items, project_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

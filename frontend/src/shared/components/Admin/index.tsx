@@ -104,24 +104,28 @@ export const RemoveMemberButton = styled(Button)`
   width: 100%;
 `;
 type TeamRoleManagerPopupProps = {
-  user: TaskUser;
+  user: User;
+  users: Array<User>;
   warning?: string | null;
   canChangeRole: boolean;
   onChangeRole: (roleCode: RoleCode) => void;
   updateUserPassword?: (user: TaskUser, password: string) => void;
-  onRemoveFromTeam?: () => void;
+  onDeleteUser?: (userID: string, newOwnerID: string | null) => void;
 };
 
 const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
   warning,
   user,
+  users,
   canChangeRole,
-  onRemoveFromTeam,
+  onDeleteUser,
   updateUserPassword,
   onChangeRole,
 }) => {
   const { hidePopup, setTab } = usePopup();
   const [userPass, setUserPass] = useState({ pass: '', passConfirm: '' });
+  const [deleteUser, setDeleteUser] = useState<{ label: string; value: string } | null>(null);
+  const hasOwned = user.owned.projects.length !== 0 || user.owned.teams.length !== 0;
   return (
     <>
       <Popup title={null} tab={0}>
@@ -144,7 +148,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             >
               Reset password...
             </MiniProfileActionItem>
-            <MiniProfileActionItem onClick={() => setTab(5)}>Remove from organzation...</MiniProfileActionItem>
+            <MiniProfileActionItem onClick={() => setTab(2)}>Remove from organzation...</MiniProfileActionItem>
           </MiniProfileActionWrapper>
         </MiniProfileActions>
         {warning && (
@@ -198,21 +202,55 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           )}
         </MiniProfileActions>
       </Popup>
-      <Popup title="Remove from Team?" onClose={() => hidePopup()} tab={2}>
+      <Popup title="Remove from Organization?" onClose={() => hidePopup()} tab={2}>
         <Content>
           <DeleteDescription>
-            The member will be removed from all cards on this project. They will receive a notification.
+            Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
-          <RemoveMemberButton
-            color="danger"
+          {hasOwned && (
+            <>
+              <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
+              <DeleteDescription>
+                Choose a new user to take over ownership of this user's teams & projects.
+              </DeleteDescription>
+              <UserSelect
+                onChange={v => setDeleteUser(v)}
+                value={deleteUser}
+                options={users.map(u => ({ label: u.fullName, value: u.id }))}
+              />
+            </>
+          )}
+          <UserPassConfirmButton
+            disabled={!(!hasOwned || (hasOwned && deleteUser))}
             onClick={() => {
-              if (onRemoveFromTeam) {
-                onRemoveFromTeam();
+              if (onDeleteUser) {
+                console.log(`${!hasOwned} || (${hasOwned} && ${deleteUser})`);
+                if (!hasOwned || (hasOwned && deleteUser)) {
+                  onDeleteUser(user.id, deleteUser ? deleteUser.value : null);
+                }
               }
             }}
+            color="danger"
           >
-            Remove Member
-          </RemoveMemberButton>
+            Delete user
+          </UserPassConfirmButton>
+        </Content>
+      </Popup>
+      <Popup title="Really remove from Team?" onClose={() => hidePopup()} tab={4}>
+        <Content>
+          <DeleteDescription>
+            Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
+          </DeleteDescription>
+          <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
+          <UserSelect onChange={() => {}} value={null} options={users.map(u => ({ label: u.fullName, value: u.id }))} />
+          <UserPassConfirmButton
+            onClick={() => {
+              // onDeleteUser();
+            }}
+            color="danger"
+          >
+            Delete user
+          </UserPassConfirmButton>
         </Content>
       </Popup>
       <Popup title="Reset password?" onClose={() => hidePopup()} tab={3}>
@@ -249,18 +287,6 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             }}
             color="danger"
           >
-            Set password
-          </UserPassConfirmButton>
-        </Content>
-      </Popup>
-      <Popup title="Remove user" onClose={() => hidePopup()} tab={5}>
-        <Content>
-          <DeleteDescription>
-            Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
-          </DeleteDescription>
-          <DeleteDescription>The user is the owner of 3 projects & 2 teams.</DeleteDescription>
-          <UserSelect onChange={() => {}} value={null} options={[{ label: 'Jordan Knott', value: 'jordanknott' }]} />
-          <UserPassConfirmButton onClick={() => {}} color="danger">
             Set password
           </UserPassConfirmButton>
         </Content>
@@ -653,7 +679,7 @@ const NavItem: React.FC<NavItemProps> = ({ active, name, tab, onClick }) => {
 type AdminProps = {
   initialTab: number;
   onAddUser: ($target: React.RefObject<HTMLElement>) => void;
-  onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
+  onDeleteUser: (userID: string, newOwnerID: string | null) => void;
   onInviteUser: ($target: React.RefObject<HTMLElement>) => void;
   users: Array<User>;
   onUpdateUserPassword: (user: TaskUser, password: string) => void;
@@ -700,9 +726,10 @@ const Admin: React.FC<AdminProps> = ({
         <TabContent>
           <MemberListWrapper>
             <MemberListHeader>
-              <ListTitle>{`Users (${users.length})`}</ListTitle>
+              <ListTitle>{`Members (${users.length})`}</ListTitle>
               <ListDesc>
-                Team members can view and join all Team Visible boards and create new boards in the team.
+                Organization admins can create / manage / delete all projects & teams. Members only have access to teams
+                or projects they have been added to.
               </ListDesc>
               <ListActions>
                 <FilterSearch width="250px" variant="alternate" placeholder="Filter by name" />
@@ -735,6 +762,7 @@ const Admin: React.FC<AdminProps> = ({
                             $target,
                             <TeamRoleManagerPopup
                               user={member}
+                              users={users}
                               warning={member.role && member.role.code === 'owner' ? warning : null}
                               updateUserPassword={(user, password) => {
                                 onUpdateUserPassword(user, password);
@@ -743,13 +771,7 @@ const Admin: React.FC<AdminProps> = ({
                               onChangeRole={roleCode => {
                                 updateUserRole({ variables: { userID: member.id, roleCode } });
                               }}
-                              onRemoveFromTeam={
-                                member.role && member.role.code === 'owner'
-                                  ? undefined
-                                  : () => {
-                                      hidePopup();
-                                    }
-                              }
+                              onDeleteUser={onDeleteUser}
                             />,
                           );
                         }}

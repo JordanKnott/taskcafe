@@ -420,33 +420,35 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                               >
                                 <Droppable direction="vertical" type="checklistItem" droppableId={checklist.id}>
                                   {checklistDrop => (
-                                    <ChecklistItems ref={checklistDrop.innerRef} {...checklistDrop.droppableProps}>
-                                      {checklist.items
-                                        .slice()
-                                        .sort((a, b) => a.position - b.position)
-                                        .map((item, itemIdx) => (
-                                          <Draggable key={item.id} draggableId={item.id} index={itemIdx}>
-                                            {itemDrop => (
-                                              <ChecklistItem
-                                                key={item.id}
-                                                itemID={item.id}
-                                                checklistID={item.taskChecklistID}
-                                                ref={itemDrop.innerRef}
-                                                wrapperProps={itemDrop.draggableProps}
-                                                handleProps={itemDrop.dragHandleProps}
-                                                name={item.name}
-                                                complete={item.complete}
-                                                onDeleteItem={onDeleteItem}
-                                                onChangeName={onChangeItemName}
-                                                onToggleItem={(itemID, complete) =>
-                                                  onToggleChecklistItem(item.id, complete)
-                                                }
-                                              />
-                                            )}
-                                          </Draggable>
-                                        ))}
+                                    <>
+                                      <ChecklistItems ref={checklistDrop.innerRef} {...checklistDrop.droppableProps}>
+                                        {checklist.items
+                                          .slice()
+                                          .sort((a, b) => a.position - b.position)
+                                          .map((item, itemIdx) => (
+                                            <Draggable key={item.id} draggableId={item.id} index={itemIdx}>
+                                              {itemDrop => (
+                                                <ChecklistItem
+                                                  key={item.id}
+                                                  itemID={item.id}
+                                                  checklistID={item.taskChecklistID}
+                                                  ref={itemDrop.innerRef}
+                                                  wrapperProps={itemDrop.draggableProps}
+                                                  handleProps={itemDrop.dragHandleProps}
+                                                  name={item.name}
+                                                  complete={item.complete}
+                                                  onDeleteItem={onDeleteItem}
+                                                  onChangeName={onChangeItemName}
+                                                  onToggleItem={(itemID, complete) =>
+                                                    onToggleChecklistItem(item.id, complete)
+                                                  }
+                                                />
+                                              )}
+                                            </Draggable>
+                                          ))}
+                                      </ChecklistItems>
                                       {checklistDrop.placeholder}
-                                    </ChecklistItems>
+                                    </>
                                   )}
                                 </Droppable>
                               </Checklist>

@@ -45,3 +45,6 @@ SELECT * FROM project WHERE owner = $1;
 
 -- name: GetMemberProjectIDsForUserID :many
 SELECT project_id FROM project_member WHERE user_id = $1;
+
+-- name: UpdateProjectOwnerByOwnerID :many
+UPDATE project SET owner = $2 WHERE owner = $1 RETURNING project_id;

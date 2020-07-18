@@ -13,6 +13,7 @@ import {
   ActiveIconWrapper,
 } from './Styles';
 import { Checkmark } from 'shared/icons';
+import Member from 'shared/components/Member';
 
 type MemberManagerProps = {
   availableMembers: Array<TaskUser>;
@@ -45,7 +46,10 @@ const MemberManager: React.FC<MemberManagerProps> = ({
             return (
               <BoardMembersListItem key={member.id}>
                 <BoardMemberListItemContent
-                  onClick={() => {
+                  member={member}
+                  showName
+                  showCheckmark={activeMembers.findIndex(m => m.id === member.id) !== -1}
+                  onCardMemberClick={() => {
                     const isActive = activeMembers.findIndex(m => m.id === member.id) !== -1;
                     if (isActive) {
                       setActiveMembers(activeMembers.filter(m => m.id !== member.id));
@@ -54,15 +58,7 @@ const MemberManager: React.FC<MemberManagerProps> = ({
                     }
                     onMemberChange(member, !isActive);
                   }}
-                >
-                  <ProfileIcon>JK</ProfileIcon>
-                  <MemberName>{member.fullName}</MemberName>
-                  {activeMembers.findIndex(m => m.id === member.id) !== -1 && (
-                    <ActiveIconWrapper>
-                      <Checkmark width={16} height={16} />
-                    </ActiveIconWrapper>
-                  )}
-                </BoardMemberListItemContent>
+                />
               </BoardMembersListItem>
             );
           })}

@@ -2859,6 +2859,7 @@ input LogoutUser {
 
 input DeleteUserAccount {
   userID: UUID!
+  newOwnerID: UUID
 }
 
 type DeleteUserAccountPayload {
@@ -12136,6 +12137,12 @@ func (ec *executionContext) unmarshalInputDeleteUserAccount(ctx context.Context,
 		case "userID":
 			var err error
 			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "newOwnerID":
+			var err error
+			it.NewOwnerID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}

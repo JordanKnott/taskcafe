@@ -142,7 +142,8 @@ type DeleteTeamPayload struct {
 }
 
 type DeleteUserAccount struct {
-	UserID uuid.UUID `json:"userID"`
+	UserID     uuid.UUID  `json:"userID"`
+	NewOwnerID *uuid.UUID `json:"newOwnerID"`
 }
 
 type DeleteUserAccountPayload struct {

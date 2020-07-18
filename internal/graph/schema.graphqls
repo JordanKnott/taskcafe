@@ -625,6 +625,7 @@ input LogoutUser {
 
 input DeleteUserAccount {
   userID: UUID!
+  newOwnerID: UUID
 }
 
 type DeleteUserAccountPayload {

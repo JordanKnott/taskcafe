@@ -212,3 +212,35 @@ func (q *Queries) SetTeamOwner(ctx context.Context, arg SetTeamOwnerParams) (Tea
 	)
 	return i, err
 }
+
+const updateTeamOwnerByOwnerID = `-- name: UpdateTeamOwnerByOwnerID :many
+UPDATE team SET owner = $2 WHERE owner = $1 RETURNING team_id
+`
+
+type UpdateTeamOwnerByOwnerIDParams struct {
+	Owner   uuid.UUID `json:"owner"`
+	Owner_2 uuid.UUID `json:"owner_2"`
+}
+
+func (q *Queries) UpdateTeamOwnerByOwnerID(ctx context.Context, arg UpdateTeamOwnerByOwnerIDParams) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, updateTeamOwnerByOwnerID, arg.Owner, arg.Owner_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var team_id uuid.UUID
+		if err := rows.Scan(&team_id); err != nil {
+			return nil, err
+		}
+		items = append(items, team_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

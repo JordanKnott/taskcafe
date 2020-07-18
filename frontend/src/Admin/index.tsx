@@ -214,18 +214,9 @@ const AdminRoute = () => {
             console.log(password);
             hidePopup();
           }}
-          onDeleteUser={($target, userID) => {
-            showPopup(
-              $target,
-              <Popup tab={0} title="Delete user?" onClose={() => hidePopup()}>
-                <DeleteUserPopup
-                  onDeleteUser={() => {
-                    deleteUser({ variables: { userID } });
-                    hidePopup();
-                  }}
-                />
-              </Popup>,
-            );
+          onDeleteUser={(userID, newOwnerID) => {
+            deleteUser({ variables: { userID, newOwnerID } });
+            hidePopup();
           }}
           onAddUser={$target => {
             showPopup(

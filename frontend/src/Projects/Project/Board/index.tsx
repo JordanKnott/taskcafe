@@ -481,9 +481,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({
                     activeMembers={task.assigned ?? []}
                     onMemberChange={(member, isActive) => {
                       if (isActive) {
-                        assignTask({ variables: { taskID: task.id, userID: userID ?? '' } });
+                        assignTask({ variables: { taskID: task.id, userID: member.id } });
                       } else {
-                        unassignTask({ variables: { taskID: task.id, userID: userID ?? '' } });
+                        unassignTask({ variables: { taskID: task.id, userID: member.id } });
                       }
                     }}
                   />
