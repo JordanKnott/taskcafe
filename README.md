@@ -25,14 +25,11 @@ Currently you can do the following to tasks:
 
 You'll need both [docker](https://www.docker.com/) & [docker-compose](https://docs.docker.com/compose/install/) installed.
 
-You will also need to install [Mage](https://github.com/magefile/mage/releases) or if you have Go installed already
-you can replace the `mage` command below with `go run cmd/mage/main.go`.
-
 Now do the following:
 
 ``` bash
-mage up
-mage docker:migrate
+docker-compose -p citadel up -d
+docker-compose -p citadel -f docker-compose.yml -f docker-compose.migrate.yml run --rm migrate
 ```
 
 This will start a postgres instance as well as a citadel instance.
