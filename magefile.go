@@ -32,6 +32,9 @@ func (Frontend) Build() error {
 type Backend mg.Namespace
 
 func (Backend) GenFrontend() error {
+	if _, err := os.Stat("internal/frontend/"); os.IsNotExist(err) {
+		os.Mkdir("internal/frontend/", 0755)
+	}
 	var fs http.FileSystem = http.Dir("frontend/build")
 	err := vfsgen.Generate(fs, vfsgen.Options{
 		Filename:     "internal/frontend/frontend_generated.go",
