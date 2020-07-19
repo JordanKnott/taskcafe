@@ -7,8 +7,10 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
 	"github.com/jordanknott/project-citadel/api/internal/config"
+	"github.com/jordanknott/project-citadel/api/internal/migrations"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -50,9 +52,12 @@ func newMigrateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			m, err := migrate.NewWithDatabaseInstance(
-				"file://migrations",
-				"postgres", driver)
+
+			src, err := httpfs.New(migrations.Migrations, "./")
+			if err != nil {
+				return err
+			}
+			m, err := migrate.NewWithInstance("httpfs", src, "postgres", driver)
 			if err != nil {
 				return err
 			}

@@ -31,6 +31,22 @@ func (Frontend) Build() error {
 
 type Backend mg.Namespace
 
+func (Backend) GenMigrations() error {
+	if _, err := os.Stat("internal/migrations"); os.IsNotExist(err) {
+		os.Mkdir("internal/migrations/", 0755)
+	}
+	var fs http.FileSystem = http.Dir("migrations")
+	err := vfsgen.Generate(fs, vfsgen.Options{
+		Filename:     "internal/migrations/migrations_generated.go",
+		PackageName:  "migrations",
+		VariableName: "Migrations",
+	})
+	if err != nil {
+		panic(err)
+	}
+	return nil
+}
+
 func (Backend) GenFrontend() error {
 	if _, err := os.Stat("internal/frontend/"); os.IsNotExist(err) {
 		os.Mkdir("internal/frontend/", 0755)
@@ -83,7 +99,7 @@ func Install() {
 }
 
 func Build() {
-	mg.SerialDeps(Frontend.Build, Backend.GenFrontend, Backend.Build)
+	mg.SerialDeps(Frontend.Build, Backend.GenMigrations, Backend.GenFrontend, Backend.Build)
 }
 
 type Docker mg.Namespace

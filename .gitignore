@@ -3,5 +3,6 @@ dist/
 uploads/*
 !uploads/.keep
 internal/frontend/frontend_generated.go
+internal/migrations/migrations_generated.go
 citadel
 conf/app.toml
