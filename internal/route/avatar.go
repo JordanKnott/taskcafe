@@ -12,8 +12,8 @@ import (
 
 	"time"
 
-	"github.com/jordanknott/project-citadel/api/internal/db"
-	"github.com/jordanknott/project-citadel/api/internal/frontend"
+	"github.com/jordanknott/project-citadel/internal/db"
+	"github.com/jordanknott/project-citadel/internal/frontend"
 )
 
 func (h *CitadelHandler) Frontend(w http.ResponseWriter, r *http.Request) {

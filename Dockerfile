@@ -7,9 +7,12 @@ RUN yarn build
 
 FROM golang:1.14.5-alpine as backend
 WORKDIR /usr/src/app
+COPY go.mod go.mod
+COPY go.sum go.sum
+RUN go mod download
 COPY . .
-COPY --from=frontend /usr/src/app/build .
-RUN go run cmd/mage/main.go backend:genFrontend backend:build
+COPY --from=frontend /usr/src/app/build ./frontend/build
+RUN go run cmd/mage/main.go backend:genFrontend backend:genMigrations backend:build
 
 FROM alpine:latest
 WORKDIR /root/

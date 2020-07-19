@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jordanknott/project-citadel/api/internal/db"
+	"github.com/jordanknott/project-citadel/internal/db"
 )
 
 type AddTaskLabelInput struct {

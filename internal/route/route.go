@@ -10,11 +10,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/jordanknott/project-citadel/api/internal/config"
-	"github.com/jordanknott/project-citadel/api/internal/db"
-	"github.com/jordanknott/project-citadel/api/internal/frontend"
-	"github.com/jordanknott/project-citadel/api/internal/graph"
-	"github.com/jordanknott/project-citadel/api/internal/logger"
+	"github.com/jordanknott/project-citadel/internal/config"
+	"github.com/jordanknott/project-citadel/internal/db"
+	"github.com/jordanknott/project-citadel/internal/frontend"
+	"github.com/jordanknott/project-citadel/internal/graph"
+	"github.com/jordanknott/project-citadel/internal/logger"
 	"os"
 	"path/filepath"
 )

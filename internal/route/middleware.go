@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/jordanknott/project-citadel/api/internal/auth"
+	"github.com/jordanknott/project-citadel/internal/auth"
 	log "github.com/sirupsen/logrus"
 )
 

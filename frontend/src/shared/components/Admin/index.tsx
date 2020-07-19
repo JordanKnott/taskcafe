@@ -6,12 +6,9 @@ import Select from 'shared/components/Select';
 import { User, Plus, Lock, Pencil, Trash } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { RoleCode, useUpdateUserRoleMutation } from 'shared/generated/graphql';
-import { AgGridReact } from 'ag-grid-react';
 import Input from 'shared/components/Input';
 import Member from 'shared/components/Member';
 
-import 'ag-grid-community/dist/styles/ag-grid.css';
-import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import Button from 'shared/components/Button';
 
 export const RoleCheckmark = styled(Checkmark)`
@@ -58,7 +55,7 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
   position: relative;
   text-decoration: none;
 
-  ${props =>
+  ${(props) =>
     props.disabled
       ? css`
           user-select: none;
@@ -78,7 +75,7 @@ export const Content = styled.div`
 
 export const CurrentPermission = styled.span`
   margin-left: 4px;
-  color: rgba(${props => props.theme.colors.text.secondary}, 0.4);
+  color: rgba(${(props) => props.theme.colors.text.secondary}, 0.4);
 `;
 
 export const Separator = styled.div`
@@ -89,13 +86,13 @@ export const Separator = styled.div`
 
 export const WarningText = styled.span`
   display: flex;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.4);
+  color: rgba(${(props) => props.theme.colors.text.primary}, 0.4);
   padding: 6px;
 `;
 
 export const DeleteDescription = styled.div`
   font-size: 14px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: rgba(${(props) => props.theme.colors.text.primary});
 `;
 
 export const RemoveMemberButton = styled(Button)`
@@ -162,8 +159,8 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
         <MiniProfileActions>
           <MiniProfileActionWrapper>
             {permissions
-              .filter(p => (user.role && user.role.code === 'owner') || p.code !== 'owner')
-              .map(perm => (
+              .filter((p) => (user.role && user.role.code === 'owner') || p.code !== 'owner')
+              .map((perm) => (
                 <MiniProfileActionItem
                   disabled={user.role && perm.code !== user.role.code && !canChangeRole}
                   key={perm.code}
@@ -214,9 +211,9 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
                 Choose a new user to take over ownership of this user's teams & projects.
               </DeleteDescription>
               <UserSelect
-                onChange={v => setDeleteUser(v)}
+                onChange={(v) => setDeleteUser(v)}
                 value={deleteUser}
-                options={users.map(u => ({ label: u.fullName, value: u.id }))}
+                options={users.map((u) => ({ label: u.fullName, value: u.id }))}
               />
             </>
           )}
@@ -242,7 +239,11 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
           <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
-          <UserSelect onChange={() => {}} value={null} options={users.map(u => ({ label: u.fullName, value: u.id }))} />
+          <UserSelect
+            onChange={() => {}}
+            value={null}
+            options={users.map((u) => ({ label: u.fullName, value: u.id }))}
+          />
           <UserPassConfirmButton
             onClick={() => {
               // onDeleteUser();
@@ -333,14 +334,14 @@ const MemberItemOption = styled(Button)`
 `;
 
 const MemberList = styled.div`
-  border-top: 1px solid rgba(${props => props.theme.colors.border});
+  border-top: 1px solid rgba(${(props) => props.theme.colors.border});
 `;
 
 const MemberListItem = styled.div`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(${props => props.theme.colors.border});
+  border-bottom: 1px solid rgba(${(props) => props.theme.colors.border});
   min-height: 40px;
   padding: 12px 0 12px 40px;
   position: relative;
@@ -364,11 +365,11 @@ const MemberProfile = styled(TaskAssignee)`
 `;
 
 const MemberItemName = styled.p`
-  color: rgba(${props => props.theme.colors.text.secondary});
+  color: rgba(${(props) => props.theme.colors.text.secondary});
 `;
 
 const MemberItemUsername = styled.p`
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: rgba(${(props) => props.theme.colors.text.primary});
 `;
 
 const MemberListHeader = styled.div`
@@ -377,12 +378,12 @@ const MemberListHeader = styled.div`
 `;
 const ListTitle = styled.h3`
   font-size: 18px;
-  color: rgba(${props => props.theme.colors.text.secondary});
+  color: rgba(${(props) => props.theme.colors.text.secondary});
   margin-bottom: 12px;
 `;
 const ListDesc = styled.span`
   font-size: 16px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: rgba(${(props) => props.theme.colors.text.primary});
 `;
 const FilterSearch = styled(Input)`
   margin: 0;
@@ -483,69 +484,10 @@ const ActionButtons = (params: any) => {
       <ActionButton onClick={() => {}}>
         <EditUserIcon width={16} height={16} />
       </ActionButton>
-      <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
+      <ActionButton onClick={($target) => params.onDeleteUser($target, params.value)}>
         <DeleteUserIcon width={16} height={16} />
       </ActionButton>
     </>
-  );
-};
-
-type ListTableProps = {
-  users: Array<User>;
-  onDeleteUser: ($target: React.RefObject<HTMLElement>, userID: string) => void;
-};
-
-const ListTable: React.FC<ListTableProps> = ({ users, onDeleteUser }) => {
-  const data = {
-    defaultColDef: {
-      resizable: true,
-      sortable: true,
-    },
-    columnDefs: [
-      {
-        minWidth: 55,
-        width: 55,
-        headerCheckboxSelection: true,
-        checkboxSelection: true,
-      },
-      { minWidth: 210, headerName: 'Username', editable: true, field: 'username' },
-      { minWidth: 225, headerName: 'Email', field: 'email' },
-      { minWidth: 200, headerName: 'Name', editable: true, field: 'fullName' },
-      { minWidth: 200, headerName: 'Role', editable: true, field: 'roleName' },
-      {
-        minWidth: 200,
-        headerName: 'Actions',
-        field: 'id',
-        cellRenderer: 'actionButtons',
-        cellRendererParams: {
-          onDeleteUser: (target: any, userID: any) => {
-            onDeleteUser(target, userID);
-          },
-        },
-      },
-    ],
-    frameworkComponents: {
-      actionButtons: ActionButtons,
-    },
-  };
-  return (
-    <Root>
-      <div className="ag-theme-material" style={{ height: '296px', width: '100%' }}>
-        <AgGridReact
-          rowSelection="multiple"
-          defaultColDef={data.defaultColDef}
-          columnDefs={data.columnDefs}
-          rowData={users.map(u => ({ ...u, roleName: 'member' }))}
-          frameworkComponents={data.frameworkComponents}
-          onFirstDataRendered={params => {
-            params.api.sizeColumnsToFit();
-          }}
-          onGridSizeChanged={params => {
-            params.api.sizeColumnsToFit();
-          }}
-        />
-      </div>
-    </Root>
   );
 };
 
@@ -599,7 +541,7 @@ const TabNavItemButton = styled.button<{ active: boolean }>`
   width: 100%;
   position: relative;
 
-  color: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')};
+  color: ${(props) => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')};
   &:hover {
     color: rgba(115, 103, 240);
   }
@@ -620,7 +562,7 @@ const TabNavLine = styled.span<{ top: number }>`
   width: 2px;
   height: 48px;
   transform: scaleX(1);
-  top: ${props => props.top}px;
+  top: ${(props) => props.top}px;
 
   background: linear-gradient(30deg, rgba(115, 103, 240), rgba(115, 103, 240));
   box-shadow: 0 0 8px 0 rgba(115, 103, 240);
@@ -734,7 +676,7 @@ const Admin: React.FC<AdminProps> = ({
               <ListActions>
                 <FilterSearch width="250px" variant="alternate" placeholder="Filter by name" />
                 <InviteMemberButton
-                  onClick={$target => {
+                  onClick={($target) => {
                     onAddUser($target);
                   }}
                 >
@@ -744,7 +686,7 @@ const Admin: React.FC<AdminProps> = ({
               </ListActions>
             </MemberListHeader>
             <MemberList>
-              {users.map(member => {
+              {users.map((member) => {
                 const projectTotal = member.owned.projects.length + member.member.projects.length;
                 return (
                   <MemberListItem>
@@ -757,7 +699,7 @@ const Admin: React.FC<AdminProps> = ({
                       <MemberItemOption variant="flat">{`On ${projectTotal} projects`}</MemberItemOption>
                       <MemberItemOption
                         variant="outline"
-                        onClick={$target => {
+                        onClick={($target) => {
                           showPopup(
                             $target,
                             <TeamRoleManagerPopup
@@ -768,7 +710,7 @@ const Admin: React.FC<AdminProps> = ({
                                 onUpdateUserPassword(user, password);
                               }}
                               canChangeRole={(member.role && member.role.code !== 'owner') ?? false}
-                              onChangeRole={roleCode => {
+                              onChangeRole={(roleCode) => {
                                 updateUserRole({ variables: { userID: member.id, roleCode } });
                               }}
                               onDeleteUser={onDeleteUser}

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
-	"github.com/jordanknott/project-citadel/api/internal/auth"
-	"github.com/jordanknott/project-citadel/api/internal/db"
+	"github.com/jordanknott/project-citadel/internal/auth"
+	"github.com/jordanknott/project-citadel/internal/db"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )

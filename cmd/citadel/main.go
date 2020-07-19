@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/jordanknott/project-citadel/api/internal/commands"
+	"github.com/jordanknott/project-citadel/internal/commands"
 	_ "github.com/lib/pq"
 )
 

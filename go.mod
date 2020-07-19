@@ -1,4 +1,4 @@
-module github.com/jordanknott/project-citadel/api
+module github.com/jordanknott/project-citadel
 
 go 1.13
 

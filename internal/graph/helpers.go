@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/jordanknott/project-citadel/api/internal/db"
+	"github.com/jordanknott/project-citadel/internal/db"
 )
 
 func GetOwnedList(ctx context.Context, r db.Repository, user db.UserAccount) (*OwnedList, error) {
