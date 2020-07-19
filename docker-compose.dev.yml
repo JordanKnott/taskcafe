@@ -1,5 +1,26 @@
 version: "3"
 services:
+  web:
+    build: .
+    ports:
+      - "3333:3333"
+    depends_on:
+      - postgres
+    networks:
+      - citadel-test
+  postgres:
+    image: postgres:12.3-alpine
+    restart: always
+    networks:
+      - citadel-test
+    environment:
+      POSTGRES_USER: citadel
+      POSTGRES_PASSWORD: citadel_test
+      POSTGRES_DB: citadel
+    volumes:
+      - citadel-postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
   mailhog:
     image: mailhog/mailhog:latest
     restart: always
@@ -17,3 +38,11 @@ services:
     restart: always
     ports:
       - 11211:11211
+
+volumes:
+  citadel-postgres:
+    external: false
+
+networks:
+  citadel-test:
+    driver: bridge
