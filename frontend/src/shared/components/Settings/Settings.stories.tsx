@@ -18,7 +18,7 @@ const profile = {
   id: '1',
   fullName: 'Jordan Knott',
   username: 'jordanthedev',
-  profileIcon: { url: 'http://localhost:3333/uploads/headshot.png', bgColor: '#000', initials: 'JK' },
+  profileIcon: { url: '/uploads/headshot.png', bgColor: '#000', initials: 'JK' },
 };
 export const Default = () => {
   return (

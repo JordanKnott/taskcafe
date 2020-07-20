@@ -36,7 +36,7 @@ const Projects = () => {
             fileData.append('file', e.target.files[0]);
             const accessToken = getAccessToken();
             axios
-              .post('http://localhost:3333/users/me/avatar', fileData, {
+              .post('/users/me/avatar', fileData, {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
                 },
