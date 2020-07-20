@@ -63,7 +63,6 @@ export const HeaderEditTarget = styled.div<{ isHidden: boolean }>`
 `;
 
 export const HeaderName = styled(TextareaAutosize)`
-  font-family: 'Droid Sans';
   font-size: 14px;
   border: none;
   resize: none;
@@ -105,7 +104,6 @@ export const Header = styled.div<{ isEditing: boolean }>`
 
 export const AddCardButtonText = styled.span`
   padding-left: 5px;
-  font-family: 'Droid Sans';
 `;
 
 export const ListCards = styled.div`

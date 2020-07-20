@@ -73,7 +73,6 @@ export const TaskDetailsTitle = styled(TextareaAutosize)`
   resize: none;
   box-shadow: transparent 0px 0px 0px 1px;
   font-size: 24px;
-  font-family: 'Droid Sans';
   font-weight: 700;
   padding: 4px;
   background: #262c49;

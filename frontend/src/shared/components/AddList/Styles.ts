@@ -74,7 +74,6 @@ export const ListNameEditor = styled(TextareaAutosize)`
   line-height: 20px;
   padding: 8px 12px;
 
-  font-family: 'Droid Sans';
   overflow: hidden;
   overflow-wrap: break-word;
   resize: none;

@@ -18,7 +18,6 @@ export const MemberManagerSearch = styled(TextareaAutosize)`
   line-height: 20px;
   padding: 8px 12px;
   font-size: 14px;
-  font-family: 'Droid Sans';
   font-weight: 400;
 
   background: #262c49;

@@ -27,10 +27,10 @@ export const color = {
 };
 
 export const font = {
-  regular: 'font-family: "Droid Sans"; font-weight: normal;',
+  regular: 'font-family: "Droid Sans", Roboto, sans-serif; font-weight: normal;',
   size: (size: number) => `font-size: ${size}px;`,
-  bold: 'font-family: "Droid Sans"; font-weight: normal;',
-  medium: 'font-family: "Droid Sans"; font-weight: normal;',
+  bold: 'font-family: "Droid Sans", Roboto, sans-serif; font-weight: normal;',
+  medium: 'font-family: "Droid Sans", Roboto, sans-serif; font-weight: normal;',
 };
 
 export const mixin = {

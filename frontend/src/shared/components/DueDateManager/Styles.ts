@@ -8,7 +8,6 @@ display: flex
   flex-direction: column;
   & .react-datepicker {
     background: #262c49;
-    font-family: 'Droid Sans', sans-serif;
     border: none;
   }
   & .react-datepicker__triangle {
