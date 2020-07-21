@@ -25,6 +25,12 @@ Currently you can do the following to tasks:
 
 You'll need both [docker](https://www.docker.com/) & [docker-compose](https://docs.docker.com/compose/install/) installed.
 
+First clone the repository:
+
+``` bash
+git clone https://github.com/JordanKnott/project-citadel && cd project-citadel
+```
+
 Now do the following:
 
 ``` bash
