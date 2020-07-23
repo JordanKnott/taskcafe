@@ -34,7 +34,7 @@ docker-compose -p citadel -f docker-compose.yml -f docker-compose.migrate.yml ru
 
 This will start a postgres instance as well as a citadel instance.
 
-The second command runs the database shema migrations.
+The second command runs the database schema migrations.
 
 If you visit [http://localhost:3333](http://localhost:3333), you will get redirected to the installation
 screen so that you can create the first system user.
