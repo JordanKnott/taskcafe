@@ -6,6 +6,7 @@
 
 A free & open source alternative project management tool.
 
+**Please note that this project is still in active development. Some options may not work yet!**
 ## Features
 
 Currently citadel only offers basic task tracking through a Kanban board.
