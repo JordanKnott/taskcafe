@@ -53,6 +53,7 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), "userID", userID)
 		ctx = context.WithValue(ctx, "restricted_mode", accessClaims.Restricted)
+		ctx = context.WithValue(ctx, "org_role", accessClaims.OrgRole)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

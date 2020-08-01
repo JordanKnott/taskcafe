@@ -1,7 +1,9 @@
 extend type Mutation {
-  createProject(input: NewProject!): Project!
-  deleteProject(input: DeleteProject!): DeleteProjectPayload!
-  updateProjectName(input: UpdateProjectName): Project!
+  createProject(input: NewProject!): Project! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteProject(input: DeleteProject!):
+    DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectName(input: UpdateProjectName):
+    Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewProject {

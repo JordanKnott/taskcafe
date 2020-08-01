@@ -38,6 +38,7 @@ const HomeDashboard = styled(Home)``;
 type ProjectHeadingProps = {
   onFavorite?: () => void;
   name: string;
+  canEditProjectName: boolean;
   onSaveProjectName?: (projectName: string) => void;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
 };
@@ -46,6 +47,7 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
   onFavorite,
   name: initialProjectName,
   onSaveProjectName,
+  canEditProjectName,
   onOpenSettings,
 }) => {
   const [isEditProjectName, setEditProjectName] = useState(false);
@@ -94,7 +96,9 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
       ) : (
         <ProjectName
           onClick={() => {
-            setEditProjectName(true);
+            if (canEditProjectName) {
+              setEditProjectName(true);
+            }
           }}
         >
           {projectName}
@@ -142,19 +146,25 @@ type NavBarProps = {
   onProfileClick: ($target: React.RefObject<HTMLElement>) => void;
   onSaveName?: (name: string) => void;
   onNotificationClick: () => void;
+  canEditProjectName?: boolean;
+  canInviteUser?: boolean;
   onInviteUser?: ($target: React.RefObject<HTMLElement>) => void;
   onDashboardClick: () => void;
   user: TaskUser | null;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
   projectMembers?: Array<TaskUser> | null;
   onRemoveFromBoard?: (userID: string) => void;
+  onMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
 };
 
 const NavBar: React.FC<NavBarProps> = ({
   menuType,
+  canInviteUser = false,
   onInviteUser,
   onChangeProjectOwner,
   currentTab,
+  onMemberProfile,
+  canEditProjectName = false,
   onOpenProjectFinder,
   onFavorite,
   onSetTab,
@@ -175,47 +185,6 @@ const NavBar: React.FC<NavBarProps> = ({
     }
   };
   const { showPopup } = usePopup();
-  const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
-    const member = projectMembers ? projectMembers.find(u => u.id === memberID) : null;
-    const warning =
-      'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
-    if (member) {
-      console.log(member);
-      showPopup(
-        $targetRef,
-        <MiniProfile
-          warning={member.role && member.role.code === 'owner' ? warning : null}
-          onChangeProjectOwner={
-            member.role && member.role.code !== 'owner'
-              ? (userID: string) => {
-                  if (user && onChangeProjectOwner) {
-                    onChangeProjectOwner(userID);
-                  }
-                }
-              : undefined
-          }
-          canChangeRole={member.role && member.role.code !== 'owner'}
-          onChangeRole={roleCode => {
-            if (onChangeRole) {
-              onChangeRole(member.id, roleCode);
-            }
-          }}
-          onRemoveFromBoard={
-            member.role && member.role.code === 'owner'
-              ? undefined
-              : () => {
-                  if (onRemoveFromBoard) {
-                    onRemoveFromBoard(member.id);
-                  }
-                }
-          }
-          user={member}
-          bio=""
-        />,
-      );
-    }
-  };
-
   return (
     <NavbarWrapper>
       <NavbarHeader>
@@ -226,6 +195,7 @@ const NavBar: React.FC<NavBarProps> = ({
                 onFavorite={onFavorite}
                 onOpenSettings={onOpenSettings}
                 name={name}
+                canEditProjectName={canEditProjectName}
                 onSaveProjectName={onSaveName}
               />
             )}
@@ -255,7 +225,7 @@ const NavBar: React.FC<NavBarProps> = ({
           <TaskcafeTitle>Taskcafé</TaskcafeTitle>
         </LogoContainer>
         <GlobalActions>
-          {projectMembers && (
+          {projectMembers && onMemberProfile && (
             <>
               <ProjectMembers>
                 {projectMembers.map((member, idx) => (
@@ -268,16 +238,18 @@ const NavBar: React.FC<NavBarProps> = ({
                     onMemberProfile={onMemberProfile}
                   />
                 ))}
-                <InviteButton
-                  onClick={$target => {
-                    if (onInviteUser) {
-                      onInviteUser($target);
-                    }
-                  }}
-                  variant="outline"
-                >
-                  Invite
-                </InviteButton>
+                {canInviteUser && (
+                  <InviteButton
+                    onClick={$target => {
+                      if (onInviteUser) {
+                        onInviteUser($target);
+                      }
+                    }}
+                    variant="outline"
+                  >
+                    Invite
+                  </InviteButton>
+                )}
               </ProjectMembers>
               <NavSeparator />
             </>

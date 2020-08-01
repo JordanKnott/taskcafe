@@ -15,7 +15,6 @@ import {
   Redirect,
 } from 'react-router-dom';
 import {
-  useSetProjectOwnerMutation,
   useUpdateProjectMemberRoleMutation,
   useCreateProjectMemberMutation,
   useDeleteProjectMemberMutation,
@@ -34,10 +33,10 @@ import {
 } from 'shared/generated/graphql';
 
 import produce from 'immer';
-import UserIDContext from 'App/context';
+import UserContext, { useCurrentUser } from 'App/context';
 import Input from 'shared/components/Input';
 import Member from 'shared/components/Member';
-import Board from './Board';
+import Board, { BoardLoading } from './Board';
 import Details from './Details';
 import EmptyBoard from 'shared/components/EmptyBoard';
 
@@ -140,7 +139,7 @@ const Project = () => {
   const [updateTaskName] = useUpdateTaskNameMutation();
 
   const { loading, data } = useFindProjectQuery({
-    variables: { projectId: projectID },
+    variables: { projectID },
   });
 
   const [updateProjectName] = useUpdateProjectNameMutation({
@@ -152,7 +151,7 @@ const Project = () => {
           produce(cache, draftCache => {
             draftCache.findProject.name = newName.data.updateProjectName.name;
           }),
-        { projectId: projectID },
+        { projectID },
       );
     },
   });
@@ -166,11 +165,10 @@ const Project = () => {
           produce(cache, draftCache => {
             draftCache.findProject.members.push({ ...response.data.createProjectMember.member });
           }),
-        { projectId: projectID },
+        { projectID },
       );
     },
   });
-  const [setProjectOwner] = useSetProjectOwnerMutation();
   const [deleteProjectMember] = useDeleteProjectMemberMutation({
     update: (client, response) => {
       updateApolloCache<FindProjectQuery>(
@@ -184,12 +182,12 @@ const Project = () => {
               m => m.id !== response.data.deleteProjectMember.member.id,
             );
           }),
-        { projectId: projectID },
+        { projectID },
       );
     },
   });
 
-  const { userID } = useContext(UserIDContext);
+  const { user } = useCurrentUser();
   const location = useLocation();
 
   const { showPopup, hidePopup } = usePopup();
@@ -205,7 +203,7 @@ const Project = () => {
     return (
       <>
         <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" projectID={null} />
-        <Board loading />
+        <BoardLoading />
       </>
     );
   }
@@ -221,7 +219,6 @@ const Project = () => {
             updateProjectMemberRole({ variables: { userID, roleCode, projectID } });
           }}
           onChangeProjectOwner={uid => {
-            setProjectOwner({ variables: { ownerID: uid, projectID } });
             hidePopup();
           }}
           onRemoveFromBoard={userID => {
@@ -248,6 +245,7 @@ const Project = () => {
           currentTab={0}
           projectMembers={data.findProject.members}
           projectID={projectID}
+          teamID={data.findProject.team.id}
           name={data.findProject.name}
         />
         <Route path={`${match.path}`} exact render={() => <Redirect to={`${match.url}/board`} />} />

@@ -35,6 +35,6 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	rootCmd.SetVersionTemplate(versionTemplate)
-	rootCmd.AddCommand(newWebCmd(), newMigrateCmd())
+	rootCmd.AddCommand(newWebCmd(), newMigrateCmd(), newTokenCmd())
 	rootCmd.Execute()
 }

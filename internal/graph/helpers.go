@@ -8,15 +8,7 @@ import (
 )
 
 func GetOwnedList(ctx context.Context, r db.Repository, user db.UserAccount) (*OwnedList, error) {
-	ownedTeams, err := r.GetOwnedTeamsForUserID(ctx, user.UserID)
-	if err != sql.ErrNoRows && err != nil {
-		return &OwnedList{}, err
-	}
-	ownedProjects, err := r.GetOwnedProjectsForUserID(ctx, user.UserID)
-	if err != sql.ErrNoRows && err != nil {
-		return &OwnedList{}, err
-	}
-	return &OwnedList{Teams: ownedTeams, Projects: ownedProjects}, nil
+	return &OwnedList{}, nil
 }
 func GetMemberList(ctx context.Context, r db.Repository, user db.UserAccount) (*MemberList, error) {
 	projectMemberIDs, err := r.GetMemberProjectIDsForUserID(ctx, user.UserID)

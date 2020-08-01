@@ -9,8 +9,7 @@ import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
 import { theme } from './ThemeStyles';
 import Routes from './Routes';
-import { UserIDContext } from './context';
-import Navbar from './Navbar';
+import { UserContext, CurrentUserRaw, CurrentUserRoles, PermissionLevel, PermissionObjectType } from './context';
 
 const history = createBrowserHistory();
 type RefreshTokenResponse = {
@@ -20,7 +19,15 @@ type RefreshTokenResponse = {
 
 const App = () => {
   const [loading, setLoading] = useState(true);
-  const [userID, setUserID] = useState<string | null>(null);
+  const [user, setUser] = useState<CurrentUserRaw | null>(null);
+  const setUserRoles = (roles: CurrentUserRoles) => {
+    if (user) {
+      setUser({
+        ...user,
+        roles,
+      });
+    }
+  };
 
   useEffect(() => {
     fetch('/auth/refresh_token', {
@@ -34,7 +41,11 @@ const App = () => {
         const response: RefreshTokenResponse = await x.json();
         const { accessToken, isInstalled } = response;
         const claims: JWTToken = jwtDecode(accessToken);
-        setUserID(claims.userId);
+        const currentUser = {
+          id: claims.userId,
+          roles: { org: claims.orgRole, teams: new Map<string, string>(), projects: new Map<string, string>() },
+        };
+        setUser(currentUser);
         setAccessToken(accessToken);
         if (!isInstalled) {
           history.replace('/install');
@@ -46,7 +57,7 @@ const App = () => {
 
   return (
     <>
-      <UserIDContext.Provider value={{ userID, setUserID }}>
+      <UserContext.Provider value={{ user, setUser, setUserRoles }}>
         <ThemeProvider theme={theme}>
           <NormalizeStyles />
           <BaseStyles />
@@ -62,7 +73,7 @@ const App = () => {
             </PopupProvider>
           </Router>
         </ThemeProvider>
-      </UserIDContext.Provider>
+      </UserContext.Provider>
     </>
   );
 };

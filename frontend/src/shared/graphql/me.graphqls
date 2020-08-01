@@ -1,11 +1,21 @@
 query me {
   me {
-    id
-    fullName
-    profileIcon {
-      initials
-      bgColor
-      url
+    user {
+      id
+      fullName
+      profileIcon {
+        initials
+        bgColor
+        url
+      }
+    }
+    teamRoles {
+      teamID
+      roleCode
+    }
+    projectRoles {
+      projectID
+      roleCode
     }
   }
 }

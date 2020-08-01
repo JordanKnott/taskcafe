@@ -3,9 +3,7 @@ import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
 import { Link } from 'react-router-dom';
 import { getAccessToken } from 'shared/utils/accessToken';
-import Navbar from 'App/Navbar';
 import Settings from 'shared/components/Settings';
-import UserIDContext from 'App/context';
 import { useMeQuery, useClearProfileAvatarMutation } from 'shared/generated/graphql';
 import axios from 'axios';
 
@@ -53,7 +51,7 @@ const Projects = () => {
       <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
       {!loading && data && (
         <Settings
-          profile={data.me}
+          profile={data.me.user}
           onProfileAvatarChange={() => {
             if ($fileUpload && $fileUpload.current) {
               $fileUpload.current.click();

@@ -1,6 +1,8 @@
 extend type Mutation {
-  deleteTeam(input: DeleteTeam!): DeleteTeamPayload!
-  createTeam(input: NewTeam!): Team!
+  deleteTeam(input: DeleteTeam!):
+    DeleteTeamPayload! @hasRole(roles:[ ADMIN], level: TEAM, type: TEAM)
+  createTeam(input: NewTeam!):
+    Team! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 }
 
 input NewTeam {

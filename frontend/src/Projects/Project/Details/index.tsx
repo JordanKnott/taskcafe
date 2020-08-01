@@ -22,7 +22,7 @@ import {
   FindTaskDocument,
   FindTaskQuery,
 } from 'shared/generated/graphql';
-import UserIDContext from 'App/context';
+import UserContext, { useCurrentUser } from 'App/context';
 import MiniProfile from 'shared/components/MiniProfile';
 import DueDateManager from 'shared/components/DueDateManager';
 import produce from 'immer';
@@ -129,7 +129,7 @@ const Details: React.FC<DetailsProps> = ({
   availableMembers,
   refreshCache,
 }) => {
-  const { userID } = useContext(UserIDContext);
+  const { user } = useCurrentUser();
   const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
   const match = useRouteMatch();
@@ -407,7 +407,9 @@ const Details: React.FC<DetailsProps> = ({
                         user={member}
                         bio="None"
                         onRemoveFromTask={() => {
-                          unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                          if (user) {
+                            unassignTask({ variables: { taskID: data.findTask.id, userID: user.id } });
+                          }
                         }}
                       />
                     </Popup>,
@@ -422,10 +424,12 @@ const Details: React.FC<DetailsProps> = ({
                       availableMembers={availableMembers}
                       activeMembers={data.findTask.assigned}
                       onMemberChange={(member, isActive) => {
-                        if (isActive) {
-                          assignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
-                        } else {
-                          unassignTask({ variables: { taskID: data.findTask.id, userID: userID ?? '' } });
+                        if (user) {
+                          if (isActive) {
+                            assignTask({ variables: { taskID: data.findTask.id, userID: user.id } });
+                          } else {
+                            unassignTask({ variables: { taskID: data.findTask.id, userID: user.id } });
+                          }
                         }
                       }}
                     />

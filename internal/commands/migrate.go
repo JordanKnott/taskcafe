@@ -2,6 +2,8 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/spf13/cobra"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -10,7 +12,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
 	"github.com/jordanknott/taskcafe/internal/config"
-	"github.com/jordanknott/taskcafe/internal/migrations"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,6 +26,12 @@ func (l *MigrateLog) Printf(format string, v ...interface{}) {
 // Verbose shows if verbose print enabled
 func (l *MigrateLog) Verbose() bool {
 	return l.verbose
+}
+
+var migration http.FileSystem
+
+func init() {
+	migration = http.Dir("./migrations")
 }
 
 func newMigrateCmd() *cobra.Command {
@@ -53,7 +60,7 @@ func newMigrateCmd() *cobra.Command {
 				return err
 			}
 
-			src, err := httpfs.New(migrations.Migrations, "./")
+			src, err := httpfs.New(migration, "./")
 			if err != nil {
 				return err
 			}

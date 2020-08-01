@@ -16,9 +16,17 @@ const (
 	InstallOnly                 = "install_only"
 )
 
+type Role string
+
+const (
+	RoleAdmin  Role = "admin"
+	RoleMember Role = "member"
+)
+
 type AccessTokenClaims struct {
 	UserID     string         `json:"userId"`
 	Restricted RestrictedMode `json:"restricted"`
+	OrgRole    Role           `json:"orgRole"`
 	jwt.StandardClaims
 }
 
@@ -39,11 +47,16 @@ func (r *ErrMalformedToken) Error() string {
 	return "token is malformed"
 }
 
-func NewAccessToken(userID string, restrictedMode RestrictedMode) (string, error) {
+func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string) (string, error) {
+	role := RoleMember
+	if orgRole == "admin" {
+		role = RoleAdmin
+	}
 	accessExpirationTime := time.Now().Add(5 * time.Second)
 	accessClaims := &AccessTokenClaims{
 		UserID:         userID,
 		Restricted:     restrictedMode,
+		OrgRole:        role,
 		StandardClaims: jwt.StandardClaims{ExpiresAt: accessExpirationTime.Unix()},
 	}
 
@@ -60,6 +73,7 @@ func NewAccessTokenCustomExpiration(userID string, dur time.Duration) (string, e
 	accessClaims := &AccessTokenClaims{
 		UserID:         userID,
 		Restricted:     Unrestricted,
+		OrgRole:        RoleMember,
 		StandardClaims: jwt.StandardClaims{ExpiresAt: accessExpirationTime.Unix()},
 	}
 

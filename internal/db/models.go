@@ -27,7 +27,6 @@ type Project struct {
 	TeamID    uuid.UUID `json:"team_id"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
-	Owner     uuid.UUID `json:"owner"`
 }
 
 type ProjectLabel struct {
@@ -120,7 +119,6 @@ type Team struct {
 	CreatedAt      time.Time `json:"created_at"`
 	Name           string    `json:"name"`
 	OrganizationID uuid.UUID `json:"organization_id"`
-	Owner          uuid.UUID `json:"owner"`
 }
 
 type TeamMember struct {

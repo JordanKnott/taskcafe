@@ -37,17 +37,22 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout, onClos
 type ProfileMenuProps = {
   onProfile: () => void;
   onLogout: () => void;
+  showAdminConsole: boolean;
   onAdminConsole: () => void;
 };
 
-const ProfileMenu: React.FC<ProfileMenuProps> = ({ onAdminConsole, onProfile, onLogout }) => {
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ showAdminConsole, onAdminConsole, onProfile, onLogout }) => {
   return (
     <>
-      <ActionItem onClick={onAdminConsole}>
-        <Cog size={16} color="#c2c6dc" />
-        <ActionTitle>Admin Console</ActionTitle>
-      </ActionItem>
-      <Separator />
+      {showAdminConsole && (
+        <>
+          <ActionItem onClick={onAdminConsole}>
+            <Cog size={16} color="#c2c6dc" />
+            <ActionTitle>Admin Console</ActionTitle>
+          </ActionItem>
+          <Separator />
+        </>
+      )}
       <ActionItem onClick={onProfile}>
         <User size={16} color="#c2c6dc" />
         <ActionTitle>Profile</ActionTitle>

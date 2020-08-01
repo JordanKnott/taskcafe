@@ -1,9 +1,14 @@
 extend type Mutation {
-  createProjectLabel(input: NewProjectLabel!): ProjectLabel!
-  deleteProjectLabel(input: DeleteProjectLabel!): ProjectLabel!
-  updateProjectLabel(input: UpdateProjectLabel!): ProjectLabel!
-  updateProjectLabelName(input: UpdateProjectLabelName!): ProjectLabel!
-  updateProjectLabelColor(input: UpdateProjectLabelColor!): ProjectLabel!
+  createProjectLabel(input: NewProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteProjectLabel(input: DeleteProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectLabel(input: UpdateProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectLabelName(input: UpdateProjectLabelName!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectLabelColor(input: UpdateProjectLabelColor!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewProjectLabel {

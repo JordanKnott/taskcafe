@@ -1,12 +1,16 @@
 extend type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
-  createUserAccount(input: NewUserAccount!): UserAccount!
-  deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
+  createUserAccount(input: NewUserAccount!):
+    UserAccount! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+  deleteUserAccount(input: DeleteUserAccount!):
+    DeleteUserAccountPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
 
   updateUserPassword(input: UpdateUserPassword!): UpdateUserPasswordPayload!
-  updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+  updateUserRole(input: UpdateUserRole!):
+   UpdateUserRolePayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 }
 
 input UpdateUserPassword {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import Admin from 'shared/components/Admin';
 import Select from 'shared/components/Select';
 import GlobalTopNavbar from 'App/TopNavbar';
@@ -16,6 +16,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import updateApolloCache from 'shared/utils/cache';
+import UserContext, { useCurrentUser } from 'App/context';
+import { Redirect } from 'react-router';
 
 const DeleteUserWrapper = styled.div`
   display: flex;
@@ -170,6 +172,7 @@ const AdminRoute = () => {
   }, []);
   const { loading, data } = useUsersQuery();
   const { showPopup, hidePopup } = usePopup();
+  const { user } = useCurrentUser();
   const [deleteUser] = useDeleteUserAccountMutation({
     update: (client, response) => {
       updateApolloCache<UsersQuery>(client, UsersDocument, cache =>
@@ -201,13 +204,17 @@ const AdminRoute = () => {
   if (loading) {
     return <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />;
   }
-  if (data) {
+  if (data && user) {
+    if (user.roles.org != 'admin') {
+      return <Redirect to="/" />;
+    }
     return (
       <>
         <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
         <Admin
           initialTab={0}
           users={data.users}
+          canInviteUser={user.roles.org == 'admin'}
           onInviteUser={() => {}}
           onUpdateUserPassword={(user, password) => {
             console.log(user);

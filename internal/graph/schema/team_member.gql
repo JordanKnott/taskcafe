@@ -1,8 +1,11 @@
 extend type Mutation {
-  setTeamOwner(input: SetTeamOwner!): SetTeamOwnerPayload!
-  createTeamMember(input: CreateTeamMember!): CreateTeamMemberPayload!
-  updateTeamMemberRole(input: UpdateTeamMemberRole!): UpdateTeamMemberRolePayload!
-  deleteTeamMember(input: DeleteTeamMember!): DeleteTeamMemberPayload!
+  createTeamMember(input: CreateTeamMember!):
+    CreateTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  updateTeamMemberRole(input: UpdateTeamMemberRole!):
+    UpdateTeamMemberRolePayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteTeamMember(input: DeleteTeamMember!):
+    DeleteTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+
 }
 
 input DeleteTeamMember {
@@ -35,16 +38,6 @@ input UpdateTeamMemberRole {
 
 type UpdateTeamMemberRolePayload {
   ok: Boolean!
-  member: Member!
-}
-
-input SetTeamOwner {
   teamID: UUID!
-  userID: UUID!
-}
-
-type SetTeamOwnerPayload {
-  ok: Boolean!
-  prevOwner: Member!
-  newOwner: Member!
+  member: Member!
 }

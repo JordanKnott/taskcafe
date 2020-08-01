@@ -4,7 +4,7 @@ import styled from 'styled-components/macro';
 import DropdownMenu, { ProfileMenu } from 'shared/components/DropdownMenu';
 import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
-import UserIDContext from 'App/context';
+import { UserContext, PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
 import {
   RoleCode,
   useMeQuery,
@@ -16,6 +16,8 @@ import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { History } from 'history';
 import produce from 'immer';
 import { Link } from 'react-router-dom';
+import MiniProfile from 'shared/components/MiniProfile';
+import cache from 'App/cache';
 
 const TeamContainer = styled.div`
   display: flex;
@@ -221,6 +223,7 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, proje
 type GlobalTopNavbarProps = {
   nameOnly?: boolean;
   projectID: string | null;
+  teamID?: string | null;
   onChangeProjectOwner?: (userID: string) => void;
   name: string | null;
   currentTab?: number;
@@ -239,6 +242,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onSetTab,
   menuType,
   projectID,
+  teamID,
   onChangeProjectOwner,
   onChangeRole,
   name,
@@ -250,10 +254,27 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   nameOnly,
 }) => {
   console.log(popupContent);
-  const { loading, data } = useMeQuery();
+  const { user, setUserRoles, setUser } = useCurrentUser();
+  const { loading, data } = useMeQuery({
+    onCompleted: data => {
+      console.log('me query has completed!');
+      if (user && user.roles) {
+        setUserRoles({
+          org: user.roles.org,
+          teams: data.me.teamRoles.reduce((map, obj) => {
+            map.set(obj.teamID, obj.roleCode);
+            return map;
+          }, new Map<string, string>()),
+          projects: data.me.projectRoles.reduce((map, obj) => {
+            map.set(obj.projectID, obj.roleCode);
+            return map;
+          }, new Map<string, string>()),
+        });
+      }
+    },
+  });
   const { showPopup, hidePopup, setTab } = usePopup();
   const history = useHistory();
-  const { userID, setUserID } = useContext(UserIDContext);
   const onLogout = () => {
     fetch('/auth/logout', {
       method: 'POST',
@@ -261,8 +282,9 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
     }).then(async x => {
       const { status } = x;
       if (status === 200) {
+        cache.reset();
         history.replace('/login');
-        setUserID(null);
+        setUser(null);
         hidePopup();
       }
     });
@@ -273,6 +295,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       <Popup title={null} tab={0}>
         <ProfileMenu
           onLogout={onLogout}
+          showAdminConsole={user ? user.roles.org === 'admin' : false}
           onAdminConsole={() => {
             history.push('/admin');
             hidePopup();
@@ -295,9 +318,41 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
     }
   };
 
-  if (!userID) {
+  if (!user) {
     return null;
   }
+  const userIsTeamOrProjectAdmin = user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID);
+  const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
+    const member = projectMembers ? projectMembers.find(u => u.id === memberID) : null;
+    const warning =
+      'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
+    if (member) {
+      showPopup(
+        $targetRef,
+        <MiniProfile
+          warning={member.role && member.role.code === 'owner' ? warning : null}
+          canChangeRole={userIsTeamOrProjectAdmin}
+          onChangeRole={roleCode => {
+            if (onChangeRole) {
+              onChangeRole(member.id, roleCode);
+            }
+          }}
+          onRemoveFromBoard={
+            member.role && member.role.code === 'owner'
+              ? undefined
+              : () => {
+                  if (onRemoveFromBoard) {
+                    onRemoveFromBoard(member.id);
+                  }
+                }
+          }
+          user={member}
+          bio=""
+        />,
+      );
+    }
+  };
+
   return (
     <>
       <TopNavbar
@@ -312,7 +367,10 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
           );
         }}
         currentTab={currentTab}
-        user={data ? data.me : null}
+        user={data ? data.me.user : null}
+        canEditProjectName={userIsTeamOrProjectAdmin}
+        canInviteUser={userIsTeamOrProjectAdmin}
+        onMemberProfile={onMemberProfile}
         onInviteUser={onInviteUser}
         onChangeRole={onChangeRole}
         onChangeProjectOwner={onChangeProjectOwner}
