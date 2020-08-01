@@ -1,14 +1,23 @@
 extend type Mutation {
-  createTaskChecklist(input: CreateTaskChecklist!): TaskChecklist!
-  deleteTaskChecklist(input: DeleteTaskChecklist!): DeleteTaskChecklistPayload!
-  updateTaskChecklistName(input: UpdateTaskChecklistName!): TaskChecklist!
-  createTaskChecklistItem(input: CreateTaskChecklistItem!): TaskChecklistItem!
-  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
-  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
-  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!): DeleteTaskChecklistItemPayload!
+  createTaskChecklist(input: CreateTaskChecklist!):
+    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskChecklist(input: DeleteTaskChecklist!):
+    DeleteTaskChecklistPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistName(input: UpdateTaskChecklistName!):
+    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  createTaskChecklistItem(input: CreateTaskChecklistItem!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!):
+    DeleteTaskChecklistItemPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!):
+    UpdateTaskChecklistLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!):
+    UpdateTaskChecklistItemLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
-  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!): UpdateTaskChecklistLocationPayload!
-  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!): UpdateTaskChecklistItemLocationPayload!
 }
 
 input UpdateTaskChecklistItemLocation {

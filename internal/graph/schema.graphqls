@@ -97,7 +97,6 @@ type Project {
   createdAt: Time!
   name: String!
   team: Team!
-  owner: Member!
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   labels: [ProjectLabel!]!
@@ -157,6 +156,26 @@ type TaskChecklist {
   items: [TaskChecklistItem!]!
 }
 
+enum RoleLevel {
+  ADMIN
+  MEMBER
+}
+
+enum ActionLevel {
+  ORG
+  TEAM
+  PROJECT
+}
+
+enum ObjectType {
+  ORG
+  TEAM
+  PROJECT
+  TASK
+}
+
+directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
+
 type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
@@ -168,10 +187,26 @@ type Query {
   teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
-  me: UserAccount!
+  me: MePayload! 
 }
 
 type Mutation
+
+type TeamRole {
+  teamID: UUID!
+  roleCode: RoleCode!
+}
+
+type ProjectRole {
+  projectID: UUID!
+  roleCode: RoleCode!
+}
+
+type MePayload {
+  user: UserAccount!
+  teamRoles: [TeamRole!]!
+  projectRoles: [ProjectRole!]!
+}
 
 input ProjectsFilter {
   teamID: UUID
@@ -182,7 +217,7 @@ input FindUser {
 }
 
 input FindProject {
-  projectId: String!
+  projectID: UUID!
 }
 
 input FindTask {
@@ -194,9 +229,11 @@ input FindTeam {
 }
 
 extend type Mutation {
-  createProject(input: NewProject!): Project!
-  deleteProject(input: DeleteProject!): DeleteProjectPayload!
-  updateProjectName(input: UpdateProjectName): Project!
+  createProject(input: NewProject!): Project! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteProject(input: DeleteProject!):
+    DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectName(input: UpdateProjectName):
+    Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewProject {
@@ -221,11 +258,16 @@ type DeleteProjectPayload {
 
 
 extend type Mutation {
-  createProjectLabel(input: NewProjectLabel!): ProjectLabel!
-  deleteProjectLabel(input: DeleteProjectLabel!): ProjectLabel!
-  updateProjectLabel(input: UpdateProjectLabel!): ProjectLabel!
-  updateProjectLabelName(input: UpdateProjectLabelName!): ProjectLabel!
-  updateProjectLabelColor(input: UpdateProjectLabelColor!): ProjectLabel!
+  createProjectLabel(input: NewProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteProjectLabel(input: DeleteProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectLabel(input: UpdateProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectLabelName(input: UpdateProjectLabelName!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectLabelColor(input: UpdateProjectLabelColor!):
+    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewProjectLabel {
@@ -255,10 +297,12 @@ input UpdateProjectLabelColor {
 }
 
 extend type Mutation {
-  createProjectMember(input: CreateProjectMember!): CreateProjectMemberPayload!
-  deleteProjectMember(input: DeleteProjectMember!): DeleteProjectMemberPayload!
-  updateProjectMemberRole(input: UpdateProjectMemberRole!): UpdateProjectMemberRolePayload!
-  setProjectOwner(input: SetProjectOwner!): SetProjectOwnerPayload!
+  createProjectMember(input: CreateProjectMember!):
+    CreateProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteProjectMember(input: DeleteProjectMember!):
+    DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectMemberRole(input: UpdateProjectMemberRole!):
+    UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input CreateProjectMember {
@@ -291,16 +335,6 @@ input UpdateProjectMemberRole {
 type UpdateProjectMemberRolePayload {
   ok: Boolean!
   member: Member!
-}
-
-input SetProjectOwner {
-  projectID: UUID!
-  ownerID: UUID!
-}
-type SetProjectOwnerPayload {
-  ok: Boolean!
-  prevOwner: Member!
-  newOwner: Member!
 }
 
 extend type Mutation {
@@ -506,8 +540,10 @@ extend type Mutation {
 }
 
 extend type Mutation {
-  deleteTeam(input: DeleteTeam!): DeleteTeamPayload!
-  createTeam(input: NewTeam!): Team!
+  deleteTeam(input: DeleteTeam!):
+    DeleteTeamPayload! @hasRole(roles:[ ADMIN], level: TEAM, type: TEAM)
+  createTeam(input: NewTeam!):
+    Team! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 }
 
 input NewTeam {
@@ -526,10 +562,11 @@ type DeleteTeamPayload {
 }
 
 extend type Mutation {
-  setTeamOwner(input: SetTeamOwner!): SetTeamOwnerPayload!
-  createTeamMember(input: CreateTeamMember!): CreateTeamMemberPayload!
-  updateTeamMemberRole(input: UpdateTeamMemberRole!): UpdateTeamMemberRolePayload!
-  deleteTeamMember(input: DeleteTeamMember!): DeleteTeamMemberPayload!
+  createTeamMember(input: CreateTeamMember!): CreateTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  updateTeamMemberRole(input: UpdateTeamMemberRole!):
+    UpdateTeamMemberRolePayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteTeamMember(input: DeleteTeamMember!): DeleteTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+
 }
 
 input DeleteTeamMember {
@@ -562,29 +599,23 @@ input UpdateTeamMemberRole {
 
 type UpdateTeamMemberRolePayload {
   ok: Boolean!
-  member: Member!
-}
-
-input SetTeamOwner {
   teamID: UUID!
-  userID: UUID!
-}
-
-type SetTeamOwnerPayload {
-  ok: Boolean!
-  prevOwner: Member!
-  newOwner: Member!
+  member: Member!
 }
 
 extend type Mutation {
   createRefreshToken(input: NewRefreshToken!): RefreshToken!
-  createUserAccount(input: NewUserAccount!): UserAccount!
-  deleteUserAccount(input: DeleteUserAccount!): DeleteUserAccountPayload!
+  createUserAccount(input: NewUserAccount!):
+    UserAccount! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+  deleteUserAccount(input: DeleteUserAccount!):
+    DeleteUserAccountPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
 
   updateUserPassword(input: UpdateUserPassword!): UpdateUserPasswordPayload!
-  updateUserRole(input: UpdateUserRole!): UpdateUserRolePayload!
+  updateUserRole(input: UpdateUserRole!):
+   UpdateUserRolePayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 }
 
 input UpdateUserPassword {

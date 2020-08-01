@@ -16,7 +16,11 @@ type ToggleTaskLabelPayload {
   task: Task!
 }
 extend type Mutation {
-  addTaskLabel(input: AddTaskLabelInput): Task!
-  removeTaskLabel(input: RemoveTaskLabelInput): Task!
-  toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
+  addTaskLabel(input: AddTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  removeTaskLabel(input: RemoveTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  toggleTaskLabel(input: ToggleTaskLabelInput!):
+    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+
 }

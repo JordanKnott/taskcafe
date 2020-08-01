@@ -25,6 +25,7 @@ export const Default = () => {
       <ThemeProvider theme={theme}>
         <Admin
           onInviteUser={action('invite user')}
+          canInviteUser
           initialTab={1}
           onUpdateUserPassword={action('update user password')}
           onDeleteUser={action('delete user')}

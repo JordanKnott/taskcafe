@@ -50,7 +50,6 @@ type MiniProfileProps = {
   onRemoveFromTask?: () => void;
   onChangeRole?: (roleCode: RoleCode) => void;
   onRemoveFromBoard?: () => void;
-  onChangeProjectOwner?: (userID: string) => void;
   warning?: string | null;
   canChangeRole?: boolean;
 };
@@ -58,7 +57,6 @@ const MiniProfile: React.FC<MiniProfileProps> = ({
   user,
   bio,
   canChangeRole,
-  onChangeProjectOwner,
   onRemoveFromTask,
   onChangeRole,
   onRemoveFromBoard,
@@ -89,15 +87,6 @@ const MiniProfile: React.FC<MiniProfileProps> = ({
                 }}
               >
                 Remove from card
-              </MiniProfileActionItem>
-            )}
-            {onChangeProjectOwner && (
-              <MiniProfileActionItem
-                onClick={() => {
-                  setTab(3);
-                }}
-              >
-                Set as project owner
               </MiniProfileActionItem>
             )}
             {onChangeRole && user.role && (
@@ -190,24 +179,6 @@ const MiniProfile: React.FC<MiniProfileProps> = ({
             }}
           >
             Remove Member
-          </RemoveMemberButton>
-        </Content>
-      </Popup>
-      <Popup title="Set as Project Owner?" onClose={() => hidePopup()} tab={3}>
-        <Content>
-          <DeleteDescription>
-            This will change the project owner from you to this user. They will be able to view and edit cards, remove
-            members, and change all settings for the project. They will also be able to delete the project.
-          </DeleteDescription>
-          <RemoveMemberButton
-            color="warning"
-            onClick={() => {
-              if (onChangeProjectOwner) {
-                onChangeProjectOwner(user.id);
-              }
-            }}
-          >
-            Set as Project Owner
           </RemoveMemberButton>
         </Content>
       </Popup>

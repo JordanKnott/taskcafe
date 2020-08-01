@@ -1,3 +1,23 @@
+enum RoleLevel {
+  ADMIN
+  MEMBER
+}
+
+enum ActionLevel {
+  ORG
+  TEAM
+  PROJECT
+}
+
+enum ObjectType {
+  ORG
+  TEAM
+  PROJECT
+  TASK
+}
+
+directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
+
 type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
@@ -9,10 +29,26 @@ type Query {
   teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
-  me: UserAccount!
+  me: MePayload! 
 }
 
 type Mutation
+
+type TeamRole {
+  teamID: UUID!
+  roleCode: RoleCode!
+}
+
+type ProjectRole {
+  projectID: UUID!
+  roleCode: RoleCode!
+}
+
+type MePayload {
+  user: UserAccount!
+  teamRoles: [TeamRole!]!
+  projectRoles: [ProjectRole!]!
+}
 
 input ProjectsFilter {
   teamID: UUID
@@ -23,7 +59,7 @@ input FindUser {
 }
 
 input FindProject {
-  projectId: String!
+  projectID: UUID!
 }
 
 input FindTask {

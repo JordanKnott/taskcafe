@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import updateApolloCache from 'shared/utils/cache';
-import {usePopup, Popup} from 'shared/components/PopupMenu';
+import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import {
-  useSetProjectOwnerMutation,
   useUpdateProjectMemberRoleMutation,
   useCreateProjectMemberMutation,
   useDeleteProjectMemberMutation,
@@ -50,7 +49,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
   taskLabels: taskLabelsRef,
 }) => {
   const [currentLabel, setCurrentLabel] = useState('');
-  const {setTab, hidePopup} = usePopup();
+  const { setTab, hidePopup } = usePopup();
   const [createProjectLabel] = useCreateProjectLabelMutation({
     update: (client, newLabelData) => {
       updateApolloCache<FindProjectQuery>(
@@ -58,10 +57,10 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.labels.push({...newLabelData.data.createProjectLabel});
+            draftCache.findProject.labels.push({ ...newLabelData.data.createProjectLabel });
           }),
         {
-          projectId: projectID,
+          projectID,
         },
       );
     },
@@ -78,7 +77,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
               label => label.id !== newLabelData.data.deleteProjectLabel.id,
             );
           }),
-        {projectId: projectID},
+        { projectID },
       );
     },
   });
@@ -108,7 +107,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
                 if (newProjectLabel) {
                   setCurrentTaskLabels([
                     ...currentTaskLabels,
-                    {id: '', assignedDate: '', projectLabel: {...newProjectLabel}},
+                    { id: '', assignedDate: '', projectLabel: { ...newProjectLabel } },
                   ]);
                 }
               }
@@ -127,12 +126,12 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
           label={labels.find(label => label.id === currentLabel) ?? null}
           onLabelEdit={(projectLabelID, name, color) => {
             if (projectLabelID) {
-              updateProjectLabel({variables: {projectLabelID, labelColorID: color.id, name: name ?? ''}});
+              updateProjectLabel({ variables: { projectLabelID, labelColorID: color.id, name: name ?? '' } });
             }
             setTab(0);
           }}
           onLabelDelete={labelID => {
-            deleteProjectLabel({variables: {projectLabelID: labelID}});
+            deleteProjectLabel({ variables: { projectLabelID: labelID } });
             setTab(0);
           }}
         />
@@ -142,7 +141,7 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
           labelColors={labelColors}
           label={null}
           onLabelEdit={(_labelId, name, color) => {
-            createProjectLabel({variables: {projectID, labelColorID: color.id, name: name ?? ''}});
+            createProjectLabel({ variables: { projectID, labelColorID: color.id, name: name ?? '' } });
             setTab(0);
           }}
         />
@@ -151,4 +150,4 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
   );
 };
 
-export default LabelManagerEditor
+export default LabelManagerEditor;

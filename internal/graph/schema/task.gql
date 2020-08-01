@@ -1,15 +1,24 @@
 extend type Mutation {
-  createTask(input: NewTask!): Task!
-  deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+  createTask(input: NewTask!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTask(input: DeleteTaskInput!):
+    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
-  updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
-  updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
-  updateTaskName(input: UpdateTaskName!): Task!
-  setTaskComplete(input: SetTaskComplete!): Task!
-  updateTaskDueDate(input: UpdateTaskDueDate!): Task!
+  updateTaskDescription(input: UpdateTaskDescriptionInput!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskLocation(input: NewTaskLocation!):
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskName(input: UpdateTaskName!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  setTaskComplete(input: SetTaskComplete!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskDueDate(input: UpdateTaskDueDate!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
-  assignTask(input: AssignTaskInput): Task!
-  unassignTask(input: UnassignTaskInput): Task!
+  assignTask(input: AssignTaskInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  unassignTask(input: UnassignTaskInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewTask {

@@ -11,30 +11,23 @@ import (
 )
 
 const createTeam = `-- name: CreateTeam :one
-INSERT INTO team (organization_id, created_at, name, owner) VALUES ($1, $2, $3, $4) RETURNING team_id, created_at, name, organization_id, owner
+INSERT INTO team (organization_id, created_at, name) VALUES ($1, $2, $3) RETURNING team_id, created_at, name, organization_id
 `
 
 type CreateTeamParams struct {
 	OrganizationID uuid.UUID `json:"organization_id"`
 	CreatedAt      time.Time `json:"created_at"`
 	Name           string    `json:"name"`
-	Owner          uuid.UUID `json:"owner"`
 }
 
 func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error) {
-	row := q.db.QueryRowContext(ctx, createTeam,
-		arg.OrganizationID,
-		arg.CreatedAt,
-		arg.Name,
-		arg.Owner,
-	)
+	row := q.db.QueryRowContext(ctx, createTeam, arg.OrganizationID, arg.CreatedAt, arg.Name)
 	var i Team
 	err := row.Scan(
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
 		&i.OrganizationID,
-		&i.Owner,
 	)
 	return i, err
 }
@@ -49,7 +42,7 @@ func (q *Queries) DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error {
 }
 
 const getAllTeams = `-- name: GetAllTeams :many
-SELECT team_id, created_at, name, organization_id, owner FROM team
+SELECT team_id, created_at, name, organization_id FROM team
 `
 
 func (q *Queries) GetAllTeams(ctx context.Context) ([]Team, error) {
@@ -66,7 +59,6 @@ func (q *Queries) GetAllTeams(ctx context.Context) ([]Team, error) {
 			&i.CreatedAt,
 			&i.Name,
 			&i.OrganizationID,
-			&i.Owner,
 		); err != nil {
 			return nil, err
 		}
@@ -108,26 +100,62 @@ func (q *Queries) GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUI
 	return items, nil
 }
 
-const getOwnedTeamsForUserID = `-- name: GetOwnedTeamsForUserID :many
-SELECT team_id, created_at, name, organization_id, owner FROM team WHERE owner = $1
+const getTeamByID = `-- name: GetTeamByID :one
+SELECT team_id, created_at, name, organization_id FROM team WHERE team_id = $1
 `
 
-func (q *Queries) GetOwnedTeamsForUserID(ctx context.Context, owner uuid.UUID) ([]Team, error) {
-	rows, err := q.db.QueryContext(ctx, getOwnedTeamsForUserID, owner)
+func (q *Queries) GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error) {
+	row := q.db.QueryRowContext(ctx, getTeamByID, teamID)
+	var i Team
+	err := row.Scan(
+		&i.TeamID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.OrganizationID,
+	)
+	return i, err
+}
+
+const getTeamRoleForUserID = `-- name: GetTeamRoleForUserID :one
+SELECT team_id, role_code FROM team_member WHERE user_id = $1 AND team_id = $2
+`
+
+type GetTeamRoleForUserIDParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	TeamID uuid.UUID `json:"team_id"`
+}
+
+type GetTeamRoleForUserIDRow struct {
+	TeamID   uuid.UUID `json:"team_id"`
+	RoleCode string    `json:"role_code"`
+}
+
+func (q *Queries) GetTeamRoleForUserID(ctx context.Context, arg GetTeamRoleForUserIDParams) (GetTeamRoleForUserIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getTeamRoleForUserID, arg.UserID, arg.TeamID)
+	var i GetTeamRoleForUserIDRow
+	err := row.Scan(&i.TeamID, &i.RoleCode)
+	return i, err
+}
+
+const getTeamRolesForUserID = `-- name: GetTeamRolesForUserID :many
+SELECT team_id, role_code FROM team_member WHERE user_id = $1
+`
+
+type GetTeamRolesForUserIDRow struct {
+	TeamID   uuid.UUID `json:"team_id"`
+	RoleCode string    `json:"role_code"`
+}
+
+func (q *Queries) GetTeamRolesForUserID(ctx context.Context, userID uuid.UUID) ([]GetTeamRolesForUserIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getTeamRolesForUserID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Team
+	var items []GetTeamRolesForUserIDRow
 	for rows.Next() {
-		var i Team
-		if err := rows.Scan(
-			&i.TeamID,
-			&i.CreatedAt,
-			&i.Name,
-			&i.OrganizationID,
-			&i.Owner,
-		); err != nil {
+		var i GetTeamRolesForUserIDRow
+		if err := rows.Scan(&i.TeamID, &i.RoleCode); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -141,25 +169,8 @@ func (q *Queries) GetOwnedTeamsForUserID(ctx context.Context, owner uuid.UUID) (
 	return items, nil
 }
 
-const getTeamByID = `-- name: GetTeamByID :one
-SELECT team_id, created_at, name, organization_id, owner FROM team WHERE team_id = $1
-`
-
-func (q *Queries) GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error) {
-	row := q.db.QueryRowContext(ctx, getTeamByID, teamID)
-	var i Team
-	err := row.Scan(
-		&i.TeamID,
-		&i.CreatedAt,
-		&i.Name,
-		&i.OrganizationID,
-		&i.Owner,
-	)
-	return i, err
-}
-
 const getTeamsForOrganization = `-- name: GetTeamsForOrganization :many
-SELECT team_id, created_at, name, organization_id, owner FROM team WHERE organization_id = $1
+SELECT team_id, created_at, name, organization_id FROM team WHERE organization_id = $1
 `
 
 func (q *Queries) GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error) {
@@ -176,7 +187,6 @@ func (q *Queries) GetTeamsForOrganization(ctx context.Context, organizationID uu
 			&i.CreatedAt,
 			&i.Name,
 			&i.OrganizationID,
-			&i.Owner,
 		); err != nil {
 			return nil, err
 		}
@@ -191,50 +201,29 @@ func (q *Queries) GetTeamsForOrganization(ctx context.Context, organizationID uu
 	return items, nil
 }
 
-const setTeamOwner = `-- name: SetTeamOwner :one
-UPDATE team SET owner = $2 WHERE team_id = $1 RETURNING team_id, created_at, name, organization_id, owner
+const getTeamsForUserIDWhereAdmin = `-- name: GetTeamsForUserIDWhereAdmin :many
+SELECT team.team_id, team.created_at, team.name, team.organization_id FROM team_member INNER JOIN team
+  ON team.team_id = team_member.team_id  WHERE (role_code = 'admin' OR role_code = 'member') AND user_id = $1
 `
 
-type SetTeamOwnerParams struct {
-	TeamID uuid.UUID `json:"team_id"`
-	Owner  uuid.UUID `json:"owner"`
-}
-
-func (q *Queries) SetTeamOwner(ctx context.Context, arg SetTeamOwnerParams) (Team, error) {
-	row := q.db.QueryRowContext(ctx, setTeamOwner, arg.TeamID, arg.Owner)
-	var i Team
-	err := row.Scan(
-		&i.TeamID,
-		&i.CreatedAt,
-		&i.Name,
-		&i.OrganizationID,
-		&i.Owner,
-	)
-	return i, err
-}
-
-const updateTeamOwnerByOwnerID = `-- name: UpdateTeamOwnerByOwnerID :many
-UPDATE team SET owner = $2 WHERE owner = $1 RETURNING team_id
-`
-
-type UpdateTeamOwnerByOwnerIDParams struct {
-	Owner   uuid.UUID `json:"owner"`
-	Owner_2 uuid.UUID `json:"owner_2"`
-}
-
-func (q *Queries) UpdateTeamOwnerByOwnerID(ctx context.Context, arg UpdateTeamOwnerByOwnerIDParams) ([]uuid.UUID, error) {
-	rows, err := q.db.QueryContext(ctx, updateTeamOwnerByOwnerID, arg.Owner, arg.Owner_2)
+func (q *Queries) GetTeamsForUserIDWhereAdmin(ctx context.Context, userID uuid.UUID) ([]Team, error) {
+	rows, err := q.db.QueryContext(ctx, getTeamsForUserIDWhereAdmin, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []uuid.UUID
+	var items []Team
 	for rows.Next() {
-		var team_id uuid.UUID
-		if err := rows.Scan(&team_id); err != nil {
+		var i Team
+		if err := rows.Scan(
+			&i.TeamID,
+			&i.CreatedAt,
+			&i.Name,
+			&i.OrganizationID,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, team_id)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

@@ -1,8 +1,12 @@
 extend type Mutation {
-  createTaskGroup(input: NewTaskGroup!): TaskGroup!
-  updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
-  updateTaskGroupName(input: UpdateTaskGroupName!): TaskGroup!
-  deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
+  createTaskGroup(input: NewTaskGroup!):
+    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskGroupLocation(input: NewTaskGroupLocation!):
+    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskGroupName(input: UpdateTaskGroupName!):
+    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskGroup(input: DeleteTaskGroupInput!):
+    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewTaskGroupLocation {

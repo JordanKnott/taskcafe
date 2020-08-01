@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components/macro';
 import { MENU_TYPES } from 'shared/components/TopNavbar';
 import GlobalTopNavbar from 'App/TopNavbar';
 import updateApolloCache from 'shared/utils/cache';
-import { Route, Switch, useRouteMatch } from 'react-router';
+import { Route, Switch, useRouteMatch, Redirect } from 'react-router';
 import Members from './Members';
 import Projects from './Projects';
 
@@ -18,6 +18,7 @@ import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { History } from 'history';
 import produce from 'immer';
 import { TeamSettings, DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
+import UserContext, { PermissionObjectType, PermissionLevel, useCurrentUser } from 'App/context';
 
 const OuterWrapper = styled.div`
   display: flex;
@@ -87,6 +88,7 @@ const Teams = () => {
   const { teamID } = useParams<TeamsRouteProps>();
   const history = useHistory();
   const { loading, data } = useGetTeamQuery({ variables: { teamID } });
+  const { user } = useCurrentUser();
   const [currentTab, setCurrentTab] = useState(0);
   const match = useRouteMatch();
   useEffect(() => {
@@ -99,7 +101,10 @@ const Teams = () => {
       </>
     );
   }
-  if (data) {
+  if (data && user) {
+    if (!user.isVisible(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID)) {
+      return <Redirect to="/" />;
+    }
     return (
       <>
         <GlobalTopNavbar

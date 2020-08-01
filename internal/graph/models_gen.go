@@ -152,7 +152,7 @@ type DeleteUserAccountPayload struct {
 }
 
 type FindProject struct {
-	ProjectID string `json:"projectId"`
+	ProjectID uuid.UUID `json:"projectID"`
 }
 
 type FindTask struct {
@@ -169,6 +169,12 @@ type FindUser struct {
 
 type LogoutUser struct {
 	UserID string `json:"userID"`
+}
+
+type MePayload struct {
+	User         *db.UserAccount `json:"user"`
+	TeamRoles    []TeamRole      `json:"teamRoles"`
+	ProjectRoles []ProjectRole   `json:"projectRoles"`
 }
 
 type Member struct {
@@ -255,23 +261,17 @@ type ProfileIcon struct {
 	BgColor  *string `json:"bgColor"`
 }
 
+type ProjectRole struct {
+	ProjectID uuid.UUID `json:"projectID"`
+	RoleCode  RoleCode  `json:"roleCode"`
+}
+
 type ProjectsFilter struct {
 	TeamID *uuid.UUID `json:"teamID"`
 }
 
 type RemoveTaskLabelInput struct {
 	TaskLabelID uuid.UUID `json:"taskLabelID"`
-}
-
-type SetProjectOwner struct {
-	ProjectID uuid.UUID `json:"projectID"`
-	OwnerID   uuid.UUID `json:"ownerID"`
-}
-
-type SetProjectOwnerPayload struct {
-	Ok        bool    `json:"ok"`
-	PrevOwner *Member `json:"prevOwner"`
-	NewOwner  *Member `json:"newOwner"`
 }
 
 type SetTaskChecklistItemComplete struct {
@@ -284,19 +284,13 @@ type SetTaskComplete struct {
 	Complete bool      `json:"complete"`
 }
 
-type SetTeamOwner struct {
-	TeamID uuid.UUID `json:"teamID"`
-	UserID uuid.UUID `json:"userID"`
-}
-
-type SetTeamOwnerPayload struct {
-	Ok        bool    `json:"ok"`
-	PrevOwner *Member `json:"prevOwner"`
-	NewOwner  *Member `json:"newOwner"`
-}
-
 type TaskBadges struct {
 	Checklist *ChecklistBadge `json:"checklist"`
+}
+
+type TeamRole struct {
+	TeamID   uuid.UUID `json:"teamID"`
+	RoleCode RoleCode  `json:"roleCode"`
 }
 
 type ToggleTaskLabelInput struct {
@@ -409,8 +403,9 @@ type UpdateTeamMemberRole struct {
 }
 
 type UpdateTeamMemberRolePayload struct {
-	Ok     bool    `json:"ok"`
-	Member *Member `json:"member"`
+	Ok     bool      `json:"ok"`
+	TeamID uuid.UUID `json:"teamID"`
+	Member *Member   `json:"member"`
 }
 
 type UpdateUserPassword struct {
@@ -430,6 +425,94 @@ type UpdateUserRole struct {
 
 type UpdateUserRolePayload struct {
 	User *db.UserAccount `json:"user"`
+}
+
+type ActionLevel string
+
+const (
+	ActionLevelOrg     ActionLevel = "ORG"
+	ActionLevelTeam    ActionLevel = "TEAM"
+	ActionLevelProject ActionLevel = "PROJECT"
+)
+
+var AllActionLevel = []ActionLevel{
+	ActionLevelOrg,
+	ActionLevelTeam,
+	ActionLevelProject,
+}
+
+func (e ActionLevel) IsValid() bool {
+	switch e {
+	case ActionLevelOrg, ActionLevelTeam, ActionLevelProject:
+		return true
+	}
+	return false
+}
+
+func (e ActionLevel) String() string {
+	return string(e)
+}
+
+func (e *ActionLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ActionLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ActionLevel", str)
+	}
+	return nil
+}
+
+func (e ActionLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ObjectType string
+
+const (
+	ObjectTypeOrg     ObjectType = "ORG"
+	ObjectTypeTeam    ObjectType = "TEAM"
+	ObjectTypeProject ObjectType = "PROJECT"
+	ObjectTypeTask    ObjectType = "TASK"
+)
+
+var AllObjectType = []ObjectType{
+	ObjectTypeOrg,
+	ObjectTypeTeam,
+	ObjectTypeProject,
+	ObjectTypeTask,
+}
+
+func (e ObjectType) IsValid() bool {
+	switch e {
+	case ObjectTypeOrg, ObjectTypeTeam, ObjectTypeProject, ObjectTypeTask:
+		return true
+	}
+	return false
+}
+
+func (e ObjectType) String() string {
+	return string(e)
+}
+
+func (e *ObjectType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ObjectType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ObjectType", str)
+	}
+	return nil
+}
+
+func (e ObjectType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type RoleCode string
@@ -474,5 +557,46 @@ func (e *RoleCode) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RoleCode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RoleLevel string
+
+const (
+	RoleLevelAdmin  RoleLevel = "ADMIN"
+	RoleLevelMember RoleLevel = "MEMBER"
+)
+
+var AllRoleLevel = []RoleLevel{
+	RoleLevelAdmin,
+	RoleLevelMember,
+}
+
+func (e RoleLevel) IsValid() bool {
+	switch e {
+	case RoleLevelAdmin, RoleLevelMember:
+		return true
+	}
+	return false
+}
+
+func (e RoleLevel) String() string {
+	return string(e)
+}
+
+func (e *RoleLevel) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RoleLevel(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RoleLevel", str)
+	}
+	return nil
+}
+
+func (e RoleLevel) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

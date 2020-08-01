@@ -1,5 +1,6 @@
 interface JWTToken {
   userId: string;
+  orgRole: string;
   iat: string;
   exp: string;
 }
