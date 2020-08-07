@@ -10,11 +10,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/jordanknott/project-citadel/internal/config"
-	"github.com/jordanknott/project-citadel/internal/db"
-	"github.com/jordanknott/project-citadel/internal/frontend"
-	"github.com/jordanknott/project-citadel/internal/graph"
-	"github.com/jordanknott/project-citadel/internal/logger"
+	"github.com/jordanknott/taskcafe/internal/config"
+	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/jordanknott/taskcafe/internal/frontend"
+	"github.com/jordanknott/taskcafe/internal/graph"
+	"github.com/jordanknott/taskcafe/internal/logger"
 	"os"
 	"path/filepath"
 )
@@ -59,7 +59,7 @@ func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, time.Now(), f)
 }
 
-type CitadelHandler struct {
+type TaskcafeHandler struct {
 	config config.AppConfig
 	repo   db.Repository
 }
@@ -92,19 +92,19 @@ func NewRouter(config config.AppConfig, dbConnection *sqlx.DB) (chi.Router, erro
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repository := db.NewRepository(dbConnection)
-	citadelHandler := CitadelHandler{config, *repository}
+	taskcafeHandler := TaskcafeHandler{config, *repository}
 
 	var imgServer = http.FileServer(http.Dir("./uploads/"))
 	r.Group(func(mux chi.Router) {
-		mux.Mount("/auth", authResource{}.Routes(citadelHandler))
+		mux.Mount("/auth", authResource{}.Routes(taskcafeHandler))
 		mux.Handle("/__graphql", graph.NewPlaygroundHandler("/graphql"))
 		mux.Mount("/uploads/", http.StripPrefix("/uploads/", imgServer))
 
 	})
 	r.Group(func(mux chi.Router) {
 		mux.Use(AuthenticationMiddleware)
-		mux.Post("/users/me/avatar", citadelHandler.ProfileImageUpload)
-		mux.Post("/auth/install", citadelHandler.InstallHandler)
+		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
+		mux.Post("/auth/install", taskcafeHandler.InstallHandler)
 		mux.Handle("/graphql", graph.NewHandler(config, *repository))
 	})
 

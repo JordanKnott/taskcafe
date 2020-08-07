@@ -9,8 +9,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
-	"github.com/jordanknott/project-citadel/internal/config"
-	"github.com/jordanknott/project-citadel/internal/migrations"
+	"github.com/jordanknott/taskcafe/internal/config"
+	"github.com/jordanknott/taskcafe/internal/migrations"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -7,23 +7,23 @@ services:
     depends_on:
       - postgres
     networks:
-      - citadel-test
+      - taskcafe-test
   postgres:
     image: postgres:12.3-alpine
     restart: always
     networks:
-      - citadel-test
+      - taskcafe-test
     environment:
-      POSTGRES_USER: citadel
-      POSTGRES_PASSWORD: citadel_test
-      POSTGRES_DB: citadel
+      POSTGRES_USER: taskcafe
+      POSTGRES_PASSWORD: taskcafe_test
+      POSTGRES_DB: taskcafe
     volumes:
-    - citadel-postgres:/var/lib/postgresql/data
+    - taskcafe-postgres:/var/lib/postgresql/data
 
 volumes:
-  citadel-postgres:
+  taskcafe-postgres:
     external: false
 
 networks:
-  citadel-test:
+  taskcafe-test:
     driver: bridge

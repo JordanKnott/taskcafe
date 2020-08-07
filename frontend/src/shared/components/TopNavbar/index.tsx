@@ -7,8 +7,8 @@ import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { RoleCode } from 'shared/generated/graphql';
 import MiniProfile from 'shared/components/MiniProfile';
 import {
-  CitadelLogo,
-  CitadelTitle,
+  TaskcafeLogo,
+  TaskcafeTitle,
   ProjectFinder,
   LogoContainer,
   NavSeparator,
@@ -251,8 +251,8 @@ const NavBar: React.FC<NavBarProps> = ({
           )}
         </ProjectActions>
         <LogoContainer to="/">
-          <CitadelLogo width={24} height={24} />
-          <CitadelTitle>Citadel</CitadelTitle>
+          <TaskcafeLogo width={32} height={32} />
+          <TaskcafeTitle>Taskcafé</TaskcafeTitle>
         </LogoContainer>
         <GlobalActions>
           {projectMembers && (

@@ -7,8 +7,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/jmoiron/sqlx"
 	"github.com/jordan-wright/email"
-	"github.com/jordanknott/project-citadel/pg"
-	"github.com/jordanknott/project-citadel/router"
+	"github.com/jordanknott/taskcafe/pg"
+	"github.com/jordanknott/taskcafe/router"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
@@ -54,7 +54,7 @@ func SendEmail() {
 		panic(err)
 	}
 
-	user := UserRegistration{Username: "jordanthedev", AppName: "Citadel", AppURL: "http://localhost:3000/", Year: "2020"}
+	user := UserRegistration{Username: "jordanthedev", AppName: "Taskcafe", AppURL: "http://localhost:3000/", Year: "2020"}
 	tmpl, err := template.New("registered").Parse(string(emailTmpl))
 	if err != nil {
 		panic(err)
@@ -67,9 +67,9 @@ func SendEmail() {
 	result := tpl.String()
 
 	e := email.NewEmail()
-	e.From = "Jordan Knott <no-reply@citadel.com>"
+	e.From = "Jordan Knott <no-reply@taskcafe.com>"
 	e.To = []string{"jordan@jordanthedev.com"}
-	e.Subject = "Jordan Knott (@jordanthedev) invited you to join the team \"Paradox\" on Citadel"
+	e.Subject = "Jordan Knott (@jordanthedev) invited you to join the team \"Paradox\" on Taskcafe"
 	e.Text = []byte("Text Body is, of course, supported!")
 	e.HTML = []byte(result)
 	e.Send("localhost:1025", smtp.PlainAuth("", "test@gmail.com", "password123", "localhost"))
@@ -95,7 +95,7 @@ func Seed() {
 	if err != nil {
 		panic(err)
 	}
-	db, err := sqlx.Connect("postgres", "user=postgres password=test host=0.0.0.0 dbname=citadel sslmode=disable")
+	db, err := sqlx.Connect("postgres", "user=postgres password=test host=0.0.0.0 dbname=taskcafe sslmode=disable")
 	repository := pg.NewRepository(db)
 	for _, color := range labelColors.Color {
 		fmt.Printf("%v\n", color)

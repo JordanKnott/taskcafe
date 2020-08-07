@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
-import { Citadel } from 'shared/icons';
+import { Taskcafe } from 'shared/icons';
 import { NavLink, Link } from 'react-router-dom';
 import TaskAssignee from 'shared/components/TaskAssignee';
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
@@ -251,13 +251,13 @@ export const LogoContainer = styled(Link)`
   justify-content: center;
 `;
 
-export const CitadelTitle = styled.h2`
+export const TaskcafeTitle = styled.h2`
   margin-left: 5px;
   color: rgba(${props => props.theme.colors.text.primary});
   font-size: 20px;
 `;
 
-export const CitadelLogo = styled(Citadel)`
+export const TaskcafeLogo = styled(Taskcafe)`
   fill: rgba(${props => props.theme.colors.text.primary});
   stroke: rgba(${props => props.theme.colors.text.primary});
 `;

@@ -90,7 +90,7 @@ const Teams = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const match = useRouteMatch();
   useEffect(() => {
-    document.title = 'Citadel | Teams';
+    document.title = 'Teams | Taskcafé';
   }, []);
   if (loading) {
     return (

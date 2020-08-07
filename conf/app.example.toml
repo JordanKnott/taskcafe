@@ -12,9 +12,9 @@ upload_dir_path = 'uploads'
 
 [database]
 host = 'postgres'
-name = 'citadel'
-user = 'citadel'
-password = 'citadel_test'
+name = 'taskcafe'
+user = 'taskcafe'
+password = 'taskcafe_test'
 
 [smtp]
 username = 'admin@example.com'

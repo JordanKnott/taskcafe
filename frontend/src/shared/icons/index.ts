@@ -25,7 +25,7 @@ import Checkmark from './Checkmark';
 import User from './User';
 import Users from './Users';
 import Lock from './Lock';
-import Citadel from './Citadel';
+import Taskcafe from './Taskcafe';
 import Home from './Home';
 import Stack from './Stack';
 import Question from './Question';
@@ -52,7 +52,7 @@ export {
   Stack,
   Question,
   Home,
-  Citadel,
+  Taskcafe,
   Checkmark,
   User,
   Trash,

@@ -5,11 +5,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const CitadelConfDirEnvName = "CITADEL_CONFIG_DIR"
+const TaskcafeConfDirEnvName = "TASKCAFE_CONFIG_DIR"
 
-const CitadelAppConf = "citadel"
+const TaskcafeAppConf = "taskcafe"
 
-const mainDescription = `citadel is an open soure project management
+const mainDescription = `Taskcafé is an open soure project management
 system written in Golang & React.`
 
 var (
@@ -28,7 +28,7 @@ var verbose bool
 var noColor bool
 
 var rootCmd = &cobra.Command{
-	Use:     "citadel",
+	Use:     "taskcafe",
 	Long:    mainDescription,
 	Version: version,
 }

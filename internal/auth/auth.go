@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var jwtKey = []byte("citadel_test_key")
+var jwtKey = []byte("taskcafe_test_key")
 
 type RestrictedMode string
 

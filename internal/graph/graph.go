@@ -12,9 +12,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/google/uuid"
-	"github.com/jordanknott/project-citadel/internal/auth"
-	"github.com/jordanknott/project-citadel/internal/config"
-	"github.com/jordanknott/project-citadel/internal/db"
+	"github.com/jordanknott/taskcafe/internal/auth"
+	"github.com/jordanknott/taskcafe/internal/config"
+	"github.com/jordanknott/taskcafe/internal/db"
 )
 
 // NewHandler returns a new graphql endpoint handler.

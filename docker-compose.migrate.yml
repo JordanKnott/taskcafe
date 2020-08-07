@@ -3,10 +3,10 @@ version: '3'
 services:
   migrate:
     build: .
-    entrypoint: ./citadel migrate
+    entrypoint: ./taskcafe migrate
     volumes:
       - ./migrations:/root/migrations
     depends_on:
       - postgres
     networks:
-      - citadel-test
+      - taskcafe-test

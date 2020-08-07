@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AccessAccount from 'shared/undraw/AccessAccount';
-import { User, Lock, Citadel } from 'shared/icons';
+import { User, Lock, Taskcafe } from 'shared/icons';
 import { useForm } from 'react-hook-form';
 
 import {
@@ -38,8 +38,8 @@ const Login = ({ onSubmit }: LoginProps) => {
         <LoginFormWrapper>
           <LoginFormContainer>
             <LogoWrapper>
-              <Citadel width={42} height={42} />
-              <LogoTitle>Citadel</LogoTitle>
+              <Taskcafe width={42} height={42} />
+              <LogoTitle>Taskcafé</LogoTitle>
             </LogoWrapper>
             <Title>Login</Title>
             <SubTitle>Welcome back, please login into your account.</SubTitle>

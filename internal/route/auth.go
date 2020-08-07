@@ -8,13 +8,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
-	"github.com/jordanknott/project-citadel/internal/auth"
-	"github.com/jordanknott/project-citadel/internal/db"
+	"github.com/jordanknott/taskcafe/internal/auth"
+	"github.com/jordanknott/taskcafe/internal/db"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtKey = []byte("citadel_test_key")
+var jwtKey = []byte("taskcafe_test_key")
 
 type authResource struct{}
 
@@ -53,7 +53,7 @@ type AvatarUploadResponseData struct {
 	URL    string `json:"url"`
 }
 
-func (h *CitadelHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TaskcafeHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.repo.GetSystemOptionByKey(r.Context(), "is_installed")
 	if err == sql.ErrNoRows {
@@ -124,7 +124,7 @@ func (h *CitadelHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(LoginResponseData{AccessToken: accessTokenString, IsInstalled: true})
 }
 
-func (h *CitadelHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TaskcafeHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("refreshToken")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -143,7 +143,7 @@ func (h *CitadelHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(LogoutResponseData{Status: "success"})
 }
 
-func (h *CitadelHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData LoginRequestData
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
@@ -190,7 +190,7 @@ func (h *CitadelHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(LoginResponseData{accessTokenString, false})
 }
 
-func (h *CitadelHandler) InstallHandler(w http.ResponseWriter, r *http.Request) {
+func (h *TaskcafeHandler) InstallHandler(w http.ResponseWriter, r *http.Request) {
 	if restricted, ok := r.Context().Value("restricted_mode").(auth.RestrictedMode); ok {
 		if restricted != auth.InstallOnly {
 			log.Warning("attempted to install without install only restriction")
@@ -250,10 +250,10 @@ func (h *CitadelHandler) InstallHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(LoginResponseData{accessTokenString, false})
 }
 
-func (rs authResource) Routes(citadelHandler CitadelHandler) chi.Router {
+func (rs authResource) Routes(taskcafeHandler TaskcafeHandler) chi.Router {
 	r := chi.NewRouter()
-	r.Post("/login", citadelHandler.LoginHandler)
-	r.Post("/refresh_token", citadelHandler.RefreshTokenHandler)
-	r.Post("/logout", citadelHandler.LogoutHandler)
+	r.Post("/login", taskcafeHandler.LoginHandler)
+	r.Post("/refresh_token", taskcafeHandler.RefreshTokenHandler)
+	r.Post("/logout", taskcafeHandler.LogoutHandler)
 	return r
 }

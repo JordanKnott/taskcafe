@@ -166,7 +166,7 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
 
 const AdminRoute = () => {
   useEffect(() => {
-    document.title = 'Citadel | Admin';
+    document.title = 'Taskcafé | Admin';
   }, []);
   const { loading, data } = useUsersQuery();
   const { showPopup, hidePopup } = usePopup();

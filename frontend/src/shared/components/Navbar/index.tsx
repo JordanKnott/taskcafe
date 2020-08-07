@@ -1,5 +1,5 @@
 import React from 'react';
-import { Citadel } from 'shared/icons';
+import { Taskcafe } from 'shared/icons';
 import {
   Container,
   LogoWrapper,
@@ -35,8 +35,8 @@ export const ButtonContainer: React.FC = ({ children }) => (
 export const PrimaryLogo = () => {
   return (
     <LogoWrapper>
-      <Citadel width={42} height={42} />
-      <LogoTitle>Citadel</LogoTitle>
+      <Taskcafe width={42} height={42} />
+      <LogoTitle>Taskcafé</LogoTitle>
     </LogoWrapper>
   );
 };

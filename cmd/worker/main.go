@@ -8,7 +8,7 @@ import (
 	"github.com/RichardKnop/machinery/v1/config"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/jordanknott/project-citadel/pg"
+	"github.com/jordanknott/taskcafe/pg"
 	_ "github.com/lib/pq"
 )
 

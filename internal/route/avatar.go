@@ -12,11 +12,11 @@ import (
 
 	"time"
 
-	"github.com/jordanknott/project-citadel/internal/db"
-	"github.com/jordanknott/project-citadel/internal/frontend"
+	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/jordanknott/taskcafe/internal/frontend"
 )
 
-func (h *CitadelHandler) Frontend(w http.ResponseWriter, r *http.Request) {
+func (h *TaskcafeHandler) Frontend(w http.ResponseWriter, r *http.Request) {
 	f, err := frontend.Frontend.Open("index.h")
 	if os.IsNotExist(err) {
 		log.Warning("does not exist")
@@ -26,7 +26,7 @@ func (h *CitadelHandler) Frontend(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, "index.html", time.Now(), f)
 }
 
-func (h *CitadelHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Request) {
+func (h *TaskcafeHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info("preparing to upload file")
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
 	if !ok {

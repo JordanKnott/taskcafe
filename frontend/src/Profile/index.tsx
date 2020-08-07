@@ -20,7 +20,7 @@ const Projects = () => {
   const [clearProfileAvatar] = useClearProfileAvatarMutation();
   const { loading, data, refetch } = useMeQuery();
   useEffect(() => {
-    document.title = 'Profile | Citadel';
+    document.title = 'Profile | Taskcafé';
   }, []);
   return (
     <>

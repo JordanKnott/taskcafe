@@ -5,8 +5,8 @@ package graph
 import (
 	"sync"
 
-	"github.com/jordanknott/project-citadel/internal/config"
-	"github.com/jordanknott/project-citadel/internal/db"
+	"github.com/jordanknott/taskcafe/internal/config"
+	"github.com/jordanknott/taskcafe/internal/db"
 )
 
 type Resolver struct {

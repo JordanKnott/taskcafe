@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jordanknott/project-citadel/internal/db"
+	"github.com/jordanknott/taskcafe/internal/db"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
@@ -1330,9 +1330,7 @@ func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklistResolver{r} }
 
 // TaskChecklistItem returns TaskChecklistItemResolver implementation.
-func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver {
-	return &taskChecklistItemResolver{r}
-}
+func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver { return &taskChecklistItemResolver{r} }
 
 // TaskGroup returns TaskGroupResolver implementation.
 func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }

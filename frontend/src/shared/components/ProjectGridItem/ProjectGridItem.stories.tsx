@@ -14,7 +14,7 @@ export default {
 };
 
 const projectsData = [
-  { taskGroups: [], teamTitle: 'Personal', projectID: 'aaaa', name: 'Citadel', color: '#aa62e3' },
+  { taskGroups: [], teamTitle: 'Personal', projectID: 'aaaa', name: 'Taskcafé', color: '#aa62e3' },
   { taskGroups: [], teamTitle: 'Personal', projectID: 'bbbb', name: 'Editorial Calender', color: '#aa62e3' },
   { taskGroups: [], teamTitle: 'Personal', projectID: 'cccc', name: 'New Blog', color: '#aa62e3' },
 ];

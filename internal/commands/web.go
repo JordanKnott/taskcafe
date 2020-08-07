@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/jordanknott/project-citadel/internal/config"
-	"github.com/jordanknott/project-citadel/internal/route"
+	"github.com/jordanknott/taskcafe/internal/config"
+	"github.com/jordanknott/taskcafe/internal/route"
 	log "github.com/sirupsen/logrus"
 )
 

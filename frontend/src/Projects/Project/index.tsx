@@ -198,7 +198,7 @@ const Project = () => {
   const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   useEffect(() => {
     if (data) {
-      document.title = `${data.findProject.name} | Citadel`;
+      document.title = `${data.findProject.name} | Taskcafé`;
     }
   }, [data]);
   if (loading) {

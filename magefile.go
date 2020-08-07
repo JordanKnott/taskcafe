@@ -64,8 +64,8 @@ func (Backend) GenFrontend() error {
 }
 
 func (Backend) Build() error {
-	fmt.Println("compiling binary dist/citadel")
-	return sh.Run("go", "build", "-o", "dist/citadel", "cmd/citadel/main.go")
+	fmt.Println("compiling binary dist/taskcafe")
+	return sh.Run("go", "build", "-o", "dist/taskcafe", "cmd/taskcafe/main.go")
 }
 
 func (Backend) Schema() error {
@@ -105,9 +105,9 @@ func Build() {
 type Docker mg.Namespace
 
 func (Docker) Up() error {
-	return sh.RunV("docker-compose", "-p", "citadel", "up", "-d")
+	return sh.RunV("docker-compose", "-p", "taskcafe", "up", "-d")
 }
 
 func (Docker) Migrate() error {
-	return sh.RunV("docker-compose", "-p", "citadel", "-f", "docker-compose.yml", "-f", "docker-compose.migrate.yml", "run", "--rm", "migrate")
+	return sh.RunV("docker-compose", "-p", "taskcafe", "-f", "docker-compose.yml", "-f", "docker-compose.migrate.yml", "run", "--rm", "migrate")
 }

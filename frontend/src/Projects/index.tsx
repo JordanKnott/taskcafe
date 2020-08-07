@@ -229,7 +229,7 @@ const Projects = () => {
   const { showPopup, hidePopup } = usePopup();
   const { loading, data } = useGetProjectsQuery();
   useEffect(() => {
-    document.title = 'Citadel';
+    document.title = 'Taskcafé';
   }, []);
   const [createProject] = useCreateProjectMutation({
     update: (client, newProject) => {
