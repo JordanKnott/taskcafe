@@ -396,6 +396,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                   __typename: 'UpdateTaskLocationPayload',
                   previousTaskGroupID,
                   task: {
+                    ...droppedTask,
                     __typename: 'Task',
                     name: droppedTask.name,
                     id: droppedTask.id,

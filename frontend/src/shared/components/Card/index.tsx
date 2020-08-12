@@ -39,6 +39,7 @@ type Props = {
   taskID: string;
   taskGroupID: string;
   complete?: boolean;
+  position?: string | number;
   onContextMenu?: ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   description?: null | string;
@@ -76,6 +77,7 @@ const Card = React.forwardRef(
       dueDate,
       description,
       checklists,
+      position,
       watched,
       members,
       labelVariant,
@@ -205,7 +207,7 @@ const Card = React.forwardRef(
             ) : (
               <CardTitle>
                 {complete && <CompleteIcon width={16} height={16} />}
-                {title}
+                {`${title}${position ? ' - ' + position : ''}`}
               </CardTitle>
             )}
             <ListCardBadges>

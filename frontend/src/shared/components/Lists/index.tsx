@@ -84,10 +84,14 @@ const SimpleLists: React.FC<SimpleProps> = ({
         throw { error: 'task group can not be found' };
       }
     } else {
-      const targetGroup = taskGroups.findIndex(
+      const curTaskGroup = taskGroups.findIndex(
         taskGroup => taskGroup.tasks.findIndex(task => task.id === draggableId) !== -1,
       );
-      const droppedTask = taskGroups[targetGroup].tasks.find(task => task.id === draggableId);
+      let targetTaskGroup = curTaskGroup;
+      if (!isSameList) {
+        targetTaskGroup = taskGroups.findIndex(taskGroup => taskGroup.id === destination.droppableId);
+      }
+      const droppedTask = taskGroups[curTaskGroup].tasks.find(task => task.id === draggableId);
 
       if (droppedTask) {
         droppedDraggable = {
@@ -95,7 +99,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
           position: droppedTask.position,
         };
         beforeDropDraggables = getSortedDraggables(
-          taskGroups[targetGroup].tasks.map(task => {
+          taskGroups[targetTaskGroup].tasks.map(task => {
             return { id: task.id, position: task.position };
           }),
         );
