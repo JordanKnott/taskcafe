@@ -3,6 +3,17 @@ import styled from 'styled-components';
 import { User } from 'shared/icons';
 import Input from 'shared/components/Input';
 import Button from 'shared/components/Button';
+import { useForm } from 'react-hook-form';
+
+const PasswordInput = styled(Input)`
+  margin-top: 30px;
+  margin-bottom: 0;
+`;
+
+const FormError = styled.span`
+  font-size: 12px;
+  color: rgba(${props => props.theme.colors.warning});
+`;
 
 const ProfileContainer = styled.div`
   display: flex;
@@ -218,6 +229,7 @@ const SettingActions = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 12px;
 `;
 
 const SaveButton = styled(Button)`
@@ -228,10 +240,73 @@ const SaveButton = styled(Button)`
 type SettingsProps = {
   onProfileAvatarChange: () => void;
   onProfileAvatarRemove: () => void;
+  onResetPassword: (password: string, done: () => void) => void;
   profile: TaskUser;
 };
 
-const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAvatarChange, profile }) => {
+type TabProps = {
+  tab: number;
+  currentTab: number;
+};
+
+const Tab: React.FC<TabProps> = ({ tab, currentTab, children }) => {
+  if (tab !== currentTab) {
+    return null;
+  }
+  return <TabContent>{children}</TabContent>;
+};
+
+type ResetPasswordTabProps = {
+  onResetPassword: (password: string, done: () => void) => void;
+};
+const ResetPasswordTab: React.FC<ResetPasswordTabProps> = ({ onResetPassword }) => {
+  const [active, setActive] = useState(true);
+  const { register, handleSubmit, errors, setError, reset } = useForm<{ password: string; password_confirm: string }>();
+  const done = () => {
+    reset();
+    setActive(true);
+  };
+  return (
+    <form
+      onSubmit={handleSubmit(data => {
+        console.log(`${data.password} !== ${data.password_confirm}`);
+        if (data.password !== data.password_confirm) {
+          setError('password', { message: 'Passwords must match!', type: 'error' });
+          setError('password_confirm', { message: 'Passwords must match!', type: 'error' });
+        } else {
+          onResetPassword(data.password, done);
+        }
+      })}
+    >
+      <PasswordInput
+        width="100%"
+        ref={register({ required: 'Password is required' })}
+        label="Password"
+        name="password"
+      />
+      {errors.password && <FormError>{errors.password.message}</FormError>}
+      <PasswordInput
+        width="100%"
+        ref={register({ required: 'Password is required' })}
+        label="Password (confirm)"
+        name="password_confirm"
+      />
+      {errors.password_confirm && <FormError>{errors.password_confirm.message}</FormError>}
+      <SettingActions>
+        <SaveButton disabled={!active} type="submit">
+          Save Change
+        </SaveButton>
+      </SettingActions>
+    </form>
+  );
+};
+
+const Settings: React.FC<SettingsProps> = ({
+  onProfileAvatarRemove,
+  onProfileAvatarChange,
+  onResetPassword,
+  profile,
+}) => {
   const [currentTab, setTab] = useState(0);
   const [currentTop, setTop] = useState(0);
   const $tabNav = useRef<HTMLDivElement>(null);
@@ -257,7 +332,7 @@ const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAva
         </TabNavContent>
       </TabNav>
       <TabContentWrapper>
-        <TabContent>
+        <Tab tab={0} currentTab={currentTab}>
           <AvatarSettings
             onProfileAvatarRemove={onProfileAvatarRemove}
             onProfileAvatarChange={onProfileAvatarChange}
@@ -275,7 +350,10 @@ const Settings: React.FC<SettingsProps> = ({ onProfileAvatarRemove, onProfileAva
           <SettingActions>
             <SaveButton>Save Change</SaveButton>
           </SettingActions>
-        </TabContent>
+        </Tab>
+        <Tab tab={1} currentTab={currentTab}>
+          <ResetPasswordTab onResetPassword={onResetPassword} />
+        </Tab>
       </TabContentWrapper>
     </Container>
   );

@@ -1935,6 +1935,20 @@ export type DeleteUserAccountMutation = (
   ) }
 );
 
+export type UpdateUserPasswordMutationVariables = {
+  userID: Scalars['UUID'];
+  password: Scalars['String'];
+};
+
+
+export type UpdateUserPasswordMutation = (
+  { __typename?: 'Mutation' }
+  & { updateUserPassword: (
+    { __typename?: 'UpdateUserPasswordPayload' }
+    & Pick<UpdateUserPasswordPayload, 'ok'>
+  ) }
+);
+
 export type UpdateUserRoleMutationVariables = {
   userID: Scalars['UUID'];
   roleCode: RoleCode;
@@ -3975,6 +3989,39 @@ export function useDeleteUserAccountMutation(baseOptions?: ApolloReactHooks.Muta
 export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
 export type DeleteUserAccountMutationResult = ApolloReactCommon.MutationResult<DeleteUserAccountMutation>;
 export type DeleteUserAccountMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
+export const UpdateUserPasswordDocument = gql`
+    mutation updateUserPassword($userID: UUID!, $password: String!) {
+  updateUserPassword(input: {userID: $userID, password: $password}) {
+    ok
+  }
+}
+    `;
+export type UpdateUserPasswordMutationFn = ApolloReactCommon.MutationFunction<UpdateUserPasswordMutation, UpdateUserPasswordMutationVariables>;
+
+/**
+ * __useUpdateUserPasswordMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserPasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserPasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserPasswordMutation, { data, loading, error }] = useUpdateUserPasswordMutation({
+ *   variables: {
+ *      userID: // value for 'userID'
+ *      password: // value for 'password'
+ *   },
+ * });
+ */
+export function useUpdateUserPasswordMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateUserPasswordMutation, UpdateUserPasswordMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateUserPasswordMutation, UpdateUserPasswordMutationVariables>(UpdateUserPasswordDocument, baseOptions);
+      }
+export type UpdateUserPasswordMutationHookResult = ReturnType<typeof useUpdateUserPasswordMutation>;
+export type UpdateUserPasswordMutationResult = ApolloReactCommon.MutationResult<UpdateUserPasswordMutation>;
+export type UpdateUserPasswordMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateUserPasswordMutation, UpdateUserPasswordMutationVariables>;
 export const UpdateUserRoleDocument = gql`
     mutation updateUserRole($userID: UUID!, $roleCode: RoleCode!) {
   updateUserRole(input: {userID: $userID, roleCode: $roleCode}) {

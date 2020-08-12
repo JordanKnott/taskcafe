@@ -4,8 +4,9 @@ import GlobalTopNavbar from 'App/TopNavbar';
 import { Link } from 'react-router-dom';
 import { getAccessToken } from 'shared/utils/accessToken';
 import Settings from 'shared/components/Settings';
-import { useMeQuery, useClearProfileAvatarMutation } from 'shared/generated/graphql';
+import { useMeQuery, useClearProfileAvatarMutation, useUpdateUserPasswordMutation } from 'shared/generated/graphql';
 import axios from 'axios';
+import { useCurrentUser } from 'App/context';
 
 const MainContent = styled.div`
   padding: 0 0 50px 80px;
@@ -16,10 +17,16 @@ const MainContent = styled.div`
 const Projects = () => {
   const $fileUpload = useRef<HTMLInputElement>(null);
   const [clearProfileAvatar] = useClearProfileAvatarMutation();
+  const { user } = useCurrentUser();
+  const [updateUserPassword] = useUpdateUserPasswordMutation();
   const { loading, data, refetch } = useMeQuery();
   useEffect(() => {
     document.title = 'Profile | Taskcafé';
   }, []);
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
       <input
@@ -56,6 +63,10 @@ const Projects = () => {
             if ($fileUpload && $fileUpload.current) {
               $fileUpload.current.click();
             }
+          }}
+          onResetPassword={(password, done) => {
+            updateUserPassword({ variables: { userID: user.id, password } });
+            done();
           }}
           onProfileAvatarRemove={() => {
             clearProfileAvatar();

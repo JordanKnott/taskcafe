@@ -27,6 +27,7 @@ export const Default = () => {
       <BaseStyles />
       <Settings
         profile={profile}
+        onResetPassword={action('reset password')}
         onProfileAvatarRemove={action('remove')}
         onProfileAvatarChange={action('profile avatar change')}
       />
