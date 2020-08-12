@@ -127,7 +127,6 @@ const Project = () => {
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
     onCompleted: newTaskLabel => {
       taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
-      console.log(taskLabelsRef.current);
     },
   });
 
@@ -176,8 +175,6 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            console.log(cache);
-            console.log(response);
             draftCache.findProject.members = cache.findProject.members.filter(
               m => m.id !== response.data.deleteProjectMember.member.id,
             );
@@ -208,8 +205,6 @@ const Project = () => {
     );
   }
   if (data) {
-    console.log(data.findProject);
-
     labelsRef.current = data.findProject.labels;
 
     return (

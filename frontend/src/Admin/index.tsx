@@ -87,9 +87,7 @@ type AddUserPopupProps = {
 const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
   const { register, handleSubmit, errors, setValue, control } = useForm<CreateUserData>();
 
-  console.log(errors);
   const createUser = (data: CreateUserData) => {
-    console.log(data);
     onAddUser(data);
   };
   return (
@@ -187,8 +185,6 @@ const AdminRoute = () => {
       const cacheData: any = client.readQuery({
         query: UsersDocument,
       });
-      console.log(cacheData);
-      console.log(createData);
       const newData = produce(cacheData, (draftState: any) => {
         draftState.users = [...draftState.users, { ...createData.data.createUserAccount }];
       });
@@ -217,8 +213,6 @@ const AdminRoute = () => {
           canInviteUser={user.roles.org == 'admin'}
           onInviteUser={() => {}}
           onUpdateUserPassword={(user, password) => {
-            console.log(user);
-            console.log(password);
             hidePopup();
           }}
           onDeleteUser={(userID, newOwnerID) => {

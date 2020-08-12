@@ -144,14 +144,11 @@ const Details: React.FC<DetailsProps> = ({
         cache =>
           produce(cache, draftCache => {
             const { prevChecklistID, checklistID, checklistItem } = response.data.updateTaskChecklistItemLocation;
-            console.log(`${checklistID} !== ${prevChecklistID}`);
             if (checklistID !== prevChecklistID) {
               const oldIdx = cache.findTask.checklists.findIndex(c => c.id === prevChecklistID);
               const newIdx = cache.findTask.checklists.findIndex(c => c.id === checklistID);
-              console.log(`oldIdx ${oldIdx} newIdx ${newIdx}`);
               if (oldIdx > -1 && newIdx > -1) {
                 const item = cache.findTask.checklists[oldIdx].items.find(item => item.id === checklistItem.id);
-                console.log(item);
                 if (item) {
                   draftCache.findTask.checklists[oldIdx].items = cache.findTask.checklists[oldIdx].items.filter(
                     i => i.id !== checklistItem.id,
@@ -195,7 +192,6 @@ const Details: React.FC<DetailsProps> = ({
         cache =>
           produce(cache, draftCache => {
             const { checklists } = cache.findTask;
-            console.log(deleteData);
             draftCache.findTask.checklists = checklists.filter(
               c => c.id !== deleteData.data.deleteTaskChecklist.taskChecklist.id,
             );
@@ -450,10 +446,8 @@ const Details: React.FC<DetailsProps> = ({
                     <CreateChecklistPopup
                       onCreateChecklist={checklistData => {
                         let position = 65535;
-                        console.log(data.findTask.checklists);
                         if (data.findTask.checklists) {
                           const [lastChecklist] = data.findTask.checklists.slice(-1);
-                          console.log(`lastCheclist ${lastChecklist}`);
                           if (lastChecklist) {
                             position = lastChecklist.position * 2 + 1;
                           }

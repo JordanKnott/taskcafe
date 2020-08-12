@@ -221,7 +221,6 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             disabled={!(!hasOwned || (hasOwned && deleteUser))}
             onClick={() => {
               if (onDeleteUser) {
-                console.log(`${!hasOwned} || (${hasOwned} && ${deleteUser})`);
                 if (!hasOwned || (hasOwned && deleteUser)) {
                   onDeleteUser(user.id, deleteUser ? deleteUser.value : null);
                 }

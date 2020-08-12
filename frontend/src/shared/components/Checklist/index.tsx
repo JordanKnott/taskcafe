@@ -566,9 +566,6 @@ const Checklist = React.forwardRef(
         $name.current.select();
       }
     }, [editting]);
-    useEffect(() => {
-      console.log($container);
-    }, [$container]);
     return (
       <Wrapper ref={$container} {...wrapperProps}>
         <WindowTitle>

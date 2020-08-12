@@ -177,9 +177,6 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, proje
         query: GetProjectsDocument,
       });
 
-      console.log(cacheData);
-      console.log(deleteData);
-
       const newData = produce(cacheData, (draftState: any) => {
         draftState.projects = draftState.projects.filter(
           (project: any) => project.id !== deleteData.data.deleteProject.project.id,
@@ -253,11 +250,9 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveFromBoard,
   nameOnly,
 }) => {
-  console.log(popupContent);
   const { user, setUserRoles, setUser } = useCurrentUser();
   const { loading, data } = useMeQuery({
     onCompleted: data => {
-      console.log('me query has completed!');
       if (user && user.roles) {
         setUserRoles({
           org: user.roles.org,
@@ -311,9 +306,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   };
 
   const onOpenSettings = ($target: React.RefObject<HTMLElement>) => {
-    console.log('maybe firing popup');
     if (popupContent) {
-      console.log('showing popup');
       showPopup($target, popupContent, 185);
     }
   };

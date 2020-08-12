@@ -130,7 +130,6 @@ const OpenLabelsButton = () => {
   const [currentLabel, setCurrentLabel] = useState('');
   const [labels, setLabels] = useState(labelData);
   const { showPopup, setTab } = usePopup();
-  console.log(labels);
   return (
     <OpenLabelBtn
       ref={$buttonRef}

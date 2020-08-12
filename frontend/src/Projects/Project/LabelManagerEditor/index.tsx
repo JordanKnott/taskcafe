@@ -84,7 +84,6 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
   const labels = labelsRef.current ? labelsRef.current : [];
   const taskLabels = taskLabelsRef && taskLabelsRef.current ? taskLabelsRef.current : [];
   const [currentTaskLabels, setCurrentTaskLabels] = useState(taskLabels);
-  console.log(taskLabels);
   return (
     <>
       <Popup title="Labels" tab={0} onClose={() => hidePopup()}>

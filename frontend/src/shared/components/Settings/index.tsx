@@ -269,7 +269,6 @@ const ResetPasswordTab: React.FC<ResetPasswordTabProps> = ({ onResetPassword }) 
   return (
     <form
       onSubmit={handleSubmit(data => {
-        console.log(`${data.password} !== ${data.password_confirm}`);
         if (data.password !== data.password_confirm) {
           setError('password', { message: 'Passwords must match!', type: 'error' });
           setError('password_confirm', { message: 'Passwords must match!', type: 'error' });

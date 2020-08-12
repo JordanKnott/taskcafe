@@ -495,7 +495,6 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
                         users={data.users}
                         teamMembers={data.findTeam.members}
                         onAddTeamMember={userID => {
-                          console.log(`team: ${userID}`);
                           createTeamMember({ variables: { userID, teamID } });
                         }}
                       />,

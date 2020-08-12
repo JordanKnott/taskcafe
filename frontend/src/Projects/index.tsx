@@ -261,7 +261,6 @@ const Projects = () => {
 
   const colors = ['#e362e3', '#7a6ff0', '#37c5ab', '#aa62e3', '#e8384f'];
   if (data && user) {
-    console.log(user);
     const { projects, teams, organizations } = data;
     const organizationID = organizations[0].id ?? null;
     const projectTeams = teams
@@ -283,7 +282,6 @@ const Projects = () => {
             }),
         };
       });
-    console.log(projectTeams);
     return (
       <>
         <GlobalTopNavbar onSaveProjectName={() => {}} projectID={null} name={null} />

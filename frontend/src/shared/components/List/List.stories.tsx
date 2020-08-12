@@ -60,15 +60,7 @@ export const Default = () => {
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
-        <CardComposer
-          onClose={() => {
-            console.log('close!');
-          }}
-          onCreateCard={name => {
-            console.log(name);
-          }}
-          isOpen={false}
-        />
+        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
       </ListCards>
     </List>
   );
@@ -85,15 +77,7 @@ export const WithCardComposer = () => {
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
-        <CardComposer
-          onClose={() => {
-            console.log('close!');
-          }}
-          onCreateCard={name => {
-            console.log(name);
-          }}
-          isOpen
-        />
+        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen />
       </ListCards>
     </List>
   );
@@ -124,15 +108,7 @@ export const WithCard = () => {
           checklists={{ complete: 1, total: 4 }}
           dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
         />
-        <CardComposer
-          onClose={() => {
-            console.log('close!');
-          }}
-          onCreateCard={name => {
-            console.log(name);
-          }}
-          isOpen={false}
-        />
+        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
       </ListCards>
     </List>
   );
@@ -162,15 +138,7 @@ export const WithCardAndComposer = () => {
           checklists={{ complete: 1, total: 4 }}
           dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
         />
-        <CardComposer
-          onClose={() => {
-            console.log('close!');
-          }}
-          onCreateCard={name => {
-            console.log(name);
-          }}
-          isOpen
-        />
+        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen />
       </ListCards>
     </List>
   );

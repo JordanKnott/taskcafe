@@ -244,14 +244,12 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
     onCompleted: newTaskLabel => {
       taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
-      console.log(taskLabelsRef.current);
     },
   });
 
   const onCreateTask = (taskGroupID: string, name: string) => {
     if (data) {
       const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
-      console.log(`taskGroup ${taskGroup}`);
       if (taskGroup) {
         let position = 65535;
         if (taskGroup.tasks.length !== 0) {
@@ -262,7 +260,6 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
           position = Math.ceil(lastTask.position) * 2 + 1;
         }
 
-        console.log(`position ${position}`);
         createTask({
           variables: { taskGroupID, name, position },
           optimisticResponse: {

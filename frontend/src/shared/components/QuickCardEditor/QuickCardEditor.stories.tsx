@@ -71,7 +71,7 @@ export const Default = () => {
         isComposerOpen={false}
         onSaveName={action('on save name')}
         onOpenComposer={action('on open composer')}
-        onExtraMenuOpen={(taskGroupID, $targetRef) => console.log(taskGroupID, $targetRef)}
+        onExtraMenuOpen={(taskGroupID, $targetRef) => {}}
       >
         <ListCards>
           <Card
@@ -90,15 +90,7 @@ export const Default = () => {
             checklists={{ complete: 1, total: 4 }}
             dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
           />
-          <CardComposer
-            onClose={() => {
-              console.log('close!');
-            }}
-            onCreateCard={name => {
-              console.log(name);
-            }}
-            isOpen={false}
-          />
+          <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
         </ListCards>
       </List>
     </>

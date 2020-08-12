@@ -35,7 +35,6 @@ export const Default = () => {
   });
   const $buttonRef: any = createRef();
   const onClick = () => {
-    console.log($buttonRef.current.getBoundingClientRect());
     setMenu({
       isOpen: !menu.isOpen,
       left: $buttonRef.current.getBoundingClientRect().right,

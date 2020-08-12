@@ -247,8 +247,6 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           destination,
         );
         const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
-        console.log(droppedGroup);
-        console.log(`positiion: ${newPosition}`);
         onChecklistDrop({ ...droppedGroup, position: newPosition });
       } else {
         throw { error: 'task group can not be found' };
@@ -285,7 +283,6 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           position: newPosition,
         };
         onChecklistItemDrop(droppedChecklistItem.taskChecklistID, destination.droppableId, newItem);
-        console.log(newItem);
       }
     }
   };

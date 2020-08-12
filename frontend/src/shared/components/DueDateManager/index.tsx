@@ -149,7 +149,6 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
   ];
   const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
   const saveDueDate = (data: any) => {
-    console.log(data);
     const newDate = moment(`${data.endDate} ${data.endTime}`, 'YYYY-MM-DD h:mm A');
     if (newDate.isValid()) {
       onDueDateChange(task, newDate.toDate());
@@ -168,7 +167,6 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
       />
     );
   });
-  console.log(`textStartDate ${textStartDate}`);
   return (
     <Wrapper>
       <Form onSubmit={handleSubmit(saveDueDate)}>

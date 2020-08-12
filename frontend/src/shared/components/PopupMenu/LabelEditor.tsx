@@ -59,7 +59,6 @@ const LabelManager = ({ labelColors, label, onLabelEdit, onLabelDelete }: Props)
           type="submit"
           onClick={e => {
             e.preventDefault();
-            console.log(currentColor);
             if (currentColor) {
               onLabelEdit(label ? label.id : null, currentLabel ?? '', currentColor);
             }

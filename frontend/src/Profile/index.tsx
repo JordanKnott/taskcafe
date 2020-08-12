@@ -36,7 +36,6 @@ const Projects = () => {
         ref={$fileUpload}
         onChange={e => {
           if (e.target.files) {
-            console.log(e.target.files[0]);
             const fileData = new FormData();
             fileData.append('file', e.target.files[0]);
             const accessToken = getAccessToken();
