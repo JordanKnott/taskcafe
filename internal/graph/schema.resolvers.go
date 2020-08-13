@@ -1103,6 +1103,9 @@ func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, e
 			}
 		}
 	}
+	if complete == 0 && total == 0 {
+		return &TaskBadges{Checklist: nil}, nil
+	}
 	return &TaskBadges{Checklist: &ChecklistBadge{Total: total, Complete: complete}}, nil
 }
 
