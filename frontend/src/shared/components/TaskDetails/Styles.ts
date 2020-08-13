@@ -118,7 +118,6 @@ export const TaskDetailsAddDetailsButton = styled.div`
 
 export const TaskDetailsEditorWrapper = styled.div`
   display: block;
-  float: left;
   padding-bottom: 9px;
   z-index: 50;
   width: 100%;
