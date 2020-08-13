@@ -2,16 +2,15 @@ package commands
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
-	"github.com/jordanknott/taskcafe/internal/config"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,33 +27,24 @@ func (l *MigrateLog) Verbose() bool {
 	return l.verbose
 }
 
-var migration http.FileSystem
-
-func init() {
-	migration = http.Dir("./migrations")
-}
-
 func newMigrateCmd() *cobra.Command {
-	return &cobra.Command{
+	c := &cobra.Command{
 		Use:   "migrate",
 		Short: "Run the database schema migrations",
 		Long:  "Run the database schema migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			appConfig, err := config.LoadConfig("conf/app.toml")
-			if err != nil {
-				return err
-			}
 			connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s sslmode=disable",
-				appConfig.Database.User,
-				appConfig.Database.Password,
-				appConfig.Database.Host,
-				appConfig.Database.Name,
+				viper.GetString("database.user"),
+				viper.GetString("database.password"),
+				viper.GetString("database.host"),
+				viper.GetString("database.name"),
 			)
 			db, err := sqlx.Connect("postgres", connection)
 			if err != nil {
 				return err
 			}
 			defer db.Close()
+
 			driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 			if err != nil {
 				return err
@@ -71,10 +61,15 @@ func newMigrateCmd() *cobra.Command {
 			logger := &MigrateLog{}
 			m.Log = logger
 			err = m.Up()
-			if err != nil {
+			if err != nil && err != migrate.ErrNoChange {
 				return err
 			}
 			return nil
 		},
 	}
+	viper.SetDefault("database.host", "127.0.0.1")
+	viper.SetDefault("database.name", "taskcafe")
+	viper.SetDefault("database.user", "taskcafe")
+	viper.SetDefault("database.password", "taskcafe_test")
+	return c
 }

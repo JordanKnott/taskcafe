@@ -5,12 +5,10 @@ package graph
 import (
 	"sync"
 
-	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
 )
 
 type Resolver struct {
-	Config     config.AppConfig
 	Repository db.Repository
 	mu         sync.Mutex
 }

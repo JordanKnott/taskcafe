@@ -10,7 +10,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/frontend"
 	"github.com/jordanknott/taskcafe/internal/graph"
@@ -60,11 +59,10 @@ func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type TaskcafeHandler struct {
-	config config.AppConfig
-	repo   db.Repository
+	repo db.Repository
 }
 
-func NewRouter(config config.AppConfig, dbConnection *sqlx.DB) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -92,7 +90,7 @@ func NewRouter(config config.AppConfig, dbConnection *sqlx.DB) (chi.Router, erro
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repository := db.NewRepository(dbConnection)
-	taskcafeHandler := TaskcafeHandler{config, *repository}
+	taskcafeHandler := TaskcafeHandler{*repository}
 
 	var imgServer = http.FileServer(http.Dir("./uploads/"))
 	r.Group(func(mux chi.Router) {
@@ -105,7 +103,7 @@ func NewRouter(config config.AppConfig, dbConnection *sqlx.DB) (chi.Router, erro
 		mux.Use(AuthenticationMiddleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
 		mux.Post("/auth/install", taskcafeHandler.InstallHandler)
-		mux.Handle("/graphql", graph.NewHandler(config, *repository))
+		mux.Handle("/graphql", graph.NewHandler(*repository))
 	})
 
 	frontend := FrontendHandler{staticPath: "build", indexPath: "index.html"}

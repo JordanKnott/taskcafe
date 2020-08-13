@@ -16,17 +16,15 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/auth"
-	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // NewHandler returns a new graphql endpoint handler.
-func NewHandler(config config.AppConfig, repo db.Repository) http.Handler {
+func NewHandler(repo db.Repository) http.Handler {
 	c := Config{
 		Resolvers: &Resolver{
-			Config:     config,
 			Repository: repo,
 		},
 	}
