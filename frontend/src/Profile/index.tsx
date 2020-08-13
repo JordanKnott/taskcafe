@@ -7,6 +7,13 @@ import { useMeQuery, useClearProfileAvatarMutation, useUpdateUserPasswordMutatio
 import axios from 'axios';
 import { useCurrentUser } from 'App/context';
 import NOOP from 'shared/utils/noop';
+import { toast } from 'react-toastify';
+
+const MainContent = styled.div`
+  padding: 0 0 50px 80px;
+  height: 100%;
+  background: #262c49;
+`;
 
 const Projects = () => {
   const $fileUpload = useRef<HTMLInputElement>(null);
@@ -59,6 +66,7 @@ const Projects = () => {
           }}
           onResetPassword={(password, done) => {
             updateUserPassword({ variables: { userID: user.id, password } });
+            toast('Password was changed!');
             done();
           }}
           onProfileAvatarRemove={() => {

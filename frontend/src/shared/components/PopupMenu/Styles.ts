@@ -5,6 +5,7 @@ import ControlledInput from 'shared/components/ControlledInput';
 export const Container = styled.div<{
   invertY: boolean;
   invert: boolean;
+  targetPadding: string;
   top: number;
   left: number;
   ref: any;
@@ -15,7 +16,7 @@ export const Container = styled.div<{
   display: block;
   position: absolute;
   width: ${props => props.width}px;
-  padding-top: 10px;
+  padding-top: ${props => props.targetPadding};
   height: auto;
   z-index: 40000;
   ${props =>
@@ -28,14 +29,18 @@ export const Container = styled.div<{
     css`
       top: auto;
       padding-top: 0;
-      padding-bottom: 10px;
+      padding-bottom: ${props.targetPadding};
       bottom: ${props.top}px;
     `}
 `;
 
-export const Wrapper = styled.div`
-  padding: 5px;
-  padding-top: 8px;
+export const Wrapper = styled.div<{ padding: boolean; borders: boolean }>`
+  ${props =>
+    props.padding &&
+    css`
+      padding: 5px;
+      padding-top: 8px;
+    `}
   border-radius: 5px;
   box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.1);
   position: relative;
@@ -43,8 +48,12 @@ export const Wrapper = styled.div`
 
   color: #c2c6dc;
   background: #262c49;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-color: #414561;
+  ${props =>
+    props.borders &&
+    css`
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-color: #414561;
+    `}
 `;
 
 export const Header = styled.div`
@@ -326,7 +335,7 @@ export const PreviousButton = styled.div`
   cursor: pointer;
 `;
 
-export const ContainerDiamond = styled.div<{ invert: boolean; invertY: boolean }>`
+export const ContainerDiamond = styled.div<{ borders: boolean; color: string; invert: boolean; invertY: boolean }>`
   ${props => (props.invert ? 'right: 10px; ' : 'left: 15px;')}
   position: absolute;
   width: 10px;
@@ -347,6 +356,10 @@ export const ContainerDiamond = styled.div<{ invert: boolean; invertY: boolean }
   transform: rotate(45deg) translate(-7px);
   z-index: 10;
 
-  background: #262c49;
-  border-color: #414561;
+  background: ${props => props.color};
+  ${props =>
+    props.borders &&
+    css`
+      border-color: #414561;
+    `}
 `;

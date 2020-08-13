@@ -16,9 +16,9 @@ extend type Mutation {
     Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
   assignTask(input: AssignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
 }
 
 input NewTask {

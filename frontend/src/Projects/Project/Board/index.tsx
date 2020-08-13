@@ -460,7 +460,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                       }}
                     />
                   </Popup>,
-                  185,
+                  { width: 185 },
                 );
               }}
             >
@@ -479,7 +479,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                       }}
                     />
                   </Popup>,
-                  185,
+                  { width: 185 },
                 );
               }}
             >
@@ -499,7 +499,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                     labels={labelsRef}
                     members={membersRef}
                   />,
-                  200,
+                  { width: 200 },
                 );
               }}
             >

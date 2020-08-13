@@ -7,7 +7,7 @@ import { useHistory } from 'react-router';
 import { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
 import {
   RoleCode,
-  useMeQuery,
+  useTopNavbarQuery,
   useDeleteProjectMutation,
   useGetProjectsQuery,
   GetProjectsDocument,
@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import MiniProfile from 'shared/components/MiniProfile';
 import cache from 'App/cache';
 import NOOP from 'shared/utils/noop';
+import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
 
 const TeamContainer = styled.div`
   display: flex;
@@ -197,7 +198,7 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, proje
       <Popup title={null} tab={0}>
         <ProjectSettings
           onDeleteProject={() => {
-            setTab(1, 300);
+            setTab(1, { width: 300 });
           }}
         />
       </Popup>
@@ -250,7 +251,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveFromBoard,
 }) => {
   const { user, setUserRoles, setUser } = useCurrentUser();
-  const { data } = useMeQuery({
+  const { loading, data } = useTopNavbarQuery({
     onCompleted: response => {
       if (user && user.roles) {
         setUserRoles({
@@ -300,13 +301,31 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
           }}
         />
       </Popup>,
-      195,
+      { width: 195 },
     );
   };
 
   const onOpenSettings = ($target: React.RefObject<HTMLElement>) => {
     if (popupContent) {
-      showPopup($target, popupContent, 185);
+      showPopup($target, popupContent, { width: 185 });
+    }
+  };
+
+  const onNotificationClick = ($target: React.RefObject<HTMLElement>) => {
+    if (data) {
+      showPopup(
+        $target,
+        <NotificationPopup>
+          {data.notifications.map(notification => (
+            <NotificationItem
+              title={notification.entity.name}
+              description={`${notification.actor.name} added you as a meber to the task "${notification.entity.name}"`}
+              createdAt={notification.createdAt}
+            />
+          ))}
+        </NotificationPopup>,
+        { width: 415, borders: false, diamondColor: '#7367f0' },
+      );
     }
   };
 
@@ -366,7 +385,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
         onInviteUser={onInviteUser}
         onChangeRole={onChangeRole}
         onChangeProjectOwner={onChangeProjectOwner}
-        onNotificationClick={NOOP}
+        onNotificationClick={onNotificationClick}
         onSetTab={onSetTab}
         onRemoveFromBoard={onRemoveFromBoard}
         onDashboardClick={() => {

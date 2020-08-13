@@ -290,10 +290,10 @@ const Details: React.FC<DetailsProps> = ({
     },
   });
   if (loading) {
-    return <div>loading</div>;
+    return null;
   }
   if (!data) {
-    return <div>loading</div>;
+    return null;
   }
   return (
     <>
@@ -501,6 +501,7 @@ const Details: React.FC<DetailsProps> = ({
                       onCancel={NOOP}
                     />
                   </Popup>,
+                  { showDiamond: false, targetPadding: '0' },
                 );
               }}
             />

@@ -15,9 +15,37 @@ import {
   Wrapper,
 } from './Styles';
 
+function getPopupOptions(options?: PopupOptions) {
+  const popupOptions = {
+    borders: true,
+    diamondColor: '#262c49',
+    targetPadding: '10px',
+    showDiamond: true,
+    width: 316,
+  };
+  if (options) {
+    if (options.borders) {
+      popupOptions.borders = options.borders;
+    }
+    if (options.width) {
+      popupOptions.width = options.width;
+    }
+    if (options.targetPadding) {
+      popupOptions.targetPadding = options.targetPadding;
+    }
+    if (typeof options.showDiamond !== 'undefined' && options.showDiamond !== null) {
+      popupOptions.showDiamond = options.showDiamond;
+    }
+    if (options.diamondColor) {
+      popupOptions.diamondColor = options.diamondColor;
+    }
+  }
+  return popupOptions;
+}
+
 type PopupContextState = {
-  show: (target: RefObject<HTMLElement>, content: JSX.Element, width?: string | number) => void;
-  setTab: (newTab: number, width?: number | string) => void;
+  show: (target: RefObject<HTMLElement>, content: JSX.Element, options?: PopupOptions) => void;
+  setTab: (newTab: number, options?: PopupOptions) => void;
   getCurrentTab: () => number;
   hide: () => void;
 };
@@ -26,23 +54,44 @@ type PopupProps = {
   title: string | null;
   onClose?: () => void;
   tab: number;
+  padding?: boolean;
+  borders?: boolean;
+  diamondColor?: string;
 };
 
 type PopupContainerProps = {
   top: number;
   left: number;
   invert: boolean;
+  targetPadding: string;
   invertY: boolean;
   onClose: () => void;
   width?: string | number;
 };
 
-const PopupContainer: React.FC<PopupContainerProps> = ({ width, top, left, onClose, children, invert, invertY }) => {
+const PopupContainer: React.FC<PopupContainerProps> = ({
+  width,
+  top,
+  left,
+  onClose,
+  children,
+  invert,
+  invertY,
+  targetPadding,
+}) => {
   const $containerRef = useRef<HTMLDivElement>(null);
   const [currentTop, setCurrentTop] = useState(top);
   useOnOutsideClick($containerRef, true, onClose, null);
   return (
-    <Container width={width ?? 316} left={left} top={currentTop} ref={$containerRef} invert={invert} invertY={invertY}>
+    <Container
+      targetPadding={targetPadding}
+      width={width ?? 316}
+      left={left}
+      top={currentTop}
+      ref={$containerRef}
+      invert={invert}
+      invertY={invertY}
+    >
       {children}
     </Container>
   );
@@ -73,13 +122,28 @@ type PopupState = {
   currentTab: number;
   previousTab: number;
   content: JSX.Element | null;
-  width?: string | number;
+  options: PopupOptionsInternal | null;
 };
 
 const { Provider, Consumer } = PopupContext;
 
 const canUseDOM = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
 
+type PopupOptionsInternal = {
+  width: number;
+  borders: boolean;
+  targetPadding: string;
+  diamondColor: string;
+  showDiamond: boolean;
+};
+
+type PopupOptions = {
+  targetPadding?: string | null;
+  showDiamond?: boolean | null;
+  width?: number | null;
+  borders?: boolean | null;
+  diamondColor?: string | null;
+};
 const defaultState = {
   isOpen: false,
   left: 0,
@@ -89,11 +153,12 @@ const defaultState = {
   currentTab: 0,
   previousTab: 0,
   content: null,
+  options: null,
 };
 
 export const PopupProvider: React.FC = ({ children }) => {
   const [currentState, setState] = useState<PopupState>(defaultState);
-  const show = (target: RefObject<HTMLElement>, content: JSX.Element, width?: number | string) => {
+  const show = (target: RefObject<HTMLElement>, content: JSX.Element, options?: PopupOptions) => {
     if (target && target.current) {
       const bounds = target.current.getBoundingClientRect();
       let top = bounds.top + bounds.height;
@@ -102,6 +167,7 @@ export const PopupProvider: React.FC = ({ children }) => {
         top = window.innerHeight - bounds.top;
         invertY = true;
       }
+      const popupOptions = getPopupOptions(options);
       if (bounds.left + 304 + 30 > window.innerWidth) {
         setState({
           isOpen: true,
@@ -112,7 +178,7 @@ export const PopupProvider: React.FC = ({ children }) => {
           currentTab: 0,
           previousTab: 0,
           content,
-          width: width ?? 316,
+          options: popupOptions,
         });
       } else {
         setState({
@@ -124,7 +190,7 @@ export const PopupProvider: React.FC = ({ children }) => {
           currentTab: 0,
           previousTab: 0,
           content,
-          width: width ?? 316,
+          options: popupOptions,
         });
       }
     }
@@ -139,20 +205,21 @@ export const PopupProvider: React.FC = ({ children }) => {
       currentTab: 0,
       previousTab: 0,
       content: null,
+      options: null,
     });
   };
   const portalTarget = canUseDOM ? document.body : null; // appease flow
 
-  const setTab = (newTab: number, width?: number | string) => {
-    const newWidth = width ?? currentState.width;
-    setState((prevState: PopupState) => {
-      return {
-        ...prevState,
-        previousTab: currentState.currentTab,
-        currentTab: newTab,
-        width: newWidth,
-      };
-    });
+  const setTab = (newTab: number, options?: PopupOptions) => {
+    setState((prevState: PopupState) =>
+      produce(prevState, draftState => {
+        draftState.previousTab = currentState.currentTab;
+        draftState.currentTab = newTab;
+        if (options) {
+          draftState.options = getPopupOptions(options);
+        }
+      }),
+    );
   };
 
   const getCurrentTab = () => {
@@ -163,17 +230,26 @@ export const PopupProvider: React.FC = ({ children }) => {
     <Provider value={{ hide, show, setTab, getCurrentTab }}>
       {portalTarget &&
         currentState.isOpen &&
+        currentState.options &&
         createPortal(
           <PopupContainer
             invertY={currentState.invertY}
             invert={currentState.invert}
             top={currentState.top}
+            targetPadding={currentState.options.targetPadding}
             left={currentState.left}
             onClose={() => setState(defaultState)}
-            width={currentState.width ?? 316}
+            width={currentState.options.width}
           >
             {currentState.content}
-            <ContainerDiamond invertY={currentState.invertY} invert={currentState.invert} />
+            {currentState.options.showDiamond && (
+              <ContainerDiamond
+                color={currentState.options.diamondColor}
+                borders={currentState.options.borders}
+                invertY={currentState.invertY}
+                invert={currentState.invert}
+              />
+            )}
           </PopupContainer>,
           portalTarget,
         )}
@@ -197,8 +273,16 @@ const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader
   useOnOutsideClick($containerRef, true, onClose, null);
 
   return (
-    <Container invertY={false} width={width ?? 316} invert={false} left={left} top={top} ref={$containerRef}>
-      <Wrapper>
+    <Container
+      targetPadding="10px"
+      invertY={false}
+      width={width ?? 316}
+      invert={false}
+      left={left}
+      top={top}
+      ref={$containerRef}
+    >
+      <Wrapper padding borders>
         {onPrevious && (
           <PreviousButton onClick={onPrevious}>
             <AngleLeft color="#c2c6dc" />
@@ -222,7 +306,7 @@ const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader
   );
 };
 
-export const Popup: React.FC<PopupProps> = ({ title, onClose, tab, children }) => {
+export const Popup: React.FC<PopupProps> = ({ borders = true, padding = true, title, onClose, tab, children }) => {
   const { getCurrentTab, setTab } = usePopup();
   if (getCurrentTab() !== tab) {
     return null;
@@ -230,7 +314,7 @@ export const Popup: React.FC<PopupProps> = ({ title, onClose, tab, children }) =
 
   return (
     <>
-      <Wrapper>
+      <Wrapper borders={borders} padding={padding}>
         {tab > 0 && (
           <PreviousButton
             onClick={() => {

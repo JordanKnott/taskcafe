@@ -213,22 +213,18 @@ export enum ObjectType {
 
 export type Query = {
    __typename?: 'Query';
-  organizations: Array<Organization>;
-  users: Array<UserAccount>;
-  findUser: UserAccount;
   findProject: Project;
   findTask: Task;
-  projects: Array<Project>;
   findTeam: Team;
-  teams: Array<Team>;
+  findUser: UserAccount;
   labelColors: Array<LabelColor>;
-  taskGroups: Array<TaskGroup>;
   me: MePayload;
-};
-
-
-export type QueryFindUserArgs = {
-  input: FindUser;
+  notifications: Array<Notification>;
+  organizations: Array<Organization>;
+  projects: Array<Project>;
+  taskGroups: Array<TaskGroup>;
+  teams: Array<Team>;
+  users: Array<UserAccount>;
 };
 
 
@@ -242,13 +238,18 @@ export type QueryFindTaskArgs = {
 };
 
 
-export type QueryProjectsArgs = {
-  input?: Maybe<ProjectsFilter>;
+export type QueryFindTeamArgs = {
+  input: FindTeam;
 };
 
 
-export type QueryFindTeamArgs = {
-  input: FindTeam;
+export type QueryFindUserArgs = {
+  input: FindUser;
+};
+
+
+export type QueryProjectsArgs = {
+  input?: Maybe<ProjectsFilter>;
 };
 
 export type Mutation = {
@@ -575,6 +576,42 @@ export type FindTask = {
 
 export type FindTeam = {
   teamID: Scalars['UUID'];
+};
+
+export enum EntityType {
+  Task = 'TASK'
+}
+
+export enum ActorType {
+  User = 'USER'
+}
+
+export enum ActionType {
+  TaskMemberAdded = 'TASK_MEMBER_ADDED'
+}
+
+export type NotificationActor = {
+   __typename?: 'NotificationActor';
+  id: Scalars['UUID'];
+  type: ActorType;
+  name: Scalars['String'];
+};
+
+export type NotificationEntity = {
+   __typename?: 'NotificationEntity';
+  id: Scalars['UUID'];
+  type: EntityType;
+  name: Scalars['String'];
+};
+
+export type Notification = {
+   __typename?: 'Notification';
+  id: Scalars['ID'];
+  entity: NotificationEntity;
+  actionType: ActionType;
+  actor: NotificationActor;
+  read: Scalars['Boolean'];
+  createdAt: Scalars['Time'];
 };
 
 export type NewProject = {
@@ -1752,6 +1789,40 @@ export type ToggleTaskLabelMutation = (
         ) }
       )> }
     ) }
+  ) }
+);
+
+export type TopNavbarQueryVariables = {};
+
+
+export type TopNavbarQuery = (
+  { __typename?: 'Query' }
+  & { notifications: Array<(
+    { __typename?: 'Notification' }
+    & Pick<Notification, 'createdAt' | 'read' | 'id' | 'actionType'>
+    & { entity: (
+      { __typename?: 'NotificationEntity' }
+      & Pick<NotificationEntity, 'id' | 'type' | 'name'>
+    ), actor: (
+      { __typename?: 'NotificationActor' }
+      & Pick<NotificationActor, 'id' | 'type' | 'name'>
+    ) }
+  )>, me: (
+    { __typename?: 'MePayload' }
+    & { user: (
+      { __typename?: 'UserAccount' }
+      & Pick<UserAccount, 'id' | 'fullName'>
+      & { profileIcon: (
+        { __typename?: 'ProfileIcon' }
+        & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+      ) }
+    ), teamRoles: Array<(
+      { __typename?: 'TeamRole' }
+      & Pick<TeamRole, 'teamID' | 'roleCode'>
+    )>, projectRoles: Array<(
+      { __typename?: 'ProjectRole' }
+      & Pick<ProjectRole, 'projectID' | 'roleCode'>
+    )> }
   ) }
 );
 
@@ -3613,6 +3684,70 @@ export function useToggleTaskLabelMutation(baseOptions?: ApolloReactHooks.Mutati
 export type ToggleTaskLabelMutationHookResult = ReturnType<typeof useToggleTaskLabelMutation>;
 export type ToggleTaskLabelMutationResult = ApolloReactCommon.MutationResult<ToggleTaskLabelMutation>;
 export type ToggleTaskLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<ToggleTaskLabelMutation, ToggleTaskLabelMutationVariables>;
+export const TopNavbarDocument = gql`
+    query topNavbar {
+  notifications {
+    createdAt
+    read
+    id
+    entity {
+      id
+      type
+      name
+    }
+    actor {
+      id
+      type
+      name
+    }
+    actionType
+  }
+  me {
+    user {
+      id
+      fullName
+      profileIcon {
+        initials
+        bgColor
+        url
+      }
+    }
+    teamRoles {
+      teamID
+      roleCode
+    }
+    projectRoles {
+      projectID
+      roleCode
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopNavbarQuery__
+ *
+ * To run a query within a React component, call `useTopNavbarQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopNavbarQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopNavbarQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTopNavbarQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<TopNavbarQuery, TopNavbarQueryVariables>) {
+        return ApolloReactHooks.useQuery<TopNavbarQuery, TopNavbarQueryVariables>(TopNavbarDocument, baseOptions);
+      }
+export function useTopNavbarLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<TopNavbarQuery, TopNavbarQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<TopNavbarQuery, TopNavbarQueryVariables>(TopNavbarDocument, baseOptions);
+        }
+export type TopNavbarQueryHookResult = ReturnType<typeof useTopNavbarQuery>;
+export type TopNavbarLazyQueryHookResult = ReturnType<typeof useTopNavbarLazyQuery>;
+export type TopNavbarQueryResult = ApolloReactCommon.QueryResult<TopNavbarQuery, TopNavbarQueryVariables>;
 export const UnassignTaskDocument = gql`
     mutation unassignTask($taskID: UUID!, $userID: UUID!) {
   unassignTask(input: {taskID: $taskID, userID: $userID}) {

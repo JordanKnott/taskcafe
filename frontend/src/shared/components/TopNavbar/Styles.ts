@@ -5,6 +5,7 @@ import Button from 'shared/components/Button';
 import { Taskcafe } from 'shared/icons';
 import { NavLink, Link } from 'react-router-dom';
 import TaskAssignee from 'shared/components/TaskAssignee';
+import { useRef } from 'react';
 
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
@@ -65,7 +66,7 @@ export const ProfileNameWrapper = styled.div`
   line-height: 1.25;
 `;
 
-export const IconContainer = styled.div<{ disabled?: boolean }>`
+export const IconContainerWrapper = styled.div<{ disabled?: boolean }>`
   margin-right: 20px;
   cursor: pointer;
   ${props =>
@@ -86,7 +87,10 @@ export const ProfileNameSecondary = styled.small`
   color: #c2c6dc;
 `;
 
-export const ProfileIcon = styled.div<{ bgColor: string | null; backgroundURL: string | null }>`
+export const ProfileIcon = styled.div<{
+  bgColor: string | null;
+  backgroundURL: string | null;
+}>`
   width: 40px;
   height: 40px;
   border-radius: 9999px;

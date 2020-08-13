@@ -1,0 +1,36 @@
+extend type Query {
+  notifications: [Notification!]!
+}
+
+enum EntityType {
+  TASK
+}
+
+enum ActorType {
+  USER
+}
+
+enum ActionType {
+  TASK_MEMBER_ADDED
+}
+
+type NotificationActor {
+  id: UUID!
+  type: ActorType!
+  name: String!
+}
+
+type NotificationEntity {
+  id: UUID!
+  type: EntityType!
+  name: String!
+}
+
+type Notification {
+  id: ID!
+  entity: NotificationEntity!
+  actionType: ActionType!
+  actor: NotificationActor!
+  read: Boolean!
+  createdAt: Time!
+}

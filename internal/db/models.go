@@ -16,6 +16,22 @@ type LabelColor struct {
 	Name         string    `json:"name"`
 }
 
+type Notification struct {
+	NotificationID       uuid.UUID `json:"notification_id"`
+	NotificationObjectID uuid.UUID `json:"notification_object_id"`
+	NotifierID           uuid.UUID `json:"notifier_id"`
+	Read                 bool      `json:"read"`
+}
+
+type NotificationObject struct {
+	NotificationObjectID uuid.UUID `json:"notification_object_id"`
+	EntityID             uuid.UUID `json:"entity_id"`
+	ActionType           int32     `json:"action_type"`
+	ActorID              uuid.UUID `json:"actor_id"`
+	EntityType           int32     `json:"entity_type"`
+	CreatedOn            time.Time `json:"created_on"`
+}
+
 type Organization struct {
 	OrganizationID uuid.UUID `json:"organization_id"`
 	CreatedAt      time.Time `json:"created_at"`

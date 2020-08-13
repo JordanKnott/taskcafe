@@ -245,6 +245,18 @@ type NewUserAccount struct {
 	RoleCode string `json:"roleCode"`
 }
 
+type NotificationActor struct {
+	ID   uuid.UUID `json:"id"`
+	Type ActorType `json:"type"`
+	Name string    `json:"name"`
+}
+
+type NotificationEntity struct {
+	ID   uuid.UUID  `json:"id"`
+	Type EntityType `json:"type"`
+	Name string     `json:"name"`
+}
+
 type OwnedList struct {
 	Teams    []db.Team    `json:"teams"`
 	Projects []db.Project `json:"projects"`
@@ -467,6 +479,123 @@ func (e *ActionLevel) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ActionLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ActionType string
+
+const (
+	ActionTypeTaskMemberAdded ActionType = "TASK_MEMBER_ADDED"
+)
+
+var AllActionType = []ActionType{
+	ActionTypeTaskMemberAdded,
+}
+
+func (e ActionType) IsValid() bool {
+	switch e {
+	case ActionTypeTaskMemberAdded:
+		return true
+	}
+	return false
+}
+
+func (e ActionType) String() string {
+	return string(e)
+}
+
+func (e *ActionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ActionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ActionType", str)
+	}
+	return nil
+}
+
+func (e ActionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ActorType string
+
+const (
+	ActorTypeUser ActorType = "USER"
+)
+
+var AllActorType = []ActorType{
+	ActorTypeUser,
+}
+
+func (e ActorType) IsValid() bool {
+	switch e {
+	case ActorTypeUser:
+		return true
+	}
+	return false
+}
+
+func (e ActorType) String() string {
+	return string(e)
+}
+
+func (e *ActorType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ActorType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ActorType", str)
+	}
+	return nil
+}
+
+func (e ActorType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EntityType string
+
+const (
+	EntityTypeTask EntityType = "TASK"
+)
+
+var AllEntityType = []EntityType{
+	EntityTypeTask,
+}
+
+func (e EntityType) IsValid() bool {
+	switch e {
+	case EntityTypeTask:
+		return true
+	}
+	return false
+}
+
+func (e EntityType) String() string {
+	return string(e)
+}
+
+func (e *EntityType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EntityType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EntityType", str)
+	}
+	return nil
+}
+
+func (e EntityType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -41,19 +41,34 @@ func NewHandler(repo db.Repository) http.Handler {
 
 		var subjectID uuid.UUID
 		in := graphql.GetResolverContext(ctx).Args["input"]
-		if typeArg == ObjectTypeProject || typeArg == ObjectTypeTeam {
-			val := reflect.ValueOf(in) // could be any underlying type
-			fieldName := "ProjectID"
-			if typeArg == ObjectTypeTeam {
-				fieldName = "TeamID"
-			}
-			subjectID, ok = val.FieldByName(fieldName).Interface().(uuid.UUID)
-			if !ok {
-				return nil, errors.New("error while casting subject uuid")
-			}
+		val := reflect.ValueOf(in) // could be any underlying type
+		if val.Kind() == reflect.Ptr {
+			val = reflect.Indirect(val)
+		}
+		var fieldName string
+		switch typeArg {
+		case ObjectTypeTeam:
+			fieldName = "TeamID"
+		case ObjectTypeTask:
+			fieldName = "TaskID"
+		default:
+			fieldName = "ProjectID"
+		}
+		log.WithFields(log.Fields{"typeArg": typeArg, "fieldName": fieldName}).Info("getting field by name")
+		subjectID, ok = val.FieldByName(fieldName).Interface().(uuid.UUID)
+		if !ok {
+			return nil, errors.New("error while casting subject uuid")
 		}
 
+		var err error
 		if level == ActionLevelProject {
+			if typeArg == ObjectTypeTask {
+				log.WithFields(log.Fields{"subjectID": subjectID}).Info("fetching project ID using task ID")
+				subjectID, err = repo.GetProjectIDForTask(ctx, subjectID)
+				if err != nil {
+					return nil, err
+				}
+			}
 			roles, err := GetProjectRoles(ctx, repo, subjectID)
 			if err != nil {
 				return nil, err
@@ -150,4 +165,24 @@ func ConvertToRoleCode(r string) RoleCode {
 		return RoleCodeMember
 	}
 	return RoleCodeObserver
+}
+
+// GetEntityType converts integer to EntityType enum
+func GetEntityType(entityType int32) EntityType {
+	switch entityType {
+	case 1:
+		return EntityTypeTask
+	default:
+		panic("Not a valid entity type!")
+	}
+}
+
+// GetActionType converts integer to ActionType enum
+func GetActionType(actionType int32) ActionType {
+	switch actionType {
+	case 1:
+		return ActionTypeTaskMemberAdded
+	default:
+		panic("Not a valid entity type!")
+	}
 }

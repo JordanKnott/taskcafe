@@ -1,19 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Home, Star, Bell, AngleDown, BarChart, CheckCircle } from 'shared/icons';
-import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ProfileIcon from 'shared/components/ProfileIcon';
-import TaskAssignee from 'shared/components/TaskAssignee';
-import { usePopup, Popup } from 'shared/components/PopupMenu';
+import { usePopup } from 'shared/components/PopupMenu';
 import { RoleCode } from 'shared/generated/graphql';
-import MiniProfile from 'shared/components/MiniProfile';
+import NOOP from 'shared/utils/noop';
 import {
   TaskcafeLogo,
   TaskcafeTitle,
   ProjectFinder,
   LogoContainer,
   NavSeparator,
-  IconContainer,
+  IconContainerWrapper,
   ProjectNameTextarea,
   InviteButton,
   GlobalActions,
@@ -32,6 +30,28 @@ import {
   ProjectMember,
   ProjectMembers,
 } from './Styles';
+
+type IconContainerProps = {
+  disabled?: boolean;
+  onClick?: ($target: React.RefObject<HTMLElement>) => void;
+};
+
+const IconContainer: React.FC<IconContainerProps> = ({ onClick, disabled = false, children }) => {
+  const $container = useRef<HTMLDivElement>(null);
+  return (
+    <IconContainerWrapper
+      ref={$container}
+      disabled={disabled}
+      onClick={() => {
+        if (onClick) {
+          onClick($container);
+        }
+      }}
+    >
+      {children}
+    </IconContainerWrapper>
+  );
+};
 
 const HomeDashboard = styled(Home)``;
 
@@ -145,7 +165,7 @@ type NavBarProps = {
   onFavorite?: () => void;
   onProfileClick: ($target: React.RefObject<HTMLElement>) => void;
   onSaveName?: (name: string) => void;
-  onNotificationClick: () => void;
+  onNotificationClick: ($target: React.RefObject<HTMLElement>) => void;
   canEditProjectName?: boolean;
   canInviteUser?: boolean;
   onInviteUser?: ($target: React.RefObject<HTMLElement>) => void;
@@ -257,16 +277,16 @@ const NavBar: React.FC<NavBarProps> = ({
           <ProjectFinder onClick={onOpenProjectFinder} variant="gradient">
             Projects
           </ProjectFinder>
-          <IconContainer onClick={onDashboardClick}>
+          <IconContainer onClick={() => onDashboardClick()}>
             <HomeDashboard width={20} height={20} />
           </IconContainer>
-          <IconContainer disabled>
+          <IconContainer disabled onClick={NOOP}>
             <CheckCircle width={20} height={20} />
           </IconContainer>
-          <IconContainer onClick={onNotificationClick}>
+          <IconContainer disabled onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />
           </IconContainer>
-          <IconContainer disabled>
+          <IconContainer disabled onClick={NOOP}>
             <BarChart width={20} height={20} />
           </IconContainer>
 

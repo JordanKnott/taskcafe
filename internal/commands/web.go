@@ -53,6 +53,7 @@ func newWebCmd() *cobra.Command {
 			db.SetMaxIdleConns(25)
 			db.SetConnMaxLifetime(5 * time.Minute)
 			defer db.Close()
+
 			if viper.GetBool("migrate") {
 				log.Info("running auto schema migrations")
 				if err = runMigration(db); err != nil {
@@ -74,6 +75,9 @@ func newWebCmd() *cobra.Command {
 	viper.SetDefault("database.name", "taskcafe")
 	viper.SetDefault("database.user", "taskcafe")
 	viper.SetDefault("database.password", "taskcafe_test")
+
+	viper.SetDefault("queue.broker", "amqp://guest:guest@localhost:5672/")
+	viper.SetDefault("queue.store", "memcache://localhost:11211")
 	return cc
 }
 

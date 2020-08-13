@@ -57,7 +57,7 @@ export const TeamPopup: React.FC<TeamPopupProps> = ({ history, name, teamID }) =
       <Popup title={null} tab={0}>
         <TeamSettings
           onDeleteTeam={() => {
-            setTab(1, 340);
+            setTab(1, { width: 340 });
           }}
         />
       </Popup>
