@@ -83,6 +83,16 @@ Then run the database migrations with `taskcafe migrate`.
 
 Now you can run the web interface by running `taskcafe web`
 
+## How is this different from X (Trello, NextCloud, etc)?
+
+One of the primary goal's of Taskcafe is to provide a project management tool that I personally enjoy using for my
+own projects and fits my workflow.
+
+During alpha developement, the current plan is to build the "basic" features - features that are pretty much 
+standard across all kanban boards / project management tools.
+
+Once Taskcafe is out of alpha, there are many features that I plan on adding that will differentiate it from other products (checkout the Roadmap for ideas on future plans).
+
 ## Roadmap
 
 This is a list of features that will eventually be added to Taskcafe in no particular order:
