@@ -6,6 +6,7 @@ import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-ico
 import {
   EditorTextarea,
   EditorContent,
+  ChecklistIcon,
   CompleteIcon,
   DescriptionBadge,
   DueDateCardBadge,
@@ -23,6 +24,7 @@ import {
   CardTitle,
   CardMembers,
 } from './Styles';
+import { CheckSquare } from 'shared/icons';
 
 type DueDate = {
   isPastDue: boolean;
@@ -229,8 +231,14 @@ const Card = React.forwardRef(
               )}
               {checklists && (
                 <ListCardBadge>
-                  <FontAwesomeIcon color="#6b778c" icon={faCheckSquare} size="xs" />
-                  <ListCardBadgeText>{`${checklists.complete}/${checklists.total}`}</ListCardBadgeText>
+                  <ChecklistIcon
+                    color={checklists.complete === checklists.total ? 'success' : 'normal'}
+                    width={8}
+                    height={8}
+                  />
+                  <ListCardBadgeText
+                    color={checklists.complete === checklists.total ? 'success' : 'normal'}
+                  >{`${checklists.complete}/${checklists.total}`}</ListCardBadgeText>
                 </ListCardBadge>
               )}
             </ListCardBadges>

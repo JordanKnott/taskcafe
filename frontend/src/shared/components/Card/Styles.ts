@@ -2,9 +2,17 @@ import styled, { css, keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
-import { CheckCircle } from 'shared/icons';
+import { CheckCircle, CheckSquare } from 'shared/icons';
 import { RefObject } from 'react';
 
+export const ChecklistIcon = styled(CheckSquare)<{ color: 'success' | 'normal' }>`
+  ${props =>
+    props.color === 'success' &&
+    css`
+      fill: rgba(${props.theme.colors.success});
+      stroke: rgba(${props.theme.colors.success});
+    `}
+`;
 export const ClockIcon = styled(FontAwesomeIcon)``;
 
 export const EditorTextarea = styled(TextareaAutosize)`
@@ -69,11 +77,12 @@ export const DueDateCardBadge = styled(ListCardBadge)<{ isPastDue: boolean }>`
     `}
 `;
 
-export const ListCardBadgeText = styled.span`
+export const ListCardBadgeText = styled.span<{ color?: 'success' | 'normal' }>`
   font-size: 12px;
   padding: 0 4px 0 6px;
   vertical-align: top;
   white-space: nowrap;
+  ${props => props.color === 'success' && `color: rgba(${props.theme.colors.success});`}
 `;
 
 export const ListCardContainer = styled.div<{ isActive: boolean; editable: boolean }>`
