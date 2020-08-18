@@ -1,5 +1,7 @@
 ![Taskcafe](./.github/taskcafe-full.png)
 
+[![Discord](https://img.shields.io/discord/745396499613220955?style=flat-square)](https://discord.gg/JkQDruh)
+
 
 ## Overview
 
@@ -88,10 +90,18 @@ Now you can run the web interface by running `taskcafe web`
 One of the primary goal's of Taskcafe is to provide a project management tool that I personally enjoy using for my
 own projects and fits my workflow.
 
-During alpha developement, the current plan is to build the "basic" features - features that are pretty much 
+During alpha developement, the current plan is to build the "basic" features - features that are pretty much
 standard across all kanban boards / project management tools.
 
 Once Taskcafe is out of alpha, there are many features that I plan on adding that will differentiate it from other products (checkout the Roadmap for ideas on future plans).
+
+## Contributing & community
+
+If you have questions regarding how to use Taskcafe, check out the [discord server](https://discord.gg/JkQDruh).
+
+If you're interesting in contributing to Taskcafe, please read the [contribution guide first](https://github.com/JordanKnott/taskcafe/blob/master/CONTRIBUTING.md)!
+
+There is also a [Code of Conduct](https://github.com/JordanKnott/taskcafe/blob/master/CODE_OF_CONDUCT.md) as well.
 
 ## Roadmap
 
