@@ -202,7 +202,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
       <Popup title="Remove from Organization?" onClose={() => hidePopup()} tab={2}>
         <Content>
           <DeleteDescription>
-            Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
+            Removing this user from the organization will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
           {hasOwned && (
             <>
@@ -256,7 +256,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             own password.
           </DeleteDescription>
           <UserPassBar>
-            <UserPassButton onClick={() => setTab(4)} color="warning">
+            <UserPassButton onClick={() => setTab(5)} color="warning">
               Set password...
             </UserPassButton>
             <UserPassButton color="warning" variant="outline">
@@ -265,17 +265,28 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           </UserPassBar>
         </Content>
       </Popup>
-      <Popup title="Reset password" onClose={() => hidePopup()} tab={4}>
+      <Popup title="Reset password" onClose={() => hidePopup()} tab={5}>
         <Content>
-          <NewUserPassInput defaultValue={userPass.pass} width="100%" variant="alternate" placeholder="New password" />
+          <NewUserPassInput
+            defaultValue={userPass.pass}
+            width="100%"
+            variant="alternate"
+            placeholder="New password"
+            onKeyUp={e => {
+              setUserPass({ pass: e.target.value, passConfirm: userPass.passConfirm });
+            }}
+          />
           <NewUserPassInput
             defaultValue={userPass.passConfirm}
             width="100%"
             variant="alternate"
             placeholder="New password (confirm)"
+            onKeyUp={e => {
+              setUserPass({ pass: userPass.pass, passConfirm: e.target.value });
+            }}
           />
           <UserPassConfirmButton
-            disabled={userPass.pass === '' || userPass.passConfirm === ''}
+            disabled={userPass.pass === '' || userPass.passConfirm === '' || userPass.pass !== userPass.passConfirm}
             onClick={() => {
               if (userPass.pass === userPass.passConfirm && updateUserPassword) {
                 updateUserPassword(user, userPass.pass);
@@ -654,6 +665,7 @@ const Admin: React.FC<AdminProps> = ({
                 }
               }}
               name={item.name}
+              key={item.name}
               tab={idx}
               active={idx === currentTab}
             />
@@ -688,7 +700,7 @@ const Admin: React.FC<AdminProps> = ({
               {users.map(member => {
                 const projectTotal = member.owned.projects.length + member.member.projects.length;
                 return (
-                  <MemberListItem>
+                  <MemberListItem key={member.id}>
                     <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
                     <MemberListItemDetails>
                       <MemberItemName>{member.fullName}</MemberItemName>

@@ -92,6 +92,7 @@ type InputProps = {
   className?: string;
   defaultValue?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+  onKeyUp?: (e: any) => void;
 };
 
 function useCombinedRefs(...refs: any) {
@@ -127,6 +128,7 @@ const Input = React.forwardRef(
       name,
       className,
       onClick,
+      onKeyUp,
       floatingLabel,
       defaultValue,
       id,
@@ -158,6 +160,7 @@ const Input = React.forwardRef(
           onChange={e => {
             setHasValue((e.currentTarget.value !== '' || floatingLabel) ?? false);
           }}
+          onKeyUp={onKeyUp}
           hasValue={hasValue}
           ref={combinedRef}
           id={id}
