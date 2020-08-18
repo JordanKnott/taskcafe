@@ -171,9 +171,8 @@ func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(requestData.Password))
 	if err != nil {
 		log.WithFields(log.Fields{
-			"password":      requestData.Password,
-			"password_hash": user.PasswordHash,
-		}).Warn("password incorrect")
+            "username": requestData.Username,
+        }).Warn("password incorrect for user")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
