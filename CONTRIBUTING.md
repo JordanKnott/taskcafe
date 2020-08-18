@@ -24,6 +24,7 @@ The `description` is a decriptive summary of the change the PR will make.
 ### General Rules
 
 - All PRs should be rebased (with master) and commits squashed prior to the final merge process
+- One PR per fix or feature
 
 ### Git Commit Message Style
 
