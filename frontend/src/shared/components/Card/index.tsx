@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import TaskAssignee from 'shared/components/TaskAssignee';
 import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
 import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
 import {
   EditorTextarea,
+  CardMember,
   EditorContent,
   ChecklistIcon,
   CompleteIcon,
@@ -244,10 +244,11 @@ const Card = React.forwardRef(
             </ListCardBadges>
             <CardMembers>
               {members &&
-                members.map(member => (
-                  <TaskAssignee
+                members.map((member, idx) => (
+                  <CardMember
                     key={member.id}
                     size={28}
+                    zIndex={members.length - idx}
                     member={member}
                     onMemberProfile={$target => {
                       if (onCardMemberClick) {

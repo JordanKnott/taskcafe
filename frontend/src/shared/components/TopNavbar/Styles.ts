@@ -8,6 +8,8 @@ import TaskAssignee from 'shared/components/TaskAssignee';
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
   position: relative;
+
+  box-shadow: 0 0 0 2px rgba(16, 22, 58), inset 0 0 0 1px rgba(16, 22, 58, 0.07);
 `;
 
 export const NavbarWrapper = styled.div`

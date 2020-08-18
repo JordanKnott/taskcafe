@@ -18,12 +18,10 @@ export const OwnerIcon = styled(Crown)`
 
 const TaskDetailAssignee = styled.div`
   cursor: pointer;
-  margin: 0 0 0 -2px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   position: relative;
-  float: left;
 `;
 
 export const Wrapper = styled.div<{ size: number | string; bgColor: string | null; backgroundURL: string | null }>`

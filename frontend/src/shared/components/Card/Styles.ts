@@ -4,7 +4,14 @@ import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
 import { CheckCircle, CheckSquare } from 'shared/icons';
 import { RefObject } from 'react';
+import TaskAssignee from 'shared/components/TaskAssignee';
 
+export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
+  box-shadow: 0 0 0 2px rgba(${props => props.theme.colors.bg.secondary}),
+    inset 0 0 0 1px rgba(${props => props.theme.colors.bg.secondary}, 0.07);
+  z-index: ${props => props.zIndex};
+  position: relative;
+`;
 export const ChecklistIcon = styled(CheckSquare)<{ color: 'success' | 'normal' }>`
   ${props =>
     props.color === 'success' &&
@@ -232,6 +239,7 @@ export const CardTitle = styled.span`
 export const CardMembers = styled.div`
   float: right;
   margin: 0 -2px 4px 0;
+  display: flex;
 `;
 
 export const CompleteIcon = styled(CheckCircle)`
