@@ -6,6 +6,7 @@
 ## Overview
 
 ![Taskcafe](./.github/taskcafe_preview.png)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJordanKnott%2Ftaskcafe.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FJordanKnott%2Ftaskcafe?ref=badge_shield)
 
 A free & open source alternative project management tool.
 
@@ -126,3 +127,6 @@ This is a list of features that will eventually be added to Taskcafe in no parti
 
 [MIT License](LICENSE)
 
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJordanKnott%2Ftaskcafe.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FJordanKnott%2Ftaskcafe?ref=badge_large)
