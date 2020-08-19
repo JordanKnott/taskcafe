@@ -2,7 +2,7 @@ import styled, { css, keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
-import { CheckCircle, CheckSquare } from 'shared/icons';
+import { CheckCircle, CheckSquareOutline } from 'shared/icons';
 import { RefObject } from 'react';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
@@ -12,7 +12,7 @@ export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
   position: relative;
 `;
-export const ChecklistIcon = styled(CheckSquare)<{ color: 'success' | 'normal' }>`
+export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'normal' }>`
   ${props =>
     props.color === 'success' &&
     css`
