@@ -63,7 +63,8 @@ func initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
+	err := viper.ReadInConfig()
+        if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 		panic(err)
 	}
 }
