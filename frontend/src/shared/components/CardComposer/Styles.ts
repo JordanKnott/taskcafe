@@ -32,4 +32,3 @@ export const AddCardButton = styled(Button)`
   padding: 6px 12px;
   border-radius: 3px;
 `;
-

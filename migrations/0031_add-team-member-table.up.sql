@@ -5,4 +5,3 @@ CREATE TABLE team_member (
   UNIQUE(team_id, user_id),
   addedDate timestamptz NOT NULL
 );
-

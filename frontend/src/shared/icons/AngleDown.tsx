@@ -24,4 +24,3 @@ AngleDown.defaultProps = {
 };
 
 export default AngleDown;
-

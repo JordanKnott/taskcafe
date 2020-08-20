@@ -190,10 +190,14 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const handleDeleteTask = () => {
     onDeleteTask(task);
   };
+  const $title = useRef<HTMLTextAreaElement>(null);
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onTaskNameChange(task, taskName);
+      if ($title && $title.current) {
+        $title.current.blur();
+      }
     }
   };
   const $unassignedRef = useRef<HTMLDivElement>(null);
@@ -300,6 +304,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       <TaskHeader>
         <TaskDetailsTitleWrapper>
           <TaskDetailsTitle
+            ref={$title}
             value={taskName}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTaskName(e.currentTarget.value)}
             onKeyDown={onKeyDown}

@@ -9,4 +9,3 @@ mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time) {
     dueDate
   }
 }
-

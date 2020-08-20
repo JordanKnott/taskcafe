@@ -7,4 +7,3 @@ packages:
     path: "internal/db"
     queries: "./internal/db/query/"
     schema: "./migrations/"
-

@@ -3,8 +3,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/jordanknott/taskcafe/internal/migrations"
 )
 

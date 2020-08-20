@@ -9,20 +9,27 @@ import (
 
 var jwtKey = []byte("taskcafe_test_key")
 
+// RestrictedMode is used restrict JWT access to just the install route
 type RestrictedMode string
 
 const (
+	// Unrestricted is the code to allow access to all routes
 	Unrestricted RestrictedMode = "unrestricted"
-	InstallOnly                 = "install_only"
+	// InstallOnly is the code to restrict access ONLY to install route
+	InstallOnly = "install_only"
 )
 
+// Role is the role code for the user
 type Role string
 
 const (
-	RoleAdmin  Role = "admin"
+	// RoleAdmin is the code for the admin role
+	RoleAdmin Role = "admin"
+	// RoleMember is the code for the member role
 	RoleMember Role = "member"
 )
 
+// AccessTokenClaims is the claims the access JWT token contains
 type AccessTokenClaims struct {
 	UserID     string         `json:"userId"`
 	Restricted RestrictedMode `json:"restricted"`
@@ -30,23 +37,23 @@ type AccessTokenClaims struct {
 	jwt.StandardClaims
 }
 
-type RefreshTokenClaims struct {
-	UserID string `json:"userId"`
-	jwt.StandardClaims
-}
-
+// ErrExpiredToken is the error returned if the token has expired
 type ErrExpiredToken struct{}
 
+// Error returns the error message for ErrExpiredToken
 func (r *ErrExpiredToken) Error() string {
 	return "token is expired"
 }
 
+// ErrMalformedToken is the error returned if the token has malformed
 type ErrMalformedToken struct{}
 
+// Error returns the error message for ErrMalformedToken
 func (r *ErrMalformedToken) Error() string {
 	return "token is malformed"
 }
 
+// NewAccessToken generates a new JWT access token with the correct claims
 func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string) (string, error) {
 	role := RoleMember
 	if orgRole == "admin" {
@@ -68,6 +75,7 @@ func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string
 	return accessTokenString, nil
 }
 
+// NewAccessTokenCustomExpiration creates an access token with a custom duration
 func NewAccessTokenCustomExpiration(userID string, dur time.Duration) (string, error) {
 	accessExpirationTime := time.Now().Add(dur)
 	accessClaims := &AccessTokenClaims{
@@ -85,6 +93,7 @@ func NewAccessTokenCustomExpiration(userID string, dur time.Duration) (string, e
 	return accessTokenString, nil
 }
 
+// ValidateAccessToken validates a JWT access token and returns the contained claims or an error if it's invalid
 func ValidateAccessToken(accessTokenString string) (AccessTokenClaims, error) {
 	accessClaims := &AccessTokenClaims{}
 	accessToken, err := jwt.ParseWithClaims(accessTokenString, accessClaims, func(token *jwt.Token) (interface{}, error) {
@@ -111,19 +120,4 @@ func ValidateAccessToken(accessTokenString string) (AccessTokenClaims, error) {
 		}
 	}
 	return AccessTokenClaims{}, err
-}
-
-func NewRefreshToken(userID string) (string, time.Time, error) {
-	refreshExpirationTime := time.Now().Add(24 * time.Hour)
-	refreshClaims := &RefreshTokenClaims{
-		UserID:         userID,
-		StandardClaims: jwt.StandardClaims{ExpiresAt: refreshExpirationTime.Unix()},
-	}
-
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	refreshTokenString, err := refreshToken.SignedString(jwtKey)
-	if err != nil {
-		return "", time.Time{}, err
-	}
-	return refreshTokenString, refreshExpirationTime, nil
 }

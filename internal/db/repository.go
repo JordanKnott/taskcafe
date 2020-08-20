@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// Repository contains methods for interacting with a database storage
 type Repository struct {
 	*Queries
 	db *sqlx.DB

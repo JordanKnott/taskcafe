@@ -8,16 +8,17 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )
 
+// MigrateLog is a logger for go migrate
 type MigrateLog struct {
 	verbose bool
 }
 
+// Printf logs to logrus
 func (l *MigrateLog) Printf(format string, v ...interface{}) {
 	log.Printf("%s", v)
 }

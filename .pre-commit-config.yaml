@@ -1,0 +1,22 @@
+repos:
+- hooks:
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+  repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+- hooks:
+  - id: go-fmt
+  - id: go-lint
+  - id: go-imports
+  - id: go-unit-tests
+  - id: go-build
+  - id: go-mod-tidy
+  repo: git://github.com/dnephin/pre-commit-golang
+  rev: master
+- hooks:
+  - id: commitizen
+    stages:
+    - commit-msg
+  repo: https://github.com/commitizen-tools/commitizen
+  rev: v2.1.0

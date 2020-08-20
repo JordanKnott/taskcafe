@@ -2405,7 +2405,7 @@ type Query {
   teams: [Team!]!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
-  me: MePayload! 
+  me: MePayload!
 }
 
 type Mutation

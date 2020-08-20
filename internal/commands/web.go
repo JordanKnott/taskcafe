@@ -2,14 +2,14 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"net/http"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jordanknott/taskcafe/internal/route"

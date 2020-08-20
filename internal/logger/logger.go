@@ -9,19 +9,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// StructuredLogger is a simple, but powerful implementation of a custom structured
-// logger backed on logrus. I encourage users to copy it, adapt it and make it their
-// own. Also take a look at https://github.com/pressly/lg for a dedicated pkg based
-// on this work, designed for context-based http routers.
-
+// NewStructuredLogger creates a new logger for chi router
 func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})
 }
 
+// StructuredLogger is a logger for chi router
 type StructuredLogger struct {
 	Logger *logrus.Logger
 }
 
+// NewLogEntry creates a new log entry for the given HTTP request
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: logrus.NewEntry(l.Logger)}
 	logFields := logrus.Fields{}
@@ -48,10 +46,12 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	return entry
 }
 
+// StructuredLoggerEntry is a log entry will all relevant information about a specific http request
 type StructuredLoggerEntry struct {
 	Logger logrus.FieldLogger
 }
 
+// Write logs information about http request response body
 func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status": status, "resp_bytes_length": bytes,
@@ -60,6 +60,7 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) 
 	l.Logger.Debugln("request complete")
 }
 
+// Panic logs if the request panics
 func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"stack": string(stack),
@@ -67,24 +68,20 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 	})
 }
 
-// Helper methods used by the application to get the request-scoped
-// logger entry and set additional fields between handlers.
-//
-// This is a useful pattern to use to set state on the entry as it
-// passes through the handler chain, which at any point can be logged
-// with a call to .Print(), .Info(), etc.
-
+// GetLogEntry helper function for getting log entry for request
 func GetLogEntry(r *http.Request) logrus.FieldLogger {
 	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
 	return entry.Logger
 }
 
+// LogEntrySetField sets a key's value
 func LogEntrySetField(r *http.Request, key string, value interface{}) {
 	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*StructuredLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithField(key, value)
 	}
 }
 
+// LogEntrySetFields sets the log entry's fields
 func LogEntrySetFields(r *http.Request, fields map[string]interface{}) {
 	if entry, ok := r.Context().Value(middleware.LogEntryCtxKey).(*StructuredLoggerEntry); ok {
 		entry.Logger = entry.Logger.WithFields(fields)

@@ -26,4 +26,3 @@ mutation toggleTaskLabel($taskID: UUID!, $projectLabelID: UUID!) {
     }
   }
 }
-

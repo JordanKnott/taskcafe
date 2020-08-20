@@ -18,11 +18,13 @@ var jwtKey = []byte("taskcafe_test_key")
 
 type authResource struct{}
 
+// LoginRequestData is the request data when a user logs in
 type LoginRequestData struct {
 	Username string
 	Password string
 }
 
+// NewUserAccount is the request data for a new user
 type NewUserAccount struct {
 	FullName string `json:"fullname"`
 	Username string
@@ -31,30 +33,35 @@ type NewUserAccount struct {
 	Email    string
 }
 
+// InstallRequestData is the request data for installing new Taskcafe app
 type InstallRequestData struct {
 	User NewUserAccount
 }
 
+// LoginResponseData is the response data for when a user logs in
 type LoginResponseData struct {
 	AccessToken string `json:"accessToken"`
 	IsInstalled bool   `json:"isInstalled"`
 }
 
+// LogoutResponseData is the response data for when a user logs out
 type LogoutResponseData struct {
 	Status string `json:"status"`
 }
 
+// RefreshTokenResponseData is the response data for when an access token is refreshed
 type RefreshTokenResponseData struct {
 	AccessToken string `json:"accessToken"`
 }
 
+// AvatarUploadResponseData is the response data for a user profile is uploaded
 type AvatarUploadResponseData struct {
 	UserID string `json:"userID"`
 	URL    string `json:"url"`
 }
 
+// RefreshTokenHandler handles when a user attempts to refresh token
 func (h *TaskcafeHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
-
 	_, err := h.repo.GetSystemOptionByKey(r.Context(), "is_installed")
 	if err == sql.ErrNoRows {
 		user, err := h.repo.GetUserAccountByUsername(r.Context(), "system")
@@ -131,6 +138,7 @@ func (h *TaskcafeHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(LoginResponseData{AccessToken: accessTokenString, IsInstalled: true})
 }
 
+// LogoutHandler removes all refresh tokens to log out user
 func (h *TaskcafeHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("refreshToken")
 	if err != nil {
@@ -150,6 +158,7 @@ func (h *TaskcafeHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(LogoutResponseData{Status: "success"})
 }
 
+// LoginHandler creates a new refresh & access token for the user if given the correct credentials
 func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData LoginRequestData
 	err := json.NewDecoder(r.Body).Decode(&requestData)
@@ -171,8 +180,8 @@ func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(requestData.Password))
 	if err != nil {
 		log.WithFields(log.Fields{
-            "username": requestData.Username,
-        }).Warn("password incorrect for user")
+			"username": requestData.Username,
+		}).Warn("password incorrect for user")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -196,6 +205,7 @@ func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(LoginResponseData{accessTokenString, false})
 }
 
+// InstallHandler creates first user on fresh install
 func (h *TaskcafeHandler) InstallHandler(w http.ResponseWriter, r *http.Request) {
 	if restricted, ok := r.Context().Value("restricted_mode").(auth.RestrictedMode); ok {
 		if restricted != auth.InstallOnly {
@@ -256,6 +266,7 @@ func (h *TaskcafeHandler) InstallHandler(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(LoginResponseData{accessTokenString, false})
 }
 
+// Routes registers all authentication routes
 func (rs authResource) Routes(taskcafeHandler TaskcafeHandler) chi.Router {
 	r := chi.NewRouter()
 	r.Post("/login", taskcafeHandler.LoginHandler)

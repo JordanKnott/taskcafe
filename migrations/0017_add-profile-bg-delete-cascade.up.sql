@@ -4,4 +4,3 @@ ALTER TABLE task_assigned
     FOREIGN KEY (task_id)
     REFERENCES task(task_id)
     ON DELETE CASCADE;
-

@@ -10,23 +10,22 @@ import (
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
+	"os"
+	"path/filepath"
+
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/frontend"
 	"github.com/jordanknott/taskcafe/internal/graph"
 	"github.com/jordanknott/taskcafe/internal/logger"
-	"os"
-	"path/filepath"
 )
 
-// spaHandler implements the http.Handler interface, so we can use it
-// to respond to HTTP requests. The path to the static directory and
-// path to the index file within that static directory are used to
-// serve the SPA in the given static directory.
+// FrontendHandler serves an embed React client through chi
 type FrontendHandler struct {
 	staticPath string
 	indexPath  string
 }
 
+// IsDir checks if the given file is a directory
 func IsDir(f http.File) bool {
 	fi, err := f.Stat()
 	if err != nil {
@@ -35,6 +34,7 @@ func IsDir(f http.File) bool {
 	return fi.IsDir()
 }
 
+// ServeHTTP attempts to serve a requested file for the embedded React client
 func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
@@ -58,10 +58,12 @@ func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, time.Now(), f)
 }
 
+// TaskcafeHandler contains all the route handlers
 type TaskcafeHandler struct {
 	repo db.Repository
 }
 
+// NewRouter creates a new router for chi
 func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"

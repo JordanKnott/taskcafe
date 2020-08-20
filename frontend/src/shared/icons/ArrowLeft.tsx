@@ -24,4 +24,3 @@ ArrowLeft.defaultProps = {
 };
 
 export default ArrowLeft;
-

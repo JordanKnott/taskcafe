@@ -25,4 +25,3 @@ type DeleteProjectPayload {
   ok: Boolean!
   project: Project!
 }
-

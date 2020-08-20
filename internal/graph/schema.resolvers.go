@@ -800,11 +800,11 @@ func (r *queryResolver) Users(ctx context.Context) ([]db.UserAccount, error) {
 }
 
 func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserAccount, error) {
-	userId, err := uuid.Parse(input.UserID)
+	userID, err := uuid.Parse(input.UserID)
 	if err != nil {
 		return &db.UserAccount{}, err
 	}
-	account, err := r.Repository.GetUserAccountByID(ctx, userId)
+	account, err := r.Repository.GetUserAccountByID(ctx, userID)
 	if err == sql.ErrNoRows {
 		return &db.UserAccount{}, &gqlerror.Error{
 			Message: "User not found",
@@ -1097,9 +1097,9 @@ func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, e
 			return &TaskBadges{}, err
 		}
 		for _, item := range items {
-			total += 1
+			total++
 			if item.Complete {
-				complete += 1
+				complete++
 			}
 		}
 	}

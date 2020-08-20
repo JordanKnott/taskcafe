@@ -125,4 +125,3 @@ This is a list of features that will eventually be added to Taskcafe in no parti
 ## License
 
 [MIT License](LICENSE)
-

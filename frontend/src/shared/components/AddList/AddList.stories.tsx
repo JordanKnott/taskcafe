@@ -16,4 +16,3 @@ export default {
 export const Default = () => {
   return <AddList onSave={action('on save')} />;
 };
-

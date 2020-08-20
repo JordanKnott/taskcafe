@@ -33,4 +33,3 @@ Star.defaultProps = {
 };
 
 export default Star;
-

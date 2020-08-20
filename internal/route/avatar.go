@@ -16,6 +16,7 @@ import (
 	"github.com/jordanknott/taskcafe/internal/frontend"
 )
 
+// Frontend serves the index.html file
 func (h *TaskcafeHandler) Frontend(w http.ResponseWriter, r *http.Request) {
 	f, err := frontend.Frontend.Open("index.h")
 	if os.IsNotExist(err) {
@@ -26,6 +27,7 @@ func (h *TaskcafeHandler) Frontend(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, "index.html", time.Now(), f)
 }
 
+// ProfileImageUpload handles a user uploading a new avatar profile image
 func (h *TaskcafeHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info("preparing to upload file")
 	userID, ok := r.Context().Value("userID").(uuid.UUID)
