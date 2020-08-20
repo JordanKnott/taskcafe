@@ -25,7 +25,7 @@ The `description` is a decriptive summary of the change the PR will make.
 
 - All PRs should be rebased (with master) and commits squashed prior to the final merge process
 - One PR per fix or feature
-- Setup & install [pre-commit hooks](https://pre-commit.com/#install)
+- Setup & install [pre-commit hooks](https://pre-commit.com/#install) then install the hooks `pre-commit install && pre-commit install --hook-type commit-msg`
 
 ### Git Commit Message Style
 
