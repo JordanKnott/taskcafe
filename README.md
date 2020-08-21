@@ -23,6 +23,8 @@ Currently you can do the following to tasks:
 - Checklists
 - Mark tasks as complete
 
+For a list of planned features, check out the [roadmap](https://github.com/JordanKnott/taskcafe/wiki/Roadmap)!
+
 ## Installation
 
 ### With docker & docker-compose
@@ -102,25 +104,6 @@ If you have questions regarding how to use Taskcafe, check out the [discord serv
 If you're interesting in contributing to Taskcafe, please read the [contribution guide first](https://github.com/JordanKnott/taskcafe/blob/master/CONTRIBUTING.md)!
 
 There is also a [Code of Conduct](https://github.com/JordanKnott/taskcafe/blob/master/CODE_OF_CONDUCT.md) as well.
-
-## Roadmap
-
-This is a list of features that will eventually be added to Taskcafe in no particular order:
-
-- Add a calender tab overview of task due dates
-- Add lists tab overview of tasks (alternative view to Kanban )
-- Add gantt timeline view (with swimlanes)
-- Implemention list actions (copy, mass delete, etc)
-- Task sorting, filtering, and search
-- Custom fields
-- Automation rules
-- Wiki tab
-- Progress tab
-- Archive tasks, then option to delete instead of only being able to delete tasks
-- Keyboard shortcuts
-- Custom project backgrounds
-- Custom project colors
-- Portfolio view
 
 ## License
 
