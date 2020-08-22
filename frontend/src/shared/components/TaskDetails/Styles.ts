@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea/lib';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
+import TaskAssignee from 'shared/components/TaskAssignee';
 
 export const TaskHeader = styled.div`
   padding: 21px 30px 0px;
@@ -385,4 +386,11 @@ export const MetaDetailTitle = styled.h3`
   overflow: hidden;
 `;
 
-export const MetaDetailContent = styled.div``;
+export const TaskMember = styled(TaskAssignee)``;
+
+export const MetaDetailContent = styled.div`
+  display: flex;
+  & ${TaskMember} {
+    margin-right: 4px;
+  }
+`;

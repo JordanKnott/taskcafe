@@ -14,6 +14,7 @@ import TaskAssignee from 'shared/components/TaskAssignee';
 import moment from 'moment';
 
 import {
+  TaskMember,
   NoDueDateLabel,
   TaskDueDateButton,
   UnassignedLabel,
@@ -327,7 +328,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 <MetaDetailContent>
                   {task.assigned &&
                     task.assigned.map(member => (
-                      <TaskAssignee key={member.id} size={32} member={member} onMemberProfile={onMemberProfile} />
+                      <TaskMember key={member.id} size={32} member={member} onMemberProfile={onMemberProfile} />
                     ))}
                   <TaskDetailsAddMemberIcon ref={$addMemberRef} onClick={() => onAddMember($addMemberRef)}>
                     <Plus size={16} color="#c2c6dc" />
