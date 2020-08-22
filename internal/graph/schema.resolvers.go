@@ -892,7 +892,7 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 
 	visibleProjects, err := r.Repository.GetAllVisibleProjectsForUserID(ctx, userID)
 	if err != nil {
-		log.Info("user id was not found from middleware")
+		log.WithField("userID", userID).Info("error getting visible projects for user")
 		return []db.Project{}, nil
 	}
 	for _, project := range visibleProjects {
@@ -942,7 +942,7 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 
 	visibleProjects, err := r.Repository.GetAllVisibleProjectsForUserID(ctx, userID)
 	if err != nil {
-		log.Info("user id was not found from middleware")
+		log.WithField("userID", userID).Info("error while getting visible projects")
 		return []db.Team{}, err
 	}
 	for _, project := range visibleProjects {
@@ -951,7 +951,7 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 			log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("adding visible project")
 			team, err := r.Repository.GetTeamByID(ctx, project.TeamID)
 			if err != nil {
-				log.Info("user id was not found from middleware")
+				log.WithField("teamID", project.TeamID).Info("error getting team by id")
 				return []db.Team{}, err
 			}
 			teams[project.TeamID.String()] = team

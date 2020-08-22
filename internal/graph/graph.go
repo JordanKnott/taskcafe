@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/jordanknott/taskcafe/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -108,13 +109,13 @@ func NewPlaygroundHandler(endpoint string) http.Handler {
 
 // GetUserID retrieves the UserID out of a context
 func GetUserID(ctx context.Context) (uuid.UUID, bool) {
-	userID, ok := ctx.Value("userID").(uuid.UUID)
+	userID, ok := ctx.Value(utils.UserIDKey).(uuid.UUID)
 	return userID, ok
 }
 
 // GetUserRole retrieves the user role out of a context
 func GetUserRole(ctx context.Context) (auth.Role, bool) {
-	role, ok := ctx.Value("org_role").(auth.Role)
+	role, ok := ctx.Value(utils.OrgRoleKey).(auth.Role)
 	return role, ok
 }
 
@@ -127,7 +128,7 @@ func GetUser(ctx context.Context) (uuid.UUID, auth.Role, bool) {
 
 // GetRestrictedMode retrieves the restricted mode code out of a context
 func GetRestrictedMode(ctx context.Context) (auth.RestrictedMode, bool) {
-	restricted, ok := ctx.Value("restricted_mode").(auth.RestrictedMode)
+	restricted, ok := ctx.Value(utils.RestrictedModeKey).(auth.RestrictedMode)
 	return restricted, ok
 }
 

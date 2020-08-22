@@ -7,19 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/auth"
+	"github.com/jordanknott/taskcafe/internal/utils"
 	log "github.com/sirupsen/logrus"
-)
-
-// ContextKey represents a context key
-type ContextKey string
-
-const (
-	// UserIDKey is the key for the user id of the authenticated user
-	UserIDKey ContextKey = "userID"
-	//RestrictedModeKey is the key for whether the authenticated user only has access to install route
-	RestrictedModeKey ContextKey = "restricted_mode"
-	// OrgRoleKey is the key for the organization role code of the authenticated user
-	OrgRoleKey ContextKey = "org_role"
 )
 
 // AuthenticationMiddleware is a middleware that requires a valid JWT token to be passed via the Authorization header
@@ -64,9 +53,9 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		}
-		ctx := context.WithValue(r.Context(), UserIDKey, userID)
-		ctx = context.WithValue(ctx, RestrictedModeKey, accessClaims.Restricted)
-		ctx = context.WithValue(ctx, OrgRoleKey, accessClaims.OrgRole)
+		ctx := context.WithValue(r.Context(), utils.UserIDKey, userID)
+		ctx = context.WithValue(ctx, utils.RestrictedModeKey, accessClaims.Restricted)
+		ctx = context.WithValue(ctx, utils.OrgRoleKey, accessClaims.OrgRole)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
