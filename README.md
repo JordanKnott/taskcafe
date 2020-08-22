@@ -44,7 +44,6 @@ Now do the following:
 
 ``` bash
 docker-compose -p taskcafe up -d
-docker-compose -p taskcafe -f docker-compose.yml -f docker-compose.migrate.yml run --rm migrate
 ```
 
 This will start a postgres instance as well as a taskcafe instance.
