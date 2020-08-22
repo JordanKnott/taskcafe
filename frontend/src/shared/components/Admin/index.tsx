@@ -139,6 +139,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
               </MiniProfileActionItem>
             )}
             <MiniProfileActionItem
+              disabled
               onClick={() => {
                 setTab(3);
               }}
@@ -584,7 +585,7 @@ const TabContent = styled.div`
   border-radius: 0.5rem;
 `;
 
-const items = [{ name: 'Members' }, { name: 'Settings' }];
+const items = [{ name: 'Members' }];
 
 type NavItemProps = {
   active: boolean;
