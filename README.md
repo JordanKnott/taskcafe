@@ -1,6 +1,9 @@
 ![Taskcafe](./.github/taskcafe-full.png)
 
-[![Discord](https://img.shields.io/discord/745396499613220955?style=flat-square)](https://discord.gg/JkQDruh)
+[![Discord](https://img.shields.io/discord/745396499613220955)](https://discord.gg/JkQDruh)
+[![Releases](https://img.shields.io/github/v/release/JordanKnott/taskcafe)](https://github.com/JordanKnott/taskcafe/releases)
+[![Dockerhub](https://img.shields.io/docker/v/taskcafe/taskcafe)](https://hub.docker.com/repository/docker/taskcafe/taskcafe)
+[![Go Report Card](https://goreportcard.com/badge/github.com/JordanKnott/taskcafe)](https://goreportcard.com/report/github.com/JordanKnott/taskcafe)
 
 
 ## Overview
