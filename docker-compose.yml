@@ -8,6 +8,9 @@ services:
       - postgres
     networks:
       - taskcafe-test
+    environment:
+      TASKCAFE_DATABASE_HOST: postgres
+      TASKCAFE_MIGRATE: "true"
   postgres:
     image: postgres:12.3-alpine
     restart: always

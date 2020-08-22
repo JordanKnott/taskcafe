@@ -73,7 +73,7 @@ func (Backend) GenFrontend() error {
 // Build the Go api service
 func (Backend) Build() error {
 	fmt.Println("compiling binary dist/taskcafe")
-	return sh.Run("go", "build", "-o", "dist/taskcafe", "cmd/taskcafe/main.go")
+	return sh.Run("go", "build", "-tags", "prod", "-o", "dist/taskcafe", "cmd/taskcafe/main.go")
 }
 
 // Schema merges GraphQL schema files into single schema & runs gqlgen
