@@ -1,6 +1,7 @@
-import { createGlobalStyle, DefaultTheme } from 'styled-components';
+import { DefaultTheme } from 'styled-components';
 
-const theme: DefaultTheme = {
+// eslint-disable-next-line import/prefer-default-export
+export const theme: DefaultTheme = {
   borderRadius: {
     primary: '3px',
     alternate: '6px',
@@ -24,5 +25,3 @@ const theme: DefaultTheme = {
     },
   },
 };
-
-export { theme };

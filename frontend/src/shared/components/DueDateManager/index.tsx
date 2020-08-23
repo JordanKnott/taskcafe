@@ -2,22 +2,13 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker';
-import { Cross } from 'shared/icons';
 import _ from 'lodash';
-
-import {
-  Wrapper,
-  ActionWrapper,
-  RemoveDueDate,
-  DueDateInput,
-  DueDatePickerWrapper,
-  ConfirmAddDueDate,
-  CancelDueDate,
-} from './Styles';
-
-import 'react-datepicker/dist/react-datepicker.css';
 import { getYear, getMonth } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
+
+import { Wrapper, ActionWrapper, RemoveDueDate, DueDateInput, DueDatePickerWrapper, ConfirmAddDueDate } from './Styles';
+
+import 'react-datepicker/dist/react-datepicker.css';
 
 type DueDateManagerProps = {
   task: Task;
@@ -118,7 +109,7 @@ const HeaderActions = styled.div`
   }
 `;
 
-const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate, onCancel }) => {
+const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate }) => {
   const now = moment();
   const [textStartDate, setTextStartDate] = useState(now.format('YYYY-MM-DD'));
   const [startDate, setStartDate] = useState(new Date());
@@ -126,8 +117,8 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     setTextStartDate(moment(startDate).format('YYYY-MM-DD'));
   }, [startDate]);
 
-  const [textEndTime, setTextEndTime] = useState(now.format('h:mm A'));
-  const [endTime, setEndTime] = useState(now.toDate());
+  const [, setTextEndTime] = useState(now.format('h:mm A'));
+  const [endTime] = useState(now.toDate());
   useEffect(() => {
     setTextEndTime(moment(endTime).format('h:mm A'));
   }, [endTime]);
@@ -147,14 +138,14 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     'November',
     'December',
   ];
-  const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
+  const { register, handleSubmit, control } = useForm<DueDateFormData>();
   const saveDueDate = (data: any) => {
     const newDate = moment(`${data.endDate} ${data.endTime}`, 'YYYY-MM-DD h:mm A');
     if (newDate.isValid()) {
       onDueDateChange(task, newDate.toDate());
     }
   };
-  const CustomTimeInput = forwardRef(({ value, onClick }: any, $ref: any) => {
+  const CustomTimeInput = forwardRef(({ onClick }: any, $ref: any) => {
     return (
       <DueDateInput
         id="endTime"
@@ -220,7 +211,10 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
                 </HeaderButton>
                 <HeaderSelectLabel>
                   {months[date.getMonth()]}
-                  <HeaderSelect value={getYear(date)} onChange={({ target: { value } }) => changeYear(parseInt(value))}>
+                  <HeaderSelect
+                    value={getYear(date)}
+                    onChange={({ target: { value } }) => changeYear(parseInt(value, 10))}
+                  >
                     {years.map(option => (
                       <option key={option} value={option}>
                         {option}
@@ -255,7 +249,12 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
           />
         </DueDatePickerWrapper>
         <ActionWrapper>
-          <ConfirmAddDueDate type="submit" onClick={() => {}}>
+          <ConfirmAddDueDate
+            type="submit"
+            onClick={() => {
+              //
+            }}
+          >
             Save
           </ConfirmAddDueDate>
           <RemoveDueDate

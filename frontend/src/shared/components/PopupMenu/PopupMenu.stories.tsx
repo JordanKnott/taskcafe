@@ -41,10 +41,6 @@ const labelData: Array<ProjectLabel> = [
 
 const OpenLabelBtn = styled.span``;
 
-type TabProps = {
-  tab: number;
-};
-
 const LabelManagerEditor = () => {
   const [labels, setLabels] = useState(labelData);
   const [currentLabel, setCurrentLabel] = useState('');
@@ -127,9 +123,7 @@ const LabelManagerEditor = () => {
 
 const OpenLabelsButton = () => {
   const $buttonRef = createRef<HTMLButtonElement>();
-  const [currentLabel, setCurrentLabel] = useState('');
-  const [labels, setLabels] = useState(labelData);
-  const { showPopup, setTab } = usePopup();
+  const { showPopup } = usePopup();
   return (
     <OpenLabelBtn
       ref={$buttonRef}
@@ -143,7 +137,6 @@ const OpenLabelsButton = () => {
 };
 
 export const LabelsPopup = () => {
-  const [isPopupOpen, setPopupOpen] = useState(false);
   return (
     <PopupProvider>
       <OpenLabelsButton />
@@ -235,6 +228,7 @@ export const MemberManagerPopup = () => {
           />
         </PopupMenu>
       )}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
       <span
         ref={$buttonRef}
         onClick={() => {
@@ -301,6 +295,7 @@ export const DueDateManagerPopup = () => {
           />
         </PopupMenu>
       )}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
       <span
         style={{
           width: '60px',
@@ -353,6 +348,7 @@ export const MiniProfilePopup = () => {
           />
         </PopupMenu>
       )}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
       <span
         style={{
           width: '60px',

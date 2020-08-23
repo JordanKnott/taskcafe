@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Pencil, Checkmark } from 'shared/icons';
 
 import {

@@ -1,11 +1,6 @@
 import React from 'react';
-import styled, { css } from 'styled-components/macro';
-import {
-  useGetTeamQuery,
-  useDeleteTeamMutation,
-  GetProjectsDocument,
-  GetProjectsQuery,
-} from 'shared/generated/graphql';
+import styled from 'styled-components/macro';
+import { useGetTeamQuery } from 'shared/generated/graphql';
 import { Link } from 'react-router-dom';
 import Input from 'shared/components/Input';
 
@@ -54,6 +49,7 @@ const FilterTabTitle = styled.h2`
   margin: 0;
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ProjectAddTile = styled.div`
   background-color: rgba(${props => props.theme.colors.bg.primary}, 0.4);
   background-size: cover;
@@ -123,6 +119,7 @@ const ProjectTileDetails = styled.div`
   justify-content: space-between;
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ProjectAddTileDetails = styled.div`
   display: flex;
   height: 80px;

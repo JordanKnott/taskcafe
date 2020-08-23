@@ -30,6 +30,7 @@ const labelData: Array<ProjectLabel> = [
   },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const createCard = () => {
   const $ref = createRef<HTMLDivElement>();
   return (
@@ -60,12 +61,20 @@ export const Default = () => {
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
-        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
+        <CardComposer
+          onClose={() => {
+            //
+          }}
+          onCreateCard={() => {
+            //
+          }}
+          isOpen={false}
+        />
       </ListCards>
     </List>
   );
 };
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const WithCardComposer = () => {
   return (
     <List
@@ -77,12 +86,20 @@ export const WithCardComposer = () => {
       onExtraMenuOpen={action('extra menu open')}
     >
       <ListCards>
-        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen />
+        <CardComposer
+          onClose={() => {
+            //
+          }}
+          onCreateCard={() => {
+            //
+          }}
+          isOpen
+        />
       </ListCards>
     </List>
   );
 };
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const WithCard = () => {
   const $cardRef: any = createRef();
   return (
@@ -108,11 +125,20 @@ export const WithCard = () => {
           checklists={{ complete: 1, total: 4 }}
           dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
         />
-        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
+        <CardComposer
+          onClose={() => {
+            //
+          }}
+          onCreateCard={() => {
+            //
+          }}
+          isOpen={false}
+        />
       </ListCards>
     </List>
   );
 };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const WithCardAndComposer = () => {
   const $cardRef: any = createRef();
   return (
@@ -138,7 +164,15 @@ export const WithCardAndComposer = () => {
           checklists={{ complete: 1, total: 4 }}
           dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
         />
-        <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen />
+        <CardComposer
+          onClose={() => {
+            //
+          }}
+          onCreateCard={() => {
+            //
+          }}
+          isOpen
+        />
       </ListCards>
     </List>
   );

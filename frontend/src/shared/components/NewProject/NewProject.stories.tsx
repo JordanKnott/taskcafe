@@ -1,6 +1,5 @@
-import React, { useState, useRef, createRef } from 'react';
+import React from 'react';
 import { action } from '@storybook/addon-actions';
-import styled from 'styled-components';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
 
@@ -26,7 +25,9 @@ export const Default = () => {
         initialTeamID={null}
         onCreateProject={action('create project')}
         teams={[{ name: 'General', id: 'general', createdAt: '' }]}
-        onClose={() => {}}
+        onClose={() => {
+          //
+        }}
       />
     </>
   );

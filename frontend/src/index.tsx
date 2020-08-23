@@ -81,7 +81,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
     }
   }
   if (networkError) {
-    console.log(`[Network error]: ${networkError}`);
+    console.error(`[Network error]: ${networkError}`);
   }
   return undefined;
 });
@@ -123,11 +123,11 @@ const client = new ApolloClient({
     onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors) {
         graphQLErrors.forEach(({ message, locations, path }) =>
-          console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
+          console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
         );
       }
       if (networkError) {
-        console.log(`[Network error]: ${networkError}`);
+        console.error(`[Network error]: ${networkError}`);
       }
     }),
     errorLink,

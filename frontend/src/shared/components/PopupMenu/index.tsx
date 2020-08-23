@@ -1,8 +1,7 @@
-import React, { useRef, createContext, RefObject, useState, useContext, useEffect } from 'react';
+import React, { useRef, createContext, RefObject, useState, useContext } from 'react';
 import { Cross, AngleLeft } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import { createPortal } from 'react-dom';
-import produce from 'immer';
 import {
   Container,
   ContainerDiamond,
@@ -38,7 +37,7 @@ type PopupContainerProps = {
 
 const PopupContainer: React.FC<PopupContainerProps> = ({ width, top, left, onClose, children, invert, invertY }) => {
   const $containerRef = useRef<HTMLDivElement>(null);
-  const [currentTop, setCurrentTop] = useState(top);
+  const [currentTop] = useState(top);
   useOnOutsideClick($containerRef, true, onClose, null);
   return (
     <Container width={width ?? 316} left={left} top={currentTop} ref={$containerRef} invert={invert} invertY={invertY}>
@@ -52,10 +51,16 @@ PopupContainer.defaultProps = {
 };
 
 const PopupContext = createContext<PopupContextState>({
-  show: () => {},
-  setTab: () => {},
+  show: () => {
+    //
+  },
+  setTab: () => {
+    //
+  },
   getCurrentTab: () => 0,
-  hide: () => {},
+  hide: () => {
+    //
+  },
 });
 
 export const usePopup = () => {
@@ -75,7 +80,7 @@ type PopupState = {
   width?: string | number;
 };
 
-const { Provider, Consumer } = PopupContext;
+const { Provider } = PopupContext;
 
 const canUseDOM = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
 

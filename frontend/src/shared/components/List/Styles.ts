@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
-import { mixin } from 'shared/utils/styles';
 
 export const Container = styled.div`
   width: 272px;

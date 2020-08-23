@@ -4,8 +4,8 @@ import NormalizeStyles from 'App/NormalizeStyles';
 import { theme } from 'App/ThemeStyles';
 import styled, { ThemeProvider } from 'styled-components';
 
-import Input from '.';
 import { User } from 'shared/icons';
+import Input from '.';
 
 export default {
   component: Input,

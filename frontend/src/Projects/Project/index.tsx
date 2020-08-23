@@ -1,10 +1,9 @@
 // LOC830
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useRef, useEffect } from 'react';
 import updateApolloCache from 'shared/utils/cache';
 import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
 import styled from 'styled-components/macro';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
-import LabelManagerEditor from './LabelManagerEditor';
 import {
   useParams,
   Route,
@@ -22,23 +21,18 @@ import {
   useUpdateProjectNameMutation,
   useFindProjectQuery,
   useUpdateTaskNameMutation,
-  useCreateTaskMutation,
   useDeleteTaskMutation,
-  useUpdateTaskLocationMutation,
-  useUpdateTaskGroupLocationMutation,
-  useCreateTaskGroupMutation,
   useUpdateTaskDescriptionMutation,
   FindProjectDocument,
   FindProjectQuery,
 } from 'shared/generated/graphql';
 
 import produce from 'immer';
-import UserContext, { useCurrentUser } from 'App/context';
 import Input from 'shared/components/Input';
 import Member from 'shared/components/Member';
 import Board, { BoardLoading } from './Board';
 import Details from './Details';
-import EmptyBoard from 'shared/components/EmptyBoard';
+import LabelManagerEditor from './LabelManagerEditor';
 
 const CARD_LABEL_VARIANT_STORAGE_KEY = 'card_label_variant';
 
@@ -111,6 +105,7 @@ interface ProjectParams {
   projectID: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const initialQuickCardEditorState: QuickCardEditorState = {
   taskID: null,
   taskGroupID: null,
@@ -124,6 +119,7 @@ const Project = () => {
   const match = useRouteMatch();
 
   const [updateTaskDescription] = useUpdateTaskDescriptionMutation();
+  const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
     onCompleted: newTaskLabel => {
       taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
@@ -183,14 +179,9 @@ const Project = () => {
       );
     },
   });
-
-  const { user } = useCurrentUser();
   const location = useLocation();
-
   const { showPopup, hidePopup } = usePopup();
-  const $labelsRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<Array<ProjectLabel>>([]);
-  const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   useEffect(() => {
     if (data) {
       document.title = `${data.findProject.name} | Taskcafé`;
@@ -199,7 +190,13 @@ const Project = () => {
   if (loading) {
     return (
       <>
-        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" projectID={null} />
+        <GlobalTopNavbar
+          onSaveProjectName={() => {
+            //
+          }}
+          name=""
+          projectID={null}
+        />
         <BoardLoading />
       </>
     );
@@ -213,7 +210,7 @@ const Project = () => {
           onChangeRole={(userID, roleCode) => {
             updateProjectMemberRole({ variables: { userID, roleCode, projectID } });
           }}
-          onChangeProjectOwner={uid => {
+          onChangeProjectOwner={() => {
             hidePopup();
           }}
           onRemoveFromBoard={userID => {
@@ -261,7 +258,9 @@ const Project = () => {
           path={`${match.path}/board/c/:taskID`}
           render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
             <Details
-              refreshCache={() => {}}
+              refreshCache={() => {
+                //
+              }}
               availableMembers={data.findProject.members}
               projectURL={`${match.url}/board`}
               taskID={routeProps.match.params.taskID}

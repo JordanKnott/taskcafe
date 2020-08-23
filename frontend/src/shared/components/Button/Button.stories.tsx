@@ -1,5 +1,4 @@
 import React from 'react';
-import { action } from '@storybook/addon-actions';
 import BaseStyles from 'App/BaseStyles';
 import NormalizeStyles from 'App/NormalizeStyles';
 import { theme } from 'App/ThemeStyles';

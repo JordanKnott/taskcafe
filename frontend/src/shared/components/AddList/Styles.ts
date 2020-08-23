@@ -67,7 +67,7 @@ export const ListNameEditorWrapper = styled.div`
   display: flex;
 `;
 export const ListNameEditor = styled(TextareaAutosize)`
-  background-color: ${props => mixin.lighten('#262c49', 0.05)};
+  background-color: ${() => mixin.lighten('#262c49', 0.05)};
   border: none;
   box-shadow: inset 0 0 0 2px #0079bf;
   transition: margin 85ms ease-in, background 85ms ease-in;
@@ -91,7 +91,7 @@ export const ListNameEditor = styled(TextareaAutosize)`
 
   color: #c2c6dc;
   l &:focus {
-    background-color: ${props => mixin.lighten('#262c49', 0.05)};
+    background-color: ${() => mixin.lighten('#262c49', 0.05)};
   }
 `;
 

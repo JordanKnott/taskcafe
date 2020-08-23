@@ -1,10 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import styled from 'styled-components/macro';
-import DropdownMenu, { ProfileMenu } from 'shared/components/DropdownMenu';
+import { ProfileMenu } from 'shared/components/DropdownMenu';
 import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
-import { UserContext, PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
+import { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
 import {
   RoleCode,
   useMeQuery,
@@ -72,7 +72,7 @@ const TeamProjectBackground = styled.div<{ color: string }>`
 `;
 
 const TeamProjectAvatar = styled.div<{ color: string }>`
-  background-image: url(null);
+  background-image: none;
   background-color: ${props => props.color};
 
   display: inline-block;
@@ -130,7 +130,7 @@ const ProjectFinder = () => {
     return <span>loading</span>;
   }
   if (data) {
-    const { projects, teams, organizations } = data;
+    const { projects, teams } = data;
     const projectTeams = teams.map(team => {
       return {
         id: team.id,
@@ -238,7 +238,6 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   currentTab,
   onSetTab,
   menuType,
-  projectID,
   teamID,
   onChangeProjectOwner,
   onChangeRole,
@@ -248,10 +247,10 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onInviteUser,
   onSaveProjectName,
   onRemoveFromBoard,
-  nameOnly,
 }) => {
   const { user, setUserRoles, setUser } = useCurrentUser();
-  const { loading, data } = useMeQuery({
+  const { data } = useMeQuery({
+    // eslint-disable-next-line no-shadow
     onCompleted: data => {
       if (user && user.roles) {
         setUserRoles({
@@ -268,7 +267,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       }
     },
   });
-  const { showPopup, hidePopup, setTab } = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
   const onLogout = () => {
     fetch('/auth/logout', {
@@ -367,7 +366,9 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
         onInviteUser={onInviteUser}
         onChangeRole={onChangeRole}
         onChangeProjectOwner={onChangeProjectOwner}
-        onNotificationClick={() => {}}
+        onNotificationClick={() => {
+          //
+        }}
         onSetTab={onSetTab}
         onRemoveFromBoard={onRemoveFromBoard}
         onDashboardClick={() => {

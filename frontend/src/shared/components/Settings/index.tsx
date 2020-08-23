@@ -195,8 +195,6 @@ const TabContent = styled.div`
   border-radius: 0.5rem;
 `;
 
-const TabContentInner = styled.div``;
-
 const items = [{ name: 'General' }, { name: 'Change Password' }, { name: 'Info' }, { name: 'Notifications' }];
 type NavItemProps = {
   active: boolean;

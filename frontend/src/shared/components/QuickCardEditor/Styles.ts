@@ -1,6 +1,4 @@
 import styled, { keyframes, css } from 'styled-components';
-import TextareaAutosize from 'react-autosize-textarea';
-import { mixin } from 'shared/utils/styles';
 
 export const Wrapper = styled.div<{ open: boolean }>`
   background: rgba(0, 0, 0, 0.55);
@@ -60,7 +58,7 @@ export const EditorButtons = styled.div<{ fixed: boolean }>`
     css`
       top: auto;
       bottom: 8px;
-    `}
+    `};
 `;
 
 export const EditorButton = styled.div`

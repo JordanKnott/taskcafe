@@ -160,6 +160,7 @@ const MiniProfile: React.FC<MiniProfileProps> = ({
           {user.role && user.role.code === 'owner' && (
             <>
               <Separator />
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
               <WarningText>You can't change roles because there must be an owner.</WarningText>
             </>
           )}

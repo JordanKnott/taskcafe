@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-
 import {
-  MemberName,
-  ProfileIcon,
   MemberManagerWrapper,
   MemberManagerSearchWrapper,
   MemberManagerSearch,
@@ -10,16 +7,14 @@ import {
   BoardMembersList,
   BoardMembersListItem,
   BoardMemberListItemContent,
-  ActiveIconWrapper,
 } from './Styles';
-import { Checkmark } from 'shared/icons';
-import Member from 'shared/components/Member';
 
 type MemberManagerProps = {
   availableMembers: Array<TaskUser>;
   activeMembers: Array<TaskUser>;
   onMemberChange: (member: TaskUser, isActive: boolean) => void;
 };
+
 const MemberManager: React.FC<MemberManagerProps> = ({
   availableMembers,
   activeMembers: initialActiveMembers,

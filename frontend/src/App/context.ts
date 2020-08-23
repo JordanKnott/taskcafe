@@ -31,8 +31,8 @@ type UserContextState = {
 };
 export const UserContext = React.createContext<UserContextState>({
   user: null,
-  setUser: _user => null,
-  setUserRoles: roles => null,
+  setUser: () => null,
+  setUserRoles: () => null,
 });
 
 export interface CurrentUser extends CurrentUserRaw {

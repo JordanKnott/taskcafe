@@ -81,6 +81,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
           position: newPosition,
         });
       } else {
+        // eslint-disable-next-line no-throw-literal
         throw { error: 'task group can not be found' };
       }
     } else {
@@ -147,7 +148,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                       <Draggable draggableId={taskGroup.id} key={taskGroup.id} index={index}>
                         {columnDragProvided => (
                           <Droppable type="tasks" droppableId={taskGroup.id}>
-                            {(columnDropProvided, snapshot) => (
+                            {columnDropProvided => (
                               <List
                                 name={taskGroup.name}
                                 onOpenComposer={id => setCurrentComposer(id)}

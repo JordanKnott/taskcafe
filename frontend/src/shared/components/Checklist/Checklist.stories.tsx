@@ -132,7 +132,7 @@ export const Default = () => {
             }}
             onToggleItem={onToggleItem}
           >
-            {items.map((item, idx) => (
+            {items.map(item => (
               <ChecklistItem
                 key={item.id}
                 wrapperProps={{}}
@@ -141,9 +141,15 @@ export const Default = () => {
                 itemID={item.id}
                 name={item.name}
                 complete={item.complete}
-                onDeleteItem={() => {}}
-                onChangeName={() => {}}
-                onToggleItem={() => {}}
+                onDeleteItem={() => {
+                  //
+                }}
+                onChangeName={() => {
+                  //
+                }}
+                onToggleItem={() => {
+                  //
+                }}
               />
             ))}
           </Checklist>

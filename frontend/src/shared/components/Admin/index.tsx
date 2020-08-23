@@ -1,14 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { UserPlus, Checkmark } from 'shared/icons';
+import { UserPlus, Checkmark, User, Pencil, Trash } from 'shared/icons';
 import styled, { css } from 'styled-components';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import Select from 'shared/components/Select';
-import { User, Plus, Lock, Pencil, Trash } from 'shared/icons';
+
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { RoleCode, useUpdateUserRoleMutation } from 'shared/generated/graphql';
 import Input from 'shared/components/Input';
-import Member from 'shared/components/Member';
-
 import Button from 'shared/components/Button';
 
 export const RoleCheckmark = styled(Checkmark)`
@@ -120,7 +118,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
   onChangeRole,
 }) => {
   const { hidePopup, setTab } = usePopup();
-  const [userPass, setUserPass] = useState({ pass: '', passConfirm: '' });
+  const [userPass] = useState({ pass: '', passConfirm: '' });
   const [deleteUser, setDeleteUser] = useState<{ label: string; value: string } | null>(null);
   const hasOwned = user.owned.projects.length !== 0 || user.owned.teams.length !== 0;
   return (
@@ -195,6 +193,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           {user.role && user.role.code === 'owner' && (
             <>
               <Separator />
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
               <WarningText>You can't change roles because there must be an owner.</WarningText>
             </>
           )}
@@ -209,6 +208,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             <>
               <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
               <DeleteDescription>
+                {/* eslint-disable-next-line react/no-unescaped-entities */}
                 Choose a new user to take over ownership of this user's teams & projects.
               </DeleteDescription>
               <UserSelect
@@ -239,10 +239,16 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
           <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
-          <UserSelect onChange={() => {}} value={null} options={users.map(u => ({ label: u.fullName, value: u.id }))} />
+          <UserSelect
+            onChange={() => {
+              //
+            }}
+            value={null}
+            options={users.map(u => ({ label: u.fullName, value: u.id }))}
+          />
           <UserPassConfirmButton
             onClick={() => {
-              // onDeleteUser();
+              //
             }}
             color="danger"
           >
@@ -253,6 +259,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
       <Popup title="Reset password?" onClose={() => hidePopup()} tab={3}>
         <Content>
           <DeleteDescription>
+            {/* eslint-disable-next-line react/no-unescaped-entities */}
             You can either set the user's new password directly or send the user an email allowing them to reset their
             own password.
           </DeleteDescription>
@@ -397,6 +404,7 @@ const MemberListWrapper = styled.div`
   flex: 1 1;
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Root = styled.div`
   .ag-theme-material {
     --ag-foreground-color: #c2c6dc;
@@ -433,6 +441,7 @@ const Root = styled.div`
   }
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Header = styled.div`
   border-bottom: 1px solid #e2e2e2;
   flex-direction: row;
@@ -450,8 +459,6 @@ const Header = styled.div`
 `;
 
 const EditUserIcon = styled(Pencil)``;
-
-const LockUserIcon = styled(Lock)``;
 
 const DeleteUserIcon = styled(Trash)``;
 
@@ -474,10 +481,15 @@ const ActionButton: React.FC<ActionButtonProps> = ({ onClick, children }) => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ActionButtons = (params: any) => {
   return (
     <>
-      <ActionButton onClick={() => {}}>
+      <ActionButton
+        onClick={() => {
+          //
+        }}
+      >
         <EditUserIcon width={16} height={16} />
       </ActionButton>
       <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
@@ -486,14 +498,6 @@ const ActionButtons = (params: any) => {
     </>
   );
 };
-
-const Wrapper = styled.div`
-  background: #eff2f7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-`;
 
 const Container = styled.div`
   padding: 2.2rem;
@@ -630,14 +634,13 @@ const Admin: React.FC<AdminProps> = ({
   onUpdateUserPassword,
   canInviteUser,
   onDeleteUser,
-  onInviteUser,
   users,
 }) => {
   const warning =
     'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
   const [currentTop, setTop] = useState(initialTab * 48);
   const [currentTab, setTab] = useState(initialTab);
-  const { showPopup, hidePopup } = usePopup();
+  const { showPopup } = usePopup();
   const $tabNav = useRef<HTMLDivElement>(null);
 
   const [updateUserRole] = useUpdateUserRoleMutation();
@@ -690,7 +693,14 @@ const Admin: React.FC<AdminProps> = ({
                 const projectTotal = member.owned.projects.length + member.member.projects.length;
                 return (
                   <MemberListItem>
-                    <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
+                    <MemberProfile
+                      showRoleIcons
+                      size={32}
+                      onMemberProfile={() => {
+                        //
+                      }}
+                      member={member}
+                    />
                     <MemberListItemDetails>
                       <MemberItemName>{member.fullName}</MemberItemName>
                       <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>

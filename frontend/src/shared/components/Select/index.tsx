@@ -40,16 +40,19 @@ const colourStyles = {
   },
   dropdownIndicator: (styles: any) => ({ ...styles, color: '#c2c6dc', ':hover': { color: '#c2c6dc' } }),
   indicatorSeparator: (styles: any) => ({ ...styles, color: '#c2c6dc' }),
-  option: (styles: any, { data, isDisabled, isFocused, isSelected }: any) => {
+  option: (styles: any, { isDisabled, isFocused, isSelected }: any) => {
     return {
       ...styles,
+      // eslint-disable-next-line no-nested-ternary
       backgroundColor: isDisabled
         ? null
-        : isSelected
+        : // eslint-disable-next-line no-nested-ternary
+        isSelected
         ? mixin.darken('#262c49', 0.25)
         : isFocused
         ? mixin.darken('#262c49', 0.15)
         : null,
+      // eslint-disable-next-line no-nested-ternary
       color: isDisabled ? '#ccc' : isSelected ? '#fff' : '#c2c6dc',
       cursor: isDisabled ? 'not-allowed' : 'default',
       ':active': {

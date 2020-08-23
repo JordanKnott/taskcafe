@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
-import Admin from '.';
+import React from 'react';
 import { theme } from 'App/ThemeStyles';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
 import { ThemeProvider } from 'styled-components';
 import { action } from '@storybook/addon-actions';
+import Admin from '.';
 
 export default {
   component: Admin,

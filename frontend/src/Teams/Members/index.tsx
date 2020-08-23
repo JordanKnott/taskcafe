@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
 import Button from 'shared/components/Button';
-import UserContext, { useCurrentUser, PermissionLevel, PermissionObjectType } from 'App/context';
+import { useCurrentUser, PermissionLevel, PermissionObjectType } from 'App/context';
 import Select from 'shared/components/Select';
 import {
   useGetTeamQuery,
@@ -13,8 +13,6 @@ import {
   useUpdateTeamMemberRoleMutation,
   GetTeamQuery,
   GetTeamDocument,
-  MeDocument,
-  MeQuery,
 } from 'shared/generated/graphql';
 import { UserPlus, Checkmark } from 'shared/icons';
 import styled, { css } from 'styled-components/macro';
@@ -253,6 +251,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           {subject.role && subject.role.code === 'owner' && (
             <>
               <Separator />
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
               <WarningText>You can't change roles because there must be an owner.</WarningText>
             </>
           )}
@@ -510,7 +509,14 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
           <MemberList>
             {data.findTeam.members.map(member => (
               <MemberListItem>
-                <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
+                <MemberProfile
+                  showRoleIcons
+                  size={32}
+                  onMemberProfile={() => {
+                    //
+                  }}
+                  member={member}
+                />
                 <MemberListItemDetails>
                   <MemberItemName>{member.fullName}</MemberItemName>
                   <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>

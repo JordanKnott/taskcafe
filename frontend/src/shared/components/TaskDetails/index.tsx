@@ -10,19 +10,16 @@ import {
   getAfterDropDraggableList,
 } from 'shared/utils/draggables';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import TaskAssignee from 'shared/components/TaskAssignee';
 import moment from 'moment';
 
+import styled from 'styled-components';
 import {
   TaskMember,
-  NoDueDateLabel,
   TaskDueDateButton,
-  UnassignedLabel,
   TaskGroupLabel,
   TaskGroupLabelName,
   TaskDetailsSection,
   TaskActions,
-  TaskDetailsAddLabel,
   TaskDetailsAddLabelIcon,
   TaskAction,
   TaskMeta,
@@ -30,7 +27,6 @@ import {
   ActionButton,
   ActionButtonsTitle,
   TaskHeader,
-  ProfileIcon,
   TaskDetailsContent,
   TaskDetailsWrapper,
   TaskDetailsSidebar,
@@ -44,11 +40,7 @@ import {
   TaskDetailsControls,
   ConfirmSave,
   CancelEdit,
-  TaskDetailSectionTitle,
   TaskDetailLabel,
-  TaskDetailLabels,
-  TaskDetailAssignee,
-  TaskDetailAssignees,
   TaskDetailsAddMemberIcon,
   MetaDetails,
   MetaDetail,
@@ -56,7 +48,6 @@ import {
   MetaDetailContent,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
-import styled from 'styled-components';
 
 const ChecklistContainer = styled.div``;
 
@@ -201,18 +192,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       }
     }
   };
-  const $unassignedRef = useRef<HTMLDivElement>(null);
   const $addMemberRef = useRef<HTMLDivElement>(null);
-  const onUnassignedClick = () => {
-    onOpenAddMemberPopup(task, $unassignedRef);
-  };
   const onAddMember = ($target: React.RefObject<HTMLElement>) => {
     onOpenAddMemberPopup(task, $target);
   };
   const onAddChecklist = ($target: React.RefObject<HTMLElement>) => {
     onOpenAddChecklistPopup(task, $target);
   };
-  const $dueDateLabel = useRef<HTMLDivElement>(null);
   const $addLabelRef = useRef<HTMLDivElement>(null);
 
   const onAddLabel = ($target: React.RefObject<HTMLElement>) => {
@@ -254,6 +240,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
         onChecklistDrop({ ...droppedGroup, position: newPosition });
       } else {
+        // eslint-disable-next-line no-throw-literal
         throw { error: 'task group can not be found' };
       }
     } else {
@@ -314,7 +301,12 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         <TaskMeta>
           {task.taskGroup.name && (
             <TaskGroupLabel>
-              in list <TaskGroupLabelName>{task.taskGroup.name}</TaskGroupLabelName>
+              <span>
+                <span>in list</span>
+                <span>
+                  <TaskGroupLabelName>{task.taskGroup.name}</TaskGroupLabelName>
+                </span>
+              </span>
             </TaskGroupLabel>
           )}
         </TaskMeta>

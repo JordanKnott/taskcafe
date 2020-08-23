@@ -1,14 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Cross from 'shared/icons/Cross';
-import styled from 'styled-components';
 import { Wrapper, Container, EditorButtons, SaveButton, EditorButton, CloseButton } from './Styles';
 import Card from '../Card';
-
-export const CardMembers = styled.div`
-  position: absolute;
-  right: 0;
-  bottom: 0;
-`;
 
 type Props = {
   task: Task;
@@ -35,7 +28,7 @@ const QuickCardEditor = ({
   onEditCard,
   target: $target,
 }: Props) => {
-  const [currentCardTitle, setCardTitle] = useState(task.name);
+  const [currentCardTitle] = useState(task.name);
   const $labelsRef: any = useRef();
   const $dueDate: any = useRef();
   const $membersRef: any = useRef();
@@ -44,8 +37,6 @@ const QuickCardEditor = ({
     e.stopPropagation();
     onCloseEditor();
   };
-
-  const height = 180;
   const saveCardButtonBarHeight = 48;
   let top = 0;
   let left = 0;

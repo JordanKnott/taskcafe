@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect } from 'react';
 import Admin from 'shared/components/Admin';
 import Select from 'shared/components/Select';
 import GlobalTopNavbar from 'App/TopNavbar';
@@ -16,7 +16,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import updateApolloCache from 'shared/utils/cache';
-import UserContext, { useCurrentUser } from 'App/context';
+import { useCurrentUser } from 'App/context';
 import { Redirect } from 'react-router';
 
 const DeleteUserWrapper = styled.div`
@@ -37,6 +37,7 @@ const DeleteUserButton = styled(Button)`
 type DeleteUserPopupProps = {
   onDeleteUser: () => void;
 };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DeleteUserPopup: React.FC<DeleteUserPopupProps> = ({ onDeleteUser }) => {
   return (
     <DeleteUserWrapper>
@@ -85,7 +86,7 @@ type AddUserPopupProps = {
 };
 
 const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
-  const { register, handleSubmit, errors, setValue, control } = useForm<CreateUserData>();
+  const { register, handleSubmit, errors, control } = useForm<CreateUserData>();
 
   const createUser = (data: CreateUserData) => {
     onAddUser(data);
@@ -115,7 +116,7 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
         control={control}
         name="roleCode"
         rules={{ required: 'Role is required' }}
-        render={({ onChange, onBlur, value }) => (
+        render={({ onChange, value }) => (
           <Select
             label="Role"
             value={value}
@@ -198,21 +199,37 @@ const AdminRoute = () => {
     },
   });
   if (loading) {
-    return <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />;
+    return (
+      <GlobalTopNavbar
+        projectID={null}
+        onSaveProjectName={() => {
+          //
+        }}
+        name={null}
+      />
+    );
   }
   if (data && user) {
-    if (user.roles.org != 'admin') {
+    if (user.roles.org !== 'admin') {
       return <Redirect to="/" />;
     }
     return (
       <>
-        <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
+        <GlobalTopNavbar
+          projectID={null}
+          onSaveProjectName={() => {
+            //
+          }}
+          name={null}
+        />
         <Admin
           initialTab={0}
           users={data.users}
-          canInviteUser={user.roles.org == 'admin'}
-          onInviteUser={() => {}}
-          onUpdateUserPassword={(user, password) => {
+          canInviteUser={user.roles.org === 'admin'}
+          onInviteUser={() => {
+            //
+          }}
+          onUpdateUserPassword={() => {
             hidePopup();
           }}
           onDeleteUser={(userID, newOwnerID) => {
@@ -224,6 +241,7 @@ const AdminRoute = () => {
               $target,
               <Popup tab={0} title="Add member" onClose={() => hidePopup()}>
                 <AddUserPopup
+                  /* eslint-disable-next-line no-shadow */
                   onAddUser={user => {
                     const { roleCode, ...userData } = user;
                     createUser({ variables: { ...userData, roleCode: roleCode.value } });

@@ -1,6 +1,5 @@
 import React from 'react';
-import {Router, Switch, Route} from 'react-router-dom';
-import * as H from 'history';
+import { Switch, Route } from 'react-router-dom';
 
 import Dashboard from 'Dashboard';
 import Admin from 'Admin';
@@ -20,11 +19,8 @@ const MainContent = styled.div`
   flex-direction: column;
   flex-grow: 1;
 `;
-type RoutesProps = {
-  history: H.History;
-};
 
-const Routes = ({history}: RoutesProps) => (
+const Routes = () => (
   <Switch>
     <Route exact path="/login" component={Login} />
     <Route exact path="/install" component={Install} />

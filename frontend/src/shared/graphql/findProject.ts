@@ -1,6 +1,7 @@
 import gql from 'graphql-tag';
 import TASK_FRAGMENT from './fragments/task';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FIND_PROJECT_QUERY = gql`
 query findProject($projectID: UUID!) {
   findProject(input: { projectID: $projectID }) {

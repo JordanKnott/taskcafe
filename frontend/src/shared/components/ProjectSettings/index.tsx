@@ -69,10 +69,6 @@ export const TeamSettings: React.FC<TeamSettingsProps> = ({ onDeleteTeam }) => {
 
 const ConfirmWrapper = styled.div``;
 
-const ConfirmSubTitle = styled.h3`
-  font-size: 14px;
-`;
-
 const ConfirmDescription = styled.div`
   margin: 0 12px;
   font-size: 14px;

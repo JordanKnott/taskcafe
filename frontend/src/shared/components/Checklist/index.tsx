@@ -1,16 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { CheckSquare, Trash, Square, CheckSquareOutline, Clock, Cross, AccountPlus } from 'shared/icons';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import {
-  isPositionChanged,
-  getSortedDraggables,
-  getNewDraggablePosition,
-  getAfterDropDraggableList,
-} from 'shared/utils/draggables';
 import Button from 'shared/components/Button';
 import TextareaAutosize from 'react-autosize-textarea';
-import Control from 'react-select/src/components/Control';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 
 const Wrapper = styled.div`
@@ -547,11 +539,8 @@ const Checklist = React.forwardRef(
       items,
       wrapperProps,
       handleProps,
-      onToggleItem,
       onAddItem,
-      onChangeItemName,
       onChangeName,
-      onDeleteItem,
     }: ChecklistProps,
     $container,
   ) => {
@@ -559,7 +548,6 @@ const Checklist = React.forwardRef(
     const complete = items.reduce((prev, item) => prev + (item.complete ? 1 : 0), 0);
     const percent = items.length === 0 ? 0 : Math.floor((complete / items.length) * 100);
     const [editting, setEditting] = useState(false);
-    // useOnOutsideClick($name, true, () => setEditting(false), null);
     useEffect(() => {
       if (editting && $name && $name.current) {
         $name.current.focus();
@@ -611,24 +599,5 @@ const Checklist = React.forwardRef(
     );
   },
 );
-/*
-  <ChecklistItems>
-    {items
-      .slice()
-      .sort((a, b) => a.position - b.position)
-      .map((item, idx) => (
-        <ChecklistItem
-          index={idx}
-          key={item.id}
-          itemID={item.id}
-          name={item.name}
-          complete={item.complete}
-          onDeleteItem={onDeleteItem}
-          onChangeName={onChangeItemName}
-          onToggleItem={onToggleItem}
-        />
-      ))}
 
- </ChecklistItems>
- */
 export default Checklist;

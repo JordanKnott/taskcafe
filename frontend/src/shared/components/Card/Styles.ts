@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
 import { CheckCircle, CheckSquareOutline } from 'shared/icons';
-import { RefObject } from 'react';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
 export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
@@ -96,7 +95,7 @@ export const ListCardContainer = styled.div<{ isActive: boolean; editable: boole
   max-width: 256px;
   margin-bottom: 8px;
   border-radius: 3px;
-  ${mixin.boxShadowCard}
+  ${mixin.boxShadowCard};
   cursor: pointer !important;
   position: relative;
 
@@ -164,7 +163,7 @@ export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
           height: 16px;
           min-width: 56px;
           width: auto;
-        `}
+        `};
 
   padding: 0 8px;
   max-width: 198px;
@@ -218,7 +217,7 @@ export const ListCardOperation = styled.span`
   top: 2px;
   z-index: 100;
   &:hover {
-    background-color: ${props => mixin.darken('#262c49', 0.25)};
+    background-color: ${() => mixin.darken('#262c49', 0.25)};
   }
 `;
 

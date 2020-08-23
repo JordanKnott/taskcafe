@@ -2,10 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Home, Star, Bell, AngleDown, BarChart, CheckCircle } from 'shared/icons';
 import styled from 'styled-components';
 import ProfileIcon from 'shared/components/ProfileIcon';
-import TaskAssignee from 'shared/components/TaskAssignee';
-import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { RoleCode } from 'shared/generated/graphql';
-import MiniProfile from 'shared/components/MiniProfile';
 import {
   TaskcafeLogo,
   TaskcafeTitle,
@@ -24,14 +21,9 @@ import {
   NavbarWrapper,
   NavbarHeader,
   ProjectSettingsButton,
-  ProfileContainer,
-  ProfileNameWrapper,
-  ProfileNamePrimary,
-  ProfileNameSecondary,
   ProjectMember,
   ProjectMembers,
 } from './Styles';
-import { Link } from 'react-router-dom';
 
 const HomeDashboard = styled(Home)``;
 
@@ -161,16 +153,11 @@ const NavBar: React.FC<NavBarProps> = ({
   menuType,
   canInviteUser = false,
   onInviteUser,
-  onChangeProjectOwner,
-  currentTab,
   onMemberProfile,
   canEditProjectName = false,
   onOpenProjectFinder,
   onFavorite,
-  onSetTab,
-  onChangeRole,
   name,
-  onRemoveFromBoard,
   onSaveName,
   onProfileClick,
   onNotificationClick,
@@ -184,7 +171,6 @@ const NavBar: React.FC<NavBarProps> = ({
       onProfileClick($target);
     }
   };
-  const { showPopup } = usePopup();
   return (
     <NavbarWrapper>
       <NavbarHeader>
@@ -203,7 +189,7 @@ const NavBar: React.FC<NavBarProps> = ({
           {name && (
             <ProjectTabs>
               {menuType &&
-                menuType.map((menu, idx) => {
+                menuType.map(menu => {
                   return (
                     <ProjectTab
                       key={menu.name}

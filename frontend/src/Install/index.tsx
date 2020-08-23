@@ -1,18 +1,13 @@
 import React, { useEffect, useContext } from 'react';
 import axios from 'axios';
 import Register from 'shared/components/Register';
-import { Container, LoginWrapper } from './Styles';
-import { useCreateUserAccountMutation, useMeQuery, MeDocument, MeQuery } from 'shared/generated/graphql';
 import { useHistory } from 'react-router';
 import { getAccessToken, setAccessToken } from 'shared/utils/accessToken';
-import updateApolloCache from 'shared/utils/cache';
-import produce from 'immer';
-import { useApolloClient } from '@apollo/react-hooks';
-import UserContext, { PermissionLevel, PermissionObjectType } from 'App/context';
+import UserContext from 'App/context';
 import jwtDecode from 'jwt-decode';
+import { Container, LoginWrapper } from './Styles';
 
 const Install = () => {
-  const client = useApolloClient();
   const history = useHistory();
   const { setUser } = useContext(UserContext);
   useEffect(() => {
@@ -63,6 +58,7 @@ const Install = () => {
                     history.replace('/login');
                   } else {
                     const response: RefreshTokenResponse = await x.data;
+                    // eslint-disable-next-line no-shadow
                     const { accessToken, isInstalled } = response;
                     const claims: JWTToken = jwtDecode(accessToken);
                     const currentUser = {

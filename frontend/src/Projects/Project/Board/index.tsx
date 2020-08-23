@@ -1,39 +1,26 @@
-import React, { useState, useRef, useContext, useEffect } from 'react';
-import { MENU_TYPES } from 'shared/components/TopNavbar';
+import React, { useState, useRef } from 'react';
 import updateApolloCache from 'shared/utils/cache';
-import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
-import LabelManagerEditor from '../LabelManagerEditor';
 import styled, { css } from 'styled-components/macro';
 import { Bolt, ToggleOn, Tags, CheckCircle, Sort, Filter } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
-import { useParams, Route, useRouteMatch, useHistory, RouteComponentProps, useLocation } from 'react-router-dom';
+import { useRouteMatch, useHistory } from 'react-router-dom';
 import {
-  useUpdateProjectMemberRoleMutation,
-  useCreateProjectMemberMutation,
-  useDeleteProjectMemberMutation,
   useSetTaskCompleteMutation,
   useToggleTaskLabelMutation,
-  useUpdateProjectNameMutation,
   useFindProjectQuery,
   useUpdateTaskGroupNameMutation,
   useUpdateTaskNameMutation,
-  useUpdateProjectLabelMutation,
   useCreateTaskMutation,
-  useDeleteProjectLabelMutation,
   useDeleteTaskMutation,
   useUpdateTaskLocationMutation,
   useUpdateTaskGroupLocationMutation,
   useCreateTaskGroupMutation,
   useDeleteTaskGroupMutation,
-  useUpdateTaskDescriptionMutation,
   useAssignTaskMutation,
-  DeleteTaskDocument,
   FindProjectDocument,
-  useCreateProjectLabelMutation,
   useUnassignTaskMutation,
   useUpdateTaskDueDateMutation,
   FindProjectQuery,
-  useUsersQuery,
 } from 'shared/generated/graphql';
 
 import QuickCardEditor from 'shared/components/QuickCardEditor';
@@ -43,10 +30,8 @@ import SimpleLists from 'shared/components/Lists';
 import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import DueDateManager from 'shared/components/DueDateManager';
-import UserContext, { useCurrentUser } from 'App/context';
-import LabelManager from 'shared/components/PopupMenu/LabelManager';
-import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 import EmptyBoard from 'shared/components/EmptyBoard';
+import LabelManagerEditor from '../LabelManagerEditor';
 
 const ProjectBar = styled.div`
   display: flex;
@@ -81,7 +66,7 @@ const ProjectAction = styled.div<{ disabled?: boolean }>`
       opacity: 0.5;
       cursor: default;
       pointer-events: none;
-    `}
+    `};
 `;
 
 const ProjectActionText = styled.span`
@@ -155,7 +140,6 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   const { showPopup, hidePopup } = usePopup();
   const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   const [quickCardEditor, setQuickCardEditor] = useState(initialQuickCardEditorState);
-  const { user } = useCurrentUser();
   const [updateTaskGroupLocation] = useUpdateTaskGroupLocationMutation({});
   const history = useHistory();
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
@@ -308,12 +292,6 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   if (data) {
     labelsRef.current = data.findProject.labels;
     const onQuickEditorOpen = ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => {
-      if ($target && $target.current) {
-        const pos = $target.current.getBoundingClientRect();
-        const height = 120;
-        if (window.innerHeight - pos.bottom < height) {
-        }
-      }
       const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
       const currentTask = taskGroup ? taskGroup.tasks.find(t => t.id === taskID) : null;
       if (currentTask) {
@@ -381,6 +359,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
           onTaskClick={task => {
             history.push(`${match.url}/c/${task.id}`);
           }}
+          /* eslint-disable-next-line @typescript-eslint/no-empty-function */
           onCardLabelClick={onCardLabelClick ?? (() => {})}
           cardLabelVariant={cardLabelVariant ?? 'large'}
           onTaskDrop={(droppedTask, previousTaskGroupID) => {
@@ -549,7 +528,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                       updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
                       hidePopup();
                     }}
-                    onCancel={() => {}}
+                    onCancel={() => {
+                      //
+                    }}
                   />
                 </Popup>,
               );

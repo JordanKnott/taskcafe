@@ -1,10 +1,9 @@
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
-import { mixin } from 'shared/utils/styles';
 import Input from 'shared/components/Input';
 
 export const Wrapper = styled.div`
-display: flex
+  display: flex;
   flex-direction: column;
   & .react-datepicker {
     background: #262c49;
@@ -24,9 +23,12 @@ display: flex
   & .react-datepicker__time-list-item {
     color: rgba(${props => props.theme.colors.text.primary});
   }
-  & .react-datepicker__time-container .react-datepicker__time
-  .react-datepicker__time-box ul.react-datepicker__time-list
-  li.react-datepicker__time-list-item:hover {
+  &
+    .react-datepicker__time-container
+    .react-datepicker__time
+    .react-datepicker__time-box
+    ul.react-datepicker__time-list
+    li.react-datepicker__time-list-item:hover {
     color: rgba(${props => props.theme.colors.text.secondary});
     background: rgba(${props => props.theme.colors.bg.secondary});
   }
@@ -46,7 +48,7 @@ display: flex
     outline: none;
     box-shadow: none;
     padding: 4px;
-    font-size: 12px40px
+    font-size: 12px;
     line-height: 40px;
   }
   & .react-datepicker__day-name:hover {
@@ -90,7 +92,6 @@ display: flex
   & .react-datepicker__header--time {
     border-bottom: 1px solid rgba(${props => props.theme.colors.border});
   }
-
 `;
 
 export const DueDatePickerWrapper = styled.div`

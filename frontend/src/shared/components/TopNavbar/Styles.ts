@@ -1,10 +1,10 @@
 import styled, { css } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
-import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 import { Taskcafe } from 'shared/icons';
 import { NavLink, Link } from 'react-router-dom';
 import TaskAssignee from 'shared/components/TaskAssignee';
+
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
   position: relative;
@@ -101,7 +101,7 @@ export const ProfileIcon = styled.div<{ bgColor: string | null; backgroundURL: s
 
 export const ProjectMeta = styled.div<{ nameOnly?: boolean }>`
   display: flex;
-  ${props => !props.nameOnly && 'padding-top: 9px;'}
+  ${props => !props.nameOnly && 'padding-top: 9px;'};
   margin-left: -14px;
   align-items: center;
   max-width: 100%;
@@ -184,31 +184,6 @@ export const ProjectNameTextarea = styled(TextareaAutosize)`
   }
 `;
 
-export const ProjectSwitcher = styled.button`
-  font-size: 20px;
-
-  outline: none;
-  border: none;
-  width: 100px;
-  border-radius: 3px;
-  line-height: 20px;
-  padding: 6px 4px;
-  background-color: none;
-  text-align: center;
-  color: #c2c6dc;
-  cursor: pointer;
-  &:hover {
-    background: rgb(115, 103, 240);
-  }
-`;
-
-export const Separator = styled.div`
-  color: #c2c6dc;
-  font-size: 20px;
-  padding-left: 4px;
-  padding-right: 4px;
-`;
-
 export const ProjectSettingsButton = styled.button`
   outline: none;
   border: none;
@@ -216,7 +191,7 @@ export const ProjectSettingsButton = styled.button`
   line-height: 20px;
   width: 28px;
   height: 28px;
-  background-color: none;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;

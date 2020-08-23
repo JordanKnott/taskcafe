@@ -24,7 +24,7 @@ const Svg = styled.svg`
 const Icon: React.FC<Props> = ({ width, height, viewBox, className, onClick, children }) => {
   return (
     <Svg
-      onClick={e => {
+      onClick={() => {
         if (onClick) {
           onClick();
         }

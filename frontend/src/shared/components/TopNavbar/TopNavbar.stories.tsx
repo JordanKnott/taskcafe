@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import NormalizeStyles from 'App/NormalizeStyles';
 import BaseStyles from 'App/BaseStyles';
 import { action } from '@storybook/addon-actions';
-import DropdownMenu from 'shared/components/DropdownMenu';
 import TopNavbar from '.';
 
 export default {

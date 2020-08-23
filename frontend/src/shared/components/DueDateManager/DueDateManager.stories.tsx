@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { action } from '@storybook/addon-actions';
 import BaseStyles from 'App/BaseStyles';
 import NormalizeStyles from 'App/NormalizeStyles';

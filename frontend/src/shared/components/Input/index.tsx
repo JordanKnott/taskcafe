@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components/macro';
 
 const InputWrapper = styled.div<{ width: string }>`
@@ -45,7 +45,7 @@ const InputInput = styled.input<{
   border-color: ${props => props.borderColor};
   background: #262c49;
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.15);
-  ${props => (props.hasIcon ? 'padding: 0.7rem 1rem 0.7rem 3rem;' : 'padding: 0.7rem;')}
+  ${props => (props.hasIcon ? 'padding: 0.7rem 1rem 0.7rem 3rem;' : 'padding: 0.7rem;')};
   line-height: 16px;
   color: #c2c6dc;
   position: relative;

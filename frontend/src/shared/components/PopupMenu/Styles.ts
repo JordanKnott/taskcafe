@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
-import Input from '../Input';
 import ControlledInput from 'shared/components/ControlledInput';
 
 export const Container = styled.div<{
@@ -110,6 +109,7 @@ export const Label = styled.li`
   padding-right: 36px;
   position: relative;
 `;
+
 export const CardLabel = styled.span<{ active: boolean; color: string }>`
   ${props =>
     props.active &&
@@ -117,7 +117,7 @@ export const CardLabel = styled.span<{ active: boolean; color: string }>`
       margin-left: 4px;
       box-shadow: -8px 0 ${mixin.darken(props.color, 0.12)};
       border-radius: 3px;
-    `}
+    `};
 
   cursor: pointer;
   font-weight: 700;
@@ -141,8 +141,6 @@ export const CloseButton = styled.div`
   position: absolute;
   top: 0;
   right: 0;
-  z-index: 2;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -318,7 +316,6 @@ export const PreviousButton = styled.div`
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
 
   display: flex;
   align-items: center;
@@ -344,7 +341,7 @@ export const ContainerDiamond = styled.div<{ invert: boolean; invertY: boolean }
           top: 10px;
           border-top: 1px solid rgba(0, 0, 0, 0.1);
           border-left: 1px solid rgba(0, 0, 0, 0.1);
-        `}
+        `};
   transform: rotate(45deg) translate(-7px);
   z-index: 10;
 

@@ -24,7 +24,7 @@ import {
 
 const Login = ({ onSubmit }: LoginProps) => {
   const [isComplete, setComplete] = useState(true);
-  const { register, handleSubmit, errors, setError, formState } = useForm<LoginFormData>();
+  const { register, handleSubmit, errors, setError } = useForm<LoginFormData>();
   const loginSubmit = (data: LoginFormData) => {
     setComplete(false);
     onSubmit(data, setComplete, setError);

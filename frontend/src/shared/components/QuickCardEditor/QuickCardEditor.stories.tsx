@@ -48,8 +48,6 @@ export const Default = () => {
   };
   const [isEditorOpen, setEditorOpen] = useState(false);
   const [target, setTarget] = useState<null | React.RefObject<HTMLElement>>(null);
-  const [top, setTop] = useState(0);
-  const [left, setLeft] = useState(0);
   return (
     <>
       {isEditorOpen && target && (
@@ -71,7 +69,9 @@ export const Default = () => {
         isComposerOpen={false}
         onSaveName={action('on save name')}
         onOpenComposer={action('on open composer')}
-        onExtraMenuOpen={(taskGroupID, $targetRef) => {}}
+        onExtraMenuOpen={() => {
+          //
+        }}
       >
         <ListCards>
           <Card
@@ -81,7 +81,7 @@ export const Default = () => {
             ref={$cardRef}
             title={task.name}
             onClick={action('on click')}
-            onContextMenu={e => {
+            onContextMenu={() => {
               setTarget($cardRef);
               setEditorOpen(true);
             }}
@@ -90,7 +90,15 @@ export const Default = () => {
             checklists={{ complete: 1, total: 4 }}
             dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
           />
-          <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
+          <CardComposer
+            onClose={() => {
+              //
+            }}
+            onCreateCard={() => {
+              //
+            }}
+            isOpen={false}
+          />
         </ListCards>
       </List>
     </>

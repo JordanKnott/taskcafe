@@ -4,7 +4,6 @@ import {
   Container,
   LogoWrapper,
   IconWrapper,
-  Logo,
   LogoTitle,
   ActionContainer,
   ActionButtonContainer,
