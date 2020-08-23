@@ -1,4 +1,4 @@
-import { createGlobalStyle, DefaultTheme } from 'styled-components';
+import { DefaultTheme } from 'styled-components';
 
 const theme: DefaultTheme = {
   borderRadius: {
@@ -25,4 +25,4 @@ const theme: DefaultTheme = {
   },
 };
 
-export { theme };
+export default theme;

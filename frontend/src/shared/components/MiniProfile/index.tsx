@@ -160,7 +160,7 @@ const MiniProfile: React.FC<MiniProfileProps> = ({
           {user.role && user.role.code === 'owner' && (
             <>
               <Separator />
-              <WarningText>You can't change roles because there must be an owner.</WarningText>
+              <WarningText>You can not change roles because there must be an owner.</WarningText>
             </>
           )}
         </MiniProfileActions>

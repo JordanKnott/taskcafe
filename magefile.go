@@ -28,6 +28,21 @@ func (Frontend) Install() error {
 	return sh.RunV("yarn", "--cwd", "frontend", "install")
 }
 
+// Eslint runs eslint on the frontend source
+func (Frontend) Eslint() error {
+	return sh.RunV("yarn", "--cwd", "frontend", "lint")
+}
+
+// Tsc runs tsc on the frontend source
+func (Frontend) Tsc() error {
+	return sh.RunV("yarn", "--cwd", "frontend", "tsc")
+}
+
+// Lint the frontend source
+func (Frontend) Lint() {
+	mg.SerialDeps(Frontend.Eslint, Frontend.Tsc)
+}
+
 // Build the React frontend
 func (Frontend) Build() error {
 	return sh.RunV("yarn", "--cwd", "frontend", "build")

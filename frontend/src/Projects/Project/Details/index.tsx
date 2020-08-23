@@ -1,7 +1,7 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState } from 'react';
 import Modal from 'shared/components/Modal';
 import TaskDetails from 'shared/components/TaskDetails';
-import PopupMenu, { Popup, usePopup } from 'shared/components/PopupMenu';
+import { Popup, usePopup } from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
 import { useRouteMatch, useHistory } from 'react-router';
 import {
@@ -22,7 +22,7 @@ import {
   FindTaskDocument,
   FindTaskQuery,
 } from 'shared/generated/graphql';
-import UserContext, { useCurrentUser } from 'App/context';
+import { useCurrentUser } from 'App/context';
 import MiniProfile from 'shared/components/MiniProfile';
 import DueDateManager from 'shared/components/DueDateManager';
 import produce from 'immer';
@@ -31,6 +31,7 @@ import Button from 'shared/components/Button';
 import Input from 'shared/components/Input';
 import { useForm } from 'react-hook-form';
 import updateApolloCache from 'shared/utils/cache';
+import NOOP from 'shared/utils/noop';
 
 const calculateChecklistBadge = (checklists: Array<TaskChecklist>) => {
   const total = checklists.reduce((prev: any, next: any) => {
@@ -75,15 +76,12 @@ const CreateChecklistInput = styled(Input)`
   margin-bottom: 8px;
 `;
 
-const InputError = styled.span`
-  color: rgba(${props => props.theme.colors.danger});
-  font-size: 12px;
-`;
 type CreateChecklistPopupProps = {
   onCreateChecklist: (data: CreateChecklistData) => void;
 };
+
 const CreateChecklistPopup: React.FC<CreateChecklistPopupProps> = ({ onCreateChecklist }) => {
-  const { register, handleSubmit, errors } = useForm<CreateChecklistData>();
+  const { register, handleSubmit } = useForm<CreateChecklistData>();
   const createUser = (data: CreateChecklistData) => {
     onCreateChecklist(data);
   };
@@ -132,9 +130,6 @@ const Details: React.FC<DetailsProps> = ({
   const { user } = useCurrentUser();
   const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
-  const match = useRouteMatch();
-  const [currentMemberTask, setCurrentMemberTask] = useState('');
-  const [memberPopupData, setMemberPopupData] = useState(initialMemberPopupState);
   const [updateTaskChecklistLocation] = useUpdateTaskChecklistLocationMutation();
   const [updateTaskChecklistItemLocation] = useUpdateTaskChecklistItemLocationMutation({
     update: (client, response) => {
@@ -148,7 +143,7 @@ const Details: React.FC<DetailsProps> = ({
               const oldIdx = cache.findTask.checklists.findIndex(c => c.id === prevChecklistID);
               const newIdx = cache.findTask.checklists.findIndex(c => c.id === checklistID);
               if (oldIdx > -1 && newIdx > -1) {
-                const item = cache.findTask.checklists[oldIdx].items.find(item => item.id === checklistItem.id);
+                const item = cache.findTask.checklists[oldIdx].items.find(i => i.id === checklistItem.id);
                 if (item) {
                   draftCache.findTask.checklists[oldIdx].items = cache.findTask.checklists[oldIdx].items.filter(
                     i => i.id !== checklistItem.id,
@@ -398,7 +393,7 @@ const Details: React.FC<DetailsProps> = ({
                 if (member) {
                   showPopup(
                     $targetRef,
-                    <Popup title={null} onClose={() => {}} tab={0}>
+                    <Popup title={null} onClose={NOOP} tab={0}>
                       <MiniProfile
                         user={member}
                         bio="None"
@@ -412,19 +407,19 @@ const Details: React.FC<DetailsProps> = ({
                   );
                 }
               }}
-              onOpenAddMemberPopup={(task, $targetRef) => {
+              onOpenAddMemberPopup={(_task, $targetRef) => {
                 showPopup(
                   $targetRef,
-                  <Popup title="Members" tab={0} onClose={() => {}}>
+                  <Popup title="Members" tab={0} onClose={NOOP}>
                     <MemberManager
                       availableMembers={availableMembers}
                       activeMembers={data.findTask.assigned}
                       onMemberChange={(member, isActive) => {
                         if (user) {
                           if (isActive) {
-                            assignTask({ variables: { taskID: data.findTask.id, userID: user.id } });
+                            assignTask({ variables: { taskID: data.findTask.id, userID: member.id } });
                           } else {
-                            unassignTask({ variables: { taskID: data.findTask.id, userID: user.id } });
+                            unassignTask({ variables: { taskID: data.findTask.id, userID: member.id } });
                           }
                         }
                       }}
@@ -486,7 +481,7 @@ const Details: React.FC<DetailsProps> = ({
                 showPopup(
                   $targetRef,
                   <Popup
-                    title={'Change Due Date'}
+                    title="Change Due Date"
                     tab={0}
                     onClose={() => {
                       hidePopup();
@@ -502,7 +497,7 @@ const Details: React.FC<DetailsProps> = ({
                         updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
                         hidePopup();
                       }}
-                      onCancel={() => {}}
+                      onCancel={NOOP}
                     />
                   </Popup>,
                 );

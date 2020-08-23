@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import styled from 'styled-components';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import { Checkmark } from 'shared/icons';
+import NOOP from 'shared/utils/noop';
 
 const CardCheckmark = styled(Checkmark)`
   position: absolute;
@@ -76,7 +77,7 @@ const Member: React.FC<MemberProps> = ({
         }
       }}
     >
-      <TaskAssignee onMemberProfile={() => {}} size={28} member={member} />
+      <TaskAssignee onMemberProfile={NOOP} size={28} member={member} />
       {showName && <CardMemberName>{member.fullName}</CardMemberName>}
       {showCheckmark && <CardCheckmark width={12} height={12} />}
     </CardMemberWrapper>

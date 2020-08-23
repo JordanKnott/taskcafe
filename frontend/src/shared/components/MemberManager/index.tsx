@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-
+import { Checkmark } from 'shared/icons';
+import Member from 'shared/components/Member';
 import {
   MemberName,
   ProfileIcon,
@@ -12,8 +13,6 @@ import {
   BoardMemberListItemContent,
   ActiveIconWrapper,
 } from './Styles';
-import { Checkmark } from 'shared/icons';
-import Member from 'shared/components/Member';
 
 type MemberManagerProps = {
   availableMembers: Array<TaskUser>;

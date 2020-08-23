@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useForm } from 'react-hook-form';
 import { useHistory } from 'react-router';
-
-import { setAccessToken } from 'shared/utils/accessToken';
-
-import Login from 'shared/components/Login';
-import { Container, LoginWrapper } from './Styles';
-import UserContext, { PermissionLevel, PermissionObjectType } from 'App/context';
 import JwtDecode from 'jwt-decode';
+import { setAccessToken } from 'shared/utils/accessToken';
+import Login from 'shared/components/Login';
+import UserContext from 'App/context';
+import { Container, LoginWrapper } from './Styles';
 
 const Auth = () => {
   const [invalidLoginAttempt, setInvalidLoginAttempt] = useState(0);

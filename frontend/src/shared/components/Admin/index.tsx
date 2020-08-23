@@ -1,15 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { UserPlus, Checkmark } from 'shared/icons';
 import styled, { css } from 'styled-components';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import Select from 'shared/components/Select';
-import { User, Plus, Lock, Pencil, Trash } from 'shared/icons';
+import { User, UserPlus, Checkmark } from 'shared/icons';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { RoleCode, useUpdateUserRoleMutation } from 'shared/generated/graphql';
 import Input from 'shared/components/Input';
-import Member from 'shared/components/Member';
-
 import Button from 'shared/components/Button';
+import NOOP from 'shared/utils/noop';
 
 export const RoleCheckmark = styled(Checkmark)`
   padding-left: 4px;
@@ -69,6 +67,7 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
           }
         `}
 `;
+
 export const Content = styled.div`
   padding: 0 12px 12px;
 `;
@@ -100,6 +99,7 @@ export const RemoveMemberButton = styled(Button)`
   padding: 6px 12px;
   width: 100%;
 `;
+
 type TeamRoleManagerPopupProps = {
   user: User;
   users: Array<User>;
@@ -120,7 +120,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
   onChangeRole,
 }) => {
   const { hidePopup, setTab } = usePopup();
-  const [userPass, setUserPass] = useState({ pass: '', passConfirm: '' });
+  const [userPass] = useState({ pass: '', passConfirm: '' });
   const [deleteUser, setDeleteUser] = useState<{ label: string; value: string } | null>(null);
   const hasOwned = user.owned.projects.length !== 0 || user.owned.teams.length !== 0;
   return (
@@ -195,7 +195,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           {user.role && user.role.code === 'owner' && (
             <>
               <Separator />
-              <WarningText>You can't change roles because there must be an owner.</WarningText>
+              <WarningText>You can not change roles because there must be an owner.</WarningText>
             </>
           )}
         </MiniProfileActions>
@@ -209,7 +209,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             <>
               <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
               <DeleteDescription>
-                Choose a new user to take over ownership of this user's teams & projects.
+                Choose a new user to take over ownership of the users teams & projects.
               </DeleteDescription>
               <UserSelect
                 onChange={v => setDeleteUser(v)}
@@ -239,7 +239,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
           <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
-          <UserSelect onChange={() => {}} value={null} options={users.map(u => ({ label: u.fullName, value: u.id }))} />
+          <UserSelect onChange={NOOP} value={null} options={users.map(u => ({ label: u.fullName, value: u.id }))} />
           <UserPassConfirmButton
             onClick={() => {
               // onDeleteUser();
@@ -253,7 +253,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
       <Popup title="Reset password?" onClose={() => hidePopup()} tab={3}>
         <Content>
           <DeleteDescription>
-            You can either set the user's new password directly or send the user an email allowing them to reset their
+            You can either set the users new password directly or send the user an email allowing them to reset their
             own password.
           </DeleteDescription>
           <UserPassBar>
@@ -291,6 +291,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
     </>
   );
 };
+
 const UserSelect = styled(Select)`
   margin: 8px 0;
   padding: 8px 0;
@@ -299,6 +300,7 @@ const UserSelect = styled(Select)`
 const NewUserPassInput = styled(Input)`
   margin: 8px 0;
 `;
+
 const InviteMemberButton = styled(Button)`
   padding: 7px 12px;
 `;
@@ -307,6 +309,7 @@ const UserPassBar = styled.div`
   display: flex;
   padding-top: 8px;
 `;
+
 const UserPassConfirmButton = styled(Button)`
   width: 100%;
   padding: 7px 12px;
@@ -395,104 +398,6 @@ const ListActions = styled.div`
 
 const MemberListWrapper = styled.div`
   flex: 1 1;
-`;
-
-const Root = styled.div`
-  .ag-theme-material {
-    --ag-foreground-color: #c2c6dc;
-    --ag-secondary-foreground-color: #c2c6dc;
-    --ag-background-color: transparent;
-    --ag-header-background-color: transparent;
-    --ag-header-foreground-color: #c2c6dc;
-    --ag-border-color: #414561;
-
-    --ag-row-hover-color: #262c49;
-    --ag-header-cell-hover-background-color: #262c49;
-    --ag-checkbox-unchecked-color: #c2c6dc;
-    --ag-checkbox-indeterminate-color: rgba(115, 103, 240);
-    --ag-selected-row-background-color: #262c49;
-    --ag-material-primary-color: rgba(115, 103, 240);
-    --ag-material-accent-color: rgba(115, 103, 240);
-  }
-  .ag-theme-material ::-webkit-scrollbar {
-    width: 12px;
-  }
-
-  .ag-theme-material ::-webkit-scrollbar-track {
-    background: #262c49;
-    border-radius: 20px;
-  }
-
-  .ag-theme-material ::-webkit-scrollbar-thumb {
-    background: #7367f0;
-    border-radius: 20px;
-  }
-  .ag-header-cell-text {
-    color: #fff;
-    font-weight: 700;
-  }
-`;
-
-const Header = styled.div`
-  border-bottom: 1px solid #e2e2e2;
-  flex-direction: row;
-  box-sizing: border-box;
-  display: flex;
-  white-space: nowrap;
-  width: 100%;
-  overflow: hidden;
-  background: transparent;
-  border-bottom-color: #414561;
-  color: #fff;
-
-  height: 112px;
-  min-height: 112px;
-`;
-
-const EditUserIcon = styled(Pencil)``;
-
-const LockUserIcon = styled(Lock)``;
-
-const DeleteUserIcon = styled(Trash)``;
-
-type ActionButtonProps = {
-  onClick: ($target: React.RefObject<HTMLElement>) => void;
-};
-
-const ActionButtonWrapper = styled.div`
-  margin-right: 8px;
-  cursor: pointer;
-  display: inline-flex;
-`;
-
-const ActionButton: React.FC<ActionButtonProps> = ({ onClick, children }) => {
-  const $wrapper = useRef<HTMLDivElement>(null);
-  return (
-    <ActionButtonWrapper onClick={() => onClick($wrapper)} ref={$wrapper}>
-      {children}
-    </ActionButtonWrapper>
-  );
-};
-
-const ActionButtons = (params: any) => {
-  return (
-    <>
-      <ActionButton onClick={() => {}}>
-        <EditUserIcon width={16} height={16} />
-      </ActionButton>
-      <ActionButton onClick={$target => params.onDeleteUser($target, params.value)}>
-        <DeleteUserIcon width={16} height={16} />
-      </ActionButton>
-    </>
-  );
-};
-
-const Wrapper = styled.div`
-  background: #eff2f7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
 `;
 
 const Container = styled.div`
@@ -637,7 +542,7 @@ const Admin: React.FC<AdminProps> = ({
     'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
   const [currentTop, setTop] = useState(initialTab * 48);
   const [currentTab, setTab] = useState(initialTab);
-  const { showPopup, hidePopup } = usePopup();
+  const { showPopup } = usePopup();
   const $tabNav = useRef<HTMLDivElement>(null);
 
   const [updateUserRole] = useUpdateUserRoleMutation();
@@ -690,7 +595,7 @@ const Admin: React.FC<AdminProps> = ({
                 const projectTotal = member.owned.projects.length + member.member.projects.length;
                 return (
                   <MemberListItem>
-                    <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
+                    <MemberProfile showRoleIcons size={32} onMemberProfile={NOOP} member={member} />
                     <MemberListItemDetails>
                       <MemberItemName>{member.fullName}</MemberItemName>
                       <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>

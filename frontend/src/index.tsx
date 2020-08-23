@@ -81,7 +81,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
     }
   }
   if (networkError) {
-    console.log(`[Network error]: ${networkError}`);
+    console.log(`[Network error]: ${networkError}`); // eslint-disable-line no-console
   }
   return undefined;
 });
@@ -122,12 +122,13 @@ const client = new ApolloClient({
   link: ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path }) =>
-          console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
+        graphQLErrors.forEach(
+          ({ message, locations, path }) =>
+            console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`), // eslint-disable-line no-console
         );
       }
       if (networkError) {
-        console.log(`[Network error]: ${networkError}`);
+        console.log(`[Network error]: ${networkError}`); // eslint-disable-line no-console
       }
     }),
     errorLink,

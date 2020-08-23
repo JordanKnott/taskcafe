@@ -1,24 +1,22 @@
-import React, { useState, useContext, useEffect } from 'react';
-import styled, { css } from 'styled-components/macro';
-import { MENU_TYPES } from 'shared/components/TopNavbar';
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
 import updateApolloCache from 'shared/utils/cache';
-import { Route, Switch, useRouteMatch, Redirect } from 'react-router';
-import Members from './Members';
-import Projects from './Projects';
-
+import { Route, Switch, useRouteMatch, Redirect, useParams, useHistory } from 'react-router';
 import {
   useGetTeamQuery,
   useDeleteTeamMutation,
   GetProjectsDocument,
   GetProjectsQuery,
 } from 'shared/generated/graphql';
-import { useParams, useHistory, useLocation } from 'react-router';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { History } from 'history';
 import produce from 'immer';
 import { TeamSettings, DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
-import UserContext, { PermissionObjectType, PermissionLevel, useCurrentUser } from 'App/context';
+import { PermissionObjectType, PermissionLevel, useCurrentUser } from 'App/context';
+import NOOP from 'shared/utils/noop';
+import Members from './Members';
+import Projects from './Projects';
 
 const OuterWrapper = styled.div`
   display: flex;
@@ -117,7 +115,7 @@ const Teams = () => {
             setCurrentTab(tab);
           }}
           popupContent={<TeamPopup history={history} name={data.findTeam.name} teamID={teamID} />}
-          onSaveProjectName={() => {}}
+          onSaveProjectName={NOOP}
           projectID={null}
           name={data.findTeam.name}
         />

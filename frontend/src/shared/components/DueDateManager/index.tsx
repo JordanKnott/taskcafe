@@ -2,22 +2,13 @@ import React, { useState, useEffect, forwardRef } from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker';
-import { Cross } from 'shared/icons';
 import _ from 'lodash';
-
-import {
-  Wrapper,
-  ActionWrapper,
-  RemoveDueDate,
-  DueDateInput,
-  DueDatePickerWrapper,
-  ConfirmAddDueDate,
-  CancelDueDate,
-} from './Styles';
-
 import 'react-datepicker/dist/react-datepicker.css';
 import { getYear, getMonth } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
+import NOOP from 'shared/utils/noop';
+
+import { Wrapper, ActionWrapper, RemoveDueDate, DueDateInput, DueDatePickerWrapper, ConfirmAddDueDate } from './Styles';
 
 type DueDateManagerProps = {
   task: Task;
@@ -220,7 +211,10 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
                 </HeaderButton>
                 <HeaderSelectLabel>
                   {months[date.getMonth()]}
-                  <HeaderSelect value={getYear(date)} onChange={({ target: { value } }) => changeYear(parseInt(value))}>
+                  <HeaderSelect
+                    value={getYear(date)}
+                    onChange={({ target: { value } }) => changeYear(parseInt(value, 10))}
+                  >
                     {years.map(option => (
                       <option key={option} value={option}>
                         {option}
@@ -255,7 +249,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
           />
         </DueDatePickerWrapper>
         <ActionWrapper>
-          <ConfirmAddDueDate type="submit" onClick={() => {}}>
+          <ConfirmAddDueDate type="submit" onClick={NOOP}>
             Save
           </ConfirmAddDueDate>
           <RemoveDueDate

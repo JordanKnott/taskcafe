@@ -1,8 +1,8 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { action } from '@storybook/addon-actions';
 import BaseStyles from 'App/BaseStyles';
 import NormalizeStyles from 'App/NormalizeStyles';
-import { theme } from 'App/ThemeStyles';
+import theme from 'App/ThemeStyles';
 import styled, { ThemeProvider } from 'styled-components';
 import { Popup } from '../PopupMenu';
 import DueDateManager from '.';

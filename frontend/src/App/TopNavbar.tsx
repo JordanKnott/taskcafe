@@ -1,10 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import styled from 'styled-components/macro';
-import DropdownMenu, { ProfileMenu } from 'shared/components/DropdownMenu';
+import { ProfileMenu } from 'shared/components/DropdownMenu';
 import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
-import { UserContext, PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
+import { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
 import {
   RoleCode,
   useMeQuery,
@@ -18,6 +18,7 @@ import produce from 'immer';
 import { Link } from 'react-router-dom';
 import MiniProfile from 'shared/components/MiniProfile';
 import cache from 'App/cache';
+import NOOP from 'shared/utils/noop';
 
 const TeamContainer = styled.div`
   display: flex;
@@ -130,7 +131,7 @@ const ProjectFinder = () => {
     return <span>loading</span>;
   }
   if (data) {
-    const { projects, teams, organizations } = data;
+    const { projects, teams } = data;
     const projectTeams = teams.map(team => {
       return {
         id: team.id,
@@ -238,7 +239,6 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   currentTab,
   onSetTab,
   menuType,
-  projectID,
   teamID,
   onChangeProjectOwner,
   onChangeRole,
@@ -248,19 +248,18 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onInviteUser,
   onSaveProjectName,
   onRemoveFromBoard,
-  nameOnly,
 }) => {
   const { user, setUserRoles, setUser } = useCurrentUser();
-  const { loading, data } = useMeQuery({
-    onCompleted: data => {
+  const { data } = useMeQuery({
+    onCompleted: response => {
       if (user && user.roles) {
         setUserRoles({
           org: user.roles.org,
-          teams: data.me.teamRoles.reduce((map, obj) => {
+          teams: response.me.teamRoles.reduce((map, obj) => {
             map.set(obj.teamID, obj.roleCode);
             return map;
           }, new Map<string, string>()),
-          projects: data.me.projectRoles.reduce((map, obj) => {
+          projects: response.me.projectRoles.reduce((map, obj) => {
             map.set(obj.projectID, obj.roleCode);
             return map;
           }, new Map<string, string>()),
@@ -268,7 +267,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       }
     },
   });
-  const { showPopup, hidePopup, setTab } = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
   const onLogout = () => {
     fetch('/auth/logout', {
@@ -367,7 +366,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
         onInviteUser={onInviteUser}
         onChangeRole={onChangeRole}
         onChangeProjectOwner={onChangeProjectOwner}
-        onNotificationClick={() => {}}
+        onNotificationClick={NOOP}
         onSetTab={onSetTab}
         onRemoveFromBoard={onRemoveFromBoard}
         onDashboardClick={() => {

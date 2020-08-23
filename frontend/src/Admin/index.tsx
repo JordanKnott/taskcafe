@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect } from 'react';
 import Admin from 'shared/components/Admin';
 import Select from 'shared/components/Select';
 import GlobalTopNavbar from 'App/TopNavbar';
@@ -16,8 +16,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import updateApolloCache from 'shared/utils/cache';
-import UserContext, { useCurrentUser } from 'App/context';
+import { useCurrentUser } from 'App/context';
 import { Redirect } from 'react-router';
+import NOOP from 'shared/utils/noop';
 
 const DeleteUserWrapper = styled.div`
   display: flex;
@@ -37,6 +38,7 @@ const DeleteUserButton = styled(Button)`
 type DeleteUserPopupProps = {
   onDeleteUser: () => void;
 };
+
 const DeleteUserPopup: React.FC<DeleteUserPopupProps> = ({ onDeleteUser }) => {
   return (
     <DeleteUserWrapper>
@@ -47,10 +49,12 @@ const DeleteUserPopup: React.FC<DeleteUserPopupProps> = ({ onDeleteUser }) => {
     </DeleteUserWrapper>
   );
 };
+
 type RoleCodeOption = {
   label: string;
   value: string;
 };
+
 type CreateUserData = {
   email: string;
   username: string;
@@ -65,6 +69,7 @@ const CreateUserForm = styled.form`
   flex-direction: column;
   margin: 0 12px;
 `;
+
 const CreateUserButton = styled(Button)`
   margin-top: 8px;
   padding: 6px 12px;
@@ -85,7 +90,7 @@ type AddUserPopupProps = {
 };
 
 const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
-  const { register, handleSubmit, errors, setValue, control } = useForm<CreateUserData>();
+  const { register, handleSubmit, errors, control } = useForm<CreateUserData>();
 
   const createUser = (data: CreateUserData) => {
     onAddUser(data);
@@ -115,7 +120,7 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
         control={control}
         name="roleCode"
         rules={{ required: 'Role is required' }}
-        render={({ onChange, onBlur, value }) => (
+        render={({ onChange, value }) => (
           <Select
             label="Role"
             value={value}
@@ -198,21 +203,21 @@ const AdminRoute = () => {
     },
   });
   if (loading) {
-    return <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />;
+    return <GlobalTopNavbar projectID={null} onSaveProjectName={NOOP} name={null} />;
   }
   if (data && user) {
-    if (user.roles.org != 'admin') {
+    if (user.roles.org !== 'admin') {
       return <Redirect to="/" />;
     }
     return (
       <>
-        <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
+        <GlobalTopNavbar projectID={null} onSaveProjectName={NOOP} name={null} />
         <Admin
           initialTab={0}
           users={data.users}
-          canInviteUser={user.roles.org == 'admin'}
-          onInviteUser={() => {}}
-          onUpdateUserPassword={(user, password) => {
+          canInviteUser={user.roles.org === 'admin'}
+          onInviteUser={NOOP}
+          onUpdateUserPassword={() => {
             hidePopup();
           }}
           onDeleteUser={(userID, newOwnerID) => {
@@ -224,8 +229,8 @@ const AdminRoute = () => {
               $target,
               <Popup tab={0} title="Add member" onClose={() => hidePopup()}>
                 <AddUserPopup
-                  onAddUser={user => {
-                    const { roleCode, ...userData } = user;
+                  onAddUser={u => {
+                    const { roleCode, ...userData } = u;
                     createUser({ variables: { ...userData, roleCode: roleCode.value } });
                     hidePopup();
                   }}

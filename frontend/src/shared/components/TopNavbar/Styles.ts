@@ -5,6 +5,7 @@ import Button from 'shared/components/Button';
 import { Taskcafe } from 'shared/icons';
 import { NavLink, Link } from 'react-router-dom';
 import TaskAssignee from 'shared/components/TaskAssignee';
+
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
   position: relative;
