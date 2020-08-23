@@ -1,18 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
-import { Link } from 'react-router-dom';
 import { getAccessToken } from 'shared/utils/accessToken';
 import Settings from 'shared/components/Settings';
 import { useMeQuery, useClearProfileAvatarMutation, useUpdateUserPasswordMutation } from 'shared/generated/graphql';
 import axios from 'axios';
 import { useCurrentUser } from 'App/context';
-
-const MainContent = styled.div`
-  padding: 0 0 50px 80px;
-  height: 100%;
-  background: #262c49;
-`;
+import NOOP from 'shared/utils/noop';
 
 const Projects = () => {
   const $fileUpload = useRef<HTMLInputElement>(null);
@@ -54,7 +48,7 @@ const Projects = () => {
           }
         }}
       />
-      <GlobalTopNavbar projectID={null} onSaveProjectName={() => {}} name={null} />
+      <GlobalTopNavbar projectID={null} onSaveProjectName={NOOP} name={null} />
       {!loading && data && (
         <Settings
           profile={data.me.user}

@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
 import Button from 'shared/components/Button';
-import UserContext, { useCurrentUser, PermissionLevel, PermissionObjectType } from 'App/context';
+import { useCurrentUser, PermissionLevel, PermissionObjectType } from 'App/context';
 import Select from 'shared/components/Select';
 import {
   useGetTeamQuery,
@@ -13,8 +13,6 @@ import {
   useUpdateTeamMemberRoleMutation,
   GetTeamQuery,
   GetTeamDocument,
-  MeDocument,
-  MeQuery,
 } from 'shared/generated/graphql';
 import { UserPlus, Checkmark } from 'shared/icons';
 import styled, { css } from 'styled-components/macro';
@@ -22,6 +20,7 @@ import { usePopup, Popup } from 'shared/components/PopupMenu';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import Member from 'shared/components/Member';
 import ControlledInput from 'shared/components/ControlledInput';
+import NOOP from 'shared/utils/noop';
 
 const MemberListWrapper = styled.div`
   flex: 1 1;
@@ -129,6 +128,7 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
           }
         `}
 `;
+
 export const Content = styled.div`
   padding: 0 12px 12px;
 `;
@@ -160,6 +160,7 @@ export const RemoveMemberButton = styled(Button)`
   padding: 6px 12px;
   width: 100%;
 `;
+
 type TeamRoleManagerPopupProps = {
   currentUserID: string;
   subject: User;
@@ -253,7 +254,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
           {subject.role && subject.role.code === 'owner' && (
             <>
               <Separator />
-              <WarningText>You can't change roles because there must be an owner.</WarningText>
+              <WarningText>You can not change roles because there must be an owner.</WarningText>
             </>
           )}
         </MiniProfileActions>
@@ -510,7 +511,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
           <MemberList>
             {data.findTeam.members.map(member => (
               <MemberListItem>
-                <MemberProfile showRoleIcons size={32} onMemberProfile={() => {}} member={member} />
+                <MemberProfile showRoleIcons size={32} onMemberProfile={NOOP} member={member} />
                 <MemberListItemDetails>
                   <MemberItemName>{member.fullName}</MemberItemName>
                   <MemberItemUsername>{`@${member.username}`}</MemberItemUsername>

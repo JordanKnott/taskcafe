@@ -81,7 +81,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
           position: newPosition,
         });
       } else {
-        throw { error: 'task group can not be found' };
+        throw new Error('task group can not be found');
       }
     } else {
       const curTaskGroup = taskGroups.findIndex(

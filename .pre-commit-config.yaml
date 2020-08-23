@@ -1,4 +1,13 @@
 repos:
+- repo: local
+  hooks:
+    - id: eslint
+      name: eslint
+      entry: go run cmd/mage/main.go frontend:lint
+      language: system
+      files: \.[jt]sx?$  # *.js, *.jsx, *.ts and *.tsx
+      types: [file]
+      pass_filenames: false
 - hooks:
   - id: check-yaml
   - id: end-of-file-fixer

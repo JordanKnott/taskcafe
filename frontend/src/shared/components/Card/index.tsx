@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
-import { faClock, faCheckSquare, faEye } from '@fortawesome/free-regular-svg-icons';
+import { faClock, faEye } from '@fortawesome/free-regular-svg-icons';
 import {
   EditorTextarea,
   CardMember,
@@ -24,7 +24,6 @@ import {
   CardTitle,
   CardMembers,
 } from './Styles';
-import { CheckSquare } from 'shared/icons';
 
 type DueDate = {
   isPastDue: boolean;
@@ -209,7 +208,7 @@ const Card = React.forwardRef(
             ) : (
               <CardTitle>
                 {complete && <CompleteIcon width={16} height={16} />}
-                {`${title}${position ? ' - ' + position : ''}`}
+                {`${title}${position ? ` - ${position}` : ''}`}
               </CardTitle>
             )}
             <ListCardBadges>
@@ -236,9 +235,9 @@ const Card = React.forwardRef(
                     width={8}
                     height={8}
                   />
-                  <ListCardBadgeText
-                    color={checklists.complete === checklists.total ? 'success' : 'normal'}
-                  >{`${checklists.complete}/${checklists.total}`}</ListCardBadgeText>
+                  <ListCardBadgeText color={checklists.complete === checklists.total ? 'success' : 'normal'}>
+                    {`${checklists.complete}/${checklists.total}`}
+                  </ListCardBadgeText>
                 </ListCardBadge>
               )}
             </ListCardBadges>

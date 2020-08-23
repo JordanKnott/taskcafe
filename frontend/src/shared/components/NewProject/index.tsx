@@ -4,6 +4,19 @@ import { mixin } from 'shared/utils/styles';
 import Select from 'react-select';
 import { ArrowLeft, Cross } from 'shared/icons';
 
+function getBackgroundColor(isDisabled: boolean, isSelected: boolean, isFocused: boolean) {
+  if (isDisabled) {
+    return null;
+  }
+  if (isSelected) {
+    return mixin.darken('#262c49', 0.25);
+  }
+  if (isFocused) {
+    return mixin.darken('#262c49', 0.15);
+  }
+  return null;
+}
+
 const Overlay = styled.div`
   z-index: 10000;
   background: #262c49;
@@ -149,14 +162,8 @@ const colourStyles = {
   option: (styles: any, { data, isDisabled, isFocused, isSelected }: any) => {
     return {
       ...styles,
-      backgroundColor: isDisabled
-        ? null
-        : isSelected
-        ? mixin.darken('#262c49', 0.25)
-        : isFocused
-        ? mixin.darken('#262c49', 0.15)
-        : null,
-      color: isDisabled ? '#ccc' : isSelected ? '#fff' : '#c2c6dc',
+      backgroundColor: getBackgroundColor(isDisabled, isSelected, isFocused),
+      color: isDisabled ? '#ccc' : isSelected ? '#fff' : '#c2c6dc', // eslint-disable-line
       cursor: isDisabled ? 'not-allowed' : 'default',
       ':active': {
         ...styles[':active'],

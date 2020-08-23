@@ -18,9 +18,9 @@ const AccessAccount = ({ width, height }: Props) => {
           gradientTransform="translate(-3.62 1.57)"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0" stop-color="gray" stop-opacity=".25" />
-          <stop offset=".54" stop-color="gray" stop-opacity=".12" />
-          <stop offset="1" stop-color="gray" stop-opacity=".1" />
+          <stop offset="0" stopColor="gray" stopOpacity=".25" />
+          <stop offset=".54" stopColor="gray" stopOpacity=".12" />
+          <stop offset="1" stopColor="gray" stopOpacity=".1" />
         </linearGradient>
         <linearGradient
           id="b"

@@ -4,7 +4,6 @@ import updateApolloCache from 'shared/utils/cache';
 import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
 import styled from 'styled-components/macro';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
-import LabelManagerEditor from './LabelManagerEditor';
 import {
   useParams,
   Route,
@@ -36,9 +35,11 @@ import produce from 'immer';
 import UserContext, { useCurrentUser } from 'App/context';
 import Input from 'shared/components/Input';
 import Member from 'shared/components/Member';
+import EmptyBoard from 'shared/components/EmptyBoard';
+import NOOP from 'shared/utils/noop';
 import Board, { BoardLoading } from './Board';
 import Details from './Details';
-import EmptyBoard from 'shared/components/EmptyBoard';
+import LabelManagerEditor from './LabelManagerEditor';
 
 const CARD_LABEL_VARIANT_STORAGE_KEY = 'card_label_variant';
 
@@ -124,6 +125,7 @@ const Project = () => {
   const match = useRouteMatch();
 
   const [updateTaskDescription] = useUpdateTaskDescriptionMutation();
+  const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
     onCompleted: newTaskLabel => {
       taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
@@ -190,7 +192,6 @@ const Project = () => {
   const { showPopup, hidePopup } = usePopup();
   const $labelsRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<Array<ProjectLabel>>([]);
-  const taskLabelsRef = useRef<Array<TaskLabel>>([]);
   useEffect(() => {
     if (data) {
       document.title = `${data.findProject.name} | Taskcafé`;
@@ -199,7 +200,7 @@ const Project = () => {
   if (loading) {
     return (
       <>
-        <GlobalTopNavbar onSaveProjectName={projectName => {}} name="" projectID={null} />
+        <GlobalTopNavbar onSaveProjectName={NOOP} name="" projectID={null} />
         <BoardLoading />
       </>
     );
@@ -261,7 +262,7 @@ const Project = () => {
           path={`${match.path}/board/c/:taskID`}
           render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
             <Details
-              refreshCache={() => {}}
+              refreshCache={NOOP}
               availableMembers={data.findProject.members}
               projectURL={`${match.url}/board`}
               taskID={routeProps.match.params.taskID}

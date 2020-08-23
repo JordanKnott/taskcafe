@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bin, Cross, Plus } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import ReactMarkdown from 'react-markdown';
+import styled from 'styled-components';
 
 import {
   isPositionChanged,
@@ -56,7 +57,6 @@ import {
   MetaDetailContent,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
-import styled from 'styled-components';
 
 const ChecklistContainer = styled.div``;
 
@@ -254,7 +254,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
         onChecklistDrop({ ...droppedGroup, position: newPosition });
       } else {
-        throw { error: 'task group can not be found' };
+        throw new Error('task group can not be found');
       }
     } else {
       const targetChecklist = task.checklists.findIndex(
@@ -314,7 +314,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         <TaskMeta>
           {task.taskGroup.name && (
             <TaskGroupLabel>
-              in list <TaskGroupLabelName>{task.taskGroup.name}</TaskGroupLabelName>
+              {`in list ${(<TaskGroupLabelName>{task.taskGroup.name}</TaskGroupLabelName>)}`}
             </TaskGroupLabel>
           )}
         </TaskMeta>
@@ -442,9 +442,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                                                   complete={item.complete}
                                                   onDeleteItem={onDeleteItem}
                                                   onChangeName={onChangeItemName}
-                                                  onToggleItem={(itemID, complete) =>
-                                                    onToggleChecklistItem(item.id, complete)
-                                                  }
+                                                  onToggleItem={(itemID, complete) => {
+                                                    onToggleChecklistItem(item.id, complete);
+                                                  }}
                                                 />
                                               )}
                                             </Draggable>

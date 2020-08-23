@@ -5,6 +5,7 @@ import CardComposer from 'shared/components/CardComposer';
 import LabelColors from 'shared/constants/labelColors';
 import List, { ListCards } from 'shared/components/List';
 import QuickCardEditor from 'shared/components/QuickCardEditor';
+import NOOP from 'shared/utils/noop';
 
 export default {
   component: QuickCardEditor,
@@ -71,7 +72,7 @@ export const Default = () => {
         isComposerOpen={false}
         onSaveName={action('on save name')}
         onOpenComposer={action('on open composer')}
-        onExtraMenuOpen={(taskGroupID, $targetRef) => {}}
+        onExtraMenuOpen={NOOP}
       >
         <ListCards>
           <Card
@@ -81,7 +82,7 @@ export const Default = () => {
             ref={$cardRef}
             title={task.name}
             onClick={action('on click')}
-            onContextMenu={e => {
+            onContextMenu={() => {
               setTarget($cardRef);
               setEditorOpen(true);
             }}
@@ -90,7 +91,7 @@ export const Default = () => {
             checklists={{ complete: 1, total: 4 }}
             dueDate={{ isPastDue: false, formattedDate: 'Oct 26, 2020' }}
           />
-          <CardComposer onClose={() => {}} onCreateCard={name => {}} isOpen={false} />
+          <CardComposer onClose={NOOP} onCreateCard={NOOP} isOpen={false} />
         </ListCards>
       </List>
     </>

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
 import Empty from 'shared/undraw/Empty';
@@ -10,16 +10,17 @@ import {
   GetProjectsQuery,
 } from 'shared/generated/graphql';
 
-import ProjectGridItem, { AddProjectItem } from 'shared/components/ProjectGridItem';
 import { Link } from 'react-router-dom';
 import NewProject from 'shared/components/NewProject';
-import UserContext, { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
+import { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
 import Button from 'shared/components/Button';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useForm } from 'react-hook-form';
 import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
+import NOOP from 'shared/utils/noop';
+
 const EmptyStateContent = styled.div`
   display: flex;
   justy-content: center;
@@ -37,21 +38,26 @@ const EmptyStatePrompt = styled.span`
   font-size: 16px;
   margin-top: 8px;
 `;
+
 const EmptyState = styled(Empty)`
   display: block;
   margin: 0 auto;
 `;
+
 const CreateTeamButton = styled(Button)`
   width: 100%;
 `;
+
 type CreateTeamData = { teamName: string };
+
 type CreateTeamFormProps = {
   onCreateTeam: (teamName: string) => void;
 };
+
 const CreateTeamFormContainer = styled.form``;
 
 const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onCreateTeam }) => {
-  const { register, handleSubmit, errors } = useForm<CreateTeamData>();
+  const { register, handleSubmit } = useForm<CreateTeamData>();
   const createTeam = (data: CreateTeamData) => {
     onCreateTeam(data.teamName);
   };
@@ -186,6 +192,7 @@ const SectionActions = styled.div`
 const SectionAction = styled(Button)`
   padding: 6px 12px;
 `;
+
 const SectionActionLink = styled(Link)`
   margin-right: 8px;
 `;
@@ -201,12 +208,14 @@ const ProjectsContainer = styled.div`
   max-width: 825px;
   min-width: 288px;
 `;
+
 const ProjectGrid = styled.div`
   max-width: 780px;
   display: grid;
   grid-template-columns: 240px 240px 240px;
   gap: 20px 10px;
 `;
+
 const AddTeamButton = styled(Button)`
   padding: 6px 12px;
   position: absolute;
@@ -217,12 +226,11 @@ const AddTeamButton = styled(Button)`
 const CreateFirstTeam = styled(Button)`
   margin-top: 8px;
 `;
+
 type ShowNewProject = {
   open: boolean;
   initialTeamID: null | string;
 };
-
-const ProjectLink = styled(Link)``;
 
 const Projects = () => {
   const { showPopup, hidePopup } = usePopup();
@@ -241,7 +249,7 @@ const Projects = () => {
   });
 
   const [showNewProject, setShowNewProject] = useState<ShowNewProject>({ open: false, initialTeamID: null });
-  const { user, setUser } = useCurrentUser();
+  const { user } = useCurrentUser();
   const [createTeam] = useCreateTeamMutation({
     update: (client, createData) => {
       updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
@@ -267,7 +275,7 @@ const Projects = () => {
       .sort((a, b) => {
         const textA = a.name.toUpperCase();
         const textB = b.name.toUpperCase();
-        return textA < textB ? -1 : textA > textB ? 1 : 0;
+        return textA < textB ? -1 : textA > textB ? 1 : 0; // eslint-disable-line no-nested-ternary
       })
       .map(team => {
         return {
@@ -278,13 +286,13 @@ const Projects = () => {
             .sort((a, b) => {
               const textA = a.name.toUpperCase();
               const textB = b.name.toUpperCase();
-              return textA < textB ? -1 : textA > textB ? 1 : 0;
+              return textA < textB ? -1 : textA > textB ? 1 : 0; // eslint-disable-line no-nested-ternary
             }),
         };
       });
     return (
       <>
-        <GlobalTopNavbar onSaveProjectName={() => {}} projectID={null} name={null} />
+        <GlobalTopNavbar onSaveProjectName={NOOP} projectID={null} name={null} />
         <Wrapper>
           <ProjectsContainer>
             {user.roles.org === 'admin' && (

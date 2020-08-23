@@ -7,7 +7,7 @@ import { setAccessToken } from 'shared/utils/accessToken';
 import styled, { ThemeProvider } from 'styled-components';
 import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
-import { theme } from './ThemeStyles';
+import theme from './ThemeStyles';
 import Routes from './Routes';
 import { UserContext, CurrentUserRaw, CurrentUserRoles, PermissionLevel, PermissionObjectType } from './context';
 

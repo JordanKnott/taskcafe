@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Home, Star, Bell, AngleDown, BarChart, CheckCircle } from 'shared/icons';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import ProfileIcon from 'shared/components/ProfileIcon';
 import TaskAssignee from 'shared/components/TaskAssignee';
@@ -31,7 +32,6 @@ import {
   ProjectMember,
   ProjectMembers,
 } from './Styles';
-import { Link } from 'react-router-dom';
 
 const HomeDashboard = styled(Home)``;
 

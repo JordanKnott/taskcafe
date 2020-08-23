@@ -2,6 +2,7 @@ import React, { useRef, createContext, RefObject, useState, useContext, useEffec
 import { Cross, AngleLeft } from 'shared/icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import { createPortal } from 'react-dom';
+import NOOP from 'shared/utils/noop';
 import produce from 'immer';
 import {
   Container,
@@ -52,10 +53,10 @@ PopupContainer.defaultProps = {
 };
 
 const PopupContext = createContext<PopupContextState>({
-  show: () => {},
-  setTab: () => {},
+  show: NOOP,
+  setTab: NOOP,
   getCurrentTab: () => 0,
-  hide: () => {},
+  hide: NOOP,
 });
 
 export const usePopup = () => {

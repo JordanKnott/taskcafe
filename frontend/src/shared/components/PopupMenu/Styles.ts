@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
-import Input from '../Input';
 import ControlledInput from 'shared/components/ControlledInput';
 
 export const Container = styled.div<{
