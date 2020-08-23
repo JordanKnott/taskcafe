@@ -1,14 +1,12 @@
-name: citadel
+name: taskcafe
 root: .
-
-on_project_start: docker start test-db
 
 windows:
   - services:
       root: ./
       panes:
         - api:
-          - go run cmd/citadel/main.go web
+          - go run cmd/taskcafe/main.go web
         - yarn:
           - cd frontend
           - yarn start
@@ -19,8 +17,8 @@ windows:
   - api/editor:
       root: ./
       panes:
-        - vim cmd/citadel/main.go
+        - vim cmd/taskcafe/main.go
   - database:
       root: ./
       panes:
-        - pgcli postgres://postgres:test@localhost:5432/citadel
+        - pgcli postgres://taskcafe:taskcafe_test@localhost:5432/taskcafe
