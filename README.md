@@ -26,7 +26,7 @@ Currently you can do the following to tasks:
 - Checklists
 - Mark tasks as complete
 
-For a list of planned features, check out the [roadmap](https://github.com/JordanKnott/taskcafe/wiki/Roadmap)!
+For a list of planned features, check out the [Roadmap](https://github.com/JordanKnott/taskcafe/wiki/Roadmap)!
 
 ## Installation
 
@@ -79,7 +79,7 @@ This will:
 
 The newly created `taskcafe` binary can be found in the __dist__ folder.
 
-It contains everything neccessary to run except the config file. An example config file can be found in `conf/app.example.toml`
+It contains everything neccessary to run except the config file. An example config file can be found in `conf/app.example.toml`.
 
 The config will need to be copied to a `conf/app.toml` in the same place the binary is.
 
@@ -87,17 +87,17 @@ Make sure to fill out the database section of the config in order to connect it 
 
 Then run the database migrations with `taskcafe migrate`.
 
-Now you can run the web interface by running `taskcafe web`
+Now you can run the web interface by running `taskcafe web`.
 
 ## How is this different from X (Trello, NextCloud, etc)?
 
-One of the primary goal's of Taskcafe is to provide a project management tool that I personally enjoy using for my
+One of the primary goals of Taskcafe is to provide a project management tool that I personally enjoy using for my
 own projects and fits my workflow.
 
-During alpha developement, the current plan is to build the "basic" features - features that are pretty much
+During alpha development, the current plan is to build the "basic" features - features that are pretty much
 standard across all kanban boards / project management tools.
 
-Once Taskcafe is out of alpha, there are many features that I plan on adding that will differentiate it from other products (checkout the Roadmap for ideas on future plans).
+Once Taskcafe is out of alpha, there are many features that I plan on adding that will differentiate it from other products (check out the [Roadmap](https://github.com/JordanKnott/taskcafe/wiki/Roadmap) for ideas on future plans).
 
 ## Contributing & community
 
