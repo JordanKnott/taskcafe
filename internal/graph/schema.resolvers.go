@@ -180,13 +180,18 @@ func (r *mutationResolver) UpdateProjectMemberRole(ctx context.Context, input Up
 
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.Task, error) {
 	taskGroupID, err := uuid.Parse(input.TaskGroupID)
-	createdAt := time.Now().UTC()
 	if err != nil {
+		log.WithError(err).Error("issue while parsing task group ID")
 		return &db.Task{}, err
 	}
-
+	createdAt := time.Now().UTC()
+	log.WithFields(log.Fields{"positon": input.Position, "taskGroupID": taskGroupID}).Info("creating task")
 	task, err := r.Repository.CreateTask(ctx, db.CreateTaskParams{taskGroupID, createdAt, input.Name, input.Position})
-	return &task, err
+	if err != nil {
+		log.WithError(err).Error("issue while creating task")
+		return &db.Task{}, err
+	}
+	return &task, nil
 }
 
 func (r *mutationResolver) DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error) {
