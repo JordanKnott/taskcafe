@@ -75,7 +75,7 @@ This will:
 - Install all yarn packages for the frontend
 - Build the React frontend
 - Embed the React frontend in the binary
-- Compile the final exectuable binary
+- Compile the final executable binary
 
 The newly created `taskcafe` binary can be found in the __dist__ folder.
 
