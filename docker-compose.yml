@@ -1,7 +1,8 @@
 version: "3"
 services:
   web:
-    build: .
+    image: taskcafe/taskcafe:latest
+    # build: .
     ports:
       - "3333:3333"
     depends_on:
