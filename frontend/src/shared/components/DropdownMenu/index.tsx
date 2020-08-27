@@ -18,7 +18,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ left, top, onLogout, onClos
     <Container ref={$containerRef} left={left} top={top}>
       <Wrapper>
         <ActionItem onClick={onAdminConsole}>
-          <User size={16} color="#c2c6dc" />
+          <User width={16} height={16} />
           <ActionTitle>Profile</ActionTitle>
         </ActionItem>
         <Separator />
@@ -54,7 +54,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ showAdminConsole, onAdminCons
         </>
       )}
       <ActionItem onClick={onProfile}>
-        <User size={16} color="#c2c6dc" />
+        <User width={16} height={16} />
         <ActionTitle>Profile</ActionTitle>
       </ActionItem>
       <ActionsList>

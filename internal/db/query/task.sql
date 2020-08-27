@@ -30,7 +30,7 @@ DELETE FROM task where task_group_id = $1;
 UPDATE task SET due_date = $2 WHERE task_id = $1 RETURNING *;
 
 -- name: SetTaskComplete :one
-UPDATE task SET complete = $2 WHERE task_id = $1 RETURNING *;
+UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING *;
 
 -- name: GetProjectIDForTask :one
 SELECT project_id FROM task

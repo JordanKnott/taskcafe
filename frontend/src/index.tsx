@@ -8,12 +8,20 @@ import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
 import { enableMapSet } from 'immer';
 import { ApolloLink, Observable, fromPromise } from 'apollo-link';
+import moment from 'moment';
 import { getAccessToken, getNewToken, setAccessToken } from 'shared/utils/accessToken';
 import cache from './App/cache';
 import App from './App';
 
 // https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
 enableMapSet();
+
+moment.updateLocale('en', {
+  week: {
+    dow: 1, // First day of week is Monday
+    doy: 7, // First week of year must contain 1 January (7 + 1 - 1)
+  },
+});
 
 let forward$;
 let isRefreshing = false;

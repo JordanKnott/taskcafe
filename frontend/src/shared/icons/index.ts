@@ -1,5 +1,6 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import Calendar from './Calendar';
 import Sort from './Sort';
 import Filter from './Filter';
 import DoubleChevronUp from './DoubleChevronUp';
@@ -72,4 +73,5 @@ export {
   UserPlus,
   Crown,
   ToggleOn,
+  Calendar,
 };

@@ -1,21 +1,12 @@
 import React from 'react';
+import Icon, { IconProps } from './Icon';
 
-type Props = {
-  size: number | string;
-  color: string;
-};
-
-const User = ({ size, color }: Props) => {
+const User: React.FC<IconProps> = ({ width = '16px', height = '16px', className, onClick }) => {
   return (
-    <svg fill={color} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 16 16">
-      <path d="M9 11.041v-0.825c1.102-0.621 2-2.168 2-3.716 0-2.485 0-4.5-3-4.5s-3 2.015-3 4.5c0 1.548 0.898 3.095 2 3.716v0.825c-3.392 0.277-6 1.944-6 3.959h14c0-2.015-2.608-3.682-6-3.959z" />
-    </svg>
+    <Icon onClick={onClick} width={width} height={height} className={className} viewBox="0 0 448 512">
+      <path d="M313.6 304c-28.7 0-42.5 16-89.6 16-47.1 0-60.8-16-89.6-16C60.2 304 0 364.2 0 438.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-25.6c0-74.2-60.2-134.4-134.4-134.4zM400 464H48v-25.6c0-47.6 38.8-86.4 86.4-86.4 14.6 0 38.3 16 89.6 16 51.7 0 74.9-16 89.6-16 47.6 0 86.4 38.8 86.4 86.4V464zM224 288c79.5 0 144-64.5 144-144S303.5 0 224 0 80 64.5 80 144s64.5 144 144 144zm0-240c52.9 0 96 43.1 96 96s-43.1 96-96 96-96-43.1-96-96 43.1-96 96-96z" />
+    </Icon>
   );
-};
-
-User.defaultProps = {
-  size: 16,
-  color: '#000',
 };
 
 export default User;

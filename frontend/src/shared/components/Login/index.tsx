@@ -53,7 +53,7 @@ const Login = ({ onSubmit }: LoginProps) => {
                   ref={register({ required: 'Username is required' })}
                 />
                 <FormIcon>
-                  <User color="#c2c6dc" size={20} />
+                  <User width={20} height={20} />
                 </FormIcon>
               </FormLabel>
               {errors.username && <FormError>{errors.username.message}</FormError>}

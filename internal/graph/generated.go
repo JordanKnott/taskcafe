@@ -275,6 +275,7 @@ type ComplexityRoot struct {
 		Badges      func(childComplexity int) int
 		Checklists  func(childComplexity int) int
 		Complete    func(childComplexity int) int
+		CompletedAt func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
 		DueDate     func(childComplexity int) int
@@ -479,6 +480,7 @@ type TaskResolver interface {
 	Description(ctx context.Context, obj *db.Task) (*string, error)
 	DueDate(ctx context.Context, obj *db.Task) (*time.Time, error)
 
+	CompletedAt(ctx context.Context, obj *db.Task) (*time.Time, error)
 	Assigned(ctx context.Context, obj *db.Task) ([]Member, error)
 	Labels(ctx context.Context, obj *db.Task) ([]db.TaskLabel, error)
 	Checklists(ctx context.Context, obj *db.Task) ([]db.TaskChecklist, error)
@@ -1732,6 +1734,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Task.Complete(childComplexity), true
 
+	case "Task.completedAt":
+		if e.complexity.Task.CompletedAt == nil {
+			break
+		}
+
+		return e.complexity.Task.CompletedAt(childComplexity), true
+
 	case "Task.createdAt":
 		if e.complexity.Task.CreatedAt == nil {
 			break
@@ -2347,6 +2356,7 @@ type Task {
   description: String
   dueDate: Time
   complete: Boolean!
+  completedAt: Time
   assigned: [Member!]!
   labels: [TaskLabel!]!
   checklists: [TaskChecklist!]!
@@ -2474,7 +2484,6 @@ type DeleteProjectPayload {
   project: Project!
 }
 
-
 extend type Mutation {
   createProjectLabel(input: NewProjectLabel!):
     ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
@@ -2556,17 +2565,26 @@ type UpdateProjectMemberRolePayload {
 }
 
 extend type Mutation {
-  createTask(input: NewTask!): Task!
-  deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+  createTask(input: NewTask!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTask(input: DeleteTaskInput!):
+    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
-  updateTaskDescription(input: UpdateTaskDescriptionInput!): Task!
-  updateTaskLocation(input: NewTaskLocation!): UpdateTaskLocationPayload!
-  updateTaskName(input: UpdateTaskName!): Task!
-  setTaskComplete(input: SetTaskComplete!): Task!
-  updateTaskDueDate(input: UpdateTaskDueDate!): Task!
+  updateTaskDescription(input: UpdateTaskDescriptionInput!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskLocation(input: NewTaskLocation!):
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskName(input: UpdateTaskName!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  setTaskComplete(input: SetTaskComplete!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskDueDate(input: UpdateTaskDueDate!):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
-  assignTask(input: AssignTaskInput): Task!
-  unassignTask(input: UnassignTaskInput): Task!
+  assignTask(input: AssignTaskInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  unassignTask(input: UnassignTaskInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewTask {
@@ -2625,16 +2643,25 @@ input UpdateTaskName {
 }
 
 extend type Mutation {
-  createTaskChecklist(input: CreateTaskChecklist!): TaskChecklist!
-  deleteTaskChecklist(input: DeleteTaskChecklist!): DeleteTaskChecklistPayload!
-  updateTaskChecklistName(input: UpdateTaskChecklistName!): TaskChecklist!
-  createTaskChecklistItem(input: CreateTaskChecklistItem!): TaskChecklistItem!
-  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!): TaskChecklistItem!
-  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!): TaskChecklistItem!
-  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!): DeleteTaskChecklistItemPayload!
+  createTaskChecklist(input: CreateTaskChecklist!):
+    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskChecklist(input: DeleteTaskChecklist!):
+    DeleteTaskChecklistPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistName(input: UpdateTaskChecklistName!):
+    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  createTaskChecklistItem(input: CreateTaskChecklistItem!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!):
+    DeleteTaskChecklistItemPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!):
+    UpdateTaskChecklistLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!):
+    UpdateTaskChecklistItemLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 
-  updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!): UpdateTaskChecklistLocationPayload!
-  updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!): UpdateTaskChecklistItemLocationPayload!
 }
 
 input UpdateTaskChecklistItemLocation {
@@ -2702,10 +2729,14 @@ type DeleteTaskChecklistPayload {
 }
 
 extend type Mutation {
-  createTaskGroup(input: NewTaskGroup!): TaskGroup!
-  updateTaskGroupLocation(input: NewTaskGroupLocation!): TaskGroup!
-  updateTaskGroupName(input: UpdateTaskGroupName!): TaskGroup!
-  deleteTaskGroup(input: DeleteTaskGroupInput!): DeleteTaskGroupPayload!
+  createTaskGroup(input: NewTaskGroup!):
+    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskGroupLocation(input: NewTaskGroupLocation!):
+    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateTaskGroupName(input: UpdateTaskGroupName!):
+    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskGroup(input: DeleteTaskGroupInput!):
+    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
 input NewTaskGroupLocation {
@@ -2752,9 +2783,13 @@ type ToggleTaskLabelPayload {
   task: Task!
 }
 extend type Mutation {
-  addTaskLabel(input: AddTaskLabelInput): Task!
-  removeTaskLabel(input: RemoveTaskLabelInput): Task!
-  toggleTaskLabel(input: ToggleTaskLabelInput!): ToggleTaskLabelPayload!
+  addTaskLabel(input: AddTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  removeTaskLabel(input: RemoveTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  toggleTaskLabel(input: ToggleTaskLabelInput!):
+    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+
 }
 
 extend type Mutation {
@@ -2780,10 +2815,12 @@ type DeleteTeamPayload {
 }
 
 extend type Mutation {
-  createTeamMember(input: CreateTeamMember!): CreateTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  createTeamMember(input: CreateTeamMember!):
+    CreateTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
   updateTeamMemberRole(input: UpdateTeamMemberRole!):
     UpdateTeamMemberRolePayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
-  deleteTeamMember(input: DeleteTeamMember!): DeleteTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteTeamMember(input: DeleteTeamMember!):
+    DeleteTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
 
 }
 
@@ -5986,8 +6023,40 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTask(rctx, args["input"].(NewTask))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTask(rctx, args["input"].(NewTask))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6027,8 +6096,40 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTask(rctx, args["input"].(DeleteTaskInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTask(rctx, args["input"].(DeleteTaskInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTaskPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6068,8 +6169,40 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskDescription(rctx, args["input"].(UpdateTaskDescriptionInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskDescription(rctx, args["input"].(UpdateTaskDescriptionInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6109,8 +6242,40 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskLocation(rctx, args["input"].(NewTaskLocation))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskLocation(rctx, args["input"].(NewTaskLocation))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdateTaskLocationPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskLocationPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6150,8 +6315,40 @@ func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field 
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskName(rctx, args["input"].(UpdateTaskName))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskName(rctx, args["input"].(UpdateTaskName))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6191,8 +6388,40 @@ func (ec *executionContext) _Mutation_setTaskComplete(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetTaskComplete(rctx, args["input"].(SetTaskComplete))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SetTaskComplete(rctx, args["input"].(SetTaskComplete))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6232,8 +6461,40 @@ func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, fie
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskDueDate(rctx, args["input"].(UpdateTaskDueDate))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskDueDate(rctx, args["input"].(UpdateTaskDueDate))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6273,8 +6534,40 @@ func (ec *executionContext) _Mutation_assignTask(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AssignTask(rctx, args["input"].(*AssignTaskInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AssignTask(rctx, args["input"].(*AssignTaskInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6314,8 +6607,40 @@ func (ec *executionContext) _Mutation_unassignTask(ctx context.Context, field gr
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UnassignTask(rctx, args["input"].(*UnassignTaskInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UnassignTask(rctx, args["input"].(*UnassignTaskInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6355,8 +6680,40 @@ func (ec *executionContext) _Mutation_createTaskChecklist(ctx context.Context, f
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTaskChecklist(rctx, args["input"].(CreateTaskChecklist))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTaskChecklist(rctx, args["input"].(CreateTaskChecklist))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskChecklist); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskChecklist`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6396,8 +6753,40 @@ func (ec *executionContext) _Mutation_deleteTaskChecklist(ctx context.Context, f
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTaskChecklist(rctx, args["input"].(DeleteTaskChecklist))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTaskChecklist(rctx, args["input"].(DeleteTaskChecklist))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTaskChecklistPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskChecklistPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6437,8 +6826,40 @@ func (ec *executionContext) _Mutation_updateTaskChecklistName(ctx context.Contex
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskChecklistName(rctx, args["input"].(UpdateTaskChecklistName))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskChecklistName(rctx, args["input"].(UpdateTaskChecklistName))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskChecklist); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskChecklist`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6478,8 +6899,40 @@ func (ec *executionContext) _Mutation_createTaskChecklistItem(ctx context.Contex
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTaskChecklistItem(rctx, args["input"].(CreateTaskChecklistItem))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTaskChecklistItem(rctx, args["input"].(CreateTaskChecklistItem))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskChecklistItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskChecklistItem`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6519,8 +6972,40 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemName(ctx context.Co
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskChecklistItemName(rctx, args["input"].(UpdateTaskChecklistItemName))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskChecklistItemName(rctx, args["input"].(UpdateTaskChecklistItemName))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskChecklistItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskChecklistItem`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6560,8 +7045,40 @@ func (ec *executionContext) _Mutation_setTaskChecklistItemComplete(ctx context.C
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetTaskChecklistItemComplete(rctx, args["input"].(SetTaskChecklistItemComplete))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SetTaskChecklistItemComplete(rctx, args["input"].(SetTaskChecklistItemComplete))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskChecklistItem); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskChecklistItem`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6601,8 +7118,40 @@ func (ec *executionContext) _Mutation_deleteTaskChecklistItem(ctx context.Contex
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTaskChecklistItem(rctx, args["input"].(DeleteTaskChecklistItem))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTaskChecklistItem(rctx, args["input"].(DeleteTaskChecklistItem))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTaskChecklistItemPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskChecklistItemPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6642,8 +7191,40 @@ func (ec *executionContext) _Mutation_updateTaskChecklistLocation(ctx context.Co
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskChecklistLocation(rctx, args["input"].(UpdateTaskChecklistLocation))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskChecklistLocation(rctx, args["input"].(UpdateTaskChecklistLocation))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdateTaskChecklistLocationPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskChecklistLocationPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6683,8 +7264,40 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemLocation(ctx contex
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskChecklistItemLocation(rctx, args["input"].(UpdateTaskChecklistItemLocation))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskChecklistItemLocation(rctx, args["input"].(UpdateTaskChecklistItemLocation))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdateTaskChecklistItemLocationPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskChecklistItemLocationPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6724,8 +7337,40 @@ func (ec *executionContext) _Mutation_createTaskGroup(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTaskGroup(rctx, args["input"].(NewTaskGroup))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTaskGroup(rctx, args["input"].(NewTaskGroup))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskGroup); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskGroup`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6765,8 +7410,40 @@ func (ec *executionContext) _Mutation_updateTaskGroupLocation(ctx context.Contex
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskGroupLocation(rctx, args["input"].(NewTaskGroupLocation))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskGroupLocation(rctx, args["input"].(NewTaskGroupLocation))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskGroup); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskGroup`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6806,8 +7483,40 @@ func (ec *executionContext) _Mutation_updateTaskGroupName(ctx context.Context, f
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTaskGroupName(rctx, args["input"].(UpdateTaskGroupName))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskGroupName(rctx, args["input"].(UpdateTaskGroupName))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.TaskGroup); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.TaskGroup`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6847,8 +7556,40 @@ func (ec *executionContext) _Mutation_deleteTaskGroup(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTaskGroup(rctx, args["input"].(DeleteTaskGroupInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTaskGroup(rctx, args["input"].(DeleteTaskGroupInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTaskGroupPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskGroupPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6888,8 +7629,40 @@ func (ec *executionContext) _Mutation_addTaskLabel(ctx context.Context, field gr
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddTaskLabel(rctx, args["input"].(*AddTaskLabelInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddTaskLabel(rctx, args["input"].(*AddTaskLabelInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6929,8 +7702,40 @@ func (ec *executionContext) _Mutation_removeTaskLabel(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveTaskLabel(rctx, args["input"].(*RemoveTaskLabelInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveTaskLabel(rctx, args["input"].(*RemoveTaskLabelInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6970,8 +7775,40 @@ func (ec *executionContext) _Mutation_toggleTaskLabel(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ToggleTaskLabel(rctx, args["input"].(ToggleTaskLabelInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ToggleTaskLabel(rctx, args["input"].(ToggleTaskLabelInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*ToggleTaskLabelPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.ToggleTaskLabelPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9411,6 +10248,37 @@ func (ec *executionContext) _Task_complete(ctx context.Context, field graphql.Co
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Task_completedAt(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Task",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Task().CompletedAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Task_assigned(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
@@ -15154,6 +16022,17 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "completedAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Task_completedAt(ctx, field, obj)
+				return res
+			})
 		case "assigned":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

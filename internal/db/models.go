@@ -72,6 +72,7 @@ type Task struct {
 	Description sql.NullString `json:"description"`
 	DueDate     sql.NullTime   `json:"due_date"`
 	Complete    bool           `json:"complete"`
+	CompletedAt sql.NullTime   `json:"completed_at"`
 }
 
 type TaskAssigned struct {

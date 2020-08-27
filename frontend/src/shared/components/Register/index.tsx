@@ -55,7 +55,7 @@ const Register = ({ onSubmit }: RegisterProps) => {
                   ref={register({ required: 'Full name is required' })}
                 />
                 <FormIcon>
-                  <User color="#c2c6dc" size={20} />
+                  <User width={20} height={20} />
                 </FormIcon>
               </FormLabel>
               {errors.username && <FormError>{errors.username.message}</FormError>}
@@ -68,7 +68,7 @@ const Register = ({ onSubmit }: RegisterProps) => {
                   ref={register({ required: 'Username is required' })}
                 />
                 <FormIcon>
-                  <User color="#c2c6dc" size={20} />
+                  <User width={20} height={20} />
                 </FormIcon>
               </FormLabel>
               {errors.username && <FormError>{errors.username.message}</FormError>}
@@ -84,7 +84,7 @@ const Register = ({ onSubmit }: RegisterProps) => {
                   })}
                 />
                 <FormIcon>
-                  <User color="#c2c6dc" size={20} />
+                  <User width={20} height={20} />
                 </FormIcon>
               </FormLabel>
               {errors.email && <FormError>{errors.email.message}</FormError>}
@@ -103,7 +103,7 @@ const Register = ({ onSubmit }: RegisterProps) => {
                   })}
                 />
                 <FormIcon>
-                  <User color="#c2c6dc" size={20} />
+                  <User width={20} height={20} />
                 </FormIcon>
               </FormLabel>
               {errors.initials && <FormError>{errors.initials.message}</FormError>}

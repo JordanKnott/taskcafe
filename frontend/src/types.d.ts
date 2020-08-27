@@ -64,6 +64,7 @@ type Task = {
   position: number;
   dueDate?: string;
   complete?: boolean;
+  completedAt?: string | null;
   labels: TaskLabel[];
   description?: string | null;
   assigned?: Array<TaskUser>;
