@@ -162,6 +162,7 @@ export type Task = {
   description?: Maybe<Scalars['String']>;
   dueDate?: Maybe<Scalars['Time']>;
   complete: Scalars['Boolean'];
+  completedAt?: Maybe<Scalars['Time']>;
   assigned: Array<Member>;
   labels: Array<TaskLabel>;
   checklists: Array<TaskChecklist>;
@@ -1189,7 +1190,7 @@ export type FindTaskQuery = (
 
 export type TaskFieldsFragment = (
   { __typename?: 'Task' }
-  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'complete' | 'position'>
+  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'complete' | 'completedAt' | 'position'>
   & { badges: (
     { __typename?: 'TaskBadges' }
     & { checklist?: Maybe<(
@@ -2013,6 +2014,7 @@ export const TaskFieldsFragmentDoc = gql`
   description
   dueDate
   complete
+  completedAt
   position
   badges {
     checklist {

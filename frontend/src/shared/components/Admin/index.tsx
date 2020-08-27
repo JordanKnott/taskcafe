@@ -430,6 +430,7 @@ const TabNavItem = styled.li`
   display: block;
   position: relative;
 `;
+
 const TabNavItemButton = styled.button<{ active: boolean }>`
   cursor: pointer;
   display: flex;
@@ -449,6 +450,10 @@ const TabNavItemButton = styled.button<{ active: boolean }>`
   &:hover svg {
     fill: rgba(115, 103, 240);
   }
+`;
+const TabItemUser = styled(User)<{ active: boolean }>`
+fill: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')}
+stroke: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')}
 `;
 
 const TabNavItemSpan = styled.span`
@@ -512,7 +517,7 @@ const NavItem: React.FC<NavItemProps> = ({ active, name, tab, onClick }) => {
       }}
     >
       <TabNavItemButton active={active}>
-        <User size={14} color={active ? 'rgba(115, 103, 240)' : '#c2c6dc'} />
+        <TabItemUser width={14} height={14} active={active} />
         <TabNavItemSpan>{name}</TabNavItemSpan>
       </TabNavItemButton>
     </TabNavItem>

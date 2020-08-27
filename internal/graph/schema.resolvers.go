@@ -235,7 +235,8 @@ func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskN
 }
 
 func (r *mutationResolver) SetTaskComplete(ctx context.Context, input SetTaskComplete) (*db.Task, error) {
-	task, err := r.Repository.SetTaskComplete(ctx, db.SetTaskCompleteParams{TaskID: input.TaskID, Complete: input.Complete})
+	completedAt := time.Now().UTC()
+	task, err := r.Repository.SetTaskComplete(ctx, db.SetTaskCompleteParams{TaskID: input.TaskID, Complete: input.Complete, CompletedAt: sql.NullTime{Time: completedAt, Valid: true}})
 	if err != nil {
 		return &db.Task{}, err
 	}
@@ -1037,6 +1038,13 @@ func (r *taskResolver) Description(ctx context.Context, obj *db.Task) (*string, 
 func (r *taskResolver) DueDate(ctx context.Context, obj *db.Task) (*time.Time, error) {
 	if obj.DueDate.Valid {
 		return &obj.DueDate.Time, nil
+	}
+	return nil, nil
+}
+
+func (r *taskResolver) CompletedAt(ctx context.Context, obj *db.Task) (*time.Time, error) {
+	if obj.CompletedAt.Valid {
+		return &obj.CompletedAt.Time, nil
 	}
 	return nil, nil
 }

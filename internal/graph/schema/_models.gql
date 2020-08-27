@@ -129,6 +129,7 @@ type Task {
   description: String
   dueDate: Time
   complete: Boolean!
+  completedAt: Time
   assigned: [Member!]!
   labels: [TaskLabel!]!
   checklists: [TaskChecklist!]!

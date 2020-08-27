@@ -218,7 +218,7 @@ const NavItem: React.FC<NavItemProps> = ({ active, name, tab, onClick }) => {
       }}
     >
       <TabNavItemButton active={active}>
-        <User size={14} color={active ? 'rgba(115, 103, 240)' : '#c2c6dc'} />
+        <User width={20} height={20} />
         <TabNavItemSpan>{name}</TabNavItemSpan>
       </TabNavItemButton>
     </TabNavItem>

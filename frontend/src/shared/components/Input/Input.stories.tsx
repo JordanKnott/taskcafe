@@ -35,7 +35,7 @@ export const Default = () => {
         <Wrapper>
           <Input label="Label placeholder" />
           <Input width="100%" placeholder="Placeholder" />
-          <Input icon={<User size={20} />} width="100%" placeholder="Placeholder" />
+          <Input icon={<User width={20} height={20} />} width="100%" placeholder="Placeholder" />
         </Wrapper>
       </ThemeProvider>
     </>

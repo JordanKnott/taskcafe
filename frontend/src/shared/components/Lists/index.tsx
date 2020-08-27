@@ -13,6 +13,249 @@ import {
 import moment from 'moment';
 
 import { Container, BoardContainer, BoardWrapper } from './Styles';
+import shouldMetaFilter from './metaFilter';
+
+export enum TaskMeta {
+  NONE,
+  TITLE,
+  MEMBER,
+  LABEL,
+  DUE_DATE,
+}
+
+export enum TaskMetaMatch {
+  MATCH_ANY,
+  MATCH_ALL,
+}
+
+export enum TaskStatus {
+  ALL,
+  COMPLETE,
+  INCOMPLETE,
+}
+
+export enum TaskSince {
+  ALL,
+  TODAY,
+  YESTERDAY,
+  ONE_WEEK,
+  TWO_WEEKS,
+  THREE_WEEKS,
+}
+
+export type TaskStatusFilter = {
+  status: TaskStatus;
+  since: TaskSince;
+};
+
+export interface TaskMetaFilterName {
+  meta: TaskMeta;
+  value?: string | moment.Moment | null;
+  id?: string | null;
+}
+
+export type TaskNameMetaFilter = {
+  name: string;
+};
+
+export enum DueDateFilterType {
+  TODAY,
+  TOMORROW,
+  THIS_WEEK,
+  NEXT_WEEK,
+  ONE_WEEK,
+  TWO_WEEKS,
+  THREE_WEEKS,
+  OVERDUE,
+  NO_DUE_DATE,
+}
+
+export type DueDateMetaFilter = {
+  type: DueDateFilterType;
+  label: string;
+};
+
+export type MemberMetaFilter = {
+  id: string;
+  username: string;
+};
+
+export type LabelMetaFilter = {
+  id: string;
+  name: string;
+  color: string;
+};
+
+export type TaskMetaFilters = {
+  match: TaskMetaMatch;
+  dueDate: DueDateMetaFilter | null;
+  taskName: TaskNameMetaFilter | null;
+  members: Array<MemberMetaFilter>;
+  labels: Array<LabelMetaFilter>;
+};
+
+export enum TaskSortingType {
+  NONE,
+  DUE_DATE,
+  MEMBERS,
+  LABELS,
+  TASK_TITLE,
+}
+
+export enum TaskSortingDirection {
+  ASC,
+  DESC,
+}
+
+export type TaskSorting = {
+  type: TaskSortingType;
+  direction: TaskSortingDirection;
+};
+
+function sortString(a: string, b: string) {
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
+  return 0;
+}
+
+function sortTasks(a: Task, b: Task, taskSorting: TaskSorting) {
+  if (taskSorting.type === TaskSortingType.TASK_TITLE) {
+    if (a.name < b.name) {
+      return -1;
+    }
+    if (a.name > b.name) {
+      return 1;
+    }
+    return 0;
+  }
+  if (taskSorting.type === TaskSortingType.DUE_DATE) {
+    if (a.dueDate && !b.dueDate) {
+      return -1;
+    }
+    if (b.dueDate && !a.dueDate) {
+      return 1;
+    }
+    return moment(a.dueDate).diff(moment(b.dueDate));
+  }
+  if (taskSorting.type === TaskSortingType.LABELS) {
+    // sorts non-empty labels by name, then by empty label color name
+    let aLabels = [];
+    let bLabels = [];
+    let aLabelsEmpty = [];
+    let bLabelsEmpty = [];
+    if (a.labels) {
+      for (const aLabel of a.labels) {
+        if (aLabel.projectLabel.name && aLabel.projectLabel.name !== '') {
+          aLabels.push(aLabel.projectLabel.name);
+        } else {
+          aLabelsEmpty.push(aLabel.projectLabel.labelColor.name);
+        }
+      }
+    }
+    if (b.labels) {
+      for (const bLabel of b.labels) {
+        if (bLabel.projectLabel.name && bLabel.projectLabel.name !== '') {
+          bLabels.push(bLabel.projectLabel.name);
+        } else {
+          bLabelsEmpty.push(bLabel.projectLabel.labelColor.name);
+        }
+      }
+    }
+    aLabels = aLabels.sort((aLabel, bLabel) => sortString(aLabel, bLabel));
+    bLabels = bLabels.sort((aLabel, bLabel) => sortString(aLabel, bLabel));
+    aLabelsEmpty = aLabelsEmpty.sort((aLabel, bLabel) => sortString(aLabel, bLabel));
+    bLabelsEmpty = bLabelsEmpty.sort((aLabel, bLabel) => sortString(aLabel, bLabel));
+    if (aLabelsEmpty.length !== 0 || bLabelsEmpty.length !== 0) {
+      if (aLabelsEmpty.length > bLabelsEmpty.length) {
+        if (bLabels.length !== 0) {
+          return 1;
+        }
+        return -1;
+      }
+    }
+    if (aLabels.length < bLabels.length) {
+      return 1;
+    }
+    if (aLabels.length > bLabels.length) {
+      return -1;
+    }
+    return 0;
+  }
+  if (taskSorting.type === TaskSortingType.MEMBERS) {
+    let aMembers = [];
+    let bMembers = [];
+    if (a.assigned) {
+      for (const aMember of a.assigned) {
+        if (aMember.fullName) {
+          aMembers.push(aMember.fullName);
+        }
+      }
+    }
+    if (b.assigned) {
+      for (const bMember of b.assigned) {
+        if (bMember.fullName) {
+          bMembers.push(bMember.fullName);
+        }
+      }
+    }
+    aMembers = aMembers.sort((aMember, bMember) => sortString(aMember, bMember));
+    bMembers = bMembers.sort((aMember, bMember) => sortString(aMember, bMember));
+    if (aMembers.length < bMembers.length) {
+      return 1;
+    }
+    if (aMembers.length > bMembers.length) {
+      return -1;
+    }
+    return 0;
+  }
+  return 0;
+}
+
+function shouldStatusFilter(task: Task, filter: TaskStatusFilter) {
+  if (filter.status === TaskStatus.ALL) {
+    return true;
+  }
+
+  if (filter.status === TaskStatus.INCOMPLETE && task.complete === false) {
+    return true;
+  }
+  if (filter.status === TaskStatus.COMPLETE && task.completedAt && task.complete === true) {
+    const completedAt = moment(task.completedAt);
+    const REFERENCE = moment(); // fixed just for testing, use moment();
+    switch (filter.since) {
+      case TaskSince.TODAY:
+        const TODAY = REFERENCE.clone().startOf('day');
+        return completedAt.isSame(TODAY, 'd');
+      case TaskSince.YESTERDAY:
+        const YESTERDAY = REFERENCE.clone()
+          .subtract(1, 'days')
+          .startOf('day');
+        return completedAt.isSameOrAfter(YESTERDAY, 'd');
+      case TaskSince.ONE_WEEK:
+        const ONE_WEEK = REFERENCE.clone()
+          .subtract(7, 'days')
+          .startOf('day');
+        return completedAt.isSameOrAfter(ONE_WEEK, 'd');
+      case TaskSince.TWO_WEEKS:
+        const TWO_WEEKS = REFERENCE.clone()
+          .subtract(14, 'days')
+          .startOf('day');
+        return completedAt.isSameOrAfter(TWO_WEEKS, 'd');
+      case TaskSince.THREE_WEEKS:
+        const THREE_WEEKS = REFERENCE.clone()
+          .subtract(21, 'days')
+          .startOf('day');
+        return completedAt.isSameOrAfter(THREE_WEEKS, 'd');
+      default:
+        return true;
+    }
+  }
+  return false;
+}
 
 interface SimpleProps {
   taskGroups: Array<TaskGroup>;
@@ -28,7 +271,28 @@ interface SimpleProps {
   onCardMemberClick: OnCardMemberClick;
   onCardLabelClick: () => void;
   cardLabelVariant: CardLabelVariant;
+  taskStatusFilter?: TaskStatusFilter;
+  taskMetaFilters?: TaskMetaFilters;
+  taskSorting?: TaskSorting;
 }
+
+const initTaskStatusFilter: TaskStatusFilter = {
+  status: TaskStatus.ALL,
+  since: TaskSince.ALL,
+};
+
+const initTaskMetaFilters: TaskMetaFilters = {
+  match: TaskMetaMatch.MATCH_ANY,
+  dueDate: null,
+  taskName: null,
+  labels: [],
+  members: [],
+};
+
+const initTaskSorting: TaskSorting = {
+  type: TaskSortingType.NONE,
+  direction: TaskSortingDirection.ASC,
+};
 
 const SimpleLists: React.FC<SimpleProps> = ({
   taskGroups,
@@ -43,6 +307,9 @@ const SimpleLists: React.FC<SimpleProps> = ({
   cardLabelVariant,
   onExtraMenuOpen,
   onCardMemberClick,
+  taskStatusFilter = initTaskStatusFilter,
+  taskMetaFilters = initTaskMetaFilters,
+  taskSorting = initTaskSorting,
 }) => {
   const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
     if (typeof destination === 'undefined') return;
@@ -164,10 +431,18 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                 <ListCards ref={columnDropProvided.innerRef} {...columnDropProvided.droppableProps}>
                                   {taskGroup.tasks
                                     .slice()
+                                    .filter(t => shouldStatusFilter(t, taskStatusFilter))
+                                    .filter(t => shouldMetaFilter(t, taskMetaFilters))
                                     .sort((a: any, b: any) => a.position - b.position)
+                                    .sort((a: any, b: any) => sortTasks(a, b, taskSorting))
                                     .map((task: Task, taskIndex: any) => {
                                       return (
-                                        <Draggable key={task.id} draggableId={task.id} index={taskIndex}>
+                                        <Draggable
+                                          key={task.id}
+                                          draggableId={task.id}
+                                          index={taskIndex}
+                                          isDragDisabled={taskSorting.type !== TaskSortingType.NONE}
+                                        >
                                           {taskProvided => {
                                             return (
                                               <Card

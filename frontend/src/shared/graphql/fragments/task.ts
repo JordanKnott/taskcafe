@@ -7,6 +7,7 @@ const TASK_FRAGMENT = gql`
     description
     dueDate
     complete
+    completedAt
     position
     badges {
       checklist {
