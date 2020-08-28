@@ -36,9 +36,18 @@ func newWebCmd() *cobra.Command {
 				viper.GetString("database.host"),
 				viper.GetString("database.name"),
 			)
-			db, err := sqlx.Connect("postgres", connection)
-			if err != nil {
-				log.Panic(err)
+			var db *sqlx.DB
+			var err error
+			retryNumber := 0
+			for i := 0; retryNumber <= 3; i++ {
+				retryNumber++
+				db, err = sqlx.Connect("postgres", connection)
+				if err == nil {
+					break
+				}
+				retryDuration := time.Duration(i*2) * time.Second
+				log.WithFields(log.Fields{"retryNumber": retryNumber, "retryDuration": retryDuration}).WithError(err).Error("issue connecting to database, retrying")
+				time.Sleep(retryDuration)
 			}
 			db.SetMaxOpenConns(25)
 			db.SetMaxIdleConns(25)
