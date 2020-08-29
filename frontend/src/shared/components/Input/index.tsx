@@ -91,6 +91,7 @@ type InputProps = {
   name?: string;
   className?: string;
   defaultValue?: string;
+  value?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
 };
 
@@ -129,6 +130,7 @@ const Input = React.forwardRef(
       onClick,
       floatingLabel,
       defaultValue,
+      value,
       id,
     }: InputProps,
     $ref: any,
@@ -166,6 +168,7 @@ const Input = React.forwardRef(
           onClick={onClick}
           autoComplete={autocomplete ? 'on' : 'off'}
           defaultValue={defaultValue}
+          value={value}
           hasIcon={typeof icon !== 'undefined'}
           width={width}
           placeholder={placeholder}

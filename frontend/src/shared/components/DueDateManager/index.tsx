@@ -111,17 +111,13 @@ const HeaderActions = styled.div`
 
 const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate, onCancel }) => {
   const now = moment();
-  const [textStartDate, setTextStartDate] = useState(now.format('YYYY-MM-DD'));
+  const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
   const [startDate, setStartDate] = useState(new Date());
-  useEffect(() => {
-    setTextStartDate(moment(startDate).format('YYYY-MM-DD'));
-  }, [startDate]);
 
-  const [textEndTime, setTextEndTime] = useState(now.format('h:mm A'));
-  const [endTime, setEndTime] = useState(now.toDate());
   useEffect(() => {
-    setTextEndTime(moment(endTime).format('h:mm A'));
-  }, [endTime]);
+    const newDate = moment(startDate).format('YYYY-MM-DD');
+    setValue('endDate', newDate);
+  }, [startDate]);
 
   const years = _.range(2010, getYear(new Date()) + 10, 1);
   const months = [
@@ -138,9 +134,8 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     'November',
     'December',
   ];
-  const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
   const saveDueDate = (data: any) => {
-    const newDate = moment(`${data.endDate} ${data.endTime}`, 'YYYY-MM-DD h:mm A');
+    const newDate = moment(`${data.endDate} ${moment(data.endTime).format('h:mm A')}`, 'YYYY-MM-DD h:mm A');
     if (newDate.isValid()) {
       onDueDateChange(task, newDate.toDate());
     }
@@ -149,11 +144,12 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     return (
       <DueDateInput
         id="endTime"
+        value={value}
         name="endTime"
         ref={$ref}
         width="100%"
         variant="alternate"
-        label="Date"
+        label="Time"
         onClick={onClick}
       />
     );
@@ -168,7 +164,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
             width="100%"
             variant="alternate"
             label="Date"
-            defaultValue={textStartDate}
+            defaultValue={now.format('YYYY-MM-DD')}
             ref={register({
               required: 'End date is required.',
             })}
@@ -177,6 +173,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
         <FormField>
           <Controller
             control={control}
+            defaultValue={now.toDate()}
             name="endTime"
             render={({ onChange, onBlur, value }) => (
               <DatePicker
@@ -244,7 +241,9 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
             selected={startDate}
             inline
             onChange={date => {
-              setStartDate(date ?? new Date());
+              if (date) {
+                setStartDate(date);
+              }
             }}
           />
         </DueDatePickerWrapper>
