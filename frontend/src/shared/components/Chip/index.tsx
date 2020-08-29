@@ -11,7 +11,6 @@ const LabelText = styled.span`
 `;
 
 const Container = styled.div<{ color?: string }>`
-  margin: 0.75rem;
   min-height: 26px;
   min-width: 26px;
   font-size: 0.8rem;
@@ -53,11 +52,12 @@ type ChipProps = {
   label: string;
   onClose?: () => void;
   color?: string;
+  className?: string;
 };
 
-const Chip: React.FC<ChipProps> = ({ label, onClose, color }) => {
+const Chip: React.FC<ChipProps> = ({ label, onClose, color, className }) => {
   return (
-    <Container color={color}>
+    <Container className={className} color={color}>
       <LabelText>{label}</LabelText>
       {onClose && (
         <CloseButton onClick={() => onClose()}>

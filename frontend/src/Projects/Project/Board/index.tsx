@@ -49,6 +49,10 @@ import FilterStatus from './FilterStatus';
 import FilterMeta from './FilterMeta';
 import SortPopup from './SortPopup';
 
+const FilterChip = styled(Chip)`
+  margin-right: 4px;
+`;
+
 type MetaFilterCloseFn = (meta: TaskMeta, key: string) => void;
 
 const renderTaskSortingLabel = (sorting: TaskSorting) => {
@@ -71,7 +75,7 @@ const renderMetaFilters = (filters: TaskMetaFilters, onClose: MetaFilterCloseFn)
   const filterChips = [];
   if (filters.taskName) {
     filterChips.push(
-      <Chip
+      <FilterChip
         key="task-name"
         label={`Title: ${filters.taskName.name}`}
         onClose={() => onClose(TaskMeta.TITLE, 'task-name')}
@@ -81,12 +85,16 @@ const renderMetaFilters = (filters: TaskMetaFilters, onClose: MetaFilterCloseFn)
 
   if (filters.dueDate) {
     filterChips.push(
-      <Chip key="due-date" label={filters.dueDate.label} onClose={() => onClose(TaskMeta.DUE_DATE, 'due-date')} />,
+      <FilterChip
+        key="due-date"
+        label={filters.dueDate.label}
+        onClose={() => onClose(TaskMeta.DUE_DATE, 'due-date')}
+      />,
     );
   }
   for (const memberFilter of filters.members) {
     filterChips.push(
-      <Chip
+      <FilterChip
         key={`member-${memberFilter.id}`}
         label={`Member: ${memberFilter.username}`}
         onClose={() => onClose(TaskMeta.MEMBER, memberFilter.id)}
@@ -95,7 +103,7 @@ const renderMetaFilters = (filters: TaskMetaFilters, onClose: MetaFilterCloseFn)
   }
   for (const labelFilter of filters.labels) {
     filterChips.push(
-      <Chip
+      <FilterChip
         key={`label-${labelFilter.id}`}
         label={labelFilter.name === '' ? 'Label' : `Label: ${labelFilter.name}`}
         color={labelFilter.color}
@@ -126,7 +134,7 @@ const ProjectActionWrapper = styled.div<{ disabled?: boolean }>`
   font-size: 15px;
   color: rgba(${props => props.theme.colors.text.primary});
 
-  &:not(:last-child) {
+  &:not(:last-of-type) {
     margin-right: 16px;
   }
 
