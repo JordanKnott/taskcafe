@@ -4,8 +4,11 @@ Thanks for wanting to contribute to Taskcafe!
 
 ### Where do I go from here?
 
-If you have noticed a bug or have a feature request, make one! If best to get confirmation
-of your bug or feature before starting work on a pull request.
+So you want to contribute to Taskcafe? Great!
+
+If you have noticed a bug or want to add a new feature, please [create an issue](https://github.com/JordanKnott/taskcafe/issues/new/choose) for it before starting any work on a pull request.
+
+After the bug is validated or the feature is accepted by a project maintainer, the next step is to fork the repository!
 
 ### Fork & create a branch
 
