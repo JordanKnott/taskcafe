@@ -1,24 +1,33 @@
-![Taskcafe](./.github/taskcafe-full.png)
+<p align="center">
+ <img width="450px" src="./.github/taskcafe-full.png" align="center" alt="Taskcafe logo" />
+</p>
+<p align="center">
+  <a href="https://discord.gg/JkQDruh">
+    <img alt="Discord" src="https://img.shields.io/discord/745396499613220955" />
+  </a>
+  <a href="https://github.com/JordanKnott/taskcafe/releases">
+    <img alt="Releases" src="https://img.shields.io/github/v/release/JordanKnott/taskcafe" />
+  </a>
+  <a href="https://hub.docker.com/repository/docker/taskcafe/taskcafe">
+    <img alt="Dockerhub" src="https://img.shields.io/docker/v/taskcafe/taskcafe?label=docker" />
+  </a>
+  <a href="https://goreportcard.com/report/github.com/JordanKnott/taskcafe">
+    <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/JordanKnott/taskcafe" />
+  </a>
+</p>
+<p align="center">
+Was this project useful? Please consider <a href="https://www.buymeacoffee.com/jordanknott">donating</a> to help me improve it!
+</p>
 
-[![Discord](https://img.shields.io/discord/745396499613220955)](https://discord.gg/JkQDruh)
-[![Releases](https://img.shields.io/github/v/release/JordanKnott/taskcafe)](https://github.com/JordanKnott/taskcafe/releases)
-[![Dockerhub](https://img.shields.io/docker/v/taskcafe/taskcafe?label=docker)](https://hub.docker.com/repository/docker/taskcafe/taskcafe)
-[![Go Report Card](https://goreportcard.com/badge/github.com/JordanKnott/taskcafe)](https://goreportcard.com/report/github.com/JordanKnott/taskcafe)
+**Please note that this project is still in active development. Some options may not work yet! For updates on development, join the Discord server**
 
-
-## Overview
-
-![Taskcafe](./.github/taskcafe_preview.png)
-
-A free & open source alternative project management tool.
-
-**Please note that this project is still in active development. Some options may not work yet!**
 ## Features
 
 Currently Taskcafe only offers basic task tracking through a Kanban board.
 
 Currently you can do the following to tasks:
 
+- Task sorting & filtering
 - Add colors & named labels
 - Add due dates
 - Descriptions written in Markdown
