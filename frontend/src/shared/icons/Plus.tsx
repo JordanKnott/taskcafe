@@ -1,21 +1,12 @@
 import React from 'react';
+import Icon, { IconProps } from './Icon';
 
-type Props = {
-  size: number | string;
-  color: string;
-};
-
-const Plus = ({ size, color }: Props) => {
+const Plus: React.FC<IconProps> = ({ width = '16px', height = '16px', className }) => {
   return (
-    <svg fill={color} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 16 16">
-      <path d="M15.5 6h-5.5v-5.5c0-0.276-0.224-0.5-0.5-0.5h-3c-0.276 0-0.5 0.224-0.5 0.5v5.5h-5.5c-0.276 0-0.5 0.224-0.5 0.5v3c0 0.276 0.224 0.5 0.5 0.5h5.5v5.5c0 0.276 0.224 0.5 0.5 0.5h3c0.276 0 0.5-0.224 0.5-0.5v-5.5h5.5c0.276 0 0.5-0.224 0.5-0.5v-3c0-0.276-0.224-0.5-0.5-0.5z" />
-    </svg>
+    <Icon width={width} height={height} className={className} viewBox="0 0 448 512">
+      <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z" />
+    </Icon>
   );
-};
-
-Plus.defaultProps = {
-  size: 16,
-  color: '#000',
 };
 
 export default Plus;

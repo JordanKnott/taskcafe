@@ -44,6 +44,7 @@ type MemberProps = {
   showName?: boolean;
   className?: string;
   showCheckmark?: boolean;
+  size?: number;
 };
 
 const CardMemberWrapper = styled.div<{ ref: any }>`
@@ -63,6 +64,7 @@ const Member: React.FC<MemberProps> = ({
   showName,
   showCheckmark = false,
   className,
+  size = 28,
 }) => {
   const $targetRef = useRef<HTMLDivElement>();
   return (
@@ -77,7 +79,7 @@ const Member: React.FC<MemberProps> = ({
         }
       }}
     >
-      <TaskAssignee onMemberProfile={NOOP} size={28} member={member} />
+      <TaskAssignee onMemberProfile={NOOP} size={32} member={member} />
       {showName && <CardMemberName>{member.fullName}</CardMemberName>}
       {showCheckmark && <CardCheckmark width={12} height={12} />}
     </CardMemberWrapper>

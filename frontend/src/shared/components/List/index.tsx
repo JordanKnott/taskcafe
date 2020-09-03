@@ -102,7 +102,7 @@ const List = React.forwardRef(
           {children && children}
           <AddCardContainer hidden={isComposerOpen}>
             <AddCardButton onClick={() => onOpenComposer(id)}>
-              <Plus size={12} color="#c2c6dc" />
+              <Plus width={12} height={12} />
               <AddCardButtonText>Add another card</AddCardButtonText>
             </AddCardButton>
           </AddCardContainer>

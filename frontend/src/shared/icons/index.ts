@@ -1,9 +1,15 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import At from './At';
+import Task from './Task';
+import Smile from './Smile';
+import Paperclip from './Paperclip';
 import Calendar from './Calendar';
+import Clone from './Clone';
 import Sort from './Sort';
 import Filter from './Filter';
 import DoubleChevronUp from './DoubleChevronUp';
+import Share from './Share';
 import Crown from './Crown';
 import BarChart from './BarChart';
 import UserPlus from './UserPlus';
@@ -69,9 +75,14 @@ export {
   Square,
   Filter,
   Sort,
+  At,
+  Smile,
   DoubleChevronUp,
   UserPlus,
   Crown,
   ToggleOn,
   Calendar,
+  Clone,
+  Paperclip,
+  Share,
 };

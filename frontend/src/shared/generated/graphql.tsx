@@ -1185,6 +1185,16 @@ export type FindTaskQuery = (
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
       ) }
     )> }
+  ), me: (
+    { __typename?: 'MePayload' }
+    & { user: (
+      { __typename?: 'UserAccount' }
+      & Pick<UserAccount, 'id' | 'fullName'>
+      & { profileIcon: (
+        { __typename?: 'ProfileIcon' }
+        & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+      ) }
+    ) }
   ) }
 );
 
@@ -2510,6 +2520,17 @@ export const FindTaskDocument = gql`
         url
         initials
         bgColor
+      }
+    }
+  }
+  me {
+    user {
+      id
+      fullName
+      profileIcon {
+        initials
+        bgColor
+        url
       }
     }
   }

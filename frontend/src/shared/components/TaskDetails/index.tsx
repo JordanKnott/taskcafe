@@ -1,69 +1,75 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bin, Cross, Plus } from 'shared/icons';
-import useOnOutsideClick from 'shared/hooks/onOutsideClick';
-import ReactMarkdown from 'react-markdown';
+import React, { useState, useRef } from 'react';
+import {
+  Plus,
+  User,
+  Trash,
+  Paperclip,
+  Clone,
+  Share,
+  Tags,
+  Checkmark,
+  CheckSquareOutline,
+  At,
+  Smile,
+} from 'shared/icons';
+import Editor from 'rich-markdown-editor';
+import dark from 'shared/utils/editorTheme';
 import styled from 'styled-components';
 
-import {
-  isPositionChanged,
-  getSortedDraggables,
-  getNewDraggablePosition,
-  getAfterDropDraggableList,
-} from 'shared/utils/draggables';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import TaskAssignee from 'shared/components/TaskAssignee';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import moment from 'moment';
 
+import Task from 'shared/icons/Task';
 import {
-  TaskMember,
-  NoDueDateLabel,
-  TaskDueDateButton,
-  UnassignedLabel,
-  TaskGroupLabel,
-  TaskGroupLabelName,
-  TaskDetailsSection,
-  TaskActions,
-  TaskDetailsAddLabel,
+  TaskDetailLabel,
+  CommentContainer,
+  MetaDetailContent,
   TaskDetailsAddLabelIcon,
-  TaskAction,
-  TaskMeta,
-  ActionButtons,
   ActionButton,
-  ActionButtonsTitle,
-  TaskHeader,
-  ProfileIcon,
-  TaskDetailsContent,
-  TaskDetailsWrapper,
-  TaskDetailsSidebar,
+  AssignUserIcon,
+  AssignUserLabel,
+  AssignUsersButton,
+  AssignedUsersSection,
+  DueDateTitle,
+  Container,
+  LeftSidebar,
+  ContentContainer,
+  LeftSidebarContent,
+  LeftSidebarSection,
+  SidebarTitle,
+  SidebarButton,
+  SidebarButtonText,
+  MarkCompleteButton,
+  HeaderContainer,
+  HeaderLeft,
+  HeaderInnerContainer,
   TaskDetailsTitleWrapper,
   TaskDetailsTitle,
-  TaskDetailsLabel,
-  TaskDetailsAddDetailsButton,
-  TaskDetailsEditor,
-  TaskDetailsEditorWrapper,
-  TaskDetailsMarkdown,
-  TaskDetailsControls,
-  ConfirmSave,
-  CancelEdit,
-  TaskDetailSectionTitle,
-  TaskDetailLabel,
-  TaskDetailLabels,
-  TaskDetailAssignee,
-  TaskDetailAssignees,
-  TaskDetailsAddMemberIcon,
-  MetaDetails,
-  MetaDetail,
-  MetaDetailTitle,
-  MetaDetailContent,
+  ExtraActionsSection,
+  HeaderRight,
+  HeaderActionIcon,
+  EditorContainer,
+  InnerContentContainer,
+  DescriptionContainer,
+  Labels,
+  ChecklistSection,
+  MemberList,
+  TaskMember,
+  TabBarSection,
+  TabBarItem,
+  CommentTextArea,
+  CommentEditorContainer,
+  CommentEditorActions,
+  CommentEditorActionIcon,
+  CommentEditorSaveButton,
+  CommentProfile,
+  CommentInnerWrapper,
+  ActivitySection,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
+import onDragEnd from './onDragEnd';
 
 const ChecklistContainer = styled.div``;
-
-type TaskContentProps = {
-  onEditContent: () => void;
-  description: string;
-};
 
 type TaskLabelProps = {
   label: TaskLabel;
@@ -85,62 +91,15 @@ const TaskLabelItem: React.FC<TaskLabelProps> = ({ label, onClick }) => {
   );
 };
 
-const TaskContent: React.FC<TaskContentProps> = ({ description, onEditContent }) => {
-  return description === '' ? (
-    <TaskDetailsAddDetailsButton onClick={onEditContent}>Add a more detailed description</TaskDetailsAddDetailsButton>
-  ) : (
-    <TaskDetailsMarkdown onClick={onEditContent}>
-      <ReactMarkdown source={description} />
-    </TaskDetailsMarkdown>
-  );
-};
-
 type DetailsEditorProps = {
   description: string;
   onTaskDescriptionChange: (newDescription: string) => void;
   onCancel: () => void;
 };
 
-const DetailsEditor: React.FC<DetailsEditorProps> = ({
-  description: initialDescription,
-  onTaskDescriptionChange,
-  onCancel,
-}) => {
-  const [description, setDescription] = useState(initialDescription);
-  const $editorWrapperRef = useRef<HTMLDivElement>(null);
-  const $editorRef = useRef<HTMLTextAreaElement>(null);
-  const handleOutsideClick = () => {
-    onTaskDescriptionChange(description);
-  };
-  useEffect(() => {
-    if ($editorRef && $editorRef.current) {
-      $editorRef.current.focus();
-      $editorRef.current.select();
-    }
-  }, []);
-
-  useOnOutsideClick($editorWrapperRef, true, handleOutsideClick, null);
-  return (
-    <TaskDetailsEditorWrapper ref={$editorWrapperRef}>
-      <TaskDetailsEditor
-        ref={$editorRef}
-        value={description}
-        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.currentTarget.value)}
-      />
-      <TaskDetailsControls>
-        <ConfirmSave variant="relief" onClick={handleOutsideClick}>
-          Save
-        </ConfirmSave>
-        <CancelEdit onClick={onCancel}>
-          <Plus size={16} color="#c2c6dc" />
-        </CancelEdit>
-      </TaskDetailsControls>
-    </TaskDetailsEditorWrapper>
-  );
-};
-
 type TaskDetailsProps = {
   task: Task;
+  me?: TaskUser | null;
   onTaskNameChange: (task: Task, newName: string) => void;
   onTaskDescriptionChange: (task: Task, newDescription: string) => void;
   onDeleteTask: (task: Task) => void;
@@ -162,6 +121,7 @@ type TaskDetailsProps = {
 };
 
 const TaskDetails: React.FC<TaskDetailsProps> = ({
+  me,
   task,
   onDeleteChecklist,
   onTaskNameChange,
@@ -182,209 +142,198 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onToggleChecklistItem,
   onMemberProfile,
 }) => {
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [description, setDescription] = useState(task.description ?? '');
   const [taskName, setTaskName] = useState(task.name);
-  const handleClick = () => {
-    setEditorOpen(!editorOpen);
-  };
-  const handleDeleteTask = () => {
-    onDeleteTask(task);
-  };
-  const $title = useRef<HTMLTextAreaElement>(null);
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onTaskNameChange(task, taskName);
-      if ($title && $title.current) {
-        $title.current.blur();
+  const [editTaskDescription, setEditTaskDescription] = useState(() => {
+    if (task.description) {
+      if (task.description.trim() === '' || task.description.trim() === '\\') {
+        return true;
       }
+      return false;
     }
-  };
-  const $unassignedRef = useRef<HTMLDivElement>(null);
-  const $addMemberRef = useRef<HTMLDivElement>(null);
-  const onUnassignedClick = () => {
-    onOpenAddMemberPopup(task, $unassignedRef);
-  };
-  const onAddMember = ($target: React.RefObject<HTMLElement>) => {
-    onOpenAddMemberPopup(task, $target);
-  };
-  const onAddChecklist = ($target: React.RefObject<HTMLElement>) => {
-    onOpenAddChecklistPopup(task, $target);
-  };
-  const $dueDateLabel = useRef<HTMLDivElement>(null);
-  const $addLabelRef = useRef<HTMLDivElement>(null);
+    return true;
+  });
+  const [saveTimeout, setSaveTimeout] = useState<any>(null);
+  const [showCommentActions, setShowCommentActions] = useState(false);
+  const taskDescriptionRef = useRef(task.description ?? '');
+  const $noMemberBtn = useRef<HTMLDivElement>(null);
+  const $addMemberBtn = useRef<HTMLDivElement>(null);
+  const $dueDateBtn = useRef<HTMLDivElement>(null);
 
-  const onAddLabel = ($target: React.RefObject<HTMLElement>) => {
-    onOpenAddLabelPopup(task, $target);
+  const saveDescription = () => {
+    onTaskDescriptionChange(task, taskDescriptionRef.current);
   };
-
-  const onDragEnd = ({ draggableId, source, destination, type }: DropResult) => {
-    if (typeof destination === 'undefined') return;
-    if (!isPositionChanged(source, destination)) return;
-
-    const isChecklist = type === 'checklist';
-    const isSameChecklist = destination.droppableId === source.droppableId;
-    let droppedDraggable: DraggableElement | null = null;
-    let beforeDropDraggables: Array<DraggableElement> | null = null;
-
-    if (!task.checklists) return;
-    if (isChecklist) {
-      const droppedGroup = task.checklists.find(taskGroup => taskGroup.id === draggableId);
-      if (droppedGroup) {
-        droppedDraggable = {
-          id: draggableId,
-          position: droppedGroup.position,
-        };
-        beforeDropDraggables = getSortedDraggables(
-          task.checklists.map(checklist => {
-            return { id: checklist.id, position: checklist.position };
-          }),
-        );
-        if (droppedDraggable === null || beforeDropDraggables === null) {
-          throw new Error('before drop draggables is null');
-        }
-        const afterDropDraggables = getAfterDropDraggableList(
-          beforeDropDraggables,
-          droppedDraggable,
-          isChecklist,
-          isSameChecklist,
-          destination,
-        );
-        const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
-        onChecklistDrop({ ...droppedGroup, position: newPosition });
-      } else {
-        throw new Error('task group can not be found');
-      }
-    } else {
-      const targetChecklist = task.checklists.findIndex(
-        checklist => checklist.items.findIndex(item => item.id === draggableId) !== -1,
-      );
-      const droppedChecklistItem = task.checklists[targetChecklist].items.find(item => item.id === draggableId);
-
-      if (droppedChecklistItem) {
-        droppedDraggable = {
-          id: draggableId,
-          position: droppedChecklistItem.position,
-        };
-        beforeDropDraggables = getSortedDraggables(
-          task.checklists[targetChecklist].items.map(item => {
-            return { id: item.id, position: item.position };
-          }),
-        );
-        if (droppedDraggable === null || beforeDropDraggables === null) {
-          throw new Error('before drop draggables is null');
-        }
-        const afterDropDraggables = getAfterDropDraggableList(
-          beforeDropDraggables,
-          droppedDraggable,
-          isChecklist,
-          isSameChecklist,
-          destination,
-        );
-        const newPosition = getNewDraggablePosition(afterDropDraggables, destination.index);
-        const newItem = {
-          ...droppedChecklistItem,
-          position: newPosition,
-        };
-        onChecklistItemDrop(droppedChecklistItem.taskChecklistID, destination.droppableId, newItem);
-      }
-    }
-  };
-
   return (
-    <>
-      <TaskActions>
-        <TaskAction onClick={handleDeleteTask}>
-          <Bin size={20} color="#c2c6dc" />
-        </TaskAction>
-        <TaskAction onClick={onCloseModal}>
-          <Cross width={16} height={16} />
-        </TaskAction>
-      </TaskActions>
-      <TaskHeader>
-        <TaskDetailsTitleWrapper>
-          <TaskDetailsTitle
-            ref={$title}
-            value={taskName}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTaskName(e.currentTarget.value)}
-            onKeyDown={onKeyDown}
-          />
-        </TaskDetailsTitleWrapper>
-        <TaskMeta>
-          {task.taskGroup.name && (
-            <TaskGroupLabel>
-              {`in list ${(<TaskGroupLabelName>{task.taskGroup.name}</TaskGroupLabelName>)}`}
-            </TaskGroupLabel>
-          )}
-        </TaskMeta>
-      </TaskHeader>
-      <TaskDetailsWrapper>
-        <TaskDetailsContent>
-          <MetaDetails>
-            {task.assigned && task.assigned.length !== 0 && (
-              <MetaDetail>
-                <MetaDetailTitle>MEMBERS</MetaDetailTitle>
-                <MetaDetailContent>
-                  {task.assigned &&
-                    task.assigned.map(member => (
-                      <TaskMember key={member.id} size={32} member={member} onMemberProfile={onMemberProfile} />
-                    ))}
-                  <TaskDetailsAddMemberIcon ref={$addMemberRef} onClick={() => onAddMember($addMemberRef)}>
-                    <Plus size={16} color="#c2c6dc" />
-                  </TaskDetailsAddMemberIcon>
-                </MetaDetailContent>
-              </MetaDetail>
-            )}
-            {task.labels.length !== 0 && (
-              <MetaDetail>
-                <MetaDetailTitle>LABELS</MetaDetailTitle>
-                <MetaDetailContent>
-                  {task.labels.map(label => {
-                    return (
-                      <TaskLabelItem
-                        key={label.projectLabel.id}
-                        label={label}
-                        onClick={$target => {
-                          onOpenAddLabelPopup(task, $target);
-                        }}
-                      />
-                    );
-                  })}
-                  <TaskDetailsAddLabelIcon ref={$addLabelRef} onClick={() => onAddLabel($addLabelRef)}>
-                    <Plus size={16} color="#c2c6dc" />
-                  </TaskDetailsAddLabelIcon>
-                </MetaDetailContent>
-              </MetaDetail>
-            )}
-            {task.dueDate && (
-              <MetaDetail>
-                <MetaDetailTitle>DUE DATE</MetaDetailTitle>
-                <MetaDetailContent>
-                  <TaskDueDateButton>{moment(task.dueDate).format('MMM D [at] h:mm A')}</TaskDueDateButton>
-                </MetaDetailContent>
-              </MetaDetail>
-            )}
-          </MetaDetails>
-
-          <TaskDetailsSection>
-            <TaskDetailsLabel>Description</TaskDetailsLabel>
-            {editorOpen ? (
-              <DetailsEditor
-                description={description}
-                onTaskDescriptionChange={newDescription => {
-                  setEditorOpen(false);
-                  setDescription(newDescription);
-                  onTaskDescriptionChange(task, newDescription);
+    <Container>
+      <LeftSidebar>
+        <LeftSidebarContent>
+          <LeftSidebarSection>
+            <SidebarTitle>TASK GROUP</SidebarTitle>
+            <SidebarButton>
+              <SidebarButtonText>Release 0.1.0</SidebarButtonText>
+            </SidebarButton>
+            <DueDateTitle>DUE DATE</DueDateTitle>
+            <SidebarButton
+              ref={$dueDateBtn}
+              onClick={() => {
+                onOpenDueDatePopop(task, $dueDateBtn);
+              }}
+            >
+              {task.dueDate ? (
+                <SidebarButtonText>{moment(task.dueDate).format('MMM D [at] h:mm A')}</SidebarButtonText>
+              ) : (
+                <SidebarButtonText>No due date</SidebarButtonText>
+              )}
+            </SidebarButton>
+          </LeftSidebarSection>
+          <AssignedUsersSection>
+            <DueDateTitle>MEMBERS</DueDateTitle>
+            {task.assigned && task.assigned.length !== 0 ? (
+              <MemberList>
+                {task.assigned.map(m => (
+                  <TaskMember
+                    key={m.id}
+                    member={m}
+                    size={32}
+                    onMemberProfile={$target => {
+                      onMemberProfile($target, m.id);
+                    }}
+                  />
+                ))}
+                <AssignUserIcon
+                  ref={$addMemberBtn}
+                  onClick={() => {
+                    onOpenAddMemberPopup(task, $addMemberBtn);
+                  }}
+                >
+                  <Plus width={16} height={16} />
+                </AssignUserIcon>
+              </MemberList>
+            ) : (
+              <AssignUsersButton
+                ref={$noMemberBtn}
+                onClick={() => {
+                  onOpenAddMemberPopup(task, $noMemberBtn);
                 }}
-                onCancel={() => {
-                  setEditorOpen(false);
+              >
+                <AssignUserIcon>
+                  <User width={16} height={16} />
+                </AssignUserIcon>
+                <AssignUserLabel>No members</AssignUserLabel>
+              </AssignUsersButton>
+            )}
+          </AssignedUsersSection>
+          <ExtraActionsSection>
+            <DueDateTitle>ACTIONS</DueDateTitle>
+            <ActionButton
+              onClick={$target => {
+                onOpenAddLabelPopup(task, $target);
+              }}
+              icon={<Tags width={12} height={12} />}
+            >
+              Labels
+            </ActionButton>
+            <ActionButton
+              onClick={$target => {
+                onOpenAddChecklistPopup(task, $target);
+              }}
+              icon={<CheckSquareOutline width={12} height={12} />}
+            >
+              Checklist
+            </ActionButton>
+            <ActionButton>Cover</ActionButton>
+          </ExtraActionsSection>
+        </LeftSidebarContent>
+      </LeftSidebar>
+      <ContentContainer>
+        <HeaderContainer>
+          <HeaderInnerContainer>
+            <HeaderLeft>
+              <MarkCompleteButton
+                invert={task.complete ?? false}
+                onClick={() => {
+                  onToggleTaskComplete(task);
+                }}
+              >
+                <Checkmark width={8} height={8} />
+                <span>{task.complete ? 'Completed' : 'Mark complete'}</span>
+              </MarkCompleteButton>
+            </HeaderLeft>
+            <HeaderRight>
+              <HeaderActionIcon>
+                <Paperclip width={16} height={16} />
+              </HeaderActionIcon>
+              <HeaderActionIcon>
+                <Clone width={16} height={16} />
+              </HeaderActionIcon>
+              <HeaderActionIcon>
+                <Share width={16} height={16} />
+              </HeaderActionIcon>
+              <HeaderActionIcon onClick={() => onDeleteTask(task)}>
+                <Trash width={16} height={16} />
+              </HeaderActionIcon>
+            </HeaderRight>
+          </HeaderInnerContainer>
+          <TaskDetailsTitleWrapper>
+            <TaskDetailsTitle
+              value={taskName}
+              onChange={e => {
+                setTaskName(e.currentTarget.value);
+              }}
+              onBlur={() => {
+                if (taskName !== task.name) {
+                  onTaskNameChange(task, taskName);
+                }
+              }}
+            />
+          </TaskDetailsTitleWrapper>
+          <Labels>
+            {task.labels.length !== 0 && (
+              <MetaDetailContent>
+                {task.labels.map(label => {
+                  return (
+                    <TaskLabelItem
+                      key={label.projectLabel.id}
+                      label={label}
+                      onClick={$target => {
+                        onOpenAddLabelPopup(task, $target);
+                      }}
+                    />
+                  );
+                })}
+                <TaskDetailsAddLabelIcon>
+                  <Plus width={12} height={12} />
+                </TaskDetailsAddLabelIcon>
+              </MetaDetailContent>
+            )}
+          </Labels>
+        </HeaderContainer>
+        <InnerContentContainer>
+          <DescriptionContainer>
+            <EditorContainer
+              onClick={e => {
+                if (!editTaskDescription) {
+                  setEditTaskDescription(true);
+                }
+              }}
+            >
+              <Editor
+                defaultValue={task.description ?? ''}
+                theme={dark}
+                readOnly={!editTaskDescription}
+                autoFocus
+                onChange={value => {
+                  setSaveTimeout(() => {
+                    clearTimeout(saveTimeout);
+                    return setTimeout(saveDescription, 2000);
+                  });
+                  const text = value();
+                  taskDescriptionRef.current = text;
                 }}
               />
-            ) : (
-              <TaskContent description={description} onEditContent={handleClick} />
-            )}
-            <DragDropContext onDragEnd={onDragEnd}>
+            </EditorContainer>
+          </DescriptionContainer>
+          <ChecklistSection>
+            <DragDropContext onDragEnd={result => onDragEnd(result, task, onChecklistDrop, onChecklistItemDrop)}>
               <Droppable direction="vertical" type="checklist" droppableId="root">
                 {dropProvided => (
                   <ChecklistContainer {...dropProvided.droppableProps} ref={dropProvided.innerRef}>
@@ -463,32 +412,54 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 )}
               </Droppable>
             </DragDropContext>
-          </TaskDetailsSection>
-        </TaskDetailsContent>
-        <TaskDetailsSidebar>
-          <ActionButtons>
-            <ActionButtonsTitle>ADD TO CARD</ActionButtonsTitle>
-            <ActionButton justifyTextContent="flex-start" onClick={() => onToggleTaskComplete(task)}>
-              {task.complete ? 'Mark Incomplete' : 'Mark Complete'}
-            </ActionButton>
-            <ActionButton justifyTextContent="flex-start" onClick={$target => onAddMember($target)}>
-              Members
-            </ActionButton>
-            <ActionButton justifyTextContent="flex-start" onClick={$target => onAddLabel($target)}>
-              Labels
-            </ActionButton>
-            <ActionButton justifyTextContent="flex-start" onClick={$target => onAddChecklist($target)}>
-              Checklist
-            </ActionButton>
-            <ActionButton justifyTextContent="flex-start" onClick={$target => onOpenDueDatePopop(task, $target)}>
-              Due Date
-            </ActionButton>
-            <ActionButton justifyTextContent="flex-start">Attachment</ActionButton>
-            <ActionButton justifyTextContent="flex-start">Cover</ActionButton>
-          </ActionButtons>
-        </TaskDetailsSidebar>
-      </TaskDetailsWrapper>
-    </>
+          </ChecklistSection>
+          <TabBarSection>
+            <TabBarItem>Activity</TabBarItem>
+          </TabBarSection>
+          <ActivitySection />
+        </InnerContentContainer>
+        <CommentContainer>
+          {me && (
+            <CommentInnerWrapper>
+              <CommentProfile
+                member={me}
+                size={32}
+                onMemberProfile={$target => {
+                  onMemberProfile($target, me.id);
+                }}
+              />
+              <CommentEditorContainer>
+                <CommentTextArea
+                  disabled
+                  placeholder="Write a comment..."
+                  onFocus={() => {
+                    setShowCommentActions(true);
+                  }}
+                  onBlur={() => {
+                    setShowCommentActions(false);
+                  }}
+                />
+                <CommentEditorActions visible={showCommentActions}>
+                  <CommentEditorActionIcon>
+                    <Paperclip width={12} height={12} />
+                  </CommentEditorActionIcon>
+                  <CommentEditorActionIcon>
+                    <At width={12} height={12} />
+                  </CommentEditorActionIcon>
+                  <CommentEditorActionIcon>
+                    <Smile width={12} height={12} />
+                  </CommentEditorActionIcon>
+                  <CommentEditorActionIcon>
+                    <Task width={12} height={12} />
+                  </CommentEditorActionIcon>
+                  <CommentEditorSaveButton>Save</CommentEditorSaveButton>
+                </CommentEditorActions>
+              </CommentEditorContainer>
+            </CommentInnerWrapper>
+          )}
+        </CommentContainer>
+      </ContentContainer>
+    </Container>
   );
 };
 

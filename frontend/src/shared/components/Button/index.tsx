@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import styled, { css } from 'styled-components/macro';
 
-const Text = styled.span<{ fontSize: string; justifyTextContent: string }>`
+const Text = styled.span<{ fontSize: string; justifyTextContent: string; hasIcon?: boolean }>`
   position: relative;
   display: flex;
   align-items: center;
@@ -9,6 +9,11 @@ const Text = styled.span<{ fontSize: string; justifyTextContent: string }>`
   transition: all 0.2s ease;
   font-size: ${props => props.fontSize};
   color: rgba(${props => props.theme.colors.text.secondary});
+  ${props =>
+    props.hasIcon &&
+    css`
+      padding-left: 4px;
+    `}
 `;
 
 const Base = styled.button<{ color: string; disabled: boolean }>`
@@ -18,6 +23,8 @@ const Base = styled.button<{ color: string; disabled: boolean }>`
   cursor: pointer;
   padding: 0.75rem 2rem;
   border-radius: ${props => props.theme.borderRadius.alternate};
+  display: flex;
+  align-items: center;
 
   ${props =>
     props.disabled &&
@@ -34,16 +41,28 @@ const Filled = styled(Base)`
     box-shadow: 0 8px 25px -8px rgba(${props => props.theme.colors[props.color]});
   }
 `;
-const Outline = styled(Base)`
+const Outline = styled(Base)<{ invert: boolean }>`
   border: 1px solid rgba(${props => props.theme.colors[props.color]});
   background: transparent;
-  & ${Text} {
-    color: rgba(${props => props.theme.colors[props.color]});
-  }
-
-  &:hover {
-    background: rgba(${props => props.theme.colors[props.color]}, 0.08);
-  }
+  ${props =>
+    props.invert
+      ? css`
+          background: rgba(${props.theme.colors[props.color]});
+          & ${Text} {
+            color: rgba(${props.theme.colors.text.secondary});
+          }
+          &:hover {
+            background: rgba(${props.theme.colors[props.color]}, 0.8);
+          }
+        `
+      : css`
+          & ${Text} {
+            color: rgba(${props.theme.colors[props.color]});
+          }
+          &:hover {
+            background: rgba(${props.theme.colors[props.color]}, 0.08);
+          }
+        `}
 `;
 
 const Flat = styled(Base)`
@@ -110,6 +129,8 @@ type ButtonProps = {
   color?: 'primary' | 'danger' | 'success' | 'warning' | 'dark';
   disabled?: boolean;
   type?: 'button' | 'submit';
+  icon?: JSX.Element;
+  invert?: boolean;
   className?: string;
   onClick?: ($target: React.RefObject<HTMLButtonElement>) => void;
   justifyTextContent?: string;
@@ -118,10 +139,12 @@ type ButtonProps = {
 const Button: React.FC<ButtonProps> = ({
   disabled = false,
   fontSize = '14px',
+  invert = false,
   color = 'primary',
   variant = 'filled',
   type = 'button',
   justifyTextContent = 'center',
+  icon,
   onClick,
   className,
   children,
@@ -136,7 +159,8 @@ const Button: React.FC<ButtonProps> = ({
     case 'filled':
       return (
         <Filled ref={$button} type={type} onClick={handleClick} className={className} disabled={disabled} color={color}>
-          <Text justifyTextContent={justifyTextContent} fontSize={fontSize}>
+          {icon && icon}
+          <Text hasIcon={typeof icon !== 'undefined'} justifyTextContent={justifyTextContent} fontSize={fontSize}>
             {children}
           </Text>
         </Filled>
@@ -145,6 +169,7 @@ const Button: React.FC<ButtonProps> = ({
       return (
         <Outline
           ref={$button}
+          invert={invert}
           type={type}
           onClick={handleClick}
           className={className}

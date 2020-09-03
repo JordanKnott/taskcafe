@@ -298,13 +298,14 @@ const Details: React.FC<DetailsProps> = ({
   return (
     <>
       <Modal
-        width={768}
+        width={1070}
         onClose={() => {
           history.push(projectURL);
         }}
         renderContent={() => {
           return (
             <TaskDetails
+              me={data.me.user}
               task={data.findTask}
               onChecklistDrop={checklist => {
                 updateTaskChecklistLocation({

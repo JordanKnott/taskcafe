@@ -4,10 +4,8 @@ export const Container = styled.div`
   flex: 1;
   user-select: none;
   white-space: nowrap;
-  margin-bottom: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 8px;
 
   ::-webkit-scrollbar {
     height: 10px;
@@ -35,10 +33,9 @@ export const BoardWrapper = styled.div`
 
   user-select: none;
   white-space: nowrap;
-  margin-bottom: 8px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
   position: absolute;
   top: 0;
   right: 0;

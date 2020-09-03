@@ -15,18 +15,20 @@ export const ScrollOverlay = styled.div`
 export const ClickableOverlay = styled.div`
   min-height: 100%;
   background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
 `;
 
-export const StyledModal = styled.div<{ width: number }>`
-  display: inline-block;
+export const StyledModal = styled.div<{ width: number; height: number }>`
   position: relative;
-  margin: 48px 0 80px;
-  width: 100%;
+  width: ${props => props.width}px;
+  height: ${props => props.height}px;
+  left: 0;
+  right: 0;
+  top: 48px;
+  bottom: 16px;
+  margin: auto;
+
   background: #262c49;
-  max-width: ${props => props.width}px;
   vertical-align: middle;
-  border-radius: 3px;
+  border-radius: 6px;
   ${mixin.boxShadowMedium}
 `;

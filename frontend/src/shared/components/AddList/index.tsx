@@ -98,7 +98,7 @@ const AddList: React.FC<AddListProps> = ({ onSave }) => {
         ) : (
           <Placeholder>
             <AddIconWrapper>
-              <Plus size={12} color="#c2c6dc" />
+              <Plus width={12} height={12} />
             </AddIconWrapper>
             Add another list
           </Placeholder>

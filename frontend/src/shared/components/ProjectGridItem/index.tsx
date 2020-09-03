@@ -13,7 +13,7 @@ export const AddProjectItem: React.FC<AddProjectItemProps> = ({ onAddProject }) 
         onAddProject();
       }}
     >
-      <Plus size={20} color="#c2c6dc" />
+      <Plus width={12} height={12} />
       <AddProjectLabel>New Project</AddProjectLabel>
     </AddProjectWrapper>
   );

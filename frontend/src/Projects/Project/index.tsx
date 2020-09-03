@@ -270,7 +270,17 @@ const Project = () => {
                 updateTaskName({ variables: { taskID: updatedTask.id, name: newName } });
               }}
               onTaskDescriptionChange={(updatedTask, newDescription) => {
-                updateTaskDescription({ variables: { taskID: updatedTask.id, description: newDescription } });
+                updateTaskDescription({
+                  variables: { taskID: updatedTask.id, description: newDescription },
+                  optimisticResponse: {
+                    __typename: 'Mutation',
+                    updateTaskDescription: {
+                      __typename: 'Task',
+                      id: updatedTask.id,
+                      description: newDescription,
+                    },
+                  },
+                });
               }}
               onDeleteTask={deletedTask => {
                 deleteTask({ variables: { taskID: deletedTask.id } });

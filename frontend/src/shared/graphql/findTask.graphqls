@@ -52,4 +52,15 @@ query findTask($taskID: UUID!) {
       }
     }
   }
+  me {
+    user {
+      id
+      fullName
+      profileIcon {
+        initials
+        bgColor
+        url
+      }
+    }
+  }
 }

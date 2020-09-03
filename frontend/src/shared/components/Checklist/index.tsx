@@ -25,7 +25,7 @@ const WindowTitle = styled.div`
 
 const WindowTitleIcon = styled(CheckSquareOutline)`
   top: 10px;
-  left: -40px;
+  left: -32px;
   position: absolute;
 `;
 
