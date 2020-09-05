@@ -64,14 +64,45 @@ screen so that you can create the first system user.
 
 ### From Source
 
+#### Install Golang
 You'll need [Golang](https://golang.org/dl/) installed on your machine.
 
+Follow [the instructions](https://golang.org/doc/install) on the installation page:
+
+```bash
+wget https://golang.org/dl/go1.15.1.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.14.3.linux-amd64.tar.gz
+```
+
+#### Clone the repository
 Next, clone the repository:
 
 ``` bash
 git clone https://github.com/JordanKnott/taskcafe && cd taskcafe
 ```
 
+#### Build the front-end
+Ensure that you have both `node` and `yarn` installed.
+
+##### Install yarn
+Install `yarn` with the following commands:
+
+```bash
+wget https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+npm update
+npm install -y yarn
+```
+
+##### Install NodeJS
+[NodeJS](https://nodejs.org) is used to build the static assets for the front-end.  We can install it through `nvm` on Linux.  Install the latest NodeJS version via [`nvm`](https://github.com/nvm-sh/nvm)
+
+```bash
+nvm install 14.9.0
+nvm use 14.9.0
+```
+
+#### Build the Back-End
 Next we need to build the binary. This project uses [Mage](https://magefile.org/) for its build tool.
 
 ``` bash
@@ -86,19 +117,54 @@ This will:
 - Embed the React frontend in the binary
 - Compile the final exectuable binary
 
-The newly created `taskcafe` binary can be found in the __dist__ folder.
+The newly created `taskcafe` binary can be found in the __dist__ folder.  However, we still need to configure the databse settings and tell `taskcafe` how to connect to it.
 
-It contains everything neccessary to run except the config file. An example config file can be found in `conf/app.example.toml`.
+#### Install Postgres
 
-The config will need to be copied to a `conf/app.toml` in the same place the binary is.
+Install `psql` (Postgres) on Linux:
+
+```bash
+apt-get install -y postgres
+```
+
+#### Edit the Default Configuaration
+Within the `conf` folder of the cloned files, you will find an example config file can be found in `conf/app.example.toml`.  This file will get loaded by default when running the app via `./taskcafe web`.
+
+Edit the file with your Postgres database credentials:
+
+```toml
+[database]
+host = "localhost"
+name = "taskcafe"
+user = "postgres"
+password = "taskcafe"
+```
+
+(Assuming you configured your default `postgres` user to have the password `taskcafe` via the `\password` command in `psql`)
 
 Make sure to fill out the database section of the config in order to connect it to your database.
 
-Then run the database migrations with `taskcafe migrate`.
+#### Perform Database Migrations
+Then run the database migrations with `taskcafe migrate`.  **Note: this will overwrite any existing data in the database**.
 
+#### Running `taskcafe`
 Now you can run the web interface by running `taskcafe web`.
 
-## How is this different from X (Trello, NextCloud, etc)?
+```bash
+./taskcafe web
+```
+
+Alternatively, if you named your config `app.toml`, you can point it to that config like so:
+
+
+```bash
+./taskcafe web --config ../conf/app.toml
+```
+
+You can now visit the machine's local IP address, followed by the port `3333` (for example, `192.168.50.18:3333` where the machine's IP address is `192.168.50.18` on the local network).
+
+## FAQ
+### How is this different from X (Trello, NextCloud, etc)?
 
 One of the primary goals of Taskcafe is to provide a project management tool that I personally enjoy using for my
 own projects and fits my workflow.
@@ -108,7 +174,7 @@ standard across all kanban boards / project management tools.
 
 Once Taskcafe is out of alpha, there are many features that I plan on adding that will differentiate it from other products (check out the [Roadmap](https://github.com/JordanKnott/taskcafe/wiki/Roadmap) for ideas on future plans).
 
-## Contributing & community
+## Contributing & Community
 
 If you have questions regarding how to use Taskcafe, check out the [discord server](https://discord.gg/JkQDruh).
 
