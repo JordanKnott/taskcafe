@@ -8,6 +8,8 @@ So you want to contribute to Taskcafe? Great!
 
 If you have noticed a bug or want to add a new feature, please [create an issue](https://github.com/JordanKnott/taskcafe/issues/new/choose) for it before starting any work on a pull request.
 
+Alternatively you can join the [Taskcafe discord](https://discord.gg/JkQDruh) and ask in the #questions channel.
+
 After the bug is validated or the feature is accepted by a project maintainer, the next step is to fork the repository!
 
 ### Fork & create a branch
