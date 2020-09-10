@@ -438,6 +438,111 @@ func (r *mutationResolver) DeleteTaskGroup(ctx context.Context, input DeleteTask
 	return &DeleteTaskGroupPayload{true, int(deletedTasks + deletedTaskGroups), &taskGroup}, nil
 }
 
+func (r *mutationResolver) DuplicateTaskGroup(ctx context.Context, input DuplicateTaskGroup) (*DuplicateTaskGroupPayload, error) {
+	createdAt := time.Now().UTC()
+	taskGroup, err := r.Repository.CreateTaskGroup(ctx, db.CreateTaskGroupParams{ProjectID: input.ProjectID, Position: input.Position, Name: input.Name, CreatedAt: createdAt})
+	if err != nil {
+		return &DuplicateTaskGroupPayload{}, err
+	}
+
+	originalTasks, err := r.Repository.GetTasksForTaskGroupID(ctx, input.TaskGroupID)
+	if err != nil && err != sql.ErrNoRows {
+		return &DuplicateTaskGroupPayload{}, err
+	}
+	for _, originalTask := range originalTasks {
+		task, err := r.Repository.CreateTaskAll(ctx, db.CreateTaskAllParams{
+			TaskGroupID: taskGroup.TaskGroupID, CreatedAt: createdAt, Name: originalTask.Name, Position: originalTask.Position,
+			Complete: originalTask.Complete, DueDate: originalTask.DueDate, Description: originalTask.Description})
+		if err != nil {
+			return &DuplicateTaskGroupPayload{}, err
+		}
+		members, err := r.Repository.GetAssignedMembersForTask(ctx, originalTask.TaskID)
+		if err != nil {
+			return &DuplicateTaskGroupPayload{}, err
+		}
+		for _, member := range members {
+			_, err := r.Repository.CreateTaskAssigned(ctx, db.CreateTaskAssignedParams{
+				TaskID: task.TaskID, UserID: member.UserID, AssignedDate: member.AssignedDate})
+			if err != nil {
+				return &DuplicateTaskGroupPayload{}, err
+			}
+		}
+		labels, err := r.Repository.GetTaskLabelsForTaskID(ctx, originalTask.TaskID)
+		if err != nil {
+			return &DuplicateTaskGroupPayload{}, err
+		}
+		for _, label := range labels {
+			_, err := r.Repository.CreateTaskLabelForTask(ctx, db.CreateTaskLabelForTaskParams{
+				TaskID: task.TaskID, ProjectLabelID: label.ProjectLabelID, AssignedDate: label.AssignedDate})
+			if err != nil {
+				return &DuplicateTaskGroupPayload{}, err
+			}
+		}
+		checklists, err := r.Repository.GetTaskChecklistsForTask(ctx, originalTask.TaskID)
+		if err != nil {
+			return &DuplicateTaskGroupPayload{}, err
+		}
+		for _, checklist := range checklists {
+			newChecklist, err := r.Repository.CreateTaskChecklist(ctx, db.CreateTaskChecklistParams{
+				TaskID: task.TaskID, Name: checklist.Name, CreatedAt: createdAt, Position: checklist.Position})
+			if err != nil {
+				return &DuplicateTaskGroupPayload{}, err
+			}
+			checklistItems, err := r.Repository.GetTaskChecklistItemsForTaskChecklist(ctx, checklist.TaskChecklistID)
+			if err != nil {
+				return &DuplicateTaskGroupPayload{}, err
+			}
+			for _, checklistItem := range checklistItems {
+				item, err := r.Repository.CreateTaskChecklistItem(ctx, db.CreateTaskChecklistItemParams{
+					TaskChecklistID: newChecklist.TaskChecklistID,
+					CreatedAt:       createdAt,
+					Name:            checklistItem.Name,
+					Position:        checklist.Position,
+				})
+				if checklistItem.Complete {
+					r.Repository.SetTaskChecklistItemComplete(ctx, db.SetTaskChecklistItemCompleteParams{TaskChecklistItemID: item.TaskChecklistItemID, Complete: true})
+				}
+				if err != nil {
+					return &DuplicateTaskGroupPayload{}, err
+				}
+			}
+
+		}
+	}
+	if err != nil {
+		return &DuplicateTaskGroupPayload{}, err
+	}
+	return &DuplicateTaskGroupPayload{TaskGroup: &taskGroup}, err
+}
+
+func (r *mutationResolver) SortTaskGroup(ctx context.Context, input SortTaskGroup) (*SortTaskGroupPayload, error) {
+	tasks := []db.Task{}
+	for _, task := range input.Tasks {
+		t, err := r.Repository.UpdateTaskPosition(ctx, db.UpdateTaskPositionParams{TaskID: task.TaskID, Position: task.Position})
+		if err != nil {
+			return &SortTaskGroupPayload{}, err
+		}
+		tasks = append(tasks, t)
+	}
+	return &SortTaskGroupPayload{Tasks: tasks, TaskGroupID: input.TaskGroupID}, nil
+}
+
+func (r *mutationResolver) DeleteTaskGroupTasks(ctx context.Context, input DeleteTaskGroupTasks) (*DeleteTaskGroupTasksPayload, error) {
+	tasks, err := r.Repository.GetTasksForTaskGroupID(ctx, input.TaskGroupID)
+	if err != nil && err != sql.ErrNoRows {
+		return &DeleteTaskGroupTasksPayload{}, err
+	}
+	removedTasks := []uuid.UUID{}
+	for _, task := range tasks {
+		err = r.Repository.DeleteTaskByID(ctx, task.TaskID)
+		if err != nil {
+			return &DeleteTaskGroupTasksPayload{}, err
+		}
+		removedTasks = append(removedTasks, task.TaskID)
+	}
+	return &DeleteTaskGroupTasksPayload{TaskGroupID: input.TaskGroupID, Tasks: removedTasks}, nil
+}
+
 func (r *mutationResolver) AddTaskLabel(ctx context.Context, input *AddTaskLabelInput) (*db.Task, error) {
 	assignedDate := time.Now().UTC()
 	_, err := r.Repository.CreateTaskLabelForTask(ctx, db.CreateTaskLabelForTaskParams{input.TaskID, input.ProjectLabelID, assignedDate})

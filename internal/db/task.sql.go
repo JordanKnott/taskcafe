@@ -45,6 +45,46 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	return i, err
 }
 
+const createTaskAll = `-- name: CreateTaskAll :one
+INSERT INTO task (task_group_id, created_at, name, position, description, complete, due_date)
+  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+`
+
+type CreateTaskAllParams struct {
+	TaskGroupID uuid.UUID      `json:"task_group_id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	Name        string         `json:"name"`
+	Position    float64        `json:"position"`
+	Description sql.NullString `json:"description"`
+	Complete    bool           `json:"complete"`
+	DueDate     sql.NullTime   `json:"due_date"`
+}
+
+func (q *Queries) CreateTaskAll(ctx context.Context, arg CreateTaskAllParams) (Task, error) {
+	row := q.db.QueryRowContext(ctx, createTaskAll,
+		arg.TaskGroupID,
+		arg.CreatedAt,
+		arg.Name,
+		arg.Position,
+		arg.Description,
+		arg.Complete,
+		arg.DueDate,
+	)
+	var i Task
+	err := row.Scan(
+		&i.TaskID,
+		&i.TaskGroupID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+		&i.Description,
+		&i.DueDate,
+		&i.Complete,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
 const deleteTaskByID = `-- name: DeleteTaskByID :exec
 DELETE FROM task WHERE task_id = $1
 `
@@ -291,6 +331,32 @@ type UpdateTaskNameParams struct {
 
 func (q *Queries) UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error) {
 	row := q.db.QueryRowContext(ctx, updateTaskName, arg.TaskID, arg.Name)
+	var i Task
+	err := row.Scan(
+		&i.TaskID,
+		&i.TaskGroupID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Position,
+		&i.Description,
+		&i.DueDate,
+		&i.Complete,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const updateTaskPosition = `-- name: UpdateTaskPosition :one
+UPDATE task SET position = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+`
+
+type UpdateTaskPositionParams struct {
+	TaskID   uuid.UUID `json:"task_id"`
+	Position float64   `json:"position"`
+}
+
+func (q *Queries) UpdateTaskPosition(ctx context.Context, arg UpdateTaskPositionParams) (Task, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskPosition, arg.TaskID, arg.Position)
 	var i Task
 	err := row.Scan(
 		&i.TaskID,

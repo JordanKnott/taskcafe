@@ -547,6 +547,47 @@ extend type Mutation {
     TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   deleteTaskGroup(input: DeleteTaskGroupInput!):
     DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  duplicateTaskGroup(input: DuplicateTaskGroup!):
+    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  sortTaskGroup(input: SortTaskGroup!):
+    SortTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskGroupTasks(input: DeleteTaskGroupTasks!):
+    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input DeleteTaskGroupTasks {
+  taskGroupID: UUID!
+}
+
+type DeleteTaskGroupTasksPayload {
+  taskGroupID: UUID!
+  tasks: [UUID!]!
+}
+
+input TaskPositionUpdate {
+  taskID: UUID!
+  position: Float!
+}
+
+type SortTaskGroupPayload {
+  taskGroupID: UUID!
+  tasks: [Task!]!
+}
+
+input SortTaskGroup {
+  taskGroupID: UUID!
+  tasks: [TaskPositionUpdate!]!
+}
+
+input DuplicateTaskGroup {
+  projectID: UUID!
+  taskGroupID: UUID!
+  name: String!
+  position: Float!
+}
+
+type DuplicateTaskGroupPayload {
+  taskGroup: TaskGroup!
 }
 
 input NewTaskGroupLocation {

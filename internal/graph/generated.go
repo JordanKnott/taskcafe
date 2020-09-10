@@ -102,6 +102,11 @@ type ComplexityRoot struct {
 		TaskGroup    func(childComplexity int) int
 	}
 
+	DeleteTaskGroupTasksPayload struct {
+		TaskGroupID func(childComplexity int) int
+		Tasks       func(childComplexity int) int
+	}
+
 	DeleteTaskPayload struct {
 		TaskID func(childComplexity int) int
 	}
@@ -121,6 +126,10 @@ type ComplexityRoot struct {
 	DeleteUserAccountPayload struct {
 		Ok          func(childComplexity int) int
 		UserAccount func(childComplexity int) int
+	}
+
+	DuplicateTaskGroupPayload struct {
+		TaskGroup func(childComplexity int) int
 	}
 
 	LabelColor struct {
@@ -173,13 +182,16 @@ type ComplexityRoot struct {
 		DeleteTaskChecklist             func(childComplexity int, input DeleteTaskChecklist) int
 		DeleteTaskChecklistItem         func(childComplexity int, input DeleteTaskChecklistItem) int
 		DeleteTaskGroup                 func(childComplexity int, input DeleteTaskGroupInput) int
+		DeleteTaskGroupTasks            func(childComplexity int, input DeleteTaskGroupTasks) int
 		DeleteTeam                      func(childComplexity int, input DeleteTeam) int
 		DeleteTeamMember                func(childComplexity int, input DeleteTeamMember) int
 		DeleteUserAccount               func(childComplexity int, input DeleteUserAccount) int
+		DuplicateTaskGroup              func(childComplexity int, input DuplicateTaskGroup) int
 		LogoutUser                      func(childComplexity int, input LogoutUser) int
 		RemoveTaskLabel                 func(childComplexity int, input *RemoveTaskLabelInput) int
 		SetTaskChecklistItemComplete    func(childComplexity int, input SetTaskChecklistItemComplete) int
 		SetTaskComplete                 func(childComplexity int, input SetTaskComplete) int
+		SortTaskGroup                   func(childComplexity int, input SortTaskGroup) int
 		ToggleTaskLabel                 func(childComplexity int, input ToggleTaskLabelInput) int
 		UnassignTask                    func(childComplexity int, input *UnassignTaskInput) int
 		UpdateProjectLabel              func(childComplexity int, input UpdateProjectLabel) int
@@ -291,6 +303,11 @@ type ComplexityRoot struct {
 	Role struct {
 		Code func(childComplexity int) int
 		Name func(childComplexity int) int
+	}
+
+	SortTaskGroupPayload struct {
+		TaskGroupID func(childComplexity int) int
+		Tasks       func(childComplexity int) int
 	}
 
 	Task struct {
@@ -447,6 +464,9 @@ type MutationResolver interface {
 	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*db.TaskGroup, error)
 	UpdateTaskGroupName(ctx context.Context, input UpdateTaskGroupName) (*db.TaskGroup, error)
 	DeleteTaskGroup(ctx context.Context, input DeleteTaskGroupInput) (*DeleteTaskGroupPayload, error)
+	DuplicateTaskGroup(ctx context.Context, input DuplicateTaskGroup) (*DuplicateTaskGroupPayload, error)
+	SortTaskGroup(ctx context.Context, input SortTaskGroup) (*SortTaskGroupPayload, error)
+	DeleteTaskGroupTasks(ctx context.Context, input DeleteTaskGroupTasks) (*DeleteTaskGroupTasksPayload, error)
 	AddTaskLabel(ctx context.Context, input *AddTaskLabelInput) (*db.Task, error)
 	RemoveTaskLabel(ctx context.Context, input *RemoveTaskLabelInput) (*db.Task, error)
 	ToggleTaskLabel(ctx context.Context, input ToggleTaskLabelInput) (*ToggleTaskLabelPayload, error)
@@ -694,6 +714,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeleteTaskGroupPayload.TaskGroup(childComplexity), true
 
+	case "DeleteTaskGroupTasksPayload.taskGroupID":
+		if e.complexity.DeleteTaskGroupTasksPayload.TaskGroupID == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskGroupTasksPayload.TaskGroupID(childComplexity), true
+
+	case "DeleteTaskGroupTasksPayload.tasks":
+		if e.complexity.DeleteTaskGroupTasksPayload.Tasks == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskGroupTasksPayload.Tasks(childComplexity), true
+
 	case "DeleteTaskPayload.taskID":
 		if e.complexity.DeleteTaskPayload.TaskID == nil {
 			break
@@ -756,6 +790,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteUserAccountPayload.UserAccount(childComplexity), true
+
+	case "DuplicateTaskGroupPayload.taskGroup":
+		if e.complexity.DuplicateTaskGroupPayload.TaskGroup == nil {
+			break
+		}
+
+		return e.complexity.DuplicateTaskGroupPayload.TaskGroup(childComplexity), true
 
 	case "LabelColor.colorHex":
 		if e.complexity.LabelColor.ColorHex == nil {
@@ -1116,6 +1157,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTaskGroup(childComplexity, args["input"].(DeleteTaskGroupInput)), true
 
+	case "Mutation.deleteTaskGroupTasks":
+		if e.complexity.Mutation.DeleteTaskGroupTasks == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTaskGroupTasks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTaskGroupTasks(childComplexity, args["input"].(DeleteTaskGroupTasks)), true
+
 	case "Mutation.deleteTeam":
 		if e.complexity.Mutation.DeleteTeam == nil {
 			break
@@ -1151,6 +1204,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteUserAccount(childComplexity, args["input"].(DeleteUserAccount)), true
+
+	case "Mutation.duplicateTaskGroup":
+		if e.complexity.Mutation.DuplicateTaskGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_duplicateTaskGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DuplicateTaskGroup(childComplexity, args["input"].(DuplicateTaskGroup)), true
 
 	case "Mutation.logoutUser":
 		if e.complexity.Mutation.LogoutUser == nil {
@@ -1199,6 +1264,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetTaskComplete(childComplexity, args["input"].(SetTaskComplete)), true
+
+	case "Mutation.sortTaskGroup":
+		if e.complexity.Mutation.SortTaskGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sortTaskGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SortTaskGroup(childComplexity, args["input"].(SortTaskGroup)), true
 
 	case "Mutation.toggleTaskLabel":
 		if e.complexity.Mutation.ToggleTaskLabel == nil {
@@ -1828,6 +1905,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Role.Name(childComplexity), true
+
+	case "SortTaskGroupPayload.taskGroupID":
+		if e.complexity.SortTaskGroupPayload.TaskGroupID == nil {
+			break
+		}
+
+		return e.complexity.SortTaskGroupPayload.TaskGroupID(childComplexity), true
+
+	case "SortTaskGroupPayload.tasks":
+		if e.complexity.SortTaskGroupPayload.Tasks == nil {
+			break
+		}
+
+		return e.complexity.SortTaskGroupPayload.Tasks(childComplexity), true
 
 	case "Task.assigned":
 		if e.complexity.Task.Assigned == nil {
@@ -2897,6 +2988,47 @@ extend type Mutation {
     TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   deleteTaskGroup(input: DeleteTaskGroupInput!):
     DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  duplicateTaskGroup(input: DuplicateTaskGroup!):
+    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  sortTaskGroup(input: SortTaskGroup!):
+    SortTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteTaskGroupTasks(input: DeleteTaskGroupTasks!):
+    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input DeleteTaskGroupTasks {
+  taskGroupID: UUID!
+}
+
+type DeleteTaskGroupTasksPayload {
+  taskGroupID: UUID!
+  tasks: [UUID!]!
+}
+
+input TaskPositionUpdate {
+  taskID: UUID!
+  position: Float!
+}
+
+type SortTaskGroupPayload {
+  taskGroupID: UUID!
+  tasks: [Task!]!
+}
+
+input SortTaskGroup {
+  taskGroupID: UUID!
+  tasks: [TaskPositionUpdate!]!
+}
+
+input DuplicateTaskGroup {
+  projectID: UUID!
+  taskGroupID: UUID!
+  name: String!
+  position: Float!
+}
+
+type DuplicateTaskGroupPayload {
+  taskGroup: TaskGroup!
 }
 
 input NewTaskGroupLocation {
@@ -3369,6 +3501,20 @@ func (ec *executionContext) field_Mutation_deleteTaskChecklist_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteTaskGroupTasks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DeleteTaskGroupTasks
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDeleteTaskGroupTasks2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupTasks(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3439,6 +3585,20 @@ func (ec *executionContext) field_Mutation_deleteUserAccount_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_duplicateTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DuplicateTaskGroup
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDuplicateTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDuplicateTaskGroup(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_logoutUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3487,6 +3647,20 @@ func (ec *executionContext) field_Mutation_setTaskComplete_args(ctx context.Cont
 	var arg0 SetTaskComplete
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNSetTaskComplete2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSetTaskComplete(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sortTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 SortTaskGroup
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSortTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroup(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4507,6 +4681,74 @@ func (ec *executionContext) _DeleteTaskGroupPayload_taskGroup(ctx context.Contex
 	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskGroup(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _DeleteTaskGroupTasksPayload_taskGroupID(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupTasksPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskGroupTasksPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskGroupID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTaskGroupTasksPayload_tasks(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupTasksPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskGroupTasksPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tasks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DeleteTaskPayload_taskID(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4811,6 +5053,40 @@ func (ec *executionContext) _DeleteUserAccountPayload_userAccount(ctx context.Co
 	res := resTmp.(*db.UserAccount)
 	fc.Result = res
 	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DuplicateTaskGroupPayload_taskGroup(ctx context.Context, field graphql.CollectedField, obj *DuplicateTaskGroupPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DuplicateTaskGroupPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskGroup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.TaskGroup)
+	fc.Result = res
+	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LabelColor_id(ctx context.Context, field graphql.CollectedField, obj *db.LabelColor) (ret graphql.Marshaler) {
@@ -7766,6 +8042,225 @@ func (ec *executionContext) _Mutation_deleteTaskGroup(ctx context.Context, field
 	return ec.marshalNDeleteTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupPayload(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_duplicateTaskGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_duplicateTaskGroup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DuplicateTaskGroup(rctx, args["input"].(DuplicateTaskGroup))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DuplicateTaskGroupPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DuplicateTaskGroupPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DuplicateTaskGroupPayload)
+	fc.Result = res
+	return ec.marshalNDuplicateTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDuplicateTaskGroupPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_sortTaskGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_sortTaskGroup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SortTaskGroup(rctx, args["input"].(SortTaskGroup))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*SortTaskGroupPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.SortTaskGroupPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*SortTaskGroupPayload)
+	fc.Result = res
+	return ec.marshalNSortTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroupPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTaskGroupTasks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTaskGroupTasks_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTaskGroupTasks(rctx, args["input"].(DeleteTaskGroupTasks))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTaskGroupTasksPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskGroupTasksPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTaskGroupTasksPayload)
+	fc.Result = res
+	return ec.marshalNDeleteTaskGroupTasksPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupTasksPayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addTaskLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10584,6 +11079,74 @@ func (ec *executionContext) _Role_name(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SortTaskGroupPayload_taskGroupID(ctx context.Context, field graphql.CollectedField, obj *SortTaskGroupPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SortTaskGroupPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskGroupID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SortTaskGroupPayload_tasks(ctx context.Context, field graphql.CollectedField, obj *SortTaskGroupPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SortTaskGroupPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tasks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Task_id(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
@@ -14109,6 +14672,24 @@ func (ec *executionContext) unmarshalInputDeleteTaskGroupInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeleteTaskGroupTasks(ctx context.Context, obj interface{}) (DeleteTaskGroupTasks, error) {
+	var it DeleteTaskGroupTasks
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskGroupID":
+			var err error
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDeleteTaskInput(ctx context.Context, obj interface{}) (DeleteTaskInput, error) {
 	var it DeleteTaskInput
 	var asMap = obj.(map[string]interface{})
@@ -14190,6 +14771,42 @@ func (ec *executionContext) unmarshalInputDeleteUserAccount(ctx context.Context,
 		case "newOwnerID":
 			var err error
 			it.NewOwnerID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDuplicateTaskGroup(ctx context.Context, obj interface{}) (DuplicateTaskGroup, error) {
+	var it DuplicateTaskGroup
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectID":
+			var err error
+			it.ProjectID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "taskGroupID":
+			var err error
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "position":
+			var err error
+			it.Position, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14628,6 +15245,54 @@ func (ec *executionContext) unmarshalInputSetTaskComplete(ctx context.Context, o
 		case "complete":
 			var err error
 			it.Complete, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortTaskGroup(ctx context.Context, obj interface{}) (SortTaskGroup, error) {
+	var it SortTaskGroup
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskGroupID":
+			var err error
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tasks":
+			var err error
+			it.Tasks, err = ec.unmarshalNTaskPositionUpdate2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskPositionUpdateᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTaskPositionUpdate(ctx context.Context, obj interface{}) (TaskPositionUpdate, error) {
+	var it TaskPositionUpdate
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskID":
+			var err error
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "position":
+			var err error
+			it.Position, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15367,6 +16032,38 @@ func (ec *executionContext) _DeleteTaskGroupPayload(ctx context.Context, sel ast
 	return out
 }
 
+var deleteTaskGroupTasksPayloadImplementors = []string{"DeleteTaskGroupTasksPayload"}
+
+func (ec *executionContext) _DeleteTaskGroupTasksPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskGroupTasksPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTaskGroupTasksPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTaskGroupTasksPayload")
+		case "taskGroupID":
+			out.Values[i] = ec._DeleteTaskGroupTasksPayload_taskGroupID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tasks":
+			out.Values[i] = ec._DeleteTaskGroupTasksPayload_tasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var deleteTaskPayloadImplementors = []string{"DeleteTaskPayload"}
 
 func (ec *executionContext) _DeleteTaskPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskPayload) graphql.Marshaler {
@@ -15486,6 +16183,33 @@ func (ec *executionContext) _DeleteUserAccountPayload(ctx context.Context, sel a
 			}
 		case "userAccount":
 			out.Values[i] = ec._DeleteUserAccountPayload_userAccount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var duplicateTaskGroupPayloadImplementors = []string{"DuplicateTaskGroupPayload"}
+
+func (ec *executionContext) _DuplicateTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, obj *DuplicateTaskGroupPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, duplicateTaskGroupPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DuplicateTaskGroupPayload")
+		case "taskGroup":
+			out.Values[i] = ec._DuplicateTaskGroupPayload_taskGroup(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -15854,6 +16578,21 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteTaskGroup":
 			out.Values[i] = ec._Mutation_deleteTaskGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "duplicateTaskGroup":
+			out.Values[i] = ec._Mutation_duplicateTaskGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sortTaskGroup":
+			out.Values[i] = ec._Mutation_sortTaskGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTaskGroupTasks":
+			out.Values[i] = ec._Mutation_deleteTaskGroupTasks(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -16714,6 +17453,38 @@ func (ec *executionContext) _Role(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "name":
 			out.Values[i] = ec._Role_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sortTaskGroupPayloadImplementors = []string{"SortTaskGroupPayload"}
+
+func (ec *executionContext) _SortTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, obj *SortTaskGroupPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sortTaskGroupPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SortTaskGroupPayload")
+		case "taskGroupID":
+			out.Values[i] = ec._SortTaskGroupPayload_taskGroupID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tasks":
+			out.Values[i] = ec._SortTaskGroupPayload_tasks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18064,6 +18835,24 @@ func (ec *executionContext) marshalNDeleteTaskGroupPayload2ᚖgithubᚗcomᚋjor
 	return ec._DeleteTaskGroupPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDeleteTaskGroupTasks2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupTasks(ctx context.Context, v interface{}) (DeleteTaskGroupTasks, error) {
+	return ec.unmarshalInputDeleteTaskGroupTasks(ctx, v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskGroupTasksPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupTasksPayload(ctx context.Context, sel ast.SelectionSet, v DeleteTaskGroupTasksPayload) graphql.Marshaler {
+	return ec._DeleteTaskGroupTasksPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskGroupTasksPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupTasksPayload(ctx context.Context, sel ast.SelectionSet, v *DeleteTaskGroupTasksPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteTaskGroupTasksPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNDeleteTaskInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskInput(ctx context.Context, v interface{}) (DeleteTaskInput, error) {
 	return ec.unmarshalInputDeleteTaskInput(ctx, v)
 }
@@ -18134,6 +18923,24 @@ func (ec *executionContext) marshalNDeleteUserAccountPayload2ᚖgithubᚗcomᚋj
 		return graphql.Null
 	}
 	return ec._DeleteUserAccountPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDuplicateTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDuplicateTaskGroup(ctx context.Context, v interface{}) (DuplicateTaskGroup, error) {
+	return ec.unmarshalInputDuplicateTaskGroup(ctx, v)
+}
+
+func (ec *executionContext) marshalNDuplicateTaskGroupPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDuplicateTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, v DuplicateTaskGroupPayload) graphql.Marshaler {
+	return ec._DuplicateTaskGroupPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDuplicateTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDuplicateTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, v *DuplicateTaskGroupPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DuplicateTaskGroupPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNEntityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐEntityType(ctx context.Context, v interface{}) (EntityType, error) {
@@ -18774,6 +19581,24 @@ func (ec *executionContext) unmarshalNSetTaskComplete2githubᚗcomᚋjordanknott
 	return ec.unmarshalInputSetTaskComplete(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNSortTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroup(ctx context.Context, v interface{}) (SortTaskGroup, error) {
+	return ec.unmarshalInputSortTaskGroup(ctx, v)
+}
+
+func (ec *executionContext) marshalNSortTaskGroupPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, v SortTaskGroupPayload) graphql.Marshaler {
+	return ec._SortTaskGroupPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSortTaskGroupPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, v *SortTaskGroupPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SortTaskGroupPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -19045,6 +19870,30 @@ func (ec *executionContext) marshalNTaskLabel2ᚕgithubᚗcomᚋjordanknottᚋta
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNTaskPositionUpdate2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskPositionUpdate(ctx context.Context, v interface{}) (TaskPositionUpdate, error) {
+	return ec.unmarshalInputTaskPositionUpdate(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNTaskPositionUpdate2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskPositionUpdateᚄ(ctx context.Context, v interface{}) ([]TaskPositionUpdate, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]TaskPositionUpdate, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNTaskPositionUpdate2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskPositionUpdate(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalNTeam2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx context.Context, sel ast.SelectionSet, v db.Team) graphql.Marshaler {
