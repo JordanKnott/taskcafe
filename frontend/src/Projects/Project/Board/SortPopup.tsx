@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { TaskSorting, TaskSortingType, TaskSortingDirection } from 'shared/components/Lists';
+import { TaskSorting, TaskSortingType, TaskSortingDirection } from 'shared/utils/sorting';
 
 export const ActionsList = styled.ul`
   margin: 0;

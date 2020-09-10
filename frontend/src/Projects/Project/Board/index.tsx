@@ -8,6 +8,7 @@ import {
   useSetTaskCompleteMutation,
   useToggleTaskLabelMutation,
   useFindProjectQuery,
+  useSortTaskGroupMutation,
   useUpdateTaskGroupNameMutation,
   useUpdateTaskNameMutation,
   useCreateTaskMutation,
@@ -21,6 +22,10 @@ import {
   useUnassignTaskMutation,
   useUpdateTaskDueDateMutation,
   FindProjectQuery,
+  useDuplicateTaskGroupMutation,
+  DuplicateTaskGroupMutation,
+  DuplicateTaskGroupDocument,
+  useDeleteTaskGroupTasksMutation,
 } from 'shared/generated/graphql';
 
 import QuickCardEditor from 'shared/components/QuickCardEditor';
@@ -33,10 +38,8 @@ import SimpleLists, {
   TaskMeta,
   TaskMetaMatch,
   TaskMetaFilters,
-  TaskSorting,
-  TaskSortingType,
-  TaskSortingDirection,
 } from 'shared/components/Lists';
+import { TaskSorting, TaskSortingType, TaskSortingDirection, sortTasks } from 'shared/utils/sorting';
 import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import DueDateManager from 'shared/components/DueDateManager';
@@ -44,6 +47,7 @@ import EmptyBoard from 'shared/components/EmptyBoard';
 import NOOP from 'shared/utils/noop';
 import LabelManagerEditor from 'Projects/Project/LabelManagerEditor';
 import Chip from 'shared/components/Chip';
+import { toast } from 'react-toastify';
 import { useCurrentUser } from 'App/context';
 import FilterStatus from './FilterStatus';
 import FilterMeta from './FilterMeta';
@@ -263,6 +267,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   const [taskMetaFilters, setTaskMetaFilters] = useState(initTaskMetaFilters);
   const [taskSorting, setTaskSorting] = useState(initTaskSorting);
   const history = useHistory();
+  const [sortTaskGroup] = useSortTaskGroupMutation({
+    onCompleted: () => {
+      toast('List was sorted');
+    },
+  });
   const [deleteTaskGroup] = useDeleteTaskGroupMutation({
     update: (client, deletedTaskGroupData) => {
       updateApolloCache<FindProjectQuery>(
@@ -314,6 +323,36 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   const [updateTaskGroupName] = useUpdateTaskGroupNameMutation({});
   const { loading, data } = useFindProjectQuery({
     variables: { projectID },
+  });
+  const [deleteTaskGroupTasks] = useDeleteTaskGroupTasksMutation({
+    update: (client, resp) =>
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const idx = cache.findProject.taskGroups.findIndex(
+              t => t.id === resp.data.deleteTaskGroupTasks.taskGroupID,
+            );
+            if (idx !== -1) {
+              draftCache.findProject.taskGroups[idx].tasks = [];
+            }
+          }),
+        { projectID },
+      ),
+  });
+  const [duplicateTaskGroup] = useDuplicateTaskGroupMutation({
+    update: (client, resp) => {
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.taskGroups.push(resp.data.duplicateTaskGroup.taskGroup);
+          }),
+        { projectID },
+      );
+    },
   });
 
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation();
@@ -624,15 +663,44 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
           onExtraMenuOpen={(taskGroupID: string, $targetRef: any) => {
             showPopup(
               $targetRef,
-              <Popup title="List actions" tab={0} onClose={() => hidePopup()}>
-                <ListActions
-                  taskGroupID={taskGroupID}
-                  onArchiveTaskGroup={tgID => {
-                    deleteTaskGroup({ variables: { taskGroupID: tgID } });
+              <ListActions
+                taskGroupID={taskGroupID}
+                onDeleteTaskGroupTasks={() => {
+                  deleteTaskGroupTasks({ variables: { taskGroupID } });
+                  hidePopup();
+                }}
+                onSortTaskGroup={taskSort => {
+                  const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
+                  if (taskGroup) {
+                    const tasks: Array<{ taskID: string; position: number }> = taskGroup.tasks
+                      .sort((a, b) => sortTasks(a, b, taskSort))
+                      .reduce((prevTasks: Array<{ taskID: string; position: number }>, t, idx) => {
+                        prevTasks.push({ taskID: t.id, position: (idx + 1) * 2048 });
+                        return tasks;
+                      }, []);
+                    sortTaskGroup({ variables: { taskGroupID, tasks } });
                     hidePopup();
-                  }}
-                />
-              </Popup>,
+                  }
+                }}
+                onDuplicateTaskGroup={newName => {
+                  const idx = data.findProject.taskGroups.findIndex(t => t.id === taskGroupID);
+                  if (idx !== -1) {
+                    const taskGroups = data.findProject.taskGroups.sort((a, b) => a.position - b.position);
+                    const prevPos = taskGroups[idx].position;
+                    const next = taskGroups[idx + 1];
+                    let newPos = prevPos * 2;
+                    if (next) {
+                      newPos = (prevPos + next.position) / 2.0;
+                    }
+                    duplicateTaskGroup({ variables: { projectID, taskGroupID, name: newName, position: newPos } });
+                    hidePopup();
+                  }
+                }}
+                onArchiveTaskGroup={tgID => {
+                  deleteTaskGroup({ variables: { taskGroupID: tgID } });
+                  hidePopup();
+                }}
+              />,
             );
           }}
         />

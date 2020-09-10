@@ -16,11 +16,12 @@ import {
 } from './Styles';
 
 type NameEditorProps = {
+  buttonLabel?: string;
   onSave: (listName: string) => void;
   onCancel: () => void;
 };
 
-const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
+export const NameEditor: React.FC<NameEditorProps> = ({ onSave: handleSave, onCancel, buttonLabel = 'Save' }) => {
   const $editorRef = useRef<HTMLTextAreaElement>(null);
   const [listName, setListName] = useState('');
   useEffect(() => {
@@ -28,6 +29,11 @@ const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
       $editorRef.current.focus();
     }
   });
+  const onSave = (newName: string) => {
+    if (newName.replace(/\s+/g, '') !== '') {
+      handleSave(newName);
+    }
+  };
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -60,7 +66,7 @@ const NameEditor: React.FC<NameEditorProps> = ({ onSave, onCancel }) => {
             }
           }}
         >
-          Save
+          {buttonLabel}
         </AddListButton>
         <CancelAdd onClick={() => onCancel()}>
           <Cross width={16} height={16} />

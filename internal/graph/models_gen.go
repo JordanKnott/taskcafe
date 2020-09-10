@@ -111,6 +111,15 @@ type DeleteTaskGroupPayload struct {
 	TaskGroup    *db.TaskGroup `json:"taskGroup"`
 }
 
+type DeleteTaskGroupTasks struct {
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+}
+
+type DeleteTaskGroupTasksPayload struct {
+	TaskGroupID uuid.UUID   `json:"taskGroupID"`
+	Tasks       []uuid.UUID `json:"tasks"`
+}
+
 type DeleteTaskInput struct {
 	TaskID string `json:"taskID"`
 }
@@ -149,6 +158,17 @@ type DeleteUserAccount struct {
 type DeleteUserAccountPayload struct {
 	Ok          bool            `json:"ok"`
 	UserAccount *db.UserAccount `json:"userAccount"`
+}
+
+type DuplicateTaskGroup struct {
+	ProjectID   uuid.UUID `json:"projectID"`
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Name        string    `json:"name"`
+	Position    float64   `json:"position"`
+}
+
+type DuplicateTaskGroupPayload struct {
+	TaskGroup *db.TaskGroup `json:"taskGroup"`
 }
 
 type FindProject struct {
@@ -296,8 +316,23 @@ type SetTaskComplete struct {
 	Complete bool      `json:"complete"`
 }
 
+type SortTaskGroup struct {
+	TaskGroupID uuid.UUID            `json:"taskGroupID"`
+	Tasks       []TaskPositionUpdate `json:"tasks"`
+}
+
+type SortTaskGroupPayload struct {
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Tasks       []db.Task `json:"tasks"`
+}
+
 type TaskBadges struct {
 	Checklist *ChecklistBadge `json:"checklist"`
+}
+
+type TaskPositionUpdate struct {
+	TaskID   uuid.UUID `json:"taskID"`
+	Position float64   `json:"position"`
 }
 
 type TeamRole struct {

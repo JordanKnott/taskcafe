@@ -275,13 +275,16 @@ export type Mutation = {
   deleteTaskChecklist: DeleteTaskChecklistPayload;
   deleteTaskChecklistItem: DeleteTaskChecklistItemPayload;
   deleteTaskGroup: DeleteTaskGroupPayload;
+  deleteTaskGroupTasks: DeleteTaskGroupTasksPayload;
   deleteTeam: DeleteTeamPayload;
   deleteTeamMember: DeleteTeamMemberPayload;
   deleteUserAccount: DeleteUserAccountPayload;
+  duplicateTaskGroup: DuplicateTaskGroupPayload;
   logoutUser: Scalars['Boolean'];
   removeTaskLabel: Task;
   setTaskChecklistItemComplete: TaskChecklistItem;
   setTaskComplete: Task;
+  sortTaskGroup: SortTaskGroupPayload;
   toggleTaskLabel: ToggleTaskLabelPayload;
   unassignTask: Task;
   updateProjectLabel: ProjectLabel;
@@ -405,6 +408,11 @@ export type MutationDeleteTaskGroupArgs = {
 };
 
 
+export type MutationDeleteTaskGroupTasksArgs = {
+  input: DeleteTaskGroupTasks;
+};
+
+
 export type MutationDeleteTeamArgs = {
   input: DeleteTeam;
 };
@@ -417,6 +425,11 @@ export type MutationDeleteTeamMemberArgs = {
 
 export type MutationDeleteUserAccountArgs = {
   input: DeleteUserAccount;
+};
+
+
+export type MutationDuplicateTaskGroupArgs = {
+  input: DuplicateTaskGroup;
 };
 
 
@@ -437,6 +450,11 @@ export type MutationSetTaskChecklistItemCompleteArgs = {
 
 export type MutationSetTaskCompleteArgs = {
   input: SetTaskComplete;
+};
+
+
+export type MutationSortTaskGroupArgs = {
+  input: SortTaskGroup;
 };
 
 
@@ -821,6 +839,44 @@ export type DeleteTaskChecklistPayload = {
    __typename?: 'DeleteTaskChecklistPayload';
   ok: Scalars['Boolean'];
   taskChecklist: TaskChecklist;
+};
+
+export type DeleteTaskGroupTasks = {
+  taskGroupID: Scalars['UUID'];
+};
+
+export type DeleteTaskGroupTasksPayload = {
+   __typename?: 'DeleteTaskGroupTasksPayload';
+  taskGroupID: Scalars['UUID'];
+  tasks: Array<Scalars['UUID']>;
+};
+
+export type TaskPositionUpdate = {
+  taskID: Scalars['UUID'];
+  position: Scalars['Float'];
+};
+
+export type SortTaskGroupPayload = {
+   __typename?: 'SortTaskGroupPayload';
+  taskGroupID: Scalars['UUID'];
+  tasks: Array<Task>;
+};
+
+export type SortTaskGroup = {
+  taskGroupID: Scalars['UUID'];
+  tasks: Array<TaskPositionUpdate>;
+};
+
+export type DuplicateTaskGroup = {
+  projectID: Scalars['UUID'];
+  taskGroupID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+};
+
+export type DuplicateTaskGroupPayload = {
+   __typename?: 'DuplicateTaskGroupPayload';
+  taskGroup: TaskGroup;
 };
 
 export type NewTaskGroupLocation = {
@@ -1571,6 +1627,60 @@ export type UpdateTaskChecklistNameMutation = (
     & { items: Array<(
       { __typename?: 'TaskChecklistItem' }
       & Pick<TaskChecklistItem, 'id' | 'name' | 'taskChecklistID' | 'complete' | 'position'>
+    )> }
+  ) }
+);
+
+export type DeleteTaskGroupTasksMutationVariables = {
+  taskGroupID: Scalars['UUID'];
+};
+
+
+export type DeleteTaskGroupTasksMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteTaskGroupTasks: (
+    { __typename?: 'DeleteTaskGroupTasksPayload' }
+    & Pick<DeleteTaskGroupTasksPayload, 'tasks' | 'taskGroupID'>
+  ) }
+);
+
+export type DuplicateTaskGroupMutationVariables = {
+  taskGroupID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+  projectID: Scalars['UUID'];
+};
+
+
+export type DuplicateTaskGroupMutation = (
+  { __typename?: 'Mutation' }
+  & { duplicateTaskGroup: (
+    { __typename?: 'DuplicateTaskGroupPayload' }
+    & { taskGroup: (
+      { __typename?: 'TaskGroup' }
+      & Pick<TaskGroup, 'id' | 'name' | 'position'>
+      & { tasks: Array<(
+        { __typename?: 'Task' }
+        & TaskFieldsFragment
+      )> }
+    ) }
+  ) }
+);
+
+export type SortTaskGroupMutationVariables = {
+  tasks: Array<TaskPositionUpdate>;
+  taskGroupID: Scalars['UUID'];
+};
+
+
+export type SortTaskGroupMutation = (
+  { __typename?: 'Mutation' }
+  & { sortTaskGroup: (
+    { __typename?: 'SortTaskGroupPayload' }
+    & Pick<SortTaskGroupPayload, 'taskGroupID'>
+    & { tasks: Array<(
+      { __typename?: 'Task' }
+      & Pick<Task, 'id' | 'position'>
     )> }
   ) }
 );
@@ -3292,6 +3402,118 @@ export function useUpdateTaskChecklistNameMutation(baseOptions?: ApolloReactHook
 export type UpdateTaskChecklistNameMutationHookResult = ReturnType<typeof useUpdateTaskChecklistNameMutation>;
 export type UpdateTaskChecklistNameMutationResult = ApolloReactCommon.MutationResult<UpdateTaskChecklistNameMutation>;
 export type UpdateTaskChecklistNameMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskChecklistNameMutation, UpdateTaskChecklistNameMutationVariables>;
+export const DeleteTaskGroupTasksDocument = gql`
+    mutation deleteTaskGroupTasks($taskGroupID: UUID!) {
+  deleteTaskGroupTasks(input: {taskGroupID: $taskGroupID}) {
+    tasks
+    taskGroupID
+  }
+}
+    `;
+export type DeleteTaskGroupTasksMutationFn = ApolloReactCommon.MutationFunction<DeleteTaskGroupTasksMutation, DeleteTaskGroupTasksMutationVariables>;
+
+/**
+ * __useDeleteTaskGroupTasksMutation__
+ *
+ * To run a mutation, you first call `useDeleteTaskGroupTasksMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteTaskGroupTasksMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteTaskGroupTasksMutation, { data, loading, error }] = useDeleteTaskGroupTasksMutation({
+ *   variables: {
+ *      taskGroupID: // value for 'taskGroupID'
+ *   },
+ * });
+ */
+export function useDeleteTaskGroupTasksMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteTaskGroupTasksMutation, DeleteTaskGroupTasksMutationVariables>) {
+        return ApolloReactHooks.useMutation<DeleteTaskGroupTasksMutation, DeleteTaskGroupTasksMutationVariables>(DeleteTaskGroupTasksDocument, baseOptions);
+      }
+export type DeleteTaskGroupTasksMutationHookResult = ReturnType<typeof useDeleteTaskGroupTasksMutation>;
+export type DeleteTaskGroupTasksMutationResult = ApolloReactCommon.MutationResult<DeleteTaskGroupTasksMutation>;
+export type DeleteTaskGroupTasksMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTaskGroupTasksMutation, DeleteTaskGroupTasksMutationVariables>;
+export const DuplicateTaskGroupDocument = gql`
+    mutation duplicateTaskGroup($taskGroupID: UUID!, $name: String!, $position: Float!, $projectID: UUID!) {
+  duplicateTaskGroup(input: {projectID: $projectID, taskGroupID: $taskGroupID, name: $name, position: $position}) {
+    taskGroup {
+      id
+      name
+      position
+      tasks {
+        ...TaskFields
+      }
+    }
+  }
+}
+    ${TaskFieldsFragmentDoc}`;
+export type DuplicateTaskGroupMutationFn = ApolloReactCommon.MutationFunction<DuplicateTaskGroupMutation, DuplicateTaskGroupMutationVariables>;
+
+/**
+ * __useDuplicateTaskGroupMutation__
+ *
+ * To run a mutation, you first call `useDuplicateTaskGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDuplicateTaskGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [duplicateTaskGroupMutation, { data, loading, error }] = useDuplicateTaskGroupMutation({
+ *   variables: {
+ *      taskGroupID: // value for 'taskGroupID'
+ *      name: // value for 'name'
+ *      position: // value for 'position'
+ *      projectID: // value for 'projectID'
+ *   },
+ * });
+ */
+export function useDuplicateTaskGroupMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DuplicateTaskGroupMutation, DuplicateTaskGroupMutationVariables>) {
+        return ApolloReactHooks.useMutation<DuplicateTaskGroupMutation, DuplicateTaskGroupMutationVariables>(DuplicateTaskGroupDocument, baseOptions);
+      }
+export type DuplicateTaskGroupMutationHookResult = ReturnType<typeof useDuplicateTaskGroupMutation>;
+export type DuplicateTaskGroupMutationResult = ApolloReactCommon.MutationResult<DuplicateTaskGroupMutation>;
+export type DuplicateTaskGroupMutationOptions = ApolloReactCommon.BaseMutationOptions<DuplicateTaskGroupMutation, DuplicateTaskGroupMutationVariables>;
+export const SortTaskGroupDocument = gql`
+    mutation sortTaskGroup($tasks: [TaskPositionUpdate!]!, $taskGroupID: UUID!) {
+  sortTaskGroup(input: {taskGroupID: $taskGroupID, tasks: $tasks}) {
+    taskGroupID
+    tasks {
+      id
+      position
+    }
+  }
+}
+    `;
+export type SortTaskGroupMutationFn = ApolloReactCommon.MutationFunction<SortTaskGroupMutation, SortTaskGroupMutationVariables>;
+
+/**
+ * __useSortTaskGroupMutation__
+ *
+ * To run a mutation, you first call `useSortTaskGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSortTaskGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sortTaskGroupMutation, { data, loading, error }] = useSortTaskGroupMutation({
+ *   variables: {
+ *      tasks: // value for 'tasks'
+ *      taskGroupID: // value for 'taskGroupID'
+ *   },
+ * });
+ */
+export function useSortTaskGroupMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<SortTaskGroupMutation, SortTaskGroupMutationVariables>) {
+        return ApolloReactHooks.useMutation<SortTaskGroupMutation, SortTaskGroupMutationVariables>(SortTaskGroupDocument, baseOptions);
+      }
+export type SortTaskGroupMutationHookResult = ReturnType<typeof useSortTaskGroupMutation>;
+export type SortTaskGroupMutationResult = ApolloReactCommon.MutationResult<SortTaskGroupMutation>;
+export type SortTaskGroupMutationOptions = ApolloReactCommon.BaseMutationOptions<SortTaskGroupMutation, SortTaskGroupMutationVariables>;
 export const UpdateTaskGroupNameDocument = gql`
     mutation updateTaskGroupName($taskGroupID: UUID!, $name: String!) {
   updateTaskGroupName(input: {taskGroupID: $taskGroupID, name: $name}) {
