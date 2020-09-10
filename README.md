@@ -90,6 +90,7 @@ The newly created `taskcafe` binary can be found in the __dist__ folder.
 
 It contains everything neccessary to run except the config file. An example config file can be found in `conf/app.example.toml`.
 
+For more information on configuration, please read the [wiki](https://github.com/JordanKnott/taskcafe/wiki/Configuration).
 The config will need to be copied to a `conf/app.toml` in the same place the binary is.
 
 Make sure to fill out the database section of the config in order to connect it to your database.
@@ -97,6 +98,8 @@ Make sure to fill out the database section of the config in order to connect it 
 Then run the database migrations with `taskcafe migrate`.
 
 Now you can run the web interface by running `taskcafe web`.
+
+[A more detailed guide for installing on Ubuntu/Debian](https://github.com/JordanKnott/taskcafe/wiki/Installation-(ubuntu-debian))
 
 ## How is this different from X (Trello, NextCloud, etc)?
 
