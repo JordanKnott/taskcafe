@@ -19,6 +19,7 @@ import (
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/utils"
 	log "github.com/sirupsen/logrus"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // NewHandler returns a new graphql endpoint handler.
@@ -51,6 +52,8 @@ func NewHandler(repo db.Repository) http.Handler {
 			fieldName = "TeamID"
 		case ObjectTypeTask:
 			fieldName = "TaskID"
+		case ObjectTypeTaskGroup:
+			fieldName = "TaskGroupID"
 		default:
 			fieldName = "ProjectID"
 		}
@@ -68,6 +71,13 @@ func NewHandler(repo db.Repository) http.Handler {
 				if err != nil {
 					return nil, err
 				}
+			} else if typeArg == ObjectTypeTaskGroup {
+				log.WithFields(log.Fields{"subjectID": subjectID}).Info("fetching project ID using task group ID")
+				taskGroup, err := repo.GetTaskGroupByID(ctx, subjectID)
+				if err != nil {
+					return nil, err
+				}
+				subjectID = taskGroup.ProjectID
 			}
 			roles, err := GetProjectRoles(ctx, repo, subjectID)
 			if err != nil {
@@ -184,5 +194,15 @@ func GetActionType(actionType int32) ActionType {
 		return ActionTypeTaskMemberAdded
 	default:
 		panic("Not a valid entity type!")
+	}
+}
+
+// NotFoundError creates a 404 gqlerror
+func NotFoundError(message string) error {
+	return &gqlerror.Error{
+		Message: message,
+		Extensions: map[string]interface{}{
+			"code": "404",
+		},
 	}
 }

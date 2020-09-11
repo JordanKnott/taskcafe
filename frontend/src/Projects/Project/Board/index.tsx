@@ -323,6 +323,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   const [updateTaskGroupName] = useUpdateTaskGroupNameMutation({});
   const { loading, data } = useFindProjectQuery({
     variables: { projectID },
+    pollInterval: 5000,
   });
   const [deleteTaskGroupTasks] = useDeleteTaskGroupTasksMutation({
     update: (client, resp) =>

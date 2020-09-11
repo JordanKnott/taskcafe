@@ -3,7 +3,7 @@ import Modal from 'shared/components/Modal';
 import TaskDetails from 'shared/components/TaskDetails';
 import { Popup, usePopup } from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
-import { useRouteMatch, useHistory } from 'react-router';
+import { useRouteMatch, useHistory, Redirect } from 'react-router';
 import {
   useDeleteTaskChecklistMutation,
   useUpdateTaskChecklistNameMutation,
@@ -32,6 +32,7 @@ import Input from 'shared/components/Input';
 import { useForm } from 'react-hook-form';
 import updateApolloCache from 'shared/utils/cache';
 import NOOP from 'shared/utils/noop';
+import hasNotFoundError from 'shared/utils/error';
 
 const calculateChecklistBadge = (checklists: Array<TaskChecklist>) => {
   const total = checklists.reduce((prev: any, next: any) => {
@@ -269,8 +270,8 @@ const Details: React.FC<DetailsProps> = ({
       );
     },
   });
-  const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
-  const [setTaskComplete] = useSetTaskCompleteMutation();
+  const { loading, data, refetch, error } = useFindTaskQuery({ variables: { taskID }, pollInterval: 5000 });
+  const [setTaskComplete, { error: setTaskCompleteError }] = useSetTaskCompleteMutation();
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
     onCompleted: () => {
       refetch();
@@ -289,9 +290,13 @@ const Details: React.FC<DetailsProps> = ({
       refreshCache();
     },
   });
-  if (loading) {
-    return null;
+  if (hasNotFoundError(error, setTaskCompleteError)) {
+    return <Redirect to={projectURL} />;
   }
+  if (setTaskCompleteError && setTaskCompleteError)
+    if (loading) {
+      return null;
+    }
   if (!data) {
     return null;
   }
@@ -346,7 +351,11 @@ const Details: React.FC<DetailsProps> = ({
               onTaskNameChange={onTaskNameChange}
               onTaskDescriptionChange={onTaskDescriptionChange}
               onToggleTaskComplete={task => {
-                setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
+                setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } }).catch(r => {
+                  if (hasNotFoundError(r)) {
+                    history.push(projectURL);
+                  }
+                });
               }}
               onDeleteTask={onDeleteTask}
               onChangeItemName={(itemID, itemName) => {

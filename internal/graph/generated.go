@@ -2648,6 +2648,7 @@ enum ObjectType {
   TEAM
   PROJECT
   TASK
+  TASK_GROUP
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
@@ -2851,20 +2852,20 @@ type UpdateProjectMemberRolePayload {
 
 extend type Mutation {
   createTask(input: NewTask!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK_GROUP)
   deleteTask(input: DeleteTaskInput!):
-    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
 
   updateTaskDescription(input: UpdateTaskDescriptionInput!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
   updateTaskLocation(input: NewTaskLocation!):
-    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
   updateTaskName(input: UpdateTaskName!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
   setTaskComplete(input: SetTaskComplete!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
   updateTaskDueDate(input: UpdateTaskDueDate!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
 
   assignTask(input: AssignTaskInput):
     Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
@@ -2873,7 +2874,7 @@ extend type Mutation {
 }
 
 input NewTask {
-  taskGroupID: String!
+  taskGroupID: UUID!
   name: String!
   position: Float!
 }
@@ -6533,7 +6534,7 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -6606,7 +6607,7 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6679,7 +6680,7 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6752,7 +6753,7 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6825,7 +6826,7 @@ func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field 
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6898,7 +6899,7 @@ func (ec *executionContext) _Mutation_setTaskComplete(ctx context.Context, field
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6971,7 +6972,7 @@ func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, fie
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -15194,7 +15195,7 @@ func (ec *executionContext) unmarshalInputNewTask(ctx context.Context, obj inter
 		switch k {
 		case "taskGroupID":
 			var err error
-			it.TaskGroupID, err = ec.unmarshalNString2string(ctx, v)
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}

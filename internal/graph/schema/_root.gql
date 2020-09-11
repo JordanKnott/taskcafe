@@ -14,6 +14,7 @@ enum ObjectType {
   TEAM
   PROJECT
   TASK
+  TASK_GROUP
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION

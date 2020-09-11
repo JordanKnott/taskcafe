@@ -229,9 +229,9 @@ type NewRefreshToken struct {
 }
 
 type NewTask struct {
-	TaskGroupID string  `json:"taskGroupID"`
-	Name        string  `json:"name"`
-	Position    float64 `json:"position"`
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Name        string    `json:"name"`
+	Position    float64   `json:"position"`
 }
 
 type NewTaskGroup struct {
@@ -648,10 +648,11 @@ func (e EntityType) MarshalGQL(w io.Writer) {
 type ObjectType string
 
 const (
-	ObjectTypeOrg     ObjectType = "ORG"
-	ObjectTypeTeam    ObjectType = "TEAM"
-	ObjectTypeProject ObjectType = "PROJECT"
-	ObjectTypeTask    ObjectType = "TASK"
+	ObjectTypeOrg       ObjectType = "ORG"
+	ObjectTypeTeam      ObjectType = "TEAM"
+	ObjectTypeProject   ObjectType = "PROJECT"
+	ObjectTypeTask      ObjectType = "TASK"
+	ObjectTypeTaskGroup ObjectType = "TASK_GROUP"
 )
 
 var AllObjectType = []ObjectType{
@@ -659,11 +660,12 @@ var AllObjectType = []ObjectType{
 	ObjectTypeTeam,
 	ObjectTypeProject,
 	ObjectTypeTask,
+	ObjectTypeTaskGroup,
 }
 
 func (e ObjectType) IsValid() bool {
 	switch e {
-	case ObjectTypeOrg, ObjectTypeTeam, ObjectTypeProject, ObjectTypeTask:
+	case ObjectTypeOrg, ObjectTypeTeam, ObjectTypeProject, ObjectTypeTask, ObjectTypeTaskGroup:
 		return true
 	}
 	return false

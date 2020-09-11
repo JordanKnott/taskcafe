@@ -209,7 +209,8 @@ export enum ObjectType {
   Org = 'ORG',
   Team = 'TEAM',
   Project = 'PROJECT',
-  Task = 'TASK'
+  Task = 'TASK',
+  TaskGroup = 'TASK_GROUP'
 }
 
 export type Query = {
@@ -722,7 +723,7 @@ export type UpdateProjectMemberRolePayload = {
 };
 
 export type NewTask = {
-  taskGroupID: Scalars['String'];
+  taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
 };
@@ -1472,7 +1473,7 @@ export type UpdateProjectMemberRoleMutation = (
 );
 
 export type CreateTaskMutationVariables = {
-  taskGroupID: Scalars['String'];
+  taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
 };
@@ -3044,7 +3045,7 @@ export type UpdateProjectMemberRoleMutationHookResult = ReturnType<typeof useUpd
 export type UpdateProjectMemberRoleMutationResult = ApolloReactCommon.MutationResult<UpdateProjectMemberRoleMutation>;
 export type UpdateProjectMemberRoleMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateProjectMemberRoleMutation, UpdateProjectMemberRoleMutationVariables>;
 export const CreateTaskDocument = gql`
-    mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
+    mutation createTask($taskGroupID: UUID!, $name: String!, $position: Float!) {
   createTask(input: {taskGroupID: $taskGroupID, name: $name, position: $position}) {
     ...TaskFields
   }

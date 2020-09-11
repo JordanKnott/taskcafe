@@ -154,7 +154,7 @@ type TeamProjectsProps = {
 };
 
 const TeamProjects: React.FC<TeamProjectsProps> = ({ teamID }) => {
-  const { loading, data } = useGetTeamQuery({ variables: { teamID } });
+  const { loading, data } = useGetTeamQuery({ variables: { teamID }, pollInterval: 5000 });
   if (loading) {
     return <span>loading</span>;
   }

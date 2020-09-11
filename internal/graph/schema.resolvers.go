@@ -179,14 +179,9 @@ func (r *mutationResolver) UpdateProjectMemberRole(ctx context.Context, input Up
 }
 
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.Task, error) {
-	taskGroupID, err := uuid.Parse(input.TaskGroupID)
-	if err != nil {
-		log.WithError(err).Error("issue while parsing task group ID")
-		return &db.Task{}, err
-	}
 	createdAt := time.Now().UTC()
-	log.WithFields(log.Fields{"positon": input.Position, "taskGroupID": taskGroupID}).Info("creating task")
-	task, err := r.Repository.CreateTask(ctx, db.CreateTaskParams{taskGroupID, createdAt, input.Name, input.Position})
+	log.WithFields(log.Fields{"positon": input.Position, "taskGroupID": input.TaskGroupID}).Info("creating task")
+	task, err := r.Repository.CreateTask(ctx, db.CreateTaskParams{input.TaskGroupID, createdAt, input.Name, input.Position})
 	if err != nil {
 		log.WithError(err).Error("issue while creating task")
 		return &db.Task{}, err
@@ -238,6 +233,9 @@ func (r *mutationResolver) SetTaskComplete(ctx context.Context, input SetTaskCom
 	completedAt := time.Now().UTC()
 	task, err := r.Repository.SetTaskComplete(ctx, db.SetTaskCompleteParams{TaskID: input.TaskID, Complete: input.Complete, CompletedAt: sql.NullTime{Time: completedAt, Valid: true}})
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return &db.Task{}, NotFoundError("task does not exist")
+		}
 		return &db.Task{}, err
 	}
 	return &task, nil
@@ -1033,6 +1031,14 @@ func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db
 
 func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*db.Task, error) {
 	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	if err == sql.ErrNoRows {
+		return &db.Task{}, &gqlerror.Error{
+			Message: "Task does not exist",
+			Extensions: map[string]interface{}{
+				"code": "404",
+			},
+		}
+	}
 	return &task, err
 }
 
@@ -1240,6 +1246,9 @@ func (r *taskResolver) Assigned(ctx context.Context, obj *db.Task) ([]Member, er
 	taskMemberLinks, err := r.Repository.GetAssignedMembersForTask(ctx, obj.TaskID)
 	taskMembers := []Member{}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return taskMembers, nil
+		}
 		return taskMembers, err
 	}
 	for _, taskMemberLink := range taskMemberLinks {
@@ -1274,11 +1283,19 @@ func (r *taskResolver) Assigned(ctx context.Context, obj *db.Task) ([]Member, er
 }
 
 func (r *taskResolver) Labels(ctx context.Context, obj *db.Task) ([]db.TaskLabel, error) {
-	return r.Repository.GetTaskLabelsForTaskID(ctx, obj.TaskID)
+	labels, err := r.Repository.GetTaskLabelsForTaskID(ctx, obj.TaskID)
+	if err != nil && err != sql.ErrNoRows {
+		return []db.TaskLabel{}, err
+	}
+	return labels, nil
 }
 
 func (r *taskResolver) Checklists(ctx context.Context, obj *db.Task) ([]db.TaskChecklist, error) {
-	return r.Repository.GetTaskChecklistsForTask(ctx, obj.TaskID)
+	checklists, err := r.Repository.GetTaskChecklistsForTask(ctx, obj.TaskID)
+	if err != nil && err != sql.ErrNoRows {
+		return []db.TaskChecklist{}, err
+	}
+	return checklists, nil
 }
 
 func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, error) {
