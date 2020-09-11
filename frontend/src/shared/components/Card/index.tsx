@@ -20,6 +20,7 @@ import {
   ListCardLabels,
   ListCardLabel,
   ListCardLabelText,
+  ListCardLabelsWrapper,
   ListCardOperation,
   CardTitle,
   CardMembers,
@@ -158,35 +159,38 @@ const Card = React.forwardRef(
             </ListCardOperation>
           )}
           <ListCardDetails complete={complete ?? false}>
-            <ListCardLabels
-              toggleLabels={toggleLabels}
-              toggleDirection={toggleDirection}
-              onClick={e => {
-                e.stopPropagation();
-                if (onCardLabelClick) {
-                  onCardLabelClick();
-                }
-              }}
-            >
-              {labels &&
-                labels
-                  .slice()
-                  .sort((a, b) => a.labelColor.position - b.labelColor.position)
-                  .map(label => (
-                    <ListCardLabel
-                      onAnimationEnd={() => {
-                        if (setToggleLabels) {
-                          setToggleLabels(false);
-                        }
-                      }}
-                      variant={labelVariant ?? 'large'}
-                      color={label.labelColor.colorHex}
-                      key={label.id}
-                    >
-                      <ListCardLabelText>{label.name}</ListCardLabelText>
-                    </ListCardLabel>
-                  ))}
-            </ListCardLabels>
+            {labels && labels.length !== 0 && (
+              <ListCardLabelsWrapper>
+                <ListCardLabels
+                  toggleLabels={toggleLabels}
+                  toggleDirection={toggleDirection}
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (onCardLabelClick) {
+                      onCardLabelClick();
+                    }
+                  }}
+                >
+                  {labels
+                    .slice()
+                    .sort((a, b) => a.labelColor.position - b.labelColor.position)
+                    .map(label => (
+                      <ListCardLabel
+                        onAnimationEnd={() => {
+                          if (setToggleLabels) {
+                            setToggleLabels(false);
+                          }
+                        }}
+                        variant={labelVariant ?? 'large'}
+                        color={label.labelColor.colorHex}
+                        key={label.id}
+                      >
+                        <ListCardLabelText>{label.name}</ListCardLabelText>
+                      </ListCardLabel>
+                    ))}
+                </ListCardLabels>
+              </ListCardLabelsWrapper>
+            )}
             {editable ? (
               <EditorContent>
                 {complete && <CompleteIcon width={16} height={16} />}
