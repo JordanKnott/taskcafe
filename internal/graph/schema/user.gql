@@ -11,6 +11,19 @@ extend type Mutation {
   updateUserPassword(input: UpdateUserPassword!): UpdateUserPasswordPayload!
   updateUserRole(input: UpdateUserRole!):
    UpdateUserRolePayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+  updateUserInfo(input: UpdateUserInfo!):
+    UpdateUserInfoPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+}
+
+type UpdateUserInfoPayload {
+  user: UserAccount!
+}
+
+input UpdateUserInfo {
+  name: String!
+  initials: String!
+  email: String!
+  bio: String!
 }
 
 input UpdateUserPassword {

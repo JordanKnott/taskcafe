@@ -3,11 +3,20 @@ import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
 import { getAccessToken } from 'shared/utils/accessToken';
 import Settings from 'shared/components/Settings';
-import { useMeQuery, useClearProfileAvatarMutation, useUpdateUserPasswordMutation } from 'shared/generated/graphql';
+import {
+  useMeQuery,
+  useClearProfileAvatarMutation,
+  useUpdateUserPasswordMutation,
+  useUpdateUserInfoMutation,
+  MeQuery,
+  MeDocument,
+} from 'shared/generated/graphql';
 import axios from 'axios';
 import { useCurrentUser } from 'App/context';
 import NOOP from 'shared/utils/noop';
 import { toast } from 'react-toastify';
+import updateApolloCache from 'shared/utils/cache';
+import produce from 'immer';
 
 const MainContent = styled.div`
   padding: 0 0 50px 80px;
@@ -19,6 +28,7 @@ const Projects = () => {
   const $fileUpload = useRef<HTMLInputElement>(null);
   const [clearProfileAvatar] = useClearProfileAvatarMutation();
   const { user } = useCurrentUser();
+  const [updateUserInfo] = useUpdateUserInfoMutation();
   const [updateUserPassword] = useUpdateUserPasswordMutation();
   const { loading, data, refetch } = useMeQuery();
   useEffect(() => {
@@ -67,6 +77,13 @@ const Projects = () => {
           onResetPassword={(password, done) => {
             updateUserPassword({ variables: { userID: user.id, password } });
             toast('Password was changed!');
+            done();
+          }}
+          onChangeUserInfo={(d, done) => {
+            updateUserInfo({
+              variables: { name: d.full_name, bio: d.bio, email: d.email, initials: d.initials },
+            });
+            toast('User info was saved!');
             done();
           }}
           onProfileAvatarRemove={() => {

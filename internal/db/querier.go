@@ -114,6 +114,7 @@ type Querier interface {
 	UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) (Task, error)
 	UpdateTaskPosition(ctx context.Context, arg UpdateTaskPositionParams) (Task, error)
 	UpdateTeamMemberRole(ctx context.Context, arg UpdateTeamMemberRoleParams) (TeamMember, error)
+	UpdateUserAccountInfo(ctx context.Context, arg UpdateUserAccountInfoParams) (UserAccount, error)
 	UpdateUserAccountProfileAvatarURL(ctx context.Context, arg UpdateUserAccountProfileAvatarURLParams) (UserAccount, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UserAccount, error)
 }

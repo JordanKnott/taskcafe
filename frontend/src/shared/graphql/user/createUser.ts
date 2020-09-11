@@ -24,6 +24,7 @@ export const CREATE_USER_MUTATION = gql`
       fullName
       initials
       username
+      bio
       profileIcon {
         url
         initials

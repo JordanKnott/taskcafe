@@ -455,6 +455,17 @@ type UpdateTeamMemberRolePayload struct {
 	Member *Member   `json:"member"`
 }
 
+type UpdateUserInfo struct {
+	Name     string `json:"name"`
+	Initials string `json:"initials"`
+	Email    string `json:"email"`
+	Bio      string `json:"bio"`
+}
+
+type UpdateUserInfoPayload struct {
+	User *db.UserAccount `json:"user"`
+}
+
 type UpdateUserPassword struct {
 	UserID   uuid.UUID `json:"userID"`
 	Password string    `json:"password"`

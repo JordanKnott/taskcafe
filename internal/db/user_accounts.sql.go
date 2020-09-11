@@ -13,7 +13,7 @@ import (
 
 const createUserAccount = `-- name: CreateUserAccount :one
 INSERT INTO user_account(full_name, initials, email, username, created_at, password_hash, role_code)
-  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code
+  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio
 `
 
 type CreateUserAccountParams struct {
@@ -48,6 +48,7 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 		&i.Initials,
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
+		&i.Bio,
 	)
 	return i, err
 }
@@ -62,7 +63,7 @@ func (q *Queries) DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) e
 }
 
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
-SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code FROM user_account WHERE username != 'system'
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio FROM user_account WHERE username != 'system'
 `
 
 func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error) {
@@ -85,6 +86,7 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 			&i.Initials,
 			&i.ProfileAvatarUrl,
 			&i.RoleCode,
+			&i.Bio,
 		); err != nil {
 			return nil, err
 		}
@@ -119,7 +121,7 @@ func (q *Queries) GetRoleForUserID(ctx context.Context, userID uuid.UUID) (GetRo
 }
 
 const getUserAccountByID = `-- name: GetUserAccountByID :one
-SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code FROM user_account WHERE user_id = $1
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio FROM user_account WHERE user_id = $1
 `
 
 func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error) {
@@ -136,12 +138,13 @@ func (q *Queries) GetUserAccountByID(ctx context.Context, userID uuid.UUID) (Use
 		&i.Initials,
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
+		&i.Bio,
 	)
 	return i, err
 }
 
 const getUserAccountByUsername = `-- name: GetUserAccountByUsername :one
-SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code FROM user_account WHERE username = $1
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio FROM user_account WHERE username = $1
 `
 
 func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error) {
@@ -158,12 +161,13 @@ func (q *Queries) GetUserAccountByUsername(ctx context.Context, username string)
 		&i.Initials,
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
+		&i.Bio,
 	)
 	return i, err
 }
 
 const setUserPassword = `-- name: SetUserPassword :one
-UPDATE user_account SET password_hash = $2 WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code
+UPDATE user_account SET password_hash = $2 WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio
 `
 
 type SetUserPasswordParams struct {
@@ -185,13 +189,52 @@ func (q *Queries) SetUserPassword(ctx context.Context, arg SetUserPasswordParams
 		&i.Initials,
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
+		&i.Bio,
+	)
+	return i, err
+}
+
+const updateUserAccountInfo = `-- name: UpdateUserAccountInfo :one
+UPDATE user_account SET bio = $2, full_name = $3, initials = $4, email = $5
+  WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio
+`
+
+type UpdateUserAccountInfoParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	Bio      string    `json:"bio"`
+	FullName string    `json:"full_name"`
+	Initials string    `json:"initials"`
+	Email    string    `json:"email"`
+}
+
+func (q *Queries) UpdateUserAccountInfo(ctx context.Context, arg UpdateUserAccountInfoParams) (UserAccount, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAccountInfo,
+		arg.UserID,
+		arg.Bio,
+		arg.FullName,
+		arg.Initials,
+		arg.Email,
+	)
+	var i UserAccount
+	err := row.Scan(
+		&i.UserID,
+		&i.CreatedAt,
+		&i.Email,
+		&i.Username,
+		&i.PasswordHash,
+		&i.ProfileBgColor,
+		&i.FullName,
+		&i.Initials,
+		&i.ProfileAvatarUrl,
+		&i.RoleCode,
+		&i.Bio,
 	)
 	return i, err
 }
 
 const updateUserAccountProfileAvatarURL = `-- name: UpdateUserAccountProfileAvatarURL :one
 UPDATE user_account SET profile_avatar_url = $2 WHERE user_id = $1
-  RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code
+  RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio
 `
 
 type UpdateUserAccountProfileAvatarURLParams struct {
@@ -213,12 +256,13 @@ func (q *Queries) UpdateUserAccountProfileAvatarURL(ctx context.Context, arg Upd
 		&i.Initials,
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
+		&i.Bio,
 	)
 	return i, err
 }
 
 const updateUserRole = `-- name: UpdateUserRole :one
-UPDATE user_account SET role_code = $2 WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code
+UPDATE user_account SET role_code = $2 WHERE user_id = $1 RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio
 `
 
 type UpdateUserRoleParams struct {
@@ -240,6 +284,7 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 		&i.Initials,
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
+		&i.Bio,
 	)
 	return i, err
 }

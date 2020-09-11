@@ -78,6 +78,7 @@ const Icon = styled.div`
 
 type InputProps = {
   variant?: 'normal' | 'alternate';
+  disabled?: boolean;
   label?: string;
   width?: string;
   floatingLabel?: boolean;
@@ -116,6 +117,7 @@ function useCombinedRefs(...refs: any) {
 const Input = React.forwardRef(
   (
     {
+      disabled = false,
       width = 'auto',
       variant = 'normal',
       type = 'text',
@@ -160,6 +162,7 @@ const Input = React.forwardRef(
           onChange={e => {
             setHasValue((e.currentTarget.value !== '' || floatingLabel) ?? false);
           }}
+          disabled={disabled}
           hasValue={hasValue}
           ref={combinedRef}
           id={id}

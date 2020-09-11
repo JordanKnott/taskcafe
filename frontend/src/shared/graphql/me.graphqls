@@ -3,6 +3,9 @@ query me {
     user {
       id
       fullName
+      username
+      email
+      bio
       profileIcon {
         initials
         bgColor

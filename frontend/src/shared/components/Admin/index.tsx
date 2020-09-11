@@ -557,6 +557,7 @@ const Admin: React.FC<AdminProps> = ({
         <TabNavContent>
           {items.map((item, idx) => (
             <NavItem
+              key={item.name}
               onClick={(tab, top) => {
                 if ($tabNav && $tabNav.current) {
                   const pos = $tabNav.current.getBoundingClientRect();

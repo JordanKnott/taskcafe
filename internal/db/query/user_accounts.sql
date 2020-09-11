@@ -15,6 +15,10 @@ INSERT INTO user_account(full_name, initials, email, username, created_at, passw
 UPDATE user_account SET profile_avatar_url = $2 WHERE user_id = $1
   RETURNING *;
 
+-- name: UpdateUserAccountInfo :one
+UPDATE user_account SET bio = $2, full_name = $3, initials = $4, email = $5
+  WHERE user_id = $1 RETURNING *;
+
 -- name: DeleteUserAccountByID :exec
 DELETE FROM user_account WHERE user_id = $1;
 

@@ -78,6 +78,7 @@ type UserAccount {
   createdAt: Time!
   fullName: String!
   initials: String!
+  bio: String!
   role: Role!
   username: String!
   profileIcon: ProfileIcon!

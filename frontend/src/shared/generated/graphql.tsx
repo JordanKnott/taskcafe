@@ -105,6 +105,7 @@ export type UserAccount = {
   createdAt: Scalars['Time'];
   fullName: Scalars['String'];
   initials: Scalars['String'];
+  bio: Scalars['String'];
   role: Role;
   username: Scalars['String'];
   profileIcon: ProfileIcon;
@@ -303,6 +304,7 @@ export type Mutation = {
   updateTaskLocation: UpdateTaskLocationPayload;
   updateTaskName: Task;
   updateTeamMemberRole: UpdateTeamMemberRolePayload;
+  updateUserInfo: UpdateUserInfoPayload;
   updateUserPassword: UpdateUserPasswordPayload;
   updateUserRole: UpdateUserRolePayload;
 };
@@ -545,6 +547,11 @@ export type MutationUpdateTaskNameArgs = {
 
 export type MutationUpdateTeamMemberRoleArgs = {
   input: UpdateTeamMemberRole;
+};
+
+
+export type MutationUpdateUserInfoArgs = {
+  input: UpdateUserInfo;
 };
 
 
@@ -979,6 +986,18 @@ export type UpdateTeamMemberRolePayload = {
   member: Member;
 };
 
+export type UpdateUserInfoPayload = {
+   __typename?: 'UpdateUserInfoPayload';
+  user: UserAccount;
+};
+
+export type UpdateUserInfo = {
+  name: Scalars['String'];
+  initials: Scalars['String'];
+  email: Scalars['String'];
+  bio: Scalars['String'];
+};
+
 export type UpdateUserPassword = {
   userID: Scalars['UUID'];
   password: Scalars['String'];
@@ -1354,7 +1373,7 @@ export type MeQuery = (
     { __typename?: 'MePayload' }
     & { user: (
       { __typename?: 'UserAccount' }
-      & Pick<UserAccount, 'id' | 'fullName'>
+      & Pick<UserAccount, 'id' | 'fullName' | 'username' | 'email' | 'bio'>
       & { profileIcon: (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
@@ -2080,7 +2099,7 @@ export type CreateUserAccountMutation = (
   { __typename?: 'Mutation' }
   & { createUserAccount: (
     { __typename?: 'UserAccount' }
-    & Pick<UserAccount, 'id' | 'email' | 'fullName' | 'initials' | 'username'>
+    & Pick<UserAccount, 'id' | 'email' | 'fullName' | 'initials' | 'username' | 'bio'>
     & { profileIcon: (
       { __typename?: 'ProfileIcon' }
       & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
@@ -2123,6 +2142,29 @@ export type DeleteUserAccountMutation = (
     & { userAccount: (
       { __typename?: 'UserAccount' }
       & Pick<UserAccount, 'id'>
+    ) }
+  ) }
+);
+
+export type UpdateUserInfoMutationVariables = {
+  name: Scalars['String'];
+  initials: Scalars['String'];
+  email: Scalars['String'];
+  bio: Scalars['String'];
+};
+
+
+export type UpdateUserInfoMutation = (
+  { __typename?: 'Mutation' }
+  & { updateUserInfo: (
+    { __typename?: 'UpdateUserInfoPayload' }
+    & { user: (
+      { __typename?: 'UserAccount' }
+      & Pick<UserAccount, 'id' | 'email' | 'fullName' | 'bio'>
+      & { profileIcon: (
+        { __typename?: 'ProfileIcon' }
+        & Pick<ProfileIcon, 'initials'>
+      ) }
     ) }
   ) }
 );
@@ -2795,6 +2837,9 @@ export const MeDocument = gql`
     user {
       id
       fullName
+      username
+      email
+      bio
       profileIcon {
         initials
         bgColor
@@ -4271,6 +4316,7 @@ export const CreateUserAccountDocument = gql`
     fullName
     initials
     username
+    bio
     profileIcon {
       url
       initials
@@ -4369,6 +4415,49 @@ export function useDeleteUserAccountMutation(baseOptions?: ApolloReactHooks.Muta
 export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
 export type DeleteUserAccountMutationResult = ApolloReactCommon.MutationResult<DeleteUserAccountMutation>;
 export type DeleteUserAccountMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
+export const UpdateUserInfoDocument = gql`
+    mutation updateUserInfo($name: String!, $initials: String!, $email: String!, $bio: String!) {
+  updateUserInfo(input: {name: $name, initials: $initials, email: $email, bio: $bio}) {
+    user {
+      id
+      email
+      fullName
+      bio
+      profileIcon {
+        initials
+      }
+    }
+  }
+}
+    `;
+export type UpdateUserInfoMutationFn = ApolloReactCommon.MutationFunction<UpdateUserInfoMutation, UpdateUserInfoMutationVariables>;
+
+/**
+ * __useUpdateUserInfoMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserInfoMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserInfoMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserInfoMutation, { data, loading, error }] = useUpdateUserInfoMutation({
+ *   variables: {
+ *      name: // value for 'name'
+ *      initials: // value for 'initials'
+ *      email: // value for 'email'
+ *      bio: // value for 'bio'
+ *   },
+ * });
+ */
+export function useUpdateUserInfoMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateUserInfoMutation, UpdateUserInfoMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateUserInfoMutation, UpdateUserInfoMutationVariables>(UpdateUserInfoDocument, baseOptions);
+      }
+export type UpdateUserInfoMutationHookResult = ReturnType<typeof useUpdateUserInfoMutation>;
+export type UpdateUserInfoMutationResult = ApolloReactCommon.MutationResult<UpdateUserInfoMutation>;
+export type UpdateUserInfoMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateUserInfoMutation, UpdateUserInfoMutationVariables>;
 export const UpdateUserPasswordDocument = gql`
     mutation updateUserPassword($userID: UUID!, $password: String!) {
   updateUserPassword(input: {userID: $userID, password: $password}) {

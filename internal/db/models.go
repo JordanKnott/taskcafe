@@ -157,4 +157,5 @@ type UserAccount struct {
 	Initials         string         `json:"initials"`
 	ProfileAvatarUrl sql.NullString `json:"profile_avatar_url"`
 	RoleCode         string         `json:"role_code"`
+	Bio              string         `json:"bio"`
 }

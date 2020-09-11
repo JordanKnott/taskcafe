@@ -46,6 +46,8 @@ type OwnedList = {
 type TaskUser = {
   id: string;
   fullName: string;
+  email?: string;
+  bio?: string;
   profileIcon: ProfileIcon;
   username?: string;
   role?: Role;

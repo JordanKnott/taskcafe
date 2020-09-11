@@ -826,6 +826,17 @@ func (r *mutationResolver) UpdateUserRole(ctx context.Context, input UpdateUserR
 	return &UpdateUserRolePayload{User: &user}, nil
 }
 
+func (r *mutationResolver) UpdateUserInfo(ctx context.Context, input UpdateUserInfo) (*UpdateUserInfoPayload, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		return &UpdateUserInfoPayload{}, errors.New("invalid user ID")
+	}
+	user, err := r.Repository.UpdateUserAccountInfo(ctx, db.UpdateUserAccountInfoParams{
+		Bio: input.Bio, FullName: input.Name, Initials: input.Initials, Email: input.Email, UserID: userID,
+	})
+	return &UpdateUserInfoPayload{User: &user}, err
+}
+
 func (r *notificationResolver) ID(ctx context.Context, obj *db.Notification) (uuid.UUID, error) {
 	return obj.NotificationID, nil
 }
