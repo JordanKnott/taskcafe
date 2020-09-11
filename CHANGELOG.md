@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Task sorting & filtering
 - Redesigned the Task Details UI
+- Implement task group actions (duplicate/delete all tasks/sort)
 
 ### Fixed
 - removed CORS middleware to fix security issue
