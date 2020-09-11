@@ -260,11 +260,7 @@ const Projects = () => {
     },
   });
   if (loading) {
-    return (
-      <>
-        <span>loading</span>
-      </>
-    );
+    return <GlobalTopNavbar onSaveProjectName={NOOP} projectID={null} name={null} />;
   }
 
   const colors = ['#e362e3', '#7a6ff0', '#37c5ab', '#aa62e3', '#e8384f'];

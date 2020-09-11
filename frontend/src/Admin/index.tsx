@@ -171,7 +171,7 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
 
 const AdminRoute = () => {
   useEffect(() => {
-    document.title = 'Taskcafé | Admin';
+    document.title = 'Admin | Taskcafé';
   }, []);
   const { loading, data } = useUsersQuery();
   const { showPopup, hidePopup } = usePopup();
