@@ -251,8 +251,8 @@ export const NavSeparator = styled.div`
 export const LogoContainer = styled(Link)`
   display: block;
   left: 50%;
+  right: 50%;
   position: absolute;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
