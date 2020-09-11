@@ -21,6 +21,8 @@ Was this project useful? Please consider <a href="https://www.buymeacoffee.com/j
 
 **Please note that this project is still in active development. Some options may not work yet! For updates on development, join the Discord server**
 
+![Taskcafe](./.github/taskcafe_preview.png)
+
 ## Features
 
 Currently Taskcafe only offers basic task tracking through a Kanban board.
