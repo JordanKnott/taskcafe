@@ -180,6 +180,7 @@ export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
 export const ListCardLabels = styled.div<{ toggleLabels: boolean; toggleDirection: 'expand' | 'shrink' }>`
   overflow: auto;
   position: relative;
+  display: inline-flex;
   &:hover {
     opacity: 0.8;
   }
