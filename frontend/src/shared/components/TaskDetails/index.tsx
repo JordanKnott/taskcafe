@@ -169,7 +169,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <LeftSidebarSection>
             <SidebarTitle>TASK GROUP</SidebarTitle>
             <SidebarButton>
-              <SidebarButtonText>Release 0.1.0</SidebarButtonText>
+              <SidebarButtonText>{task.taskGroup.name}</SidebarButtonText>
             </SidebarButton>
             <DueDateTitle>DUE DATE</DueDateTitle>
             <SidebarButton

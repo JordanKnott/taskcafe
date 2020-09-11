@@ -1264,7 +1264,7 @@ export type FindTaskQuery = (
     & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position' | 'complete'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
-      & Pick<TaskGroup, 'id'>
+      & Pick<TaskGroup, 'id' | 'name'>
     ), badges: (
       { __typename?: 'TaskBadges' }
       & { checklist?: Maybe<(
@@ -2702,6 +2702,7 @@ export const FindTaskDocument = gql`
     complete
     taskGroup {
       id
+      name
     }
     badges {
       checklist {
