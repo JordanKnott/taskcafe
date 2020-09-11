@@ -3,11 +3,10 @@ repos:
   hooks:
     - id: eslint
       name: eslint
-      entry: go run cmd/mage/main.go frontend:lint
+      entry: scripts/lint.sh
       language: system
       files: \.[jt]sx?$  # *.js, *.jsx, *.ts and *.tsx
       types: [file]
-      pass_filenames: false
 - hooks:
   - id: check-yaml
   - id: end-of-file-fixer
