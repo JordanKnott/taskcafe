@@ -30,6 +30,7 @@ import {
   AssignUserLabel,
   AssignUsersButton,
   AssignedUsersSection,
+  ViewRawButton,
   DueDateTitle,
   Container,
   LeftSidebar,
@@ -65,6 +66,7 @@ import {
   CommentProfile,
   CommentInnerWrapper,
   ActivitySection,
+  TaskDetailsEditor,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
@@ -153,6 +155,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     return true;
   });
   const [saveTimeout, setSaveTimeout] = useState<any>(null);
+  const [showRaw, setShowRaw] = useState(false);
   const [showCommentActions, setShowCommentActions] = useState(false);
   const taskDescriptionRef = useRef(task.description ?? '');
   const $noMemberBtn = useRef<HTMLDivElement>(null);
@@ -309,28 +312,34 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         </HeaderContainer>
         <InnerContentContainer>
           <DescriptionContainer>
-            <EditorContainer
-              onClick={e => {
-                if (!editTaskDescription) {
-                  setEditTaskDescription(true);
-                }
-              }}
-            >
-              <Editor
-                defaultValue={task.description ?? ''}
-                theme={dark}
-                readOnly={!editTaskDescription}
-                autoFocus
-                onChange={value => {
-                  setSaveTimeout(() => {
-                    clearTimeout(saveTimeout);
-                    return setTimeout(saveDescription, 2000);
-                  });
-                  const text = value();
-                  taskDescriptionRef.current = text;
+            {showRaw ? (
+              <TaskDetailsEditor value={taskDescriptionRef.current} />
+            ) : (
+              <EditorContainer
+                onClick={e => {
+                  if (!editTaskDescription) {
+                    setEditTaskDescription(true);
+                  }
                 }}
-              />
-            </EditorContainer>
+              >
+                <Editor
+                  defaultValue={task.description ?? ''}
+                  theme={dark}
+                  readOnly={!editTaskDescription}
+                  autoFocus
+                  onChange={value => {
+                    setSaveTimeout(() => {
+                      clearTimeout(saveTimeout);
+                      return setTimeout(saveDescription, 2000);
+                    });
+                    const text = value();
+                    taskDescriptionRef.current = text;
+                  }}
+                />
+              </EditorContainer>
+            )}
+
+            <ViewRawButton onClick={() => setShowRaw(!showRaw)}>{showRaw ? 'Show editor' : 'Show raw'}</ViewRawButton>
           </DescriptionContainer>
           <ChecklistSection>
             <DragDropContext onDragEnd={result => onDragEnd(result, task, onChecklistDrop, onChecklistItemDrop)}>

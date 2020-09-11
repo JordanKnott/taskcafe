@@ -585,3 +585,30 @@ export const ActivityItemLog = styled.span`
   margin-left: 2px;
   color: rgba(${props => props.theme.colors.text.primary});
 `;
+
+export const ViewRawButton = styled.button`
+  border-radius: 3px;
+  padding: 8px 12px;
+  display: flex;
+  position: absolute;
+  right: 4px;
+  bottom: -24px;
+  cursor: pointer;
+  color: rgba(${props => props.theme.colors.text.primary}, 0.25);
+  &:hover {
+    color: rgba(${props => props.theme.colors.text.primary});
+  }
+`;
+
+export const TaskDetailsEditor = styled(TextareaAutosize)`
+  min-height: 108px;
+  color: #c2c6dc;
+  background: #262c49;
+  border-radius: 3px;
+  line-height: 20px;
+  margin-left: 32px;
+  margin-right: 32px;
+  padding: 9px 8px 7px 8px;
+  outline: none;
+  border: none;
+`;
