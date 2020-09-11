@@ -14,6 +14,7 @@ import (
 
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/frontend"
+	"github.com/jordanknott/taskcafe/internal/utils"
 )
 
 // Frontend serves the index.html file
@@ -30,7 +31,7 @@ func (h *TaskcafeHandler) Frontend(w http.ResponseWriter, r *http.Request) {
 // ProfileImageUpload handles a user uploading a new avatar profile image
 func (h *TaskcafeHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info("preparing to upload file")
-	userID, ok := r.Context().Value("userID").(uuid.UUID)
+	userID, ok := r.Context().Value(utils.UserIDKey).(uuid.UUID)
 	if !ok {
 		log.Error("not a valid uuid")
 		w.WriteHeader(http.StatusInternalServerError)
