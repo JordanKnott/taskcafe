@@ -59,7 +59,7 @@ const Install = () => {
                   } else {
                     const response: RefreshTokenResponse = await x.data;
                     const { accessToken: newToken, isInstalled } = response;
-                    const claims: JWTToken = jwtDecode(accessToken);
+                    const claims: JWTToken = jwtDecode(newToken);
                     const currentUser = {
                       id: claims.userId,
                       roles: {
@@ -69,7 +69,7 @@ const Install = () => {
                       },
                     };
                     setUser(currentUser);
-                    setAccessToken(accessToken);
+                    setAccessToken(newToken);
                     if (!isInstalled) {
                       history.replace('/install');
                     }

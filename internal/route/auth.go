@@ -251,10 +251,12 @@ func (h *TaskcafeHandler) InstallHandler(w http.ResponseWriter, r *http.Request)
 	refreshExpiresAt := refreshCreatedAt.AddDate(0, 0, 1)
 	refreshTokenString, err := h.repo.CreateRefreshToken(r.Context(), db.CreateRefreshTokenParams{user.UserID, refreshCreatedAt, refreshExpiresAt})
 
+	log.WithField("userID", user.UserID.String()).Info("creating install access token")
 	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+	log.Info(accessTokenString)
 
 	w.Header().Set("Content-type", "application/json")
 	http.SetCookie(w, &http.Cookie{

@@ -1,6 +1,7 @@
 let accessToken = '';
 
 export function setAccessToken(newToken: string) {
+  console.log(newToken);
   accessToken = newToken;
 }
 export function getAccessToken() {

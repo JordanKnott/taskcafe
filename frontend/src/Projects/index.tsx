@@ -8,6 +8,8 @@ import {
   useCreateProjectMutation,
   GetProjectsDocument,
   GetProjectsQuery,
+  MeQuery,
+  MeDocument,
 } from 'shared/generated/graphql';
 
 import { Link } from 'react-router-dom';
