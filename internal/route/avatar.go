@@ -61,9 +61,9 @@ func (h *TaskcafeHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	h.repo.UpdateUserAccountProfileAvatarURL(r.Context(), db.UpdateUserAccountProfileAvatarURLParams{UserID: userID, ProfileAvatarUrl: sql.NullString{String: "http://localhost:3333/uploads/" + handler.Filename, Valid: true}})
+	h.repo.UpdateUserAccountProfileAvatarURL(r.Context(), db.UpdateUserAccountProfileAvatarURLParams{UserID: userID, ProfileAvatarUrl: sql.NullString{String: "/uploads/" + handler.Filename, Valid: true}})
 	// return that we have successfully uploaded our file!
 	log.Info("file uploaded")
-	json.NewEncoder(w).Encode(AvatarUploadResponseData{URL: "http://localhost:3333/uploads/" + handler.Filename, UserID: userID.String()})
+	json.NewEncoder(w).Encode(AvatarUploadResponseData{URL: "/uploads/" + handler.Filename, UserID: userID.String()})
 
 }
