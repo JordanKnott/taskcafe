@@ -18,6 +18,8 @@ If applicable, add screenshots to help explain your problem.
 **Additional context**
 Add any other context about the problem here.
 
+Please send the Taskcafe web service logs if applicable.
+
 <!--
 
 Please read the contributing guide before working on any new pull requests!
