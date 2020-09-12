@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -48,22 +50,24 @@ func (h *TaskcafeHandler) ProfileImageUpload(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	defer file.Close()
-	log.WithFields(log.Fields{"filename": handler.Filename, "size": handler.Size, "header": handler.Header}).Info("file metadata")
+	filename := strings.ReplaceAll(handler.Filename, " ", "-")
+	encodedFilename := url.QueryEscape(filename)
+	log.WithFields(log.Fields{"filename": encodedFilename, "size": handler.Size, "header": handler.Header}).Info("file metadata")
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.WithError(err).Error("while reading file")
 		return
 	}
-	err = ioutil.WriteFile("uploads/"+handler.Filename, fileBytes, 0644)
+	err = ioutil.WriteFile("uploads/"+filename, fileBytes, 0644)
 	if err != nil {
 		log.WithError(err).Error("while reading file")
 		return
 	}
 
-	h.repo.UpdateUserAccountProfileAvatarURL(r.Context(), db.UpdateUserAccountProfileAvatarURLParams{UserID: userID, ProfileAvatarUrl: sql.NullString{String: "/uploads/" + handler.Filename, Valid: true}})
+	h.repo.UpdateUserAccountProfileAvatarURL(r.Context(), db.UpdateUserAccountProfileAvatarURLParams{UserID: userID, ProfileAvatarUrl: sql.NullString{String: "/uploads/" + encodedFilename, Valid: true}})
 	// return that we have successfully uploaded our file!
 	log.Info("file uploaded")
-	json.NewEncoder(w).Encode(AvatarUploadResponseData{URL: "/uploads/" + handler.Filename, UserID: userID.String()})
+	json.NewEncoder(w).Encode(AvatarUploadResponseData{URL: "/uploads/" + encodedFilename, UserID: userID.String()})
 
 }
