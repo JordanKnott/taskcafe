@@ -40,16 +40,21 @@ func newWebCmd() *cobra.Command {
 			)
 			var db *sqlx.DB
 			var err error
-			retryNumber := 0
-			for i := 0; retryNumber <= 3; i++ {
-				retryNumber++
+			var retryDuration time.Duration
+			maxRetryNumber := 4
+			for i := 0; i < maxRetryNumber; i++ {
 				db, err = sqlx.Connect("postgres", connection)
 				if err == nil {
 					break
 				}
-				retryDuration := time.Duration(i*2) * time.Second
-				log.WithFields(log.Fields{"retryNumber": retryNumber, "retryDuration": retryDuration}).WithError(err).Error("issue connecting to database, retrying")
-				time.Sleep(retryDuration)
+				retryDuration = time.Duration(i*2) * time.Second
+				log.WithFields(log.Fields{"retryNumber": i, "retryDuration": retryDuration}).WithError(err).Error("issue connecting to database, retrying")
+				if i != maxRetryNumber-1 {
+					time.Sleep(retryDuration)
+				}
+			}
+			if err != nil {
+				return err
 			}
 			db.SetMaxOpenConns(25)
 			db.SetMaxIdleConns(25)
