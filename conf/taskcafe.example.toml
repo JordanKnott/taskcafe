@@ -1,4 +1,4 @@
-[general]
+[server]
 hostname = '0.0.0.0:3333'
 
 [email_notifications]

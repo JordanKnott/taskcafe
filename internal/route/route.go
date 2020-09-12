@@ -59,11 +59,12 @@ func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // TaskcafeHandler contains all the route handlers
 type TaskcafeHandler struct {
-	repo db.Repository
+	repo   db.Repository
+	jwtKey []byte
 }
 
 // NewRouter creates a new router for chi
-func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB, jwtKey []byte) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -79,7 +80,7 @@ func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repository := db.NewRepository(dbConnection)
-	taskcafeHandler := TaskcafeHandler{*repository}
+	taskcafeHandler := TaskcafeHandler{*repository, jwtKey}
 
 	var imgServer = http.FileServer(http.Dir("./uploads/"))
 	r.Group(func(mux chi.Router) {
@@ -88,8 +89,9 @@ func NewRouter(dbConnection *sqlx.DB) (chi.Router, error) {
 		mux.Mount("/uploads/", http.StripPrefix("/uploads/", imgServer))
 
 	})
+	auth := AuthenticationMiddleware{jwtKey}
 	r.Group(func(mux chi.Router) {
-		mux.Use(AuthenticationMiddleware)
+		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
 		mux.Post("/auth/install", taskcafeHandler.InstallHandler)
 		mux.Handle("/graphql", graph.NewHandler(*repository))

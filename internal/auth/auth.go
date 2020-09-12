@@ -7,8 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var jwtKey = []byte("taskcafe_test_key")
-
 // RestrictedMode is used restrict JWT access to just the install route
 type RestrictedMode string
 
@@ -54,7 +52,7 @@ func (r *ErrMalformedToken) Error() string {
 }
 
 // NewAccessToken generates a new JWT access token with the correct claims
-func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string) (string, error) {
+func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string, jwtKey []byte) (string, error) {
 	role := RoleMember
 	if orgRole == "admin" {
 		role = RoleAdmin
@@ -76,7 +74,7 @@ func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string
 }
 
 // NewAccessTokenCustomExpiration creates an access token with a custom duration
-func NewAccessTokenCustomExpiration(userID string, dur time.Duration) (string, error) {
+func NewAccessTokenCustomExpiration(userID string, dur time.Duration, jwtKey []byte) (string, error) {
 	accessExpirationTime := time.Now().Add(dur)
 	accessClaims := &AccessTokenClaims{
 		UserID:         userID,
@@ -94,7 +92,7 @@ func NewAccessTokenCustomExpiration(userID string, dur time.Duration) (string, e
 }
 
 // ValidateAccessToken validates a JWT access token and returns the contained claims or an error if it's invalid
-func ValidateAccessToken(accessTokenString string) (AccessTokenClaims, error) {
+func ValidateAccessToken(accessTokenString string, jwtKey []byte) (AccessTokenClaims, error) {
 	accessClaims := &AccessTokenClaims{}
 	accessToken, err := jwt.ParseWithClaims(accessTokenString, accessClaims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil

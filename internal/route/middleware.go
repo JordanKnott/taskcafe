@@ -12,7 +12,12 @@ import (
 )
 
 // AuthenticationMiddleware is a middleware that requires a valid JWT token to be passed via the Authorization header
-func AuthenticationMiddleware(next http.Handler) http.Handler {
+type AuthenticationMiddleware struct {
+	jwtKey []byte
+}
+
+// Middleware returns the middleware handler
+func (m *AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bearerTokenRaw := r.Header.Get("Authorization")
 		splitToken := strings.Split(bearerTokenRaw, "Bearer")
@@ -21,7 +26,7 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		accessTokenString := strings.TrimSpace(splitToken[1])
-		accessClaims, err := auth.ValidateAccessToken(accessTokenString)
+		accessClaims, err := auth.ValidateAccessToken(accessTokenString, m.jwtKey)
 		if err != nil {
 			if _, ok := err.(*auth.ErrExpiredToken); ok {
 				w.WriteHeader(http.StatusUnauthorized)

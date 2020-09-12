@@ -3,11 +3,13 @@ package commands
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -62,7 +64,12 @@ func newWebCmd() *cobra.Command {
 			}
 
 			log.WithFields(log.Fields{"url": viper.GetString("server.hostname")}).Info("starting server")
-			r, _ := route.NewRouter(db)
+			secret := viper.GetString("server.secret")
+			if strings.TrimSpace(secret) == "" {
+				log.Warn("server.secret is not set, generating a random secret")
+				secret = uuid.New().String()
+			}
+			r, _ := route.NewRouter(db, []byte(secret))
 			http.ListenAndServe(viper.GetString("server.hostname"), r)
 			return nil
 		},
