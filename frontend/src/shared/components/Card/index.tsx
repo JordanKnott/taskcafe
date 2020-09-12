@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt, faList } from '@fortawesome/free-solid-svg-icons';
-import { faClock, faEye } from '@fortawesome/free-regular-svg-icons';
+import { Pencil, Eye, List } from 'shared/icons';
 import {
   EditorTextarea,
   CardMember,
@@ -155,7 +153,7 @@ const Card = React.forwardRef(
                 }
               }}
             >
-              <FontAwesomeIcon onClick={onOperationClick} color="#c2c6dc" size="xs" icon={faPencilAlt} />
+              <Pencil width={8} height={8} />
             </ListCardOperation>
           )}
           <ListCardDetails complete={complete ?? false}>
@@ -218,18 +216,18 @@ const Card = React.forwardRef(
             <ListCardBadges>
               {watched && (
                 <ListCardBadge>
-                  <FontAwesomeIcon color="#6b778c" icon={faEye} size="xs" />
+                  <Eye width={8} height={8} />
                 </ListCardBadge>
               )}
               {dueDate && (
                 <DueDateCardBadge isPastDue={dueDate.isPastDue}>
-                  <ClockIcon color={dueDate.isPastDue ? '#fff' : '#6b778c'} icon={faClock} size="xs" />
+                  <ClockIcon color={dueDate.isPastDue ? '#fff' : '#6b778c'} width={8} height={8} />
                   <ListCardBadgeText>{dueDate.formattedDate}</ListCardBadgeText>
                 </DueDateCardBadge>
               )}
               {description && (
                 <DescriptionBadge>
-                  <FontAwesomeIcon color="#6b778c" icon={faList} size="xs" />
+                  <List width={8} height={8} />
                 </DescriptionBadge>
               )}
               {checklists && (

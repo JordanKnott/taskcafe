@@ -1,9 +1,7 @@
 import styled, { css, keyframes } from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
-import { CheckCircle, CheckSquareOutline } from 'shared/icons';
-import { RefObject } from 'react';
+import { CheckCircle, CheckSquareOutline, Clock } from 'shared/icons';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
 export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
@@ -20,7 +18,9 @@ export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'no
       stroke: rgba(${props.theme.colors.success});
     `}
 `;
-export const ClockIcon = styled(FontAwesomeIcon)``;
+export const ClockIcon = styled(Clock)<{ color: string }>`
+  fill: ${props => props.color};
+`;
 
 export const EditorTextarea = styled(TextareaAutosize)`
   overflow: hidden;

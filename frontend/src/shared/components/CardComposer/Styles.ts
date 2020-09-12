@@ -1,15 +1,15 @@
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
 import TextareaAutosize from 'react-autosize-textarea';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { mixin } from 'shared/utils/styles';
 
-export const CancelIcon = styled(FontAwesomeIcon)`
+export const CancelIconWrapper = styled.div`
   opacity: 0.8;
   cursor: pointer;
   font-size: 1.25em;
   padding-left: 5px;
 `;
+
 export const CardComposerWrapper = styled.div<{ isOpen: boolean }>`
   padding-bottom: 8px;
   display: ${props => (props.isOpen ? 'flex' : 'none')};

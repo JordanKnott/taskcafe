@@ -1,5 +1,7 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import Eye from './Eye';
+import List from './List';
 import At from './At';
 import Task from './Task';
 import Smile from './Smile';
@@ -85,4 +87,6 @@ export {
   Clone,
   Paperclip,
   Share,
+  Eye,
+  List,
 };

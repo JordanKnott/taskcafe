@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import useOnEscapeKeyDown from 'shared/hooks/onEscapeKeyDown';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+import { Cross } from 'shared/icons';
 
 import {
   CardComposerWrapper,
-  CancelIcon,
+  CancelIconWrapper,
   AddCardButton,
   ComposerControls,
   ComposerControlsSaveSection,
@@ -52,7 +52,9 @@ const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
           >
             Add Card
           </AddCardButton>
-          <CancelIcon onClick={onClose} icon={faTimes} color="#42526e" />
+          <CancelIconWrapper onClick={() => onClose()}>
+            <Cross width={12} height={12} />
+          </CancelIconWrapper>
         </ComposerControlsSaveSection>
         <ComposerControlsActionsSection />
       </ComposerControls>
