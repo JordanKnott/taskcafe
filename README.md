@@ -14,6 +14,9 @@
   <a href="https://goreportcard.com/report/github.com/JordanKnott/taskcafe">
     <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/JordanKnott/taskcafe" />
   </a>
+  <a href="">
+    <img alt="Docker pulls" src="https://img.shields.io/docker/pulls/taskcafe/taskcafe" />
+  </a>
 </p>
 <p align="center">
 Was this project useful? Please consider <a href="https://www.buymeacoffee.com/jordanknott">donating</a> to help me improve it!
