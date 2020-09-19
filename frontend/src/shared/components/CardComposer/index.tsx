@@ -26,10 +26,9 @@ const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
   useOnOutsideClick($cardRef, true, onClose, null);
   useOnEscapeKeyDown(isOpen, onClose);
   return (
-    <CardComposerWrapper isOpen={isOpen}>
+    <CardComposerWrapper isOpen={isOpen} ref={$cardRef}>
       <Card
         title={cardName}
-        ref={$cardRef}
         taskID=""
         taskGroupID=""
         editable
