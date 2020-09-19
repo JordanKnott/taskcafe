@@ -75,8 +75,7 @@ func newWebCmd() *cobra.Command {
 				secret = uuid.New().String()
 			}
 			r, _ := route.NewRouter(db, []byte(secret))
-			http.ListenAndServe(viper.GetString("server.hostname"), r)
-			return nil
+			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},
 	}
 	cc.Flags().Bool("migrate", false, "if true, auto run's schema migrations before starting the web server")
