@@ -41,3 +41,16 @@ UPDATE task_checklist SET position = $2 WHERE task_checklist_id = $1 RETURNING *
 
 -- name: UpdateTaskChecklistItemLocation :one
 UPDATE task_checklist_item SET position = $2, task_checklist_id = $3 WHERE task_checklist_item_id = $1 RETURNING *;
+
+-- name: GetProjectIDForTaskChecklist :one
+SELECT project_id FROM task_checklist
+  INNER JOIN task ON task.task_id = task_checklist.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE task_checklist.task_checklist_id = $1;
+
+-- name: GetProjectIDForTaskChecklistItem :one
+SELECT project_id FROM task_checklist_item AS tci
+  INNER JOIN task_checklist ON task_checklist.task_checklist_id = tci.task_checklist_id
+  INNER JOIN task ON task.task_id = task_checklist.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE tci.task_checklist_item_id = $1;

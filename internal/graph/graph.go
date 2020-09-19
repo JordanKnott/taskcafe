@@ -51,31 +51,56 @@ func NewHandler(repo db.Repository) http.Handler {
 			fieldName = "TeamID"
 		case ObjectTypeTask:
 			fieldName = "TaskID"
+		case ObjectTypeTaskGroup:
+			fieldName = "TaskGroupID"
+		case ObjectTypeTaskChecklist:
+			fieldName = "TaskChecklistID"
+		case ObjectTypeTaskChecklistItem:
+			fieldName = "TaskChecklistItemID"
 		default:
 			fieldName = "ProjectID"
 		}
 		log.WithFields(log.Fields{"typeArg": typeArg, "fieldName": fieldName}).Info("getting field by name")
-		subjectID, ok = val.FieldByName(fieldName).Interface().(uuid.UUID)
+		subjectField := val.FieldByName(fieldName)
+		if !subjectField.IsValid() {
+			log.Error("subject field name does not exist on input type")
+			return nil, errors.New("subject field name does not exist on input type")
+		}
+		subjectID, ok = subjectField.Interface().(uuid.UUID)
 		if !ok {
+			log.Error("error while casting subject UUID")
 			return nil, errors.New("error while casting subject uuid")
 		}
 
 		var err error
 		if level == ActionLevelProject {
+			log.WithFields(log.Fields{"subjectID": subjectID}).Info("fetching subject ID by typeArg")
 			if typeArg == ObjectTypeTask {
-				log.WithFields(log.Fields{"subjectID": subjectID}).Info("fetching project ID using task ID")
 				subjectID, err = repo.GetProjectIDForTask(ctx, subjectID)
-				if err != nil {
-					return nil, err
-				}
 			}
-			roles, err := GetProjectRoles(ctx, repo, subjectID)
+			if typeArg == ObjectTypeTaskGroup {
+				subjectID, err = repo.GetProjectIDForTaskGroup(ctx, subjectID)
+			}
+			if typeArg == ObjectTypeTaskChecklist {
+				subjectID, err = repo.GetProjectIDForTaskChecklist(ctx, subjectID)
+			}
+			if typeArg == ObjectTypeTaskChecklistItem {
+				subjectID, err = repo.GetProjectIDForTaskChecklistItem(ctx, subjectID)
+			}
 			if err != nil {
+				log.WithError(err).Error("error while getting subject ID")
 				return nil, err
 			}
-			if roles.TeamRole == "admin" || roles.ProjectRole == "admin" {
-				log.WithFields(log.Fields{"teamRole": roles.TeamRole, "projectRole": roles.ProjectRole}).Info("is team or project role")
-				return next(ctx)
+			projectRoles, err := GetProjectRoles(ctx, repo, subjectID)
+			if err != nil {
+				log.WithError(err).Error("error while getting project roles")
+				return nil, err
+			}
+			for _, validRole := range roles {
+				if GetRoleLevel(projectRoles.TeamRole) == validRole || GetRoleLevel(projectRoles.ProjectRole) == validRole {
+					log.WithFields(log.Fields{"teamRole": projectRoles.TeamRole, "projectRole": projectRoles.ProjectRole}).Info("is team or project role")
+					return next(ctx)
+				}
 			}
 			return nil, errors.New("must be a team or project admin")
 		} else if level == ActionLevelTeam {
@@ -85,10 +110,13 @@ func NewHandler(repo db.Repository) http.Handler {
 			}
 			role, err := repo.GetTeamRoleForUserID(ctx, db.GetTeamRoleForUserIDParams{UserID: userID, TeamID: subjectID})
 			if err != nil {
+				log.WithError(err).Error("error while getting team roles for user ID")
 				return nil, err
 			}
-			if role.RoleCode == "admin" {
-				return next(ctx)
+			for _, validRole := range roles {
+				if GetRoleLevel(role.RoleCode) == validRole || GetRoleLevel(role.RoleCode) == validRole {
+					return next(ctx)
+				}
 			}
 			return nil, errors.New("must be a team admin")
 
@@ -154,6 +182,14 @@ func GetProjectRoles(ctx context.Context, r db.Repository, projectID uuid.UUID) 
 		return db.GetUserRolesForProjectRow{}, errors.New("user ID is not found")
 	}
 	return r.GetUserRolesForProject(ctx, db.GetUserRolesForProjectParams{UserID: userID, ProjectID: projectID})
+}
+
+// GetRoleLevel converts a role level string to a RoleLevel type
+func GetRoleLevel(r string) RoleLevel {
+	if r == RoleLevelAdmin.String() {
+		return RoleLevelAdmin
+	}
+	return RoleLevelMember
 }
 
 // ConvertToRoleCode converts a role code string to a RoleCode type

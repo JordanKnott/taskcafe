@@ -121,11 +121,11 @@ type DeleteTaskGroupTasksPayload struct {
 }
 
 type DeleteTaskInput struct {
-	TaskID string `json:"taskID"`
+	TaskID uuid.UUID `json:"taskID"`
 }
 
 type DeleteTaskPayload struct {
-	TaskID string `json:"taskID"`
+	TaskID uuid.UUID `json:"taskID"`
 }
 
 type DeleteTeam struct {
@@ -184,11 +184,11 @@ type FindTeam struct {
 }
 
 type FindUser struct {
-	UserID string `json:"userId"`
+	UserID uuid.UUID `json:"userID"`
 }
 
 type LogoutUser struct {
-	UserID string `json:"userID"`
+	UserID uuid.UUID `json:"userID"`
 }
 
 type MePayload struct {
@@ -225,19 +225,19 @@ type NewProjectLabel struct {
 }
 
 type NewRefreshToken struct {
-	UserID string `json:"userId"`
+	UserID uuid.UUID `json:"userID"`
 }
 
 type NewTask struct {
-	TaskGroupID string  `json:"taskGroupID"`
-	Name        string  `json:"name"`
-	Position    float64 `json:"position"`
+	TaskGroupID uuid.UUID `json:"taskGroupID"`
+	Name        string    `json:"name"`
+	Position    float64   `json:"position"`
 }
 
 type NewTaskGroup struct {
-	ProjectID string  `json:"projectID"`
-	Name      string  `json:"name"`
-	Position  float64 `json:"position"`
+	ProjectID uuid.UUID `json:"projectID"`
+	Name      string    `json:"name"`
+	Position  float64   `json:"position"`
 }
 
 type NewTaskGroupLocation struct {
@@ -303,6 +303,7 @@ type ProjectsFilter struct {
 }
 
 type RemoveTaskLabelInput struct {
+	TaskID      uuid.UUID `json:"taskID"`
 	TaskLabelID uuid.UUID `json:"taskLabelID"`
 }
 
@@ -388,13 +389,13 @@ type UpdateProjectName struct {
 }
 
 type UpdateTaskChecklistItemLocation struct {
-	ChecklistID     uuid.UUID `json:"checklistID"`
-	ChecklistItemID uuid.UUID `json:"checklistItemID"`
-	Position        float64   `json:"position"`
+	TaskChecklistID     uuid.UUID `json:"taskChecklistID"`
+	TaskChecklistItemID uuid.UUID `json:"taskChecklistItemID"`
+	Position            float64   `json:"position"`
 }
 
 type UpdateTaskChecklistItemLocationPayload struct {
-	ChecklistID     uuid.UUID             `json:"checklistID"`
+	TaskChecklistID uuid.UUID             `json:"taskChecklistID"`
 	PrevChecklistID uuid.UUID             `json:"prevChecklistID"`
 	ChecklistItem   *db.TaskChecklistItem `json:"checklistItem"`
 }
@@ -405,8 +406,8 @@ type UpdateTaskChecklistItemName struct {
 }
 
 type UpdateTaskChecklistLocation struct {
-	ChecklistID uuid.UUID `json:"checklistID"`
-	Position    float64   `json:"position"`
+	TaskChecklistID uuid.UUID `json:"taskChecklistID"`
+	Position        float64   `json:"position"`
 }
 
 type UpdateTaskChecklistLocationPayload struct {
@@ -439,8 +440,8 @@ type UpdateTaskLocationPayload struct {
 }
 
 type UpdateTaskName struct {
-	TaskID string `json:"taskID"`
-	Name   string `json:"name"`
+	TaskID uuid.UUID `json:"taskID"`
+	Name   string    `json:"name"`
 }
 
 type UpdateTeamMemberRole struct {
@@ -648,10 +649,13 @@ func (e EntityType) MarshalGQL(w io.Writer) {
 type ObjectType string
 
 const (
-	ObjectTypeOrg     ObjectType = "ORG"
-	ObjectTypeTeam    ObjectType = "TEAM"
-	ObjectTypeProject ObjectType = "PROJECT"
-	ObjectTypeTask    ObjectType = "TASK"
+	ObjectTypeOrg               ObjectType = "ORG"
+	ObjectTypeTeam              ObjectType = "TEAM"
+	ObjectTypeProject           ObjectType = "PROJECT"
+	ObjectTypeTask              ObjectType = "TASK"
+	ObjectTypeTaskGroup         ObjectType = "TASK_GROUP"
+	ObjectTypeTaskChecklist     ObjectType = "TASK_CHECKLIST"
+	ObjectTypeTaskChecklistItem ObjectType = "TASK_CHECKLIST_ITEM"
 )
 
 var AllObjectType = []ObjectType{
@@ -659,11 +663,14 @@ var AllObjectType = []ObjectType{
 	ObjectTypeTeam,
 	ObjectTypeProject,
 	ObjectTypeTask,
+	ObjectTypeTaskGroup,
+	ObjectTypeTaskChecklist,
+	ObjectTypeTaskChecklistItem,
 }
 
 func (e ObjectType) IsValid() bool {
 	switch e {
-	case ObjectTypeOrg, ObjectTypeTeam, ObjectTypeProject, ObjectTypeTask:
+	case ObjectTypeOrg, ObjectTypeTeam, ObjectTypeProject, ObjectTypeTask, ObjectTypeTaskGroup, ObjectTypeTaskChecklist, ObjectTypeTaskChecklistItem:
 		return true
 	}
 	return false

@@ -25,4 +25,3 @@ WHERE n.notification_id = $1;
 -- name: CreateNotification :one
 INSERT INTO notification(notification_object_id, notifier_id)
   VALUES ($1, $2) RETURNING *;
-

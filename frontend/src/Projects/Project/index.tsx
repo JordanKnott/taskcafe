@@ -135,7 +135,26 @@ const Project = () => {
   const [value, setValue] = useStateWithLocalStorage(CARD_LABEL_VARIANT_STORAGE_KEY);
   const [updateProjectMemberRole] = useUpdateProjectMemberRoleMutation();
 
-  const [deleteTask] = useDeleteTaskMutation();
+  const [deleteTask] = useDeleteTaskMutation({
+    update: (client, resp) =>
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            const taskGroupIdx = draftCache.findProject.taskGroups.findIndex(
+              tg => tg.tasks.findIndex(t => t.id === resp.data.deleteTask.taskID) !== -1,
+            );
+
+            if (taskGroupIdx !== -1) {
+              draftCache.findProject.taskGroups[taskGroupIdx].tasks = cache.findProject.taskGroups[
+                taskGroupIdx
+              ].tasks.filter(t => t.id !== resp.data.deleteTask.taskID);
+            }
+          }),
+        { projectID },
+      ),
+  });
 
   const [updateTaskName] = useUpdateTaskNameMutation();
 
@@ -284,6 +303,7 @@ const Project = () => {
               }}
               onDeleteTask={deletedTask => {
                 deleteTask({ variables: { taskID: deletedTask.id } });
+                history.push(`${match.url}/board`);
               }}
               onOpenAddLabelPopup={(task, $targetRef) => {
                 taskLabelsRef.current = task.labels;

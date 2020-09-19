@@ -46,7 +46,7 @@ type UpdateUserRolePayload {
 }
 
 input NewRefreshToken {
-  userId: String!
+  userID: UUID!
 }
 
 input NewUserAccount {
@@ -59,7 +59,7 @@ input NewUserAccount {
 }
 
 input LogoutUser {
-  userID: String!
+  userID: UUID!
 }
 
 input DeleteUserAccount {

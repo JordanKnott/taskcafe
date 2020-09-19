@@ -385,9 +385,9 @@ type ComplexityRoot struct {
 	}
 
 	UpdateTaskChecklistItemLocationPayload struct {
-		ChecklistID     func(childComplexity int) int
 		ChecklistItem   func(childComplexity int) int
 		PrevChecklistID func(childComplexity int) int
+		TaskChecklistID func(childComplexity int) int
 	}
 
 	UpdateTaskChecklistLocationPayload struct {
@@ -461,10 +461,10 @@ type MutationResolver interface {
 	DeleteTaskChecklist(ctx context.Context, input DeleteTaskChecklist) (*DeleteTaskChecklistPayload, error)
 	UpdateTaskChecklistName(ctx context.Context, input UpdateTaskChecklistName) (*db.TaskChecklist, error)
 	CreateTaskChecklistItem(ctx context.Context, input CreateTaskChecklistItem) (*db.TaskChecklistItem, error)
+	UpdateTaskChecklistLocation(ctx context.Context, input UpdateTaskChecklistLocation) (*UpdateTaskChecklistLocationPayload, error)
 	UpdateTaskChecklistItemName(ctx context.Context, input UpdateTaskChecklistItemName) (*db.TaskChecklistItem, error)
 	SetTaskChecklistItemComplete(ctx context.Context, input SetTaskChecklistItemComplete) (*db.TaskChecklistItem, error)
 	DeleteTaskChecklistItem(ctx context.Context, input DeleteTaskChecklistItem) (*DeleteTaskChecklistItemPayload, error)
-	UpdateTaskChecklistLocation(ctx context.Context, input UpdateTaskChecklistLocation) (*UpdateTaskChecklistLocationPayload, error)
 	UpdateTaskChecklistItemLocation(ctx context.Context, input UpdateTaskChecklistItemLocation) (*UpdateTaskChecklistItemLocationPayload, error)
 	CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*db.TaskGroup, error)
 	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*db.TaskGroup, error)
@@ -2240,13 +2240,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UpdateProjectMemberRolePayload.Ok(childComplexity), true
 
-	case "UpdateTaskChecklistItemLocationPayload.checklistID":
-		if e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistID == nil {
-			break
-		}
-
-		return e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistID(childComplexity), true
-
 	case "UpdateTaskChecklistItemLocationPayload.checklistItem":
 		if e.complexity.UpdateTaskChecklistItemLocationPayload.ChecklistItem == nil {
 			break
@@ -2260,6 +2253,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UpdateTaskChecklistItemLocationPayload.PrevChecklistID(childComplexity), true
+
+	case "UpdateTaskChecklistItemLocationPayload.taskChecklistID":
+		if e.complexity.UpdateTaskChecklistItemLocationPayload.TaskChecklistID == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskChecklistItemLocationPayload.TaskChecklistID(childComplexity), true
 
 	case "UpdateTaskChecklistLocationPayload.checklist":
 		if e.complexity.UpdateTaskChecklistLocationPayload.Checklist == nil {
@@ -2648,6 +2648,9 @@ enum ObjectType {
   TEAM
   PROJECT
   TASK
+  TASK_GROUP
+  TASK_CHECKLIST
+  TASK_CHECKLIST_ITEM
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
@@ -2689,7 +2692,7 @@ input ProjectsFilter {
 }
 
 input FindUser {
-  userId: String!
+  userID: UUID!
 }
 
 input FindProject {
@@ -2771,15 +2774,15 @@ type DeleteProjectPayload {
 
 extend type Mutation {
   createProjectLabel(input: NewProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   deleteProjectLabel(input: DeleteProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateProjectLabel(input: UpdateProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateProjectLabelName(input: UpdateProjectLabelName!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateProjectLabelColor(input: UpdateProjectLabelColor!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
 }
 
 input NewProjectLabel {
@@ -2851,29 +2854,29 @@ type UpdateProjectMemberRolePayload {
 
 extend type Mutation {
   createTask(input: NewTask!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTask(input: DeleteTaskInput!):
-    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   updateTaskDescription(input: UpdateTaskDescriptionInput!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskLocation(input: NewTaskLocation!):
-    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskName(input: UpdateTaskName!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   setTaskComplete(input: SetTaskComplete!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskDueDate(input: UpdateTaskDueDate!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   assignTask(input: AssignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 }
 
 input NewTask {
-  taskGroupID: String!
+  taskGroupID: UUID!
   name: String!
   position: Float!
 }
@@ -2915,54 +2918,55 @@ input NewTaskLocation {
 }
 
 input DeleteTaskInput {
-  taskID: String!
+  taskID: UUID!
 }
 
 type DeleteTaskPayload {
-  taskID: String!
+  taskID: UUID!
 }
 
 input UpdateTaskName {
-  taskID: String!
+  taskID: UUID!
   name: String!
 }
 
 extend type Mutation {
   createTaskChecklist(input: CreateTaskChecklist!):
-    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskChecklist! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   deleteTaskChecklist(input: DeleteTaskChecklist!):
-    DeleteTaskChecklistPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskChecklistPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
   updateTaskChecklistName(input: UpdateTaskChecklistName!):
-    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskChecklist! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
   createTaskChecklistItem(input: CreateTaskChecklistItem!):
-    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!):
-    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!):
-    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!):
-    DeleteTaskChecklistItemPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskChecklistItem! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
   updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!):
-    UpdateTaskChecklistLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskChecklistLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
+
+  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
+  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
+  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!):
+    DeleteTaskChecklistItemPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
   updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!):
-    UpdateTaskChecklistItemLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskChecklistItemLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
 
 }
 
 input UpdateTaskChecklistItemLocation {
-  checklistID: UUID!
-  checklistItemID: UUID!
+  taskChecklistID: UUID!
+  taskChecklistItemID: UUID!
   position: Float!
 }
 
 type UpdateTaskChecklistItemLocationPayload {
-  checklistID: UUID!
+  taskChecklistID: UUID!
   prevChecklistID: UUID!
   checklistItem: TaskChecklistItem!
 }
 
 input UpdateTaskChecklistLocation {
-  checklistID: UUID!
+  taskChecklistID: UUID!
   position: Float!
 }
 
@@ -3015,19 +3019,19 @@ type DeleteTaskChecklistPayload {
 
 extend type Mutation {
   createTaskGroup(input: NewTaskGroup!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateTaskGroupLocation(input: NewTaskGroupLocation!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   updateTaskGroupName(input: UpdateTaskGroupName!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTaskGroup(input: DeleteTaskGroupInput!):
-    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   duplicateTaskGroup(input: DuplicateTaskGroup!):
-    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   sortTaskGroup(input: SortTaskGroup!):
-    SortTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    SortTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTaskGroupTasks(input: DeleteTaskGroupTasks!):
-    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
 }
 
 input DeleteTaskGroupTasks {
@@ -3086,9 +3090,19 @@ type DeleteTaskGroupPayload {
 }
 
 input NewTaskGroup {
-  projectID: String!
+  projectID: UUID!
   name: String!
   position: Float!
+}
+
+extend type Mutation {
+  addTaskLabel(input: AddTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  removeTaskLabel(input: RemoveTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  toggleTaskLabel(input: ToggleTaskLabelInput!):
+    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
 }
 
 input AddTaskLabelInput {
@@ -3097,8 +3111,10 @@ input AddTaskLabelInput {
 }
 
 input RemoveTaskLabelInput {
+  taskID: UUID!
   taskLabelID: UUID!
 }
+
 input ToggleTaskLabelInput {
   taskID: UUID!
   projectLabelID: UUID!
@@ -3107,15 +3123,6 @@ input ToggleTaskLabelInput {
 type ToggleTaskLabelPayload {
   active: Boolean!
   task: Task!
-}
-extend type Mutation {
-  addTaskLabel(input: AddTaskLabelInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  removeTaskLabel(input: RemoveTaskLabelInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  toggleTaskLabel(input: ToggleTaskLabelInput!):
-    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-
 }
 
 extend type Mutation {
@@ -3232,7 +3239,7 @@ type UpdateUserRolePayload {
 }
 
 input NewRefreshToken {
-  userId: String!
+  userID: UUID!
 }
 
 input NewUserAccount {
@@ -3245,7 +3252,7 @@ input NewUserAccount {
 }
 
 input LogoutUser {
-  userID: String!
+  userID: UUID!
 }
 
 input DeleteUserAccount {
@@ -4839,9 +4846,9 @@ func (ec *executionContext) _DeleteTaskPayload_taskID(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DeleteTeamMemberPayload_teamID(ctx context.Context, field graphql.CollectedField, obj *DeleteTeamMemberPayload) (ret graphql.Marshaler) {
@@ -5941,7 +5948,7 @@ func (ec *executionContext) _Mutation_createProjectLabel(ctx context.Context, fi
 			return ec.resolvers.Mutation().CreateProjectLabel(rctx, args["input"].(NewProjectLabel))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6014,7 +6021,7 @@ func (ec *executionContext) _Mutation_deleteProjectLabel(ctx context.Context, fi
 			return ec.resolvers.Mutation().DeleteProjectLabel(rctx, args["input"].(DeleteProjectLabel))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6087,7 +6094,7 @@ func (ec *executionContext) _Mutation_updateProjectLabel(ctx context.Context, fi
 			return ec.resolvers.Mutation().UpdateProjectLabel(rctx, args["input"].(UpdateProjectLabel))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6160,7 +6167,7 @@ func (ec *executionContext) _Mutation_updateProjectLabelName(ctx context.Context
 			return ec.resolvers.Mutation().UpdateProjectLabelName(rctx, args["input"].(UpdateProjectLabelName))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6233,7 +6240,7 @@ func (ec *executionContext) _Mutation_updateProjectLabelColor(ctx context.Contex
 			return ec.resolvers.Mutation().UpdateProjectLabelColor(rctx, args["input"].(UpdateProjectLabelColor))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6525,7 +6532,7 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 			return ec.resolvers.Mutation().CreateTask(rctx, args["input"].(NewTask))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6533,7 +6540,7 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -6598,7 +6605,7 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 			return ec.resolvers.Mutation().DeleteTask(rctx, args["input"].(DeleteTaskInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6606,7 +6613,7 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6671,7 +6678,7 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 			return ec.resolvers.Mutation().UpdateTaskDescription(rctx, args["input"].(UpdateTaskDescriptionInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6679,7 +6686,7 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6744,7 +6751,7 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 			return ec.resolvers.Mutation().UpdateTaskLocation(rctx, args["input"].(NewTaskLocation))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6752,7 +6759,7 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6817,7 +6824,7 @@ func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field 
 			return ec.resolvers.Mutation().UpdateTaskName(rctx, args["input"].(UpdateTaskName))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6825,7 +6832,7 @@ func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field 
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6890,7 +6897,7 @@ func (ec *executionContext) _Mutation_setTaskComplete(ctx context.Context, field
 			return ec.resolvers.Mutation().SetTaskComplete(rctx, args["input"].(SetTaskComplete))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6898,7 +6905,7 @@ func (ec *executionContext) _Mutation_setTaskComplete(ctx context.Context, field
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -6963,7 +6970,7 @@ func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, fie
 			return ec.resolvers.Mutation().UpdateTaskDueDate(rctx, args["input"].(UpdateTaskDueDate))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -6971,7 +6978,7 @@ func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, fie
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -7036,7 +7043,7 @@ func (ec *executionContext) _Mutation_assignTask(ctx context.Context, field grap
 			return ec.resolvers.Mutation().AssignTask(rctx, args["input"].(*AssignTaskInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7109,7 +7116,7 @@ func (ec *executionContext) _Mutation_unassignTask(ctx context.Context, field gr
 			return ec.resolvers.Mutation().UnassignTask(rctx, args["input"].(*UnassignTaskInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7182,7 +7189,7 @@ func (ec *executionContext) _Mutation_createTaskChecklist(ctx context.Context, f
 			return ec.resolvers.Mutation().CreateTaskChecklist(rctx, args["input"].(CreateTaskChecklist))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7190,7 +7197,7 @@ func (ec *executionContext) _Mutation_createTaskChecklist(ctx context.Context, f
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -7255,7 +7262,7 @@ func (ec *executionContext) _Mutation_deleteTaskChecklist(ctx context.Context, f
 			return ec.resolvers.Mutation().DeleteTaskChecklist(rctx, args["input"].(DeleteTaskChecklist))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7263,7 +7270,7 @@ func (ec *executionContext) _Mutation_deleteTaskChecklist(ctx context.Context, f
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST")
 			if err != nil {
 				return nil, err
 			}
@@ -7328,7 +7335,7 @@ func (ec *executionContext) _Mutation_updateTaskChecklistName(ctx context.Contex
 			return ec.resolvers.Mutation().UpdateTaskChecklistName(rctx, args["input"].(UpdateTaskChecklistName))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7336,7 +7343,7 @@ func (ec *executionContext) _Mutation_updateTaskChecklistName(ctx context.Contex
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST")
 			if err != nil {
 				return nil, err
 			}
@@ -7401,7 +7408,7 @@ func (ec *executionContext) _Mutation_createTaskChecklistItem(ctx context.Contex
 			return ec.resolvers.Mutation().CreateTaskChecklistItem(rctx, args["input"].(CreateTaskChecklistItem))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7409,7 +7416,7 @@ func (ec *executionContext) _Mutation_createTaskChecklistItem(ctx context.Contex
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST")
 			if err != nil {
 				return nil, err
 			}
@@ -7446,6 +7453,79 @@ func (ec *executionContext) _Mutation_createTaskChecklistItem(ctx context.Contex
 	return ec.marshalNTaskChecklistItem2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskChecklistItem(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateTaskChecklistLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskChecklistLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskChecklistLocation(rctx, args["input"].(UpdateTaskChecklistLocation))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdateTaskChecklistLocationPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskChecklistLocationPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateTaskChecklistLocationPayload)
+	fc.Result = res
+	return ec.marshalNUpdateTaskChecklistLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskChecklistLocationPayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_updateTaskChecklistItemName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7474,7 +7554,7 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemName(ctx context.Co
 			return ec.resolvers.Mutation().UpdateTaskChecklistItemName(rctx, args["input"].(UpdateTaskChecklistItemName))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7482,7 +7562,7 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemName(ctx context.Co
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST_ITEM")
 			if err != nil {
 				return nil, err
 			}
@@ -7547,7 +7627,7 @@ func (ec *executionContext) _Mutation_setTaskChecklistItemComplete(ctx context.C
 			return ec.resolvers.Mutation().SetTaskChecklistItemComplete(rctx, args["input"].(SetTaskChecklistItemComplete))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7555,7 +7635,7 @@ func (ec *executionContext) _Mutation_setTaskChecklistItemComplete(ctx context.C
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST_ITEM")
 			if err != nil {
 				return nil, err
 			}
@@ -7620,7 +7700,7 @@ func (ec *executionContext) _Mutation_deleteTaskChecklistItem(ctx context.Contex
 			return ec.resolvers.Mutation().DeleteTaskChecklistItem(rctx, args["input"].(DeleteTaskChecklistItem))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7628,7 +7708,7 @@ func (ec *executionContext) _Mutation_deleteTaskChecklistItem(ctx context.Contex
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST_ITEM")
 			if err != nil {
 				return nil, err
 			}
@@ -7665,79 +7745,6 @@ func (ec *executionContext) _Mutation_deleteTaskChecklistItem(ctx context.Contex
 	return ec.marshalNDeleteTaskChecklistItemPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskChecklistItemPayload(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateTaskChecklistLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateTaskChecklistLocation_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTaskChecklistLocation(rctx, args["input"].(UpdateTaskChecklistLocation))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*UpdateTaskChecklistLocationPayload); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskChecklistLocationPayload`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*UpdateTaskChecklistLocationPayload)
-	fc.Result = res
-	return ec.marshalNUpdateTaskChecklistLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskChecklistLocationPayload(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_updateTaskChecklistItemLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7766,7 +7773,7 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemLocation(ctx contex
 			return ec.resolvers.Mutation().UpdateTaskChecklistItemLocation(rctx, args["input"].(UpdateTaskChecklistItemLocation))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7774,7 +7781,7 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemLocation(ctx contex
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_CHECKLIST_ITEM")
 			if err != nil {
 				return nil, err
 			}
@@ -7839,7 +7846,7 @@ func (ec *executionContext) _Mutation_createTaskGroup(ctx context.Context, field
 			return ec.resolvers.Mutation().CreateTaskGroup(rctx, args["input"].(NewTaskGroup))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7912,7 +7919,7 @@ func (ec *executionContext) _Mutation_updateTaskGroupLocation(ctx context.Contex
 			return ec.resolvers.Mutation().UpdateTaskGroupLocation(rctx, args["input"].(NewTaskGroupLocation))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7920,7 +7927,7 @@ func (ec *executionContext) _Mutation_updateTaskGroupLocation(ctx context.Contex
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -7985,7 +7992,7 @@ func (ec *executionContext) _Mutation_updateTaskGroupName(ctx context.Context, f
 			return ec.resolvers.Mutation().UpdateTaskGroupName(rctx, args["input"].(UpdateTaskGroupName))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -7993,7 +8000,7 @@ func (ec *executionContext) _Mutation_updateTaskGroupName(ctx context.Context, f
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -8058,7 +8065,7 @@ func (ec *executionContext) _Mutation_deleteTaskGroup(ctx context.Context, field
 			return ec.resolvers.Mutation().DeleteTaskGroup(rctx, args["input"].(DeleteTaskGroupInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8066,7 +8073,7 @@ func (ec *executionContext) _Mutation_deleteTaskGroup(ctx context.Context, field
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -8131,7 +8138,7 @@ func (ec *executionContext) _Mutation_duplicateTaskGroup(ctx context.Context, fi
 			return ec.resolvers.Mutation().DuplicateTaskGroup(rctx, args["input"].(DuplicateTaskGroup))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8139,7 +8146,7 @@ func (ec *executionContext) _Mutation_duplicateTaskGroup(ctx context.Context, fi
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -8204,7 +8211,7 @@ func (ec *executionContext) _Mutation_sortTaskGroup(ctx context.Context, field g
 			return ec.resolvers.Mutation().SortTaskGroup(rctx, args["input"].(SortTaskGroup))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8212,7 +8219,7 @@ func (ec *executionContext) _Mutation_sortTaskGroup(ctx context.Context, field g
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -8277,7 +8284,7 @@ func (ec *executionContext) _Mutation_deleteTaskGroupTasks(ctx context.Context, 
 			return ec.resolvers.Mutation().DeleteTaskGroupTasks(rctx, args["input"].(DeleteTaskGroupTasks))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8285,7 +8292,7 @@ func (ec *executionContext) _Mutation_deleteTaskGroupTasks(ctx context.Context, 
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -8350,7 +8357,7 @@ func (ec *executionContext) _Mutation_addTaskLabel(ctx context.Context, field gr
 			return ec.resolvers.Mutation().AddTaskLabel(rctx, args["input"].(*AddTaskLabelInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8358,7 +8365,7 @@ func (ec *executionContext) _Mutation_addTaskLabel(ctx context.Context, field gr
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -8423,7 +8430,7 @@ func (ec *executionContext) _Mutation_removeTaskLabel(ctx context.Context, field
 			return ec.resolvers.Mutation().RemoveTaskLabel(rctx, args["input"].(*RemoveTaskLabelInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8431,7 +8438,7 @@ func (ec *executionContext) _Mutation_removeTaskLabel(ctx context.Context, field
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -8496,7 +8503,7 @@ func (ec *executionContext) _Mutation_toggleTaskLabel(ctx context.Context, field
 			return ec.resolvers.Mutation().ToggleTaskLabel(rctx, args["input"].(ToggleTaskLabelInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
@@ -8504,7 +8511,7 @@ func (ec *executionContext) _Mutation_toggleTaskLabel(ctx context.Context, field
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -12733,7 +12740,7 @@ func (ec *executionContext) _UpdateProjectMemberRolePayload_member(ctx context.C
 	return ec.marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMember(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload_checklistID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskChecklistItemLocationPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload_taskChecklistID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskChecklistItemLocationPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12750,7 +12757,7 @@ func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload_checklistID(
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ChecklistID, nil
+		return obj.TaskChecklistID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14900,7 +14907,7 @@ func (ec *executionContext) unmarshalInputDeleteTaskInput(ctx context.Context, o
 		switch k {
 		case "taskID":
 			var err error
-			it.TaskID, err = ec.unmarshalNString2string(ctx, v)
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15078,9 +15085,9 @@ func (ec *executionContext) unmarshalInputFindUser(ctx context.Context, obj inte
 
 	for k, v := range asMap {
 		switch k {
-		case "userId":
+		case "userID":
 			var err error
-			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15098,7 +15105,7 @@ func (ec *executionContext) unmarshalInputLogoutUser(ctx context.Context, obj in
 		switch k {
 		case "userID":
 			var err error
-			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15174,9 +15181,9 @@ func (ec *executionContext) unmarshalInputNewRefreshToken(ctx context.Context, o
 
 	for k, v := range asMap {
 		switch k {
-		case "userId":
+		case "userID":
 			var err error
-			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15194,7 +15201,7 @@ func (ec *executionContext) unmarshalInputNewTask(ctx context.Context, obj inter
 		switch k {
 		case "taskGroupID":
 			var err error
-			it.TaskGroupID, err = ec.unmarshalNString2string(ctx, v)
+			it.TaskGroupID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15224,7 +15231,7 @@ func (ec *executionContext) unmarshalInputNewTaskGroup(ctx context.Context, obj 
 		switch k {
 		case "projectID":
 			var err error
-			it.ProjectID, err = ec.unmarshalNString2string(ctx, v)
+			it.ProjectID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15396,6 +15403,12 @@ func (ec *executionContext) unmarshalInputRemoveTaskLabelInput(ctx context.Conte
 
 	for k, v := range asMap {
 		switch k {
+		case "taskID":
+			var err error
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "taskLabelID":
 			var err error
 			it.TaskLabelID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
@@ -15690,15 +15703,15 @@ func (ec *executionContext) unmarshalInputUpdateTaskChecklistItemLocation(ctx co
 
 	for k, v := range asMap {
 		switch k {
-		case "checklistID":
+		case "taskChecklistID":
 			var err error
-			it.ChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.TaskChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "checklistItemID":
+		case "taskChecklistItemID":
 			var err error
-			it.ChecklistItemID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.TaskChecklistItemID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15744,9 +15757,9 @@ func (ec *executionContext) unmarshalInputUpdateTaskChecklistLocation(ctx contex
 
 	for k, v := range asMap {
 		switch k {
-		case "checklistID":
+		case "taskChecklistID":
 			var err error
-			it.ChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.TaskChecklistID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15866,7 +15879,7 @@ func (ec *executionContext) unmarshalInputUpdateTaskName(ctx context.Context, ob
 		switch k {
 		case "taskID":
 			var err error
-			it.TaskID, err = ec.unmarshalNString2string(ctx, v)
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16774,6 +16787,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateTaskChecklistLocation":
+			out.Values[i] = ec._Mutation_updateTaskChecklistLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateTaskChecklistItemName":
 			out.Values[i] = ec._Mutation_updateTaskChecklistItemName(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -16786,11 +16804,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteTaskChecklistItem":
 			out.Values[i] = ec._Mutation_deleteTaskChecklistItem(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateTaskChecklistLocation":
-			out.Values[i] = ec._Mutation_updateTaskChecklistLocation(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18356,8 +18369,8 @@ func (ec *executionContext) _UpdateTaskChecklistItemLocationPayload(ctx context.
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UpdateTaskChecklistItemLocationPayload")
-		case "checklistID":
-			out.Values[i] = ec._UpdateTaskChecklistItemLocationPayload_checklistID(ctx, field, obj)
+		case "taskChecklistID":
+			out.Values[i] = ec._UpdateTaskChecklistItemLocationPayload_taskChecklistID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

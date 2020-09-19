@@ -1,11 +1,23 @@
+extend type Mutation {
+  addTaskLabel(input: AddTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  removeTaskLabel(input: RemoveTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  toggleTaskLabel(input: ToggleTaskLabelInput!):
+    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
+}
+
 input AddTaskLabelInput {
   taskID: UUID!
   projectLabelID: UUID!
 }
 
 input RemoveTaskLabelInput {
+  taskID: UUID!
   taskLabelID: UUID!
 }
+
 input ToggleTaskLabelInput {
   taskID: UUID!
   projectLabelID: UUID!
@@ -14,13 +26,4 @@ input ToggleTaskLabelInput {
 type ToggleTaskLabelPayload {
   active: Boolean!
   task: Task!
-}
-extend type Mutation {
-  addTaskLabel(input: AddTaskLabelInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  removeTaskLabel(input: RemoveTaskLabelInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  toggleTaskLabel(input: ToggleTaskLabelInput!):
-    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-
 }

@@ -309,7 +309,7 @@ const Details: React.FC<DetailsProps> = ({
               task={data.findTask}
               onChecklistDrop={checklist => {
                 updateTaskChecklistLocation({
-                  variables: { checklistID: checklist.id, position: checklist.position },
+                  variables: { taskChecklistID: checklist.id, position: checklist.position },
 
                   optimisticResponse: {
                     __typename: 'Mutation',
@@ -324,20 +324,24 @@ const Details: React.FC<DetailsProps> = ({
                   },
                 });
               }}
-              onChecklistItemDrop={(prevChecklistID, checklistID, checklistItem) => {
+              onChecklistItemDrop={(prevChecklistID, taskChecklistID, checklistItem) => {
                 updateTaskChecklistItemLocation({
-                  variables: { checklistID, checklistItemID: checklistItem.id, position: checklistItem.position },
+                  variables: {
+                    taskChecklistID,
+                    taskChecklistItemID: checklistItem.id,
+                    position: checklistItem.position,
+                  },
                   optimisticResponse: {
                     __typename: 'Mutation',
                     updateTaskChecklistItemLocation: {
                       __typename: 'UpdateTaskChecklistItemLocationPayload',
                       prevChecklistID,
-                      checklistID,
+                      taskChecklistID,
                       checklistItem: {
                         __typename: 'TaskChecklistItem',
                         position: checklistItem.position,
                         id: checklistItem.id,
-                        taskChecklistID: checklistID,
+                        taskChecklistID,
                       },
                     },
                   },

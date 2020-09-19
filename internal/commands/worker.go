@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"time"
 
 	"github.com/RichardKnop/machinery/v1"
 	"github.com/RichardKnop/machinery/v1/config"

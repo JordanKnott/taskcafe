@@ -1,18 +1,18 @@
 extend type Mutation {
   createTaskGroup(input: NewTaskGroup!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateTaskGroupLocation(input: NewTaskGroupLocation!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   updateTaskGroupName(input: UpdateTaskGroupName!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTaskGroup(input: DeleteTaskGroupInput!):
-    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   duplicateTaskGroup(input: DuplicateTaskGroup!):
-    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   sortTaskGroup(input: SortTaskGroup!):
-    SortTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    SortTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTaskGroupTasks(input: DeleteTaskGroupTasks!):
-    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
 }
 
 input DeleteTaskGroupTasks {
@@ -71,7 +71,7 @@ type DeleteTaskGroupPayload {
 }
 
 input NewTaskGroup {
-  projectID: String!
+  projectID: UUID!
   name: String!
   position: Float!
 }

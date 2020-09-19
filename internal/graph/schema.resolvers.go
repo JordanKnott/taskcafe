@@ -179,14 +179,9 @@ func (r *mutationResolver) UpdateProjectMemberRole(ctx context.Context, input Up
 }
 
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.Task, error) {
-	taskGroupID, err := uuid.Parse(input.TaskGroupID)
-	if err != nil {
-		log.WithError(err).Error("issue while parsing task group ID")
-		return &db.Task{}, err
-	}
 	createdAt := time.Now().UTC()
-	log.WithFields(log.Fields{"positon": input.Position, "taskGroupID": taskGroupID}).Info("creating task")
-	task, err := r.Repository.CreateTask(ctx, db.CreateTaskParams{taskGroupID, createdAt, input.Name, input.Position})
+	log.WithFields(log.Fields{"positon": input.Position, "taskGroupID": input.TaskGroupID}).Info("creating task")
+	task, err := r.Repository.CreateTask(ctx, db.CreateTaskParams{input.TaskGroupID, createdAt, input.Name, input.Position})
 	if err != nil {
 		log.WithError(err).Error("issue while creating task")
 		return &db.Task{}, err
@@ -195,19 +190,14 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.T
 }
 
 func (r *mutationResolver) DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error) {
-	taskID, err := uuid.Parse(input.TaskID)
-	if err != nil {
-		return &DeleteTaskPayload{}, err
-	}
-
 	log.WithFields(log.Fields{
-		"taskID": taskID.String(),
+		"taskID": input.TaskID,
 	}).Info("deleting task")
-	err = r.Repository.DeleteTaskByID(ctx, taskID)
+	err := r.Repository.DeleteTaskByID(ctx, input.TaskID)
 	if err != nil {
 		return &DeleteTaskPayload{}, err
 	}
-	return &DeleteTaskPayload{taskID.String()}, nil
+	return &DeleteTaskPayload{input.TaskID}, nil
 }
 
 func (r *mutationResolver) UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*db.Task, error) {
@@ -226,11 +216,7 @@ func (r *mutationResolver) UpdateTaskLocation(ctx context.Context, input NewTask
 }
 
 func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskName) (*db.Task, error) {
-	taskID, err := uuid.Parse(input.TaskID)
-	if err != nil {
-		return &db.Task{}, err
-	}
-	task, err := r.Repository.UpdateTaskName(ctx, db.UpdateTaskNameParams{taskID, input.Name})
+	task, err := r.Repository.UpdateTaskName(ctx, db.UpdateTaskNameParams{input.TaskID, input.Name})
 	return &task, err
 }
 
@@ -336,6 +322,16 @@ func (r *mutationResolver) CreateTaskChecklistItem(ctx context.Context, input Cr
 	return &taskChecklistItem, nil
 }
 
+func (r *mutationResolver) UpdateTaskChecklistLocation(ctx context.Context, input UpdateTaskChecklistLocation) (*UpdateTaskChecklistLocationPayload, error) {
+	checklist, err := r.Repository.UpdateTaskChecklistPosition(ctx, db.UpdateTaskChecklistPositionParams{Position: input.Position, TaskChecklistID: input.TaskChecklistID})
+
+	if err != nil {
+		return &UpdateTaskChecklistLocationPayload{}, err
+	}
+
+	return &UpdateTaskChecklistLocationPayload{Checklist: &checklist}, nil
+}
+
 func (r *mutationResolver) UpdateTaskChecklistItemName(ctx context.Context, input UpdateTaskChecklistItemName) (*db.TaskChecklistItem, error) {
 	task, err := r.Repository.UpdateTaskChecklistItemName(ctx, db.UpdateTaskChecklistItemNameParams{TaskChecklistItemID: input.TaskChecklistItemID,
 		Name: input.Name,
@@ -375,34 +371,20 @@ func (r *mutationResolver) DeleteTaskChecklistItem(ctx context.Context, input De
 	}, err
 }
 
-func (r *mutationResolver) UpdateTaskChecklistLocation(ctx context.Context, input UpdateTaskChecklistLocation) (*UpdateTaskChecklistLocationPayload, error) {
-	checklist, err := r.Repository.UpdateTaskChecklistPosition(ctx, db.UpdateTaskChecklistPositionParams{Position: input.Position, TaskChecklistID: input.ChecklistID})
-
-	if err != nil {
-		return &UpdateTaskChecklistLocationPayload{}, err
-	}
-
-	return &UpdateTaskChecklistLocationPayload{Checklist: &checklist}, nil
-}
-
 func (r *mutationResolver) UpdateTaskChecklistItemLocation(ctx context.Context, input UpdateTaskChecklistItemLocation) (*UpdateTaskChecklistItemLocationPayload, error) {
-	currentChecklistItem, err := r.Repository.GetTaskChecklistItemByID(ctx, input.ChecklistItemID)
+	currentChecklistItem, err := r.Repository.GetTaskChecklistItemByID(ctx, input.TaskChecklistItemID)
 
-	checklistItem, err := r.Repository.UpdateTaskChecklistItemLocation(ctx, db.UpdateTaskChecklistItemLocationParams{TaskChecklistID: input.ChecklistID, TaskChecklistItemID: input.ChecklistItemID, Position: input.Position})
+	checklistItem, err := r.Repository.UpdateTaskChecklistItemLocation(ctx, db.UpdateTaskChecklistItemLocationParams{TaskChecklistID: input.TaskChecklistID, TaskChecklistItemID: input.TaskChecklistItemID, Position: input.Position})
 	if err != nil {
 		return &UpdateTaskChecklistItemLocationPayload{}, err
 	}
-	return &UpdateTaskChecklistItemLocationPayload{PrevChecklistID: currentChecklistItem.TaskChecklistID, ChecklistID: input.ChecklistID, ChecklistItem: &checklistItem}, err
+	return &UpdateTaskChecklistItemLocationPayload{PrevChecklistID: currentChecklistItem.TaskChecklistID, TaskChecklistID: input.TaskChecklistID, ChecklistItem: &checklistItem}, err
 }
 
 func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*db.TaskGroup, error) {
 	createdAt := time.Now().UTC()
-	projectID, err := uuid.Parse(input.ProjectID)
-	if err != nil {
-		return &db.TaskGroup{}, err
-	}
 	project, err := r.Repository.CreateTaskGroup(ctx,
-		db.CreateTaskGroupParams{projectID, createdAt, input.Name, input.Position})
+		db.CreateTaskGroupParams{input.ProjectID, createdAt, input.Name, input.Position})
 	return &project, err
 }
 
@@ -773,12 +755,7 @@ func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUs
 }
 
 func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
-	userID, err := uuid.Parse(input.UserID)
-	if err != nil {
-		return false, err
-	}
-
-	err = r.Repository.DeleteRefreshTokenByUserID(ctx, userID)
+	err := r.Repository.DeleteRefreshTokenByUserID(ctx, input.UserID)
 	return true, err
 }
 
@@ -978,11 +955,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]db.UserAccount, error) {
 }
 
 func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserAccount, error) {
-	userID, err := uuid.Parse(input.UserID)
-	if err != nil {
-		return &db.UserAccount{}, err
-	}
-	account, err := r.Repository.GetUserAccountByID(ctx, userID)
+	account, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
 	if err == sql.ErrNoRows {
 		return &db.UserAccount{}, &gqlerror.Error{
 			Message: "User not found",

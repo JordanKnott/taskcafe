@@ -1,28 +1,28 @@
 extend type Mutation {
   createTask(input: NewTask!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTask(input: DeleteTaskInput!):
-    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   updateTaskDescription(input: UpdateTaskDescriptionInput!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskLocation(input: NewTaskLocation!):
-    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskName(input: UpdateTaskName!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   setTaskComplete(input: SetTaskComplete!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskDueDate(input: UpdateTaskDueDate!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   assignTask(input: AssignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 }
 
 input NewTask {
-  taskGroupID: String!
+  taskGroupID: UUID!
   name: String!
   position: Float!
 }
@@ -64,14 +64,14 @@ input NewTaskLocation {
 }
 
 input DeleteTaskInput {
-  taskID: String!
+  taskID: UUID!
 }
 
 type DeleteTaskPayload {
-  taskID: String!
+  taskID: UUID!
 }
 
 input UpdateTaskName {
-  taskID: String!
+  taskID: UUID!
   name: String!
 }

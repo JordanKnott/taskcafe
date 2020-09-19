@@ -209,7 +209,10 @@ export enum ObjectType {
   Org = 'ORG',
   Team = 'TEAM',
   Project = 'PROJECT',
-  Task = 'TASK'
+  Task = 'TASK',
+  TaskGroup = 'TASK_GROUP',
+  TaskChecklist = 'TASK_CHECKLIST',
+  TaskChecklistItem = 'TASK_CHECKLIST_ITEM'
 }
 
 export type Query = {
@@ -588,7 +591,7 @@ export type ProjectsFilter = {
 };
 
 export type FindUser = {
-  userId: Scalars['String'];
+  userID: Scalars['UUID'];
 };
 
 export type FindProject = {
@@ -722,7 +725,7 @@ export type UpdateProjectMemberRolePayload = {
 };
 
 export type NewTask = {
-  taskGroupID: Scalars['String'];
+  taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
 };
@@ -765,34 +768,34 @@ export type NewTaskLocation = {
 };
 
 export type DeleteTaskInput = {
-  taskID: Scalars['String'];
+  taskID: Scalars['UUID'];
 };
 
 export type DeleteTaskPayload = {
    __typename?: 'DeleteTaskPayload';
-  taskID: Scalars['String'];
+  taskID: Scalars['UUID'];
 };
 
 export type UpdateTaskName = {
-  taskID: Scalars['String'];
+  taskID: Scalars['UUID'];
   name: Scalars['String'];
 };
 
 export type UpdateTaskChecklistItemLocation = {
-  checklistID: Scalars['UUID'];
-  checklistItemID: Scalars['UUID'];
+  taskChecklistID: Scalars['UUID'];
+  taskChecklistItemID: Scalars['UUID'];
   position: Scalars['Float'];
 };
 
 export type UpdateTaskChecklistItemLocationPayload = {
    __typename?: 'UpdateTaskChecklistItemLocationPayload';
-  checklistID: Scalars['UUID'];
+  taskChecklistID: Scalars['UUID'];
   prevChecklistID: Scalars['UUID'];
   checklistItem: TaskChecklistItem;
 };
 
 export type UpdateTaskChecklistLocation = {
-  checklistID: Scalars['UUID'];
+  taskChecklistID: Scalars['UUID'];
   position: Scalars['Float'];
 };
 
@@ -908,7 +911,7 @@ export type DeleteTaskGroupPayload = {
 };
 
 export type NewTaskGroup = {
-  projectID: Scalars['String'];
+  projectID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
 };
@@ -919,6 +922,7 @@ export type AddTaskLabelInput = {
 };
 
 export type RemoveTaskLabelInput = {
+  taskID: Scalars['UUID'];
   taskLabelID: Scalars['UUID'];
 };
 
@@ -1020,7 +1024,7 @@ export type UpdateUserRolePayload = {
 };
 
 export type NewRefreshToken = {
-  userId: Scalars['String'];
+  userID: Scalars['UUID'];
 };
 
 export type NewUserAccount = {
@@ -1033,7 +1037,7 @@ export type NewUserAccount = {
 };
 
 export type LogoutUser = {
-  userID: Scalars['String'];
+  userID: Scalars['UUID'];
 };
 
 export type DeleteUserAccount = {
@@ -1119,7 +1123,7 @@ export type CreateProjectLabelMutation = (
 );
 
 export type CreateTaskGroupMutationVariables = {
-  projectID: Scalars['String'];
+  projectID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
 };
@@ -1147,7 +1151,7 @@ export type DeleteProjectLabelMutation = (
 );
 
 export type DeleteTaskMutationVariables = {
-  taskID: Scalars['String'];
+  taskID: Scalars['UUID'];
 };
 
 
@@ -1472,7 +1476,7 @@ export type UpdateProjectMemberRoleMutation = (
 );
 
 export type CreateTaskMutationVariables = {
-  taskGroupID: Scalars['String'];
+  taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
 };
@@ -1583,8 +1587,8 @@ export type SetTaskCompleteMutation = (
 );
 
 export type UpdateTaskChecklistItemLocationMutationVariables = {
-  checklistID: Scalars['UUID'];
-  checklistItemID: Scalars['UUID'];
+  taskChecklistID: Scalars['UUID'];
+  taskChecklistItemID: Scalars['UUID'];
   position: Scalars['Float'];
 };
 
@@ -1593,7 +1597,7 @@ export type UpdateTaskChecklistItemLocationMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskChecklistItemLocation: (
     { __typename?: 'UpdateTaskChecklistItemLocationPayload' }
-    & Pick<UpdateTaskChecklistItemLocationPayload, 'checklistID' | 'prevChecklistID'>
+    & Pick<UpdateTaskChecklistItemLocationPayload, 'taskChecklistID' | 'prevChecklistID'>
     & { checklistItem: (
       { __typename?: 'TaskChecklistItem' }
       & Pick<TaskChecklistItem, 'id' | 'taskChecklistID' | 'position'>
@@ -1616,7 +1620,7 @@ export type UpdateTaskChecklistItemNameMutation = (
 );
 
 export type UpdateTaskChecklistLocationMutationVariables = {
-  checklistID: Scalars['UUID'];
+  taskChecklistID: Scalars['UUID'];
   position: Scalars['Float'];
 };
 
@@ -2072,7 +2076,7 @@ export type UpdateTaskLocationMutation = (
 );
 
 export type UpdateTaskNameMutationVariables = {
-  taskID: Scalars['String'];
+  taskID: Scalars['UUID'];
   name: Scalars['String'];
 };
 
@@ -2442,7 +2446,7 @@ export type CreateProjectLabelMutationHookResult = ReturnType<typeof useCreatePr
 export type CreateProjectLabelMutationResult = ApolloReactCommon.MutationResult<CreateProjectLabelMutation>;
 export type CreateProjectLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateProjectLabelMutation, CreateProjectLabelMutationVariables>;
 export const CreateTaskGroupDocument = gql`
-    mutation createTaskGroup($projectID: String!, $name: String!, $position: Float!) {
+    mutation createTaskGroup($projectID: UUID!, $name: String!, $position: Float!) {
   createTaskGroup(input: {projectID: $projectID, name: $name, position: $position}) {
     id
     name
@@ -2510,7 +2514,7 @@ export type DeleteProjectLabelMutationHookResult = ReturnType<typeof useDeletePr
 export type DeleteProjectLabelMutationResult = ApolloReactCommon.MutationResult<DeleteProjectLabelMutation>;
 export type DeleteProjectLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteProjectLabelMutation, DeleteProjectLabelMutationVariables>;
 export const DeleteTaskDocument = gql`
-    mutation deleteTask($taskID: String!) {
+    mutation deleteTask($taskID: UUID!) {
   deleteTask(input: {taskID: $taskID}) {
     taskID
   }
@@ -3044,7 +3048,7 @@ export type UpdateProjectMemberRoleMutationHookResult = ReturnType<typeof useUpd
 export type UpdateProjectMemberRoleMutationResult = ApolloReactCommon.MutationResult<UpdateProjectMemberRoleMutation>;
 export type UpdateProjectMemberRoleMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateProjectMemberRoleMutation, UpdateProjectMemberRoleMutationVariables>;
 export const CreateTaskDocument = gql`
-    mutation createTask($taskGroupID: String!, $name: String!, $position: Float!) {
+    mutation createTask($taskGroupID: UUID!, $name: String!, $position: Float!) {
   createTask(input: {taskGroupID: $taskGroupID, name: $name, position: $position}) {
     ...TaskFields
   }
@@ -3297,9 +3301,9 @@ export type SetTaskCompleteMutationHookResult = ReturnType<typeof useSetTaskComp
 export type SetTaskCompleteMutationResult = ApolloReactCommon.MutationResult<SetTaskCompleteMutation>;
 export type SetTaskCompleteMutationOptions = ApolloReactCommon.BaseMutationOptions<SetTaskCompleteMutation, SetTaskCompleteMutationVariables>;
 export const UpdateTaskChecklistItemLocationDocument = gql`
-    mutation updateTaskChecklistItemLocation($checklistID: UUID!, $checklistItemID: UUID!, $position: Float!) {
-  updateTaskChecklistItemLocation(input: {checklistID: $checklistID, checklistItemID: $checklistItemID, position: $position}) {
-    checklistID
+    mutation updateTaskChecklistItemLocation($taskChecklistID: UUID!, $taskChecklistItemID: UUID!, $position: Float!) {
+  updateTaskChecklistItemLocation(input: {taskChecklistID: $taskChecklistID, taskChecklistItemID: $taskChecklistItemID, position: $position}) {
+    taskChecklistID
     prevChecklistID
     checklistItem {
       id
@@ -3324,8 +3328,8 @@ export type UpdateTaskChecklistItemLocationMutationFn = ApolloReactCommon.Mutati
  * @example
  * const [updateTaskChecklistItemLocationMutation, { data, loading, error }] = useUpdateTaskChecklistItemLocationMutation({
  *   variables: {
- *      checklistID: // value for 'checklistID'
- *      checklistItemID: // value for 'checklistItemID'
+ *      taskChecklistID: // value for 'taskChecklistID'
+ *      taskChecklistItemID: // value for 'taskChecklistItemID'
  *      position: // value for 'position'
  *   },
  * });
@@ -3371,8 +3375,8 @@ export type UpdateTaskChecklistItemNameMutationHookResult = ReturnType<typeof us
 export type UpdateTaskChecklistItemNameMutationResult = ApolloReactCommon.MutationResult<UpdateTaskChecklistItemNameMutation>;
 export type UpdateTaskChecklistItemNameMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskChecklistItemNameMutation, UpdateTaskChecklistItemNameMutationVariables>;
 export const UpdateTaskChecklistLocationDocument = gql`
-    mutation updateTaskChecklistLocation($checklistID: UUID!, $position: Float!) {
-  updateTaskChecklistLocation(input: {checklistID: $checklistID, position: $position}) {
+    mutation updateTaskChecklistLocation($taskChecklistID: UUID!, $position: Float!) {
+  updateTaskChecklistLocation(input: {taskChecklistID: $taskChecklistID, position: $position}) {
     checklist {
       id
       position
@@ -3395,7 +3399,7 @@ export type UpdateTaskChecklistLocationMutationFn = ApolloReactCommon.MutationFu
  * @example
  * const [updateTaskChecklistLocationMutation, { data, loading, error }] = useUpdateTaskChecklistLocationMutation({
  *   variables: {
- *      checklistID: // value for 'checklistID'
+ *      taskChecklistID: // value for 'taskChecklistID'
  *      position: // value for 'position'
  *   },
  * });
@@ -4275,7 +4279,7 @@ export type UpdateTaskLocationMutationHookResult = ReturnType<typeof useUpdateTa
 export type UpdateTaskLocationMutationResult = ApolloReactCommon.MutationResult<UpdateTaskLocationMutation>;
 export type UpdateTaskLocationMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskLocationMutation, UpdateTaskLocationMutationVariables>;
 export const UpdateTaskNameDocument = gql`
-    mutation updateTaskName($taskID: String!, $name: String!) {
+    mutation updateTaskName($taskID: UUID!, $name: String!) {
   updateTaskName(input: {taskID: $taskID, name: $name}) {
     id
     name

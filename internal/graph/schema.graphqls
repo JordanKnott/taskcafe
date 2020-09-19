@@ -174,6 +174,9 @@ enum ObjectType {
   TEAM
   PROJECT
   TASK
+  TASK_GROUP
+  TASK_CHECKLIST
+  TASK_CHECKLIST_ITEM
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
@@ -215,7 +218,7 @@ input ProjectsFilter {
 }
 
 input FindUser {
-  userId: String!
+  userID: UUID!
 }
 
 input FindProject {
@@ -297,15 +300,15 @@ type DeleteProjectPayload {
 
 extend type Mutation {
   createProjectLabel(input: NewProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   deleteProjectLabel(input: DeleteProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateProjectLabel(input: UpdateProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateProjectLabelName(input: UpdateProjectLabelName!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateProjectLabelColor(input: UpdateProjectLabelColor!):
-    ProjectLabel! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
 }
 
 input NewProjectLabel {
@@ -377,29 +380,29 @@ type UpdateProjectMemberRolePayload {
 
 extend type Mutation {
   createTask(input: NewTask!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTask(input: DeleteTaskInput!):
-    DeleteTaskPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   updateTaskDescription(input: UpdateTaskDescriptionInput!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskLocation(input: NewTaskLocation!):
-    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskName(input: UpdateTaskName!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   setTaskComplete(input: SetTaskComplete!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskDueDate(input: UpdateTaskDueDate!):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   assignTask(input: AssignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: TASK)
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 }
 
 input NewTask {
-  taskGroupID: String!
+  taskGroupID: UUID!
   name: String!
   position: Float!
 }
@@ -441,54 +444,55 @@ input NewTaskLocation {
 }
 
 input DeleteTaskInput {
-  taskID: String!
+  taskID: UUID!
 }
 
 type DeleteTaskPayload {
-  taskID: String!
+  taskID: UUID!
 }
 
 input UpdateTaskName {
-  taskID: String!
+  taskID: UUID!
   name: String!
 }
 
 extend type Mutation {
   createTaskChecklist(input: CreateTaskChecklist!):
-    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskChecklist! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   deleteTaskChecklist(input: DeleteTaskChecklist!):
-    DeleteTaskChecklistPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskChecklistPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
   updateTaskChecklistName(input: UpdateTaskChecklistName!):
-    TaskChecklist! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskChecklist! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
   createTaskChecklistItem(input: CreateTaskChecklistItem!):
-    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!):
-    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!):
-    TaskChecklistItem! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!):
-    DeleteTaskChecklistItemPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskChecklistItem! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
   updateTaskChecklistLocation(input: UpdateTaskChecklistLocation!):
-    UpdateTaskChecklistLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskChecklistLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST)
+
+  updateTaskChecklistItemName(input: UpdateTaskChecklistItemName!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
+  setTaskChecklistItemComplete(input: SetTaskChecklistItemComplete!):
+    TaskChecklistItem! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
+  deleteTaskChecklistItem(input: DeleteTaskChecklistItem!):
+    DeleteTaskChecklistItemPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
   updateTaskChecklistItemLocation(input: UpdateTaskChecklistItemLocation!):
-    UpdateTaskChecklistItemLocationPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    UpdateTaskChecklistItemLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_CHECKLIST_ITEM)
 
 }
 
 input UpdateTaskChecklistItemLocation {
-  checklistID: UUID!
-  checklistItemID: UUID!
+  taskChecklistID: UUID!
+  taskChecklistItemID: UUID!
   position: Float!
 }
 
 type UpdateTaskChecklistItemLocationPayload {
-  checklistID: UUID!
+  taskChecklistID: UUID!
   prevChecklistID: UUID!
   checklistItem: TaskChecklistItem!
 }
 
 input UpdateTaskChecklistLocation {
-  checklistID: UUID!
+  taskChecklistID: UUID!
   position: Float!
 }
 
@@ -541,19 +545,19 @@ type DeleteTaskChecklistPayload {
 
 extend type Mutation {
   createTaskGroup(input: NewTaskGroup!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateTaskGroupLocation(input: NewTaskGroupLocation!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   updateTaskGroupName(input: UpdateTaskGroupName!):
-    TaskGroup! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTaskGroup(input: DeleteTaskGroupInput!):
-    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   duplicateTaskGroup(input: DuplicateTaskGroup!):
-    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DuplicateTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   sortTaskGroup(input: SortTaskGroup!):
-    SortTaskGroupPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    SortTaskGroupPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
   deleteTaskGroupTasks(input: DeleteTaskGroupTasks!):
-    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+    DeleteTaskGroupTasksPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
 }
 
 input DeleteTaskGroupTasks {
@@ -612,9 +616,19 @@ type DeleteTaskGroupPayload {
 }
 
 input NewTaskGroup {
-  projectID: String!
+  projectID: UUID!
   name: String!
   position: Float!
+}
+
+extend type Mutation {
+  addTaskLabel(input: AddTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  removeTaskLabel(input: RemoveTaskLabelInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  toggleTaskLabel(input: ToggleTaskLabelInput!):
+    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
 }
 
 input AddTaskLabelInput {
@@ -623,8 +637,10 @@ input AddTaskLabelInput {
 }
 
 input RemoveTaskLabelInput {
+  taskID: UUID!
   taskLabelID: UUID!
 }
+
 input ToggleTaskLabelInput {
   taskID: UUID!
   projectLabelID: UUID!
@@ -633,15 +649,6 @@ input ToggleTaskLabelInput {
 type ToggleTaskLabelPayload {
   active: Boolean!
   task: Task!
-}
-extend type Mutation {
-  addTaskLabel(input: AddTaskLabelInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  removeTaskLabel(input: RemoveTaskLabelInput):
-    Task! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  toggleTaskLabel(input: ToggleTaskLabelInput!):
-    ToggleTaskLabelPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-
 }
 
 extend type Mutation {
@@ -758,7 +765,7 @@ type UpdateUserRolePayload {
 }
 
 input NewRefreshToken {
-  userId: String!
+  userID: UUID!
 }
 
 input NewUserAccount {
@@ -771,7 +778,7 @@ input NewUserAccount {
 }
 
 input LogoutUser {
-  userID: String!
+  userID: UUID!
 }
 
 input DeleteUserAccount {

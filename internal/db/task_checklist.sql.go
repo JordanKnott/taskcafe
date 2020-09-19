@@ -90,6 +90,35 @@ func (q *Queries) DeleteTaskChecklistItem(ctx context.Context, taskChecklistItem
 	return err
 }
 
+const getProjectIDForTaskChecklist = `-- name: GetProjectIDForTaskChecklist :one
+SELECT project_id FROM task_checklist
+  INNER JOIN task ON task.task_id = task_checklist.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE task_checklist.task_checklist_id = $1
+`
+
+func (q *Queries) GetProjectIDForTaskChecklist(ctx context.Context, taskChecklistID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getProjectIDForTaskChecklist, taskChecklistID)
+	var project_id uuid.UUID
+	err := row.Scan(&project_id)
+	return project_id, err
+}
+
+const getProjectIDForTaskChecklistItem = `-- name: GetProjectIDForTaskChecklistItem :one
+SELECT project_id FROM task_checklist_item AS tci
+  INNER JOIN task_checklist ON task_checklist.task_checklist_id = tci.task_checklist_id
+  INNER JOIN task ON task.task_id = task_checklist.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE tci.task_checklist_item_id = $1
+`
+
+func (q *Queries) GetProjectIDForTaskChecklistItem(ctx context.Context, taskChecklistItemID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getProjectIDForTaskChecklistItem, taskChecklistItemID)
+	var project_id uuid.UUID
+	err := row.Scan(&project_id)
+	return project_id, err
+}
+
 const getTaskChecklistByID = `-- name: GetTaskChecklistByID :one
 SELECT task_checklist_id, task_id, created_at, name, position FROM task_checklist WHERE task_checklist_id = $1
 `

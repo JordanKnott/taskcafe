@@ -1,4 +1,4 @@
-mutation updateTaskName($taskID: String!, $name: String!) {
+mutation updateTaskName($taskID: UUID!, $name: String!) {
   updateTaskName(input: { taskID: $taskID, name: $name }) {
     id
     name

@@ -1,4 +1,4 @@
-mutation deleteTask($taskID: String!) {
+mutation deleteTask($taskID: UUID!) {
   deleteTask(input: { taskID: $taskID }) {
     taskID
   }
