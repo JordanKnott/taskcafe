@@ -9,7 +9,7 @@
     <img alt="Releases" src="https://img.shields.io/github/v/release/JordanKnott/taskcafe" />
   </a>
   <a href="https://hub.docker.com/repository/docker/taskcafe/taskcafe">
-    <img alt="Dockerhub" src="https://img.shields.io/docker/v/taskcafe/taskcafe?label=docker" />
+    <img alt="Dockerhub" src="https://img.shields.io/docker/v/taskcafe/taskcafe?label=docker&sort=semver" />
   </a>
   <a href="https://goreportcard.com/report/github.com/JordanKnott/taskcafe">
     <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/JordanKnott/taskcafe" />
