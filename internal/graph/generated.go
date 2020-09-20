@@ -2571,7 +2571,7 @@ type Project {
   id: ID!
   createdAt: Time!
   name: String!
-  team: Team!
+  team: Team
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   labels: [ProjectLabel!]!
@@ -2659,7 +2659,8 @@ type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
   findUser(input: FindUser!): UserAccount!
-  findProject(input: FindProject!): Project!
+  findProject(input: FindProject!):
+    Project! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
   findTeam(input: FindTeam!): Team!
@@ -2753,8 +2754,7 @@ extend type Mutation {
 }
 
 input NewProject {
-  userID: UUID!
-  teamID: UUID!
+  teamID: UUID
   name: String!
 }
 
@@ -10193,14 +10193,11 @@ func (ec *executionContext) _Project_team(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*db.Team)
 	fc.Result = res
-	return ec.marshalNTeam2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx, field.Selections, res)
+	return ec.marshalOTeam2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Project_taskGroups(ctx context.Context, field graphql.CollectedField, obj *db.Project) (ret graphql.Marshaler) {
@@ -10638,8 +10635,40 @@ func (ec *executionContext) _Query_findProject(ctx context.Context, field graphq
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindProject(rctx, args["input"].(FindProject))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().FindProject(rctx, args["input"].(FindProject))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Project); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Project`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15121,15 +15150,9 @@ func (ec *executionContext) unmarshalInputNewProject(ctx context.Context, obj in
 
 	for k, v := range asMap {
 		switch k {
-		case "userID":
-			var err error
-			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "teamID":
 			var err error
-			it.TeamID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.TeamID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17286,9 +17309,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Project_team(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "taskGroups":
@@ -20925,6 +20945,17 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOTeam2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx context.Context, sel ast.SelectionSet, v db.Team) graphql.Marshaler {
+	return ec._Team(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOTeam2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx context.Context, sel ast.SelectionSet, v *db.Team) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Team(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

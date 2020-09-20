@@ -158,7 +158,7 @@ const Project = () => {
 
   const [updateTaskName] = useUpdateTaskNameMutation();
 
-  const { loading, data } = useFindProjectQuery({
+  const { loading, data, error } = useFindProjectQuery({
     variables: { projectID },
   });
 
@@ -224,6 +224,9 @@ const Project = () => {
       </>
     );
   }
+  if (error) {
+    history.push('/projects');
+  }
   if (data) {
     labelsRef.current = data.findProject.labels;
 
@@ -260,7 +263,7 @@ const Project = () => {
           currentTab={0}
           projectMembers={data.findProject.members}
           projectID={projectID}
-          teamID={data.findProject.team.id}
+          teamID={data.findProject.team ? data.findProject.team.id : null}
           name={data.findProject.name}
         />
         <Route path={`${match.path}`} exact render={() => <Redirect to={`${match.url}/board`} />} />

@@ -126,7 +126,7 @@ export type Project = {
   id: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
-  team: Team;
+  team?: Maybe<Team>;
   taskGroups: Array<TaskGroup>;
   members: Array<Member>;
   labels: Array<ProjectLabel>;
@@ -643,8 +643,7 @@ export type Notification = {
 };
 
 export type NewProject = {
-  userID: Scalars['UUID'];
-  teamID: Scalars['UUID'];
+  teamID?: Maybe<Scalars['UUID']>;
   name: Scalars['String'];
 };
 
@@ -1085,8 +1084,7 @@ export type ClearProfileAvatarMutation = (
 );
 
 export type CreateProjectMutationVariables = {
-  teamID: Scalars['UUID'];
-  userID: Scalars['UUID'];
+  teamID?: Maybe<Scalars['UUID']>;
   name: Scalars['String'];
 };
 
@@ -1096,10 +1094,10 @@ export type CreateProjectMutation = (
   & { createProject: (
     { __typename?: 'Project' }
     & Pick<Project, 'id' | 'name'>
-    & { team: (
+    & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id' | 'name'>
-    ) }
+    )> }
   ) }
 );
 
@@ -1194,10 +1192,10 @@ export type FindProjectQuery = (
   & { findProject: (
     { __typename?: 'Project' }
     & Pick<Project, 'name'>
-    & { team: (
+    & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id'>
-    ), members: Array<(
+    )>, members: Array<(
       { __typename?: 'Member' }
       & Pick<Member, 'id' | 'fullName' | 'username'>
       & { role: (
@@ -1361,10 +1359,10 @@ export type GetProjectsQuery = (
   )>, projects: Array<(
     { __typename?: 'Project' }
     & Pick<Project, 'id' | 'name'>
-    & { team: (
+    & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id' | 'name'>
-    ) }
+    )> }
   )> }
 );
 
@@ -1837,10 +1835,10 @@ export type GetTeamQuery = (
   ), projects: Array<(
     { __typename?: 'Project' }
     & Pick<Project, 'id' | 'name'>
-    & { team: (
+    & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id' | 'name'>
-    ) }
+    )> }
   )>, users: Array<(
     { __typename?: 'UserAccount' }
     & Pick<UserAccount, 'id' | 'email' | 'fullName' | 'username'>
@@ -2365,8 +2363,8 @@ export type ClearProfileAvatarMutationHookResult = ReturnType<typeof useClearPro
 export type ClearProfileAvatarMutationResult = ApolloReactCommon.MutationResult<ClearProfileAvatarMutation>;
 export type ClearProfileAvatarMutationOptions = ApolloReactCommon.BaseMutationOptions<ClearProfileAvatarMutation, ClearProfileAvatarMutationVariables>;
 export const CreateProjectDocument = gql`
-    mutation createProject($teamID: UUID!, $userID: UUID!, $name: String!) {
-  createProject(input: {teamID: $teamID, userID: $userID, name: $name}) {
+    mutation createProject($teamID: UUID, $name: String!) {
+  createProject(input: {teamID: $teamID, name: $name}) {
     id
     name
     team {
@@ -2392,7 +2390,6 @@ export type CreateProjectMutationFn = ApolloReactCommon.MutationFunction<CreateP
  * const [createProjectMutation, { data, loading, error }] = useCreateProjectMutation({
  *   variables: {
  *      teamID: // value for 'teamID'
- *      userID: // value for 'userID'
  *      name: // value for 'name'
  *   },
  * });

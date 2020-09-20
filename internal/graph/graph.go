@@ -2,10 +2,12 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -19,6 +21,7 @@ import (
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/utils"
 	log "github.com/sirupsen/logrus"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // NewHandler returns a new graphql endpoint handler.
@@ -66,6 +69,11 @@ func NewHandler(repo db.Repository) http.Handler {
 			log.Error("subject field name does not exist on input type")
 			return nil, errors.New("subject field name does not exist on input type")
 		}
+		if fieldName == "TeamID" && subjectField.IsNil() {
+			// Is a personal project, no check
+			// TODO: add config setting to disable personal projects
+			return next(ctx)
+		}
 		subjectID, ok = subjectField.Interface().(uuid.UUID)
 		if !ok {
 			log.Error("error while casting subject UUID")
@@ -93,16 +101,30 @@ func NewHandler(repo db.Repository) http.Handler {
 			}
 			projectRoles, err := GetProjectRoles(ctx, repo, subjectID)
 			if err != nil {
+				if err == sql.ErrNoRows {
+					return nil, &gqlerror.Error{
+						Message: "not authorized",
+						Extensions: map[string]interface{}{
+							"code": "401",
+						},
+					}
+				}
 				log.WithError(err).Error("error while getting project roles")
 				return nil, err
 			}
 			for _, validRole := range roles {
-				if GetRoleLevel(projectRoles.TeamRole) == validRole || GetRoleLevel(projectRoles.ProjectRole) == validRole {
+				log.WithFields(log.Fields{"validRole": validRole}).Info("checking role")
+				if CompareRoleLevel(projectRoles.TeamRole, validRole) || CompareRoleLevel(projectRoles.ProjectRole, validRole) {
 					log.WithFields(log.Fields{"teamRole": projectRoles.TeamRole, "projectRole": projectRoles.ProjectRole}).Info("is team or project role")
 					return next(ctx)
 				}
 			}
-			return nil, errors.New("must be a team or project admin")
+			return nil, &gqlerror.Error{
+				Message: "not authorized",
+				Extensions: map[string]interface{}{
+					"code": "401",
+				},
+			}
 		} else if level == ActionLevelTeam {
 			userID, ok := GetUserID(ctx)
 			if !ok {
@@ -114,14 +136,24 @@ func NewHandler(repo db.Repository) http.Handler {
 				return nil, err
 			}
 			for _, validRole := range roles {
-				if GetRoleLevel(role.RoleCode) == validRole || GetRoleLevel(role.RoleCode) == validRole {
+				if CompareRoleLevel(role.RoleCode, validRole) || CompareRoleLevel(role.RoleCode, validRole) {
 					return next(ctx)
 				}
 			}
-			return nil, errors.New("must be a team admin")
+			return nil, &gqlerror.Error{
+				Message: "not authorized",
+				Extensions: map[string]interface{}{
+					"code": "401",
+				},
+			}
 
 		}
-		return nil, errors.New("invalid path")
+		return nil, &gqlerror.Error{
+			Message: "bad path",
+			Extensions: map[string]interface{}{
+				"code": "500",
+			},
+		}
 	}
 	srv := handler.New(NewExecutableSchema(c))
 	srv.AddTransport(transport.Websocket{
@@ -184,12 +216,12 @@ func GetProjectRoles(ctx context.Context, r db.Repository, projectID uuid.UUID) 
 	return r.GetUserRolesForProject(ctx, db.GetUserRolesForProjectParams{UserID: userID, ProjectID: projectID})
 }
 
-// GetRoleLevel converts a role level string to a RoleLevel type
-func GetRoleLevel(r string) RoleLevel {
-	if r == RoleLevelAdmin.String() {
-		return RoleLevelAdmin
+// CompareRoleLevel compares a string against a role level
+func CompareRoleLevel(a string, b RoleLevel) bool {
+	if strings.ToLower(a) == strings.ToLower(b.String()) {
+		return true
 	}
-	return RoleLevelMember
+	return false
 }
 
 // ConvertToRoleCode converts a role code string to a RoleCode type

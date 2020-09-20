@@ -38,6 +38,12 @@ type Organization struct {
 	Name           string    `json:"name"`
 }
 
+type PersonalProject struct {
+	PersonalProjectID uuid.UUID `json:"personal_project_id"`
+	ProjectID         uuid.UUID `json:"project_id"`
+	UserID            uuid.UUID `json:"user_id"`
+}
+
 type Project struct {
 	ProjectID uuid.UUID `json:"project_id"`
 	TeamID    uuid.UUID `json:"team_id"`

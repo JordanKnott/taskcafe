@@ -213,9 +213,8 @@ type MemberList struct {
 }
 
 type NewProject struct {
-	UserID uuid.UUID `json:"userID"`
-	TeamID uuid.UUID `json:"teamID"`
-	Name   string    `json:"name"`
+	TeamID *uuid.UUID `json:"teamID"`
+	Name   string     `json:"name"`
 }
 
 type NewProjectLabel struct {

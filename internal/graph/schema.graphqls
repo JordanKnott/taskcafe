@@ -97,7 +97,7 @@ type Project {
   id: ID!
   createdAt: Time!
   name: String!
-  team: Team!
+  team: Team
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   labels: [ProjectLabel!]!
@@ -185,7 +185,8 @@ type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
   findUser(input: FindUser!): UserAccount!
-  findProject(input: FindProject!): Project!
+  findProject(input: FindProject!):
+    Project! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
   findTeam(input: FindTeam!): Team!
@@ -279,8 +280,7 @@ extend type Mutation {
 }
 
 input NewProject {
-  userID: UUID!
-  teamID: UUID!
+  teamID: UUID
   name: String!
 }
 

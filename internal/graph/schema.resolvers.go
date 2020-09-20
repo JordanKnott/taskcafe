@@ -23,10 +23,41 @@ func (r *labelColorResolver) ID(ctx context.Context, obj *db.LabelColor) (uuid.U
 }
 
 func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) (*db.Project, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		return &db.Project{}, errors.New("user id is missing")
+	}
 	createdAt := time.Now().UTC()
-	log.WithFields(log.Fields{"userID": input.UserID, "name": input.Name, "teamID": input.TeamID}).Info("creating new project")
-	project, err := r.Repository.CreateProject(ctx, db.CreateProjectParams{input.TeamID, createdAt, input.Name})
-	return &project, err
+	log.WithFields(log.Fields{"name": input.Name, "teamID": input.TeamID}).Info("creating new project")
+	var project db.Project
+	var err error
+	if input.TeamID == nil {
+		project, err = r.Repository.CreatePersonalProject(ctx, db.CreatePersonalProjectParams{
+			CreatedAt: createdAt,
+			Name:      input.Name,
+		})
+		if err != nil {
+			log.WithError(err).Error("error while creating project")
+			return &db.Project{}, err
+		}
+		log.WithFields(log.Fields{"userID": userID, "projectID": project.ProjectID}).Info("creating personal project link")
+	} else {
+		project, err = r.Repository.CreateTeamProject(ctx, db.CreateTeamProjectParams{
+			CreatedAt: createdAt,
+			Name:      input.Name,
+			TeamID:    *input.TeamID,
+		})
+		if err != nil {
+			log.WithError(err).Error("error while creating project")
+			return &db.Project{}, err
+		}
+	}
+	_, err = r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: project.ProjectID, UserID: userID, AddedAt: createdAt, RoleCode: "admin"})
+	if err != nil {
+		log.WithError(err).Error("error while creating initial project member")
+		return &db.Project{}, err
+	}
+	return &project, nil
 }
 
 func (r *mutationResolver) DeleteProject(ctx context.Context, input DeleteProject) (*DeleteProjectPayload, error) {
@@ -880,6 +911,9 @@ func (r *projectResolver) ID(ctx context.Context, obj *db.Project) (uuid.UUID, e
 func (r *projectResolver) Team(ctx context.Context, obj *db.Project) (*db.Team, error) {
 	team, err := r.Repository.GetTeamByID(ctx, obj.TeamID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		log.WithFields(log.Fields{"teamID": obj.TeamID, "projectID": obj.ProjectID}).WithError(err).Error("issue while getting team for project")
 		return &team, err
 	}
@@ -982,25 +1016,6 @@ func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db
 			},
 		}
 	}
-	if role == auth.RoleAdmin {
-		return &project, nil
-	}
-
-	projectRoles, err := GetProjectRoles(ctx, r.Repository, input.ProjectID)
-	log.WithFields(log.Fields{"projectID": input.ProjectID, "teamRole": projectRoles.TeamRole, "projectRole": projectRoles.ProjectRole}).Info("get project roles ")
-	if err != nil {
-		return &project, err
-	}
-
-	if projectRoles.TeamRole == "" && projectRoles.ProjectRole == "" {
-		return &db.Project{}, &gqlerror.Error{
-			Message: "project not accessible",
-			Extensions: map[string]interface{}{
-				"code": "11-400",
-			},
-		}
-	}
-
 	return &project, nil
 }
 
@@ -1021,12 +1036,14 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 		return r.Repository.GetAllProjectsForTeam(ctx, *input.TeamID)
 	}
 
+	var teams []db.Team
+	var err error
 	if orgRole == "admin" {
-		log.Info("showing all projects for admin")
-		return r.Repository.GetAllProjects(ctx)
+		teams, err = r.Repository.GetAllTeams(ctx)
+	} else {
+		teams, err = r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
 	}
 
-	teams, err := r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
 	projects := make(map[string]db.Project)
 	for _, team := range teams {
 		log.WithFields(log.Fields{"teamID": team.TeamID}).Info("found team")
@@ -1078,12 +1095,14 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 		return []db.Team{}, errors.New("internal error")
 	}
 	if orgRole == "admin" {
+
 		return r.Repository.GetAllTeams(ctx)
 	}
 
 	teams := make(map[string]db.Team)
 	adminTeams, err := r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
 	if err != nil {
+		log.WithError(err).Error("error while getting teams for user ID")
 		return []db.Team{}, err
 	}
 
@@ -1093,7 +1112,7 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 
 	visibleProjects, err := r.Repository.GetAllVisibleProjectsForUserID(ctx, userID)
 	if err != nil {
-		log.WithField("userID", userID).Info("error while getting visible projects")
+		log.WithField("userID", userID).WithError(err).Error("error while getting visible projects for user ID")
 		return []db.Team{}, err
 	}
 	for _, project := range visibleProjects {
@@ -1102,7 +1121,10 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 			log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("adding visible project")
 			team, err := r.Repository.GetTeamByID(ctx, project.TeamID)
 			if err != nil {
-				log.WithField("teamID", project.TeamID).Info("error getting team by id")
+				if err == sql.ErrNoRows {
+					continue
+				}
+				log.WithField("teamID", project.TeamID).WithError(err).Error("error getting team by id")
 				return []db.Team{}, err
 			}
 			teams[project.TeamID.String()] = team

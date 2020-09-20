@@ -137,7 +137,7 @@ const ProjectFinder = () => {
       return {
         id: team.id,
         name: team.name,
-        projects: projects.filter(project => project.team.id === team.id),
+        projects: projects.filter(project => project.team && project.team.id === team.id),
       };
     });
     return (

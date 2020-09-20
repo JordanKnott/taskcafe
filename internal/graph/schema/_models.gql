@@ -97,7 +97,7 @@ type Project {
   id: ID!
   createdAt: Time!
   name: String!
-  team: Team!
+  team: Team
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   labels: [ProjectLabel!]!

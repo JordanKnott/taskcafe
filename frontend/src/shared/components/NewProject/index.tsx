@@ -217,13 +217,13 @@ type NewProjectProps = {
   initialTeamID: string | null;
   teams: Array<Team>;
   onClose: () => void;
-  onCreateProject: (projectName: string, teamID: string) => void;
+  onCreateProject: (projectName: string, teamID: string | null) => void;
 };
 
 const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, onCreateProject }) => {
   const [projectName, setProjectName] = useState('');
   const [team, setTeam] = useState<null | string>(initialTeamID);
-  const options = teams.map(t => ({ label: t.name, value: t.id }));
+  const options = [{ label: 'No team', value: 'no-team' }, ...teams.map(t => ({ label: t.name, value: t.id }))];
   return (
     <Overlay>
       <Content>
@@ -271,8 +271,8 @@ const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, 
             </ProjectInfo>
             <CreateButton
               onClick={() => {
-                if (team && projectName !== '') {
-                  onCreateProject(projectName, team);
+                if (projectName !== '') {
+                  onCreateProject(projectName, team === 'no-team' ? null : team);
                 }
               }}
             >

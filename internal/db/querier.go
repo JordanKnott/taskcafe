@@ -13,7 +13,8 @@ type Querier interface {
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateNotificationObject(ctx context.Context, arg CreateNotificationObjectParams) (NotificationObject, error)
 	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (Organization, error)
-	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
+	CreatePersonalProject(ctx context.Context, arg CreatePersonalProjectParams) (Project, error)
+	CreatePersonalProjectLink(ctx context.Context, arg CreatePersonalProjectLinkParams) (PersonalProject, error)
 	CreateProjectLabel(ctx context.Context, arg CreateProjectLabelParams) (ProjectLabel, error)
 	CreateProjectMember(ctx context.Context, arg CreateProjectMemberParams) (ProjectMember, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
@@ -27,6 +28,7 @@ type Querier interface {
 	CreateTaskLabelForTask(ctx context.Context, arg CreateTaskLabelForTaskParams) (TaskLabel, error)
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateTeamMember(ctx context.Context, arg CreateTeamMemberParams) (TeamMember, error)
+	CreateTeamProject(ctx context.Context, arg CreateTeamProjectParams) (Project, error)
 	CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error)
 	DeleteExpiredTokens(ctx context.Context) error
 	DeleteProjectByID(ctx context.Context, projectID uuid.UUID) error
@@ -62,6 +64,7 @@ type Querier interface {
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetNotificationForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetNotificationForNotificationIDRow, error)
+	GetPersonalProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectIDForTask(ctx context.Context, taskID uuid.UUID) (uuid.UUID, error)
 	GetProjectIDForTaskChecklist(ctx context.Context, taskChecklistID uuid.UUID) (uuid.UUID, error)

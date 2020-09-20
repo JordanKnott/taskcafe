@@ -10,18 +10,17 @@ import (
 	"github.com/google/uuid"
 )
 
-const createProject = `-- name: CreateProject :one
-INSERT INTO project(team_id, created_at, name) VALUES ($1, $2, $3) RETURNING project_id, team_id, created_at, name
+const createPersonalProject = `-- name: CreatePersonalProject :one
+INSERT INTO project(team_id, created_at, name) VALUES (null, $1, $2) RETURNING project_id, team_id, created_at, name
 `
 
-type CreateProjectParams struct {
-	TeamID    uuid.UUID `json:"team_id"`
+type CreatePersonalProjectParams struct {
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
 }
 
-func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
-	row := q.db.QueryRowContext(ctx, createProject, arg.TeamID, arg.CreatedAt, arg.Name)
+func (q *Queries) CreatePersonalProject(ctx context.Context, arg CreatePersonalProjectParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, createPersonalProject, arg.CreatedAt, arg.Name)
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
@@ -29,6 +28,22 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		&i.CreatedAt,
 		&i.Name,
 	)
+	return i, err
+}
+
+const createPersonalProjectLink = `-- name: CreatePersonalProjectLink :one
+INSERT INTO personal_project (project_id, user_id) VALUES ($1, $2) RETURNING personal_project_id, project_id, user_id
+`
+
+type CreatePersonalProjectLinkParams struct {
+	ProjectID uuid.UUID `json:"project_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) CreatePersonalProjectLink(ctx context.Context, arg CreatePersonalProjectLinkParams) (PersonalProject, error) {
+	row := q.db.QueryRowContext(ctx, createPersonalProjectLink, arg.ProjectID, arg.UserID)
+	var i PersonalProject
+	err := row.Scan(&i.PersonalProjectID, &i.ProjectID, &i.UserID)
 	return i, err
 }
 
@@ -58,6 +73,28 @@ func (q *Queries) CreateProjectMember(ctx context.Context, arg CreateProjectMemb
 		&i.UserID,
 		&i.AddedAt,
 		&i.RoleCode,
+	)
+	return i, err
+}
+
+const createTeamProject = `-- name: CreateTeamProject :one
+INSERT INTO project(team_id, created_at, name) VALUES ($1, $2, $3) RETURNING project_id, team_id, created_at, name
+`
+
+type CreateTeamProjectParams struct {
+	TeamID    uuid.UUID `json:"team_id"`
+	CreatedAt time.Time `json:"created_at"`
+	Name      string    `json:"name"`
+}
+
+func (q *Queries) CreateTeamProject(ctx context.Context, arg CreateTeamProjectParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, createTeamProject, arg.TeamID, arg.CreatedAt, arg.Name)
+	var i Project
+	err := row.Scan(
+		&i.ProjectID,
+		&i.TeamID,
+		&i.CreatedAt,
+		&i.Name,
 	)
 	return i, err
 }
@@ -199,6 +236,40 @@ func (q *Queries) GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.
 			return nil, err
 		}
 		items = append(items, project_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPersonalProjectsForUserID = `-- name: GetPersonalProjectsForUserID :many
+SELECT project.project_id, project.team_id, project.created_at, project.name FROM project
+  LEFT JOIN personal_project ON personal_project.project_id = project.project_id
+  WHERE personal_project.user_id = $1
+`
+
+func (q *Queries) GetPersonalProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getPersonalProjectsForUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Project
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.TeamID,
+			&i.CreatedAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

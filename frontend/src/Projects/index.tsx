@@ -8,8 +8,6 @@ import {
   useCreateProjectMutation,
   GetProjectsDocument,
   GetProjectsQuery,
-  MeQuery,
-  MeDocument,
 } from 'shared/generated/graphql';
 
 import { Link } from 'react-router-dom';
@@ -23,33 +21,6 @@ import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
 import NOOP from 'shared/utils/noop';
 
-const EmptyStateContent = styled.div`
-  display: flex;
-  justy-content: center;
-  align-items: center;
-  flex-direction: column;
-`;
-
-const EmptyStateTitle = styled.h3`
-  color: #fff;
-  font-size: 18px;
-`;
-
-const EmptyStatePrompt = styled.span`
-  color: rgba(${props => props.theme.colors.text.primary});
-  font-size: 16px;
-  margin-top: 8px;
-`;
-
-const EmptyState = styled(Empty)`
-  display: block;
-  margin: 0 auto;
-`;
-
-const CreateTeamButton = styled(Button)`
-  width: 100%;
-`;
-
 type CreateTeamData = { teamName: string };
 
 type CreateTeamFormProps = {
@@ -57,6 +28,10 @@ type CreateTeamFormProps = {
 };
 
 const CreateTeamFormContainer = styled.form``;
+
+const CreateTeamButton = styled(Button)`
+  width: 100%;
+`;
 
 const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onCreateTeam }) => {
   const { register, handleSubmit } = useForm<CreateTeamData>();
@@ -211,22 +186,11 @@ const ProjectsContainer = styled.div`
   min-width: 288px;
 `;
 
-const ProjectGrid = styled.div`
-  max-width: 780px;
-  display: grid;
-  grid-template-columns: 240px 240px 240px;
-  gap: 20px 10px;
-`;
-
 const AddTeamButton = styled(Button)`
   padding: 6px 12px;
   position: absolute;
   top: 6px;
   right: 12px;
-`;
-
-const CreateFirstTeam = styled(Button)`
-  margin-top: 8px;
 `;
 
 type ShowNewProject = {
@@ -269,6 +233,13 @@ const Projects = () => {
   if (data && user) {
     const { projects, teams, organizations } = data;
     const organizationID = organizations[0].id ?? null;
+    const personalProjects = projects
+      .filter(p => p.team === null)
+      .sort((a, b) => {
+        const textA = a.name.toUpperCase();
+        const textB = b.name.toUpperCase();
+        return textA < textB ? -1 : textA > textB ? 1 : 0; // eslint-disable-line no-nested-ternary
+      });
     const projectTeams = teams
       .sort((a, b) => {
         const textA = a.name.toUpperCase();
@@ -280,7 +251,7 @@ const Projects = () => {
           id: team.id,
           name: team.name,
           projects: projects
-            .filter(project => project.team.id === team.id)
+            .filter(project => project.team && project.team.id === team.id)
             .sort((a, b) => {
               const textA = a.name.toUpperCase();
               const textB = b.name.toUpperCase();
@@ -321,39 +292,35 @@ const Projects = () => {
                 Add Team
               </AddTeamButton>
             )}
-            {projectTeams.length === 0 && (
-              <EmptyStateContent>
-                <EmptyState width={425} height={425} />
-                <EmptyStateTitle>No teams exist</EmptyStateTitle>
-                <EmptyStatePrompt>Create a new team to get started</EmptyStatePrompt>
-                <CreateFirstTeam
-                  variant="outline"
-                  onClick={$target => {
-                    showPopup(
-                      $target,
-                      <Popup
-                        title="Create team"
-                        tab={0}
-                        onClose={() => {
-                          hidePopup();
-                        }}
-                      >
-                        <CreateTeamForm
-                          onCreateTeam={teamName => {
-                            if (organizationID) {
-                              createTeam({ variables: { name: teamName, organizationID } });
-                              hidePopup();
-                            }
-                          }}
-                        />
-                      </Popup>,
-                    );
-                  }}
-                >
-                  Create new team
-                </CreateFirstTeam>
-              </EmptyStateContent>
-            )}
+            <div>
+              <ProjectSectionTitleWrapper>
+                <ProjectSectionTitle>Personal Projects</ProjectSectionTitle>
+              </ProjectSectionTitleWrapper>
+              <ProjectList>
+                {personalProjects.map((project, idx) => (
+                  <ProjectListItem key={project.id}>
+                    <ProjectTile color={colors[idx % 5]} to={`/projects/${project.id}`}>
+                      <ProjectTileFade />
+                      <ProjectTileDetails>
+                        <ProjectTileName>{project.name}</ProjectTileName>
+                      </ProjectTileDetails>
+                    </ProjectTile>
+                  </ProjectListItem>
+                ))}
+                <ProjectListItem>
+                  <ProjectAddTile
+                    onClick={() => {
+                      setShowNewProject({ open: true, initialTeamID: 'no-team' });
+                    }}
+                  >
+                    <ProjectTileFade />
+                    <ProjectAddTileDetails>
+                      <ProjectTileName centered>Create new project</ProjectTileName>
+                    </ProjectAddTileDetails>
+                  </ProjectAddTile>
+                </ProjectListItem>
+              </ProjectList>
+            </div>
             {projectTeams.map(team => {
               return (
                 <div key={team.id}>
@@ -407,7 +374,7 @@ const Projects = () => {
                 initialTeamID={showNewProject.initialTeamID}
                 onCreateProject={(name, teamID) => {
                   if (user) {
-                    createProject({ variables: { teamID, name, userID: user.id } });
+                    createProject({ variables: { teamID, name } });
                     setShowNewProject({ open: false, initialTeamID: null });
                   }
                 }}
