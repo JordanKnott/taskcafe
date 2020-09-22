@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/lithammer/fuzzysearch/fuzzy"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
@@ -1191,6 +1192,41 @@ func (r *queryResolver) Notifications(ctx context.Context) ([]db.Notification, e
 		return []db.Notification{}, err
 	}
 	return notifications, nil
+}
+
+func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFilter) ([]MemberSearchResult, error) {
+	availableMembers, err := r.Repository.GetMemberData(ctx)
+	if err != nil {
+		return []MemberSearchResult{}, err
+	}
+
+	sortList := []string{}
+	masterList := map[string]uuid.UUID{}
+	for _, member := range availableMembers {
+		sortList = append(sortList, member.Username)
+		sortList = append(sortList, member.Email)
+		masterList[member.Username] = member.UserID
+		masterList[member.Email] = member.UserID
+	}
+	rankedList := fuzzy.RankFind(input.SearchFilter, sortList)
+	results := []MemberSearchResult{}
+	memberList := map[uuid.UUID]bool{}
+	for _, rank := range rankedList {
+		if _, ok := memberList[masterList[rank.Target]]; !ok {
+			log.WithFields(log.Fields{"source": rank.Source, "target": rank.Target}).Info("searching")
+			userID := masterList[rank.Target]
+			user, err := r.Repository.GetUserAccountByID(ctx, userID)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					continue
+				}
+				return []MemberSearchResult{}, err
+			}
+			results = append(results, MemberSearchResult{FullName: user.FullName, Username: user.Username, Joined: false, Confirmed: false, Similarity: rank.Distance, ID: user.UserID})
+			memberList[masterList[rank.Target]] = true
+		}
+	}
+	return results, nil
 }
 
 func (r *refreshTokenResolver) ID(ctx context.Context, obj *db.RefreshToken) (uuid.UUID, error) {

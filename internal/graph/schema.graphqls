@@ -734,6 +734,24 @@ extend type Mutation {
     UpdateUserInfoPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 }
 
+extend type Query {
+  searchMembers(input: MemberSearchFilter!): [MemberSearchResult!]!
+}
+
+input MemberSearchFilter {
+  SearchFilter: String!
+  projectID: UUID
+}
+
+type MemberSearchResult {
+  id: UUID!
+  similarity: Int!
+  username: String!
+  fullName: String!
+  confirmed: Boolean!
+  joined: Boolean!
+}
+
 type UpdateUserInfoPayload {
   user: UserAccount!
 }

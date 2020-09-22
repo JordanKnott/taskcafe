@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import updateApolloCache from 'shared/utils/cache';
 import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
 import styled from 'styled-components/macro';
+import AsyncSelect from 'react-select/async';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import {
   useParams,
@@ -37,11 +38,17 @@ import Input from 'shared/components/Input';
 import Member from 'shared/components/Member';
 import EmptyBoard from 'shared/components/EmptyBoard';
 import NOOP from 'shared/utils/noop';
+import { Lock } from 'shared/icons';
+import Button from 'shared/components/Button';
+import { useApolloClient } from '@apollo/react-hooks';
+import gql from 'graphql-tag';
 import Board, { BoardLoading } from './Board';
 import Details from './Details';
 import LabelManagerEditor from './LabelManagerEditor';
 
 const CARD_LABEL_VARIANT_STORAGE_KEY = 'card_label_variant';
+
+const RFC2822_EMAIL = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 
 const useStateWithLocalStorage = (localStorageKey: string): [string, React.Dispatch<React.SetStateAction<string>>] => {
   const [value, setValue] = React.useState<string>(localStorage.getItem(localStorageKey) || '');
@@ -76,23 +83,90 @@ type UserManagementPopupProps = {
   onAddProjectMember: (userID: string) => void;
 };
 
+const VisibiltyPrivateIcon = styled(Lock)`
+  padding-right: 4px;
+`;
+
+const VisibiltyButtonText = styled.span`
+  color: rgba(${props => props.theme.colors.text.primary});
+`;
+
+const ShareActions = styled.div`
+  border-top: 1px solid #414561;
+  margin-top: 8px;
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const VisibiltyButton = styled.button`
+  cursor: pointer;
+  margin: 2px 4px;
+  padding: 2px 4px;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid transparent;
+  &:hover ${VisibiltyButtonText} {
+    color: rgba(${props => props.theme.colors.text.secondary});
+  }
+  &:hover ${VisibiltyPrivateIcon} {
+    fill: rgba(${props => props.theme.colors.text.secondary});
+    stroke: rgba(${props => props.theme.colors.text.secondary});
+  }
+  &:hover {
+    border-bottom: 1px solid rgba(${props => props.theme.colors.primary});
+  }
+`;
+
+type MemberFilterOptions = {
+  projectID?: null | string;
+  teamID?: null | string;
+  organization?: boolean;
+};
+
+const fetchMembers = async (client: any, options: MemberFilterOptions, input: string, cb: any) => {
+  if (input && input.trim().length < 3) {
+    return [];
+  }
+  const res = await client.query({
+    query: gql`
+    query {
+      searchMembers(input: {SearchFilter:"${input}"}) {
+        id
+        similarity
+        username
+        fullName
+        confirmed
+        joined
+      }
+    }
+    `,
+  });
+
+  let results: any = [];
+  if (res.data && res.data.searchMembers) {
+    results = [...res.data.searchMembers.map((m: any) => ({ label: m.fullName, value: m.id }))];
+  }
+
+  if (RFC2822_EMAIL.test(input)) {
+    results = [...results, { label: input, value: input }];
+  }
+
+  return results;
+};
+
 const UserManagementPopup: React.FC<UserManagementPopupProps> = ({ users, projectMembers, onAddProjectMember }) => {
+  const client = useApolloClient();
   return (
     <Popup tab={0} title="Invite a user">
-      <SearchInput width="100%" variant="alternate" placeholder="Email address or name" name="search" />
-      <MemberList>
-        {users
-          .filter(u => u.id !== projectMembers.find(p => p.id === u.id)?.id)
-          .map(user => (
-            <UserMember
-              key={user.id}
-              onCardMemberClick={() => onAddProjectMember(user.id)}
-              showName
-              member={user}
-              taskID=""
-            />
-          ))}
-      </MemberList>
+      <AsyncSelect isMulti cacheOptions defaultOption loadOptions={(i, cb) => fetchMembers(client, {}, i, cb)} />
+      <ShareActions>
+        <VisibiltyButton>
+          <VisibiltyPrivateIcon width={12} height={12} />
+          <VisibiltyButtonText>Private</VisibiltyButtonText>
+        </VisibiltyButton>
+      </ShareActions>
     </Popup>
   );
 };

@@ -122,12 +122,12 @@ func (q *Queries) DeleteProjectMember(ctx context.Context, arg DeleteProjectMemb
 	return err
 }
 
-const getAllProjects = `-- name: GetAllProjects :many
-SELECT project_id, team_id, created_at, name FROM project
+const getAllProjectsForTeam = `-- name: GetAllProjectsForTeam :many
+SELECT project_id, team_id, created_at, name FROM project WHERE team_id = $1
 `
 
-func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, getAllProjects)
+func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getAllProjectsForTeam, teamID)
 	if err != nil {
 		return nil, err
 	}
@@ -154,12 +154,12 @@ func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
 	return items, nil
 }
 
-const getAllProjectsForTeam = `-- name: GetAllProjectsForTeam :many
-SELECT project_id, team_id, created_at, name FROM project WHERE team_id = $1
+const getAllTeamProjects = `-- name: GetAllTeamProjects :many
+SELECT project_id, team_id, created_at, name FROM project WHERE team_id IS NOT null
 `
 
-func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, getAllProjectsForTeam, teamID)
+func (q *Queries) GetAllTeamProjects(ctx context.Context) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getAllTeamProjects)
 	if err != nil {
 		return nil, err
 	}

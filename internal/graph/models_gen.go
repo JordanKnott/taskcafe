@@ -212,6 +212,20 @@ type MemberList struct {
 	Projects []db.Project `json:"projects"`
 }
 
+type MemberSearchFilter struct {
+	SearchFilter string     `json:"SearchFilter"`
+	ProjectID    *uuid.UUID `json:"projectID"`
+}
+
+type MemberSearchResult struct {
+	ID         uuid.UUID `json:"id"`
+	Similarity int       `json:"similarity"`
+	Username   string    `json:"username"`
+	FullName   string    `json:"fullName"`
+	Confirmed  bool      `json:"confirmed"`
+	Joined     bool      `json:"joined"`
+}
+
 type NewProject struct {
 	TeamID *uuid.UUID `json:"teamID"`
 	Name   string     `json:"name"`

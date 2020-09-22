@@ -101,6 +101,39 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 	return items, nil
 }
 
+const getMemberData = `-- name: GetMemberData :many
+SELECT username, email, user_id FROM user_account
+`
+
+type GetMemberDataRow struct {
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	UserID   uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) GetMemberData(ctx context.Context) ([]GetMemberDataRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMemberData)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMemberDataRow
+	for rows.Next() {
+		var i GetMemberDataRow
+		if err := rows.Scan(&i.Username, &i.Email, &i.UserID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRoleForUserID = `-- name: GetRoleForUserID :one
 SELECT username, role.code, role.name FROM user_account
   INNER JOIN role ON role.code = user_account.role_code
