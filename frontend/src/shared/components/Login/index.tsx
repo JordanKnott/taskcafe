@@ -3,6 +3,7 @@ import AccessAccount from 'shared/undraw/AccessAccount';
 import { User, Lock, Taskcafe } from 'shared/icons';
 import { useForm } from 'react-hook-form';
 
+import LoadingSpinner from 'shared/components/LoadingSpinner';
 import {
   Form,
   LogoWrapper,
@@ -73,6 +74,7 @@ const Login = ({ onSubmit }: LoginProps) => {
 
               <ActionButtons>
                 <RegisterButton variant="outline">Register</RegisterButton>
+                {!isComplete && <LoadingSpinner size="32px" thickness="2px" borderSize="48px" />}
                 <LoginButton type="submit" disabled={!isComplete}>
                   Login
                 </LoginButton>
