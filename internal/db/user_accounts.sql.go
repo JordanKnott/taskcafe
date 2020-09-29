@@ -102,11 +102,12 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 }
 
 const getMemberData = `-- name: GetMemberData :many
-SELECT username, email, user_id FROM user_account
+SELECT username, full_name, email, user_id FROM user_account
 `
 
 type GetMemberDataRow struct {
 	Username string    `json:"username"`
+	FullName string    `json:"full_name"`
 	Email    string    `json:"email"`
 	UserID   uuid.UUID `json:"user_id"`
 }
@@ -120,7 +121,12 @@ func (q *Queries) GetMemberData(ctx context.Context) ([]GetMemberDataRow, error)
 	var items []GetMemberDataRow
 	for rows.Next() {
 		var i GetMemberDataRow
-		if err := rows.Scan(&i.Username, &i.Email, &i.UserID); err != nil {
+		if err := rows.Scan(
+			&i.Username,
+			&i.FullName,
+			&i.Email,
+			&i.UserID,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -124,33 +124,53 @@ func (r *mutationResolver) UpdateProjectLabelColor(ctx context.Context, input Up
 	return &label, err
 }
 
-func (r *mutationResolver) CreateProjectMember(ctx context.Context, input CreateProjectMember) (*CreateProjectMemberPayload, error) {
-	addedAt := time.Now().UTC()
-	_, err := r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: input.ProjectID, UserID: input.UserID, AddedAt: addedAt, RoleCode: "member"})
-	if err != nil {
-		return &CreateProjectMemberPayload{Ok: false}, err
+func (r *mutationResolver) InviteProjectMember(ctx context.Context, input InviteProjectMember) (*InviteProjectMemberPayload, error) {
+	if input.Email != nil && input.UserID != nil {
+		return &InviteProjectMemberPayload{Ok: false}, &gqlerror.Error{
+			Message: "Both email and userID can not be used to invite a project member",
+			Extensions: map[string]interface{}{
+				"code": "403",
+			},
+		}
+	} else if input.Email == nil && input.UserID == nil {
+		return &InviteProjectMemberPayload{Ok: false}, &gqlerror.Error{
+			Message: "Either email or userID must be set to invite a project member",
+			Extensions: map[string]interface{}{
+				"code": "403",
+			},
+		}
 	}
-	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
-	if err != nil {
-		return &CreateProjectMemberPayload{Ok: false}, err
-	}
-	var url *string
-	if user.ProfileAvatarUrl.Valid {
-		url = &user.ProfileAvatarUrl.String
-	}
-	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	if input.UserID != nil {
+		addedAt := time.Now().UTC()
+		_, err := r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: input.ProjectID, UserID: *input.UserID, AddedAt: addedAt, RoleCode: "member"})
+		if err != nil {
+			return &InviteProjectMemberPayload{Ok: false}, err
+		}
+		user, err := r.Repository.GetUserAccountByID(ctx, *input.UserID)
+		if err != nil && err != sql.ErrNoRows {
+			return &InviteProjectMemberPayload{Ok: false}, err
 
-	role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: input.UserID, ProjectID: input.ProjectID})
-	if err != nil {
-		return &CreateProjectMemberPayload{Ok: false}, err
+		}
+		var url *string
+		if user.ProfileAvatarUrl.Valid {
+			url = &user.ProfileAvatarUrl.String
+		}
+		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+
+		role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: *input.UserID, ProjectID: input.ProjectID})
+		if err != nil {
+			return &InviteProjectMemberPayload{Ok: false}, err
+		}
+		return &InviteProjectMemberPayload{Ok: true, Member: &Member{
+			ID:          *input.UserID,
+			FullName:    user.FullName,
+			Username:    user.Username,
+			ProfileIcon: profileIcon,
+			Role:        &db.Role{Code: role.Code, Name: role.Name},
+		}}, nil
 	}
-	return &CreateProjectMemberPayload{Ok: true, Member: &Member{
-		ID:          input.UserID,
-		FullName:    user.FullName,
-		Username:    user.Username,
-		ProfileIcon: profileIcon,
-		Role:        &db.Role{Code: role.Code, Name: role.Name},
-	}}, nil
+	// invite user
+	return &InviteProjectMemberPayload{Ok: false}, errors.New("not implemented")
 }
 
 func (r *mutationResolver) DeleteProjectMember(ctx context.Context, input DeleteProjectMember) (*DeleteProjectMemberPayload, error) {
@@ -1222,7 +1242,7 @@ func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFil
 				}
 				return []MemberSearchResult{}, err
 			}
-			results = append(results, MemberSearchResult{FullName: user.FullName, Username: user.Username, Joined: false, Confirmed: false, Similarity: rank.Distance, ID: user.UserID})
+			results = append(results, MemberSearchResult{User: &user, Joined: false, Confirmed: false, Similarity: rank.Distance})
 			memberList[masterList[rank.Target]] = true
 		}
 	}

@@ -25,11 +25,10 @@ input MemberSearchFilter {
 }
 
 type MemberSearchResult {
-  id: UUID!
   similarity: Int!
-  username: String!
-  fullName: String!
+  user: UserAccount!
   confirmed: Boolean!
+  invited: Boolean!
   joined: Boolean!
 }
 

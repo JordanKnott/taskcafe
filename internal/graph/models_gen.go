@@ -27,16 +27,6 @@ type ChecklistBadge struct {
 	Total    int `json:"total"`
 }
 
-type CreateProjectMember struct {
-	ProjectID uuid.UUID `json:"projectID"`
-	UserID    uuid.UUID `json:"userID"`
-}
-
-type CreateProjectMemberPayload struct {
-	Ok     bool    `json:"ok"`
-	Member *Member `json:"member"`
-}
-
 type CreateTaskChecklist struct {
 	TaskID   uuid.UUID `json:"taskID"`
 	Name     string    `json:"name"`
@@ -187,6 +177,17 @@ type FindUser struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
+type InviteProjectMember struct {
+	ProjectID uuid.UUID  `json:"projectID"`
+	UserID    *uuid.UUID `json:"userID"`
+	Email     *string    `json:"email"`
+}
+
+type InviteProjectMemberPayload struct {
+	Ok     bool    `json:"ok"`
+	Member *Member `json:"member"`
+}
+
 type LogoutUser struct {
 	UserID uuid.UUID `json:"userID"`
 }
@@ -218,12 +219,11 @@ type MemberSearchFilter struct {
 }
 
 type MemberSearchResult struct {
-	ID         uuid.UUID `json:"id"`
-	Similarity int       `json:"similarity"`
-	Username   string    `json:"username"`
-	FullName   string    `json:"fullName"`
-	Confirmed  bool      `json:"confirmed"`
-	Joined     bool      `json:"joined"`
+	Similarity int             `json:"similarity"`
+	User       *db.UserAccount `json:"user"`
+	Confirmed  bool            `json:"confirmed"`
+	Invited    bool            `json:"invited"`
+	Joined     bool            `json:"joined"`
 }
 
 type NewProject struct {

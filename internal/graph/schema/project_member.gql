@@ -1,18 +1,20 @@
 extend type Mutation {
-  createProjectMember(input: CreateProjectMember!):
-    CreateProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  # TODO: rename to inviteProjectMember
+  inviteProjectMember(input: InviteProjectMember!):
+    InviteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   deleteProjectMember(input: DeleteProjectMember!):
     DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectMemberRole(input: UpdateProjectMemberRole!):
     UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
-input CreateProjectMember {
+input InviteProjectMember {
   projectID: UUID!
-  userID: UUID!
+  userID: UUID
+  email: String
 }
 
-type CreateProjectMemberPayload {
+type InviteProjectMemberPayload {
   ok: Boolean!
   member: Member!
 }
