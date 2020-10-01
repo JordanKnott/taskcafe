@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef } from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker';
 import _ from 'lodash';
@@ -110,12 +110,12 @@ const HeaderActions = styled.div`
 `;
 
 const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate, onCancel }) => {
-  const now = moment();
+  const now = dayjs();
   const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
   const [startDate, setStartDate] = useState(new Date());
 
   useEffect(() => {
-    const newDate = moment(startDate).format('YYYY-MM-DD');
+    const newDate = dayjs(startDate).format('YYYY-MM-DD');
     setValue('endDate', newDate);
   }, [startDate]);
 
@@ -135,7 +135,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     'December',
   ];
   const saveDueDate = (data: any) => {
-    const newDate = moment(`${data.endDate} ${moment(data.endTime).format('h:mm A')}`, 'YYYY-MM-DD h:mm A');
+    const newDate = dayjs(`${data.endDate} ${dayjs(data.endTime).format('h:mm A')}`, 'YYYY-MM-DD h:mm A');
     if (newDate.isValid()) {
       onDueDateChange(task, newDate.toDate());
     }

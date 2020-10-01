@@ -1,4 +1,4 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 export enum TaskSortingType {
   NONE,
@@ -46,7 +46,7 @@ export function sortTasks(a: Task, b: Task, taskSorting: TaskSorting) {
     if (b.dueDate && !a.dueDate) {
       return 1;
     }
-    return moment(a.dueDate).diff(moment(b.dueDate));
+    return dayjs(a.dueDate).diff(dayjs(b.dueDate));
   }
   if (taskSorting.type === TaskSortingType.COMPLETE) {
     if (a.complete && !b.complete) {

@@ -17,7 +17,7 @@ import dark from 'shared/utils/editorTheme';
 import styled from 'styled-components';
 
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import Task from 'shared/icons/Task';
 import {
@@ -182,7 +182,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               }}
             >
               {task.dueDate ? (
-                <SidebarButtonText>{moment(task.dueDate).format('MMM D [at] h:mm A')}</SidebarButtonText>
+                <SidebarButtonText>{dayjs(task.dueDate).format('MMM D [at] h:mm A')}</SidebarButtonText>
               ) : (
                 <SidebarButtonText>No due date</SidebarButtonText>
               )}

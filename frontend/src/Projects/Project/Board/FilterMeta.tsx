@@ -5,7 +5,6 @@ import { TaskMetaFilters, TaskMeta, TaskMetaMatch, DueDateFilterType } from 'sha
 import Input from 'shared/components/ControlledInput';
 import { Popup, usePopup } from 'shared/components/PopupMenu';
 import produce from 'immer';
-import moment from 'moment';
 import { mixin } from 'shared/utils/styles';
 import Member from 'shared/components/Member';
 
