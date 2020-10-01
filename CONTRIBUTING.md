@@ -32,6 +32,10 @@ The `description` is a decriptive summary of the change the PR will make.
 - One PR per fix or feature
 - Setup & install [pre-commit hooks](https://pre-commit.com/#install) then install the hooks `pre-commit install && pre-commit install --hook-type commit-msg`
 
+### Unwanted PRs
+
+- Please do not submit pull requests containing only typo fixes, fixed spelling mistakes, or minor wording changes.
+
 ### Git Commit Message Style
 
 This project uses the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) format.
