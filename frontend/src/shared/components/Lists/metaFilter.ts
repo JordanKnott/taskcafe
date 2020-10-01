@@ -1,5 +1,5 @@
 import { TaskMetaFilters, DueDateFilterType } from 'shared/components/Lists';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 enum ShouldFilter {
   NO_FILTER,
@@ -24,8 +24,8 @@ export default function shouldMetaFilter(task: Task, filters: TaskMetaFilters) {
       isFiltered = shouldFilter(!(task.dueDate && task.dueDate !== null));
     }
     if (task.dueDate) {
-      const taskDueDate = moment(task.dueDate);
-      const today = moment();
+      const taskDueDate = dayjs(task.dueDate);
+      const today = dayjs();
       let start;
       let end;
       switch (filters.dueDate.type) {
@@ -40,7 +40,7 @@ export default function shouldMetaFilter(task: Task, filters: TaskMetaFilters) {
             taskDueDate.isBefore(
               today
                 .clone()
-                .add(1, 'days')
+                .add(1, 'day')
                 .endOf('day'),
             ),
           );
@@ -60,12 +60,12 @@ export default function shouldMetaFilter(task: Task, filters: TaskMetaFilters) {
           start = today
             .clone()
             .weekday(0)
-            .add(7, 'days')
+            .add(7, 'day')
             .startOf('day');
           end = today
             .clone()
             .weekday(6)
-            .add(7, 'days')
+            .add(7, 'day')
             .endOf('day');
           isFiltered = shouldFilter(taskDueDate.isBetween(start, end));
           break;
@@ -73,7 +73,7 @@ export default function shouldMetaFilter(task: Task, filters: TaskMetaFilters) {
           start = today.clone().startOf('day');
           end = today
             .clone()
-            .add(7, 'days')
+            .add(7, 'day')
             .endOf('day');
           isFiltered = shouldFilter(taskDueDate.isBetween(start, end));
           break;
@@ -81,7 +81,7 @@ export default function shouldMetaFilter(task: Task, filters: TaskMetaFilters) {
           start = today.clone().startOf('day');
           end = today
             .clone()
-            .add(14, 'days')
+            .add(14, 'day')
             .endOf('day');
           isFiltered = shouldFilter(taskDueDate.isBetween(start, end));
           break;
@@ -89,7 +89,7 @@ export default function shouldMetaFilter(task: Task, filters: TaskMetaFilters) {
           start = today.clone().startOf('day');
           end = today
             .clone()
-            .add(21, 'days')
+            .add(21, 'day')
             .endOf('day');
           isFiltered = shouldFilter(taskDueDate.isBetween(start, end));
           break;

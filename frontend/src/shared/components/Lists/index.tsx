@@ -10,7 +10,7 @@ import {
   getNewDraggablePosition,
   getAfterDropDraggableList,
 } from 'shared/utils/draggables';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { TaskSorting, TaskSortingType, TaskSortingDirection, sortTasks } from 'shared/utils/sorting';
 
 import { Container, BoardContainer, BoardWrapper } from './Styles';
@@ -51,7 +51,7 @@ export type TaskStatusFilter = {
 
 export interface TaskMetaFilterName {
   meta: TaskMeta;
-  value?: string | moment.Moment | null;
+  value?: string | dayjs.Dayjs | null;
   id?: string | null;
 }
 
@@ -104,30 +104,30 @@ function shouldStatusFilter(task: Task, filter: TaskStatusFilter) {
     return true;
   }
   if (filter.status === TaskStatus.COMPLETE && task.completedAt && task.complete === true) {
-    const completedAt = moment(task.completedAt);
-    const REFERENCE = moment(); // fixed just for testing, use moment();
+    const completedAt = dayjs(task.completedAt);
+    const REFERENCE = dayjs();
     switch (filter.since) {
       case TaskSince.TODAY:
         const TODAY = REFERENCE.clone().startOf('day');
         return completedAt.isSame(TODAY, 'd');
       case TaskSince.YESTERDAY:
         const YESTERDAY = REFERENCE.clone()
-          .subtract(1, 'days')
+          .subtract(1, 'day')
           .startOf('day');
         return completedAt.isSameOrAfter(YESTERDAY, 'd');
       case TaskSince.ONE_WEEK:
         const ONE_WEEK = REFERENCE.clone()
-          .subtract(7, 'days')
+          .subtract(7, 'day')
           .startOf('day');
         return completedAt.isSameOrAfter(ONE_WEEK, 'd');
       case TaskSince.TWO_WEEKS:
         const TWO_WEEKS = REFERENCE.clone()
-          .subtract(14, 'days')
+          .subtract(14, 'day')
           .startOf('day');
         return completedAt.isSameOrAfter(TWO_WEEKS, 'd');
       case TaskSince.THREE_WEEKS:
         const THREE_WEEKS = REFERENCE.clone()
-          .subtract(21, 'days')
+          .subtract(21, 'day')
           .startOf('day');
         return completedAt.isSameOrAfter(THREE_WEEKS, 'd');
       default:
@@ -353,7 +353,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                                   task.dueDate
                                                     ? {
                                                         isPastDue: false,
-                                                        formattedDate: moment(task.dueDate).format('MMM D, YYYY'),
+                                                        formattedDate: dayjs(task.dueDate).format('MMM D, YYYY'),
                                                       }
                                                     : undefined
                                                 }

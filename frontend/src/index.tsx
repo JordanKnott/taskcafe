@@ -8,15 +8,28 @@ import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
 import { enableMapSet } from 'immer';
 import { ApolloLink, Observable, fromPromise } from 'apollo-link';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import updateLocale from 'dayjs/plugin/updateLocale';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isBetween from 'dayjs/plugin/isBetween';
+import weekday from 'dayjs/plugin/weekday';
 import { getAccessToken, getNewToken, setAccessToken } from 'shared/utils/accessToken';
 import cache from './App/cache';
 import App from './App';
 
 // https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
+
+dayjs.extend(isSameOrAfter);
+
+dayjs.extend(weekday);
+dayjs.extend(isBetween);
+dayjs.extend(customParseFormat);
 enableMapSet();
 
-moment.updateLocale('en', {
+dayjs.extend(updateLocale);
+
+dayjs.updateLocale('en', {
   week: {
     dow: 1, // First day of week is Monday
     doy: 7, // First week of year must contain 1 January (7 + 1 - 1)
