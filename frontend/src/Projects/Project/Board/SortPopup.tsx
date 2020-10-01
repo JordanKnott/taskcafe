@@ -73,6 +73,11 @@ const SortPopup: React.FC<SortPopupProps> = ({ sorting, onChangeTaskSorting }) =
       >
         <ActionTitle>Task title</ActionTitle>
       </ActionItem>
+      <ActionItem
+        onClick={() => handleSetSorting({ type: TaskSortingType.COMPLETE, direction: TaskSortingDirection.ASC })}
+      >
+        <ActionTitle>Complete</ActionTitle>
+      </ActionItem>
     </ActionsList>
   );
 };
