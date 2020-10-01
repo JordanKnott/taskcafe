@@ -72,6 +72,9 @@ const renderTaskSortingLabel = (sorting: TaskSorting) => {
   if (sorting.type === TaskSortingType.LABELS) {
     return 'Sort: Labels';
   }
+   if (sorting.type === TaskSortingType.COMPLETE) {
+    return 'Sort: Complete';
+  }
   return 'Sort';
 };
 
