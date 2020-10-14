@@ -127,9 +127,10 @@ type ComplexityRoot struct {
 		TaskGroup func(childComplexity int) int
 	}
 
-	InviteProjectMemberPayload struct {
-		Member func(childComplexity int) int
-		Ok     func(childComplexity int) int
+	InviteProjectMembersPayload struct {
+		Members   func(childComplexity int) int
+		Ok        func(childComplexity int) int
+		ProjectID func(childComplexity int) int
 	}
 
 	LabelColor struct {
@@ -194,7 +195,7 @@ type ComplexityRoot struct {
 		DeleteTeamMember                func(childComplexity int, input DeleteTeamMember) int
 		DeleteUserAccount               func(childComplexity int, input DeleteUserAccount) int
 		DuplicateTaskGroup              func(childComplexity int, input DuplicateTaskGroup) int
-		InviteProjectMember             func(childComplexity int, input InviteProjectMember) int
+		InviteProjectMembers            func(childComplexity int, input InviteProjectMembers) int
 		LogoutUser                      func(childComplexity int, input LogoutUser) int
 		RemoveTaskLabel                 func(childComplexity int, input *RemoveTaskLabelInput) int
 		SetTaskChecklistItemComplete    func(childComplexity int, input SetTaskChecklistItemComplete) int
@@ -454,7 +455,7 @@ type MutationResolver interface {
 	UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*db.ProjectLabel, error)
 	UpdateProjectLabelName(ctx context.Context, input UpdateProjectLabelName) (*db.ProjectLabel, error)
 	UpdateProjectLabelColor(ctx context.Context, input UpdateProjectLabelColor) (*db.ProjectLabel, error)
-	InviteProjectMember(ctx context.Context, input InviteProjectMember) (*InviteProjectMemberPayload, error)
+	InviteProjectMembers(ctx context.Context, input InviteProjectMembers) (*InviteProjectMembersPayload, error)
 	DeleteProjectMember(ctx context.Context, input DeleteProjectMember) (*DeleteProjectMemberPayload, error)
 	UpdateProjectMemberRole(ctx context.Context, input UpdateProjectMemberRole) (*UpdateProjectMemberRolePayload, error)
 	CreateTask(ctx context.Context, input NewTask) (*db.Task, error)
@@ -801,19 +802,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DuplicateTaskGroupPayload.TaskGroup(childComplexity), true
 
-	case "InviteProjectMemberPayload.member":
-		if e.complexity.InviteProjectMemberPayload.Member == nil {
+	case "InviteProjectMembersPayload.members":
+		if e.complexity.InviteProjectMembersPayload.Members == nil {
 			break
 		}
 
-		return e.complexity.InviteProjectMemberPayload.Member(childComplexity), true
+		return e.complexity.InviteProjectMembersPayload.Members(childComplexity), true
 
-	case "InviteProjectMemberPayload.ok":
-		if e.complexity.InviteProjectMemberPayload.Ok == nil {
+	case "InviteProjectMembersPayload.ok":
+		if e.complexity.InviteProjectMembersPayload.Ok == nil {
 			break
 		}
 
-		return e.complexity.InviteProjectMemberPayload.Ok(childComplexity), true
+		return e.complexity.InviteProjectMembersPayload.Ok(childComplexity), true
+
+	case "InviteProjectMembersPayload.projectID":
+		if e.complexity.InviteProjectMembersPayload.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.InviteProjectMembersPayload.ProjectID(childComplexity), true
 
 	case "LabelColor.colorHex":
 		if e.complexity.LabelColor.ColorHex == nil {
@@ -1257,17 +1265,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DuplicateTaskGroup(childComplexity, args["input"].(DuplicateTaskGroup)), true
 
-	case "Mutation.inviteProjectMember":
-		if e.complexity.Mutation.InviteProjectMember == nil {
+	case "Mutation.inviteProjectMembers":
+		if e.complexity.Mutation.InviteProjectMembers == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_inviteProjectMember_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_inviteProjectMembers_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteProjectMember(childComplexity, args["input"].(InviteProjectMember)), true
+		return e.complexity.Mutation.InviteProjectMembers(childComplexity, args["input"].(InviteProjectMembers)), true
 
 	case "Mutation.logoutUser":
 		if e.complexity.Mutation.LogoutUser == nil {
@@ -2869,24 +2877,28 @@ input UpdateProjectLabelColor {
 }
 
 extend type Mutation {
-  # TODO: rename to inviteProjectMember
-  inviteProjectMember(input: InviteProjectMember!):
-    InviteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  inviteProjectMembers(input: InviteProjectMembers!):
+    InviteProjectMembersPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   deleteProjectMember(input: DeleteProjectMember!):
     DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectMemberRole(input: UpdateProjectMemberRole!):
     UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
-input InviteProjectMember {
-  projectID: UUID!
+input MemberInvite {
   userID: UUID
   email: String
 }
 
-type InviteProjectMemberPayload {
+input InviteProjectMembers {
+  projectID: UUID!
+  members: [MemberInvite!]!
+}
+
+type InviteProjectMembersPayload {
   ok: Boolean!
-  member: Member!
+  projectID: UUID!
+  members: [Member!]!
 }
 
 input DeleteProjectMember {
@@ -3715,12 +3727,12 @@ func (ec *executionContext) field_Mutation_duplicateTaskGroup_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_inviteProjectMember_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_inviteProjectMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 InviteProjectMember
+	var arg0 InviteProjectMembers
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNInviteProjectMember2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMember(ctx, tmp)
+		arg0, err = ec.unmarshalNInviteProjectMembers2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMembers(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5179,7 +5191,7 @@ func (ec *executionContext) _DuplicateTaskGroupPayload_taskGroup(ctx context.Con
 	return ec.marshalNTaskGroup2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskGroup(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _InviteProjectMemberPayload_ok(ctx context.Context, field graphql.CollectedField, obj *InviteProjectMemberPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _InviteProjectMembersPayload_ok(ctx context.Context, field graphql.CollectedField, obj *InviteProjectMembersPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5187,7 +5199,7 @@ func (ec *executionContext) _InviteProjectMemberPayload_ok(ctx context.Context, 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "InviteProjectMemberPayload",
+		Object:   "InviteProjectMembersPayload",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -5213,7 +5225,7 @@ func (ec *executionContext) _InviteProjectMemberPayload_ok(ctx context.Context, 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _InviteProjectMemberPayload_member(ctx context.Context, field graphql.CollectedField, obj *InviteProjectMemberPayload) (ret graphql.Marshaler) {
+func (ec *executionContext) _InviteProjectMembersPayload_projectID(ctx context.Context, field graphql.CollectedField, obj *InviteProjectMembersPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5221,7 +5233,7 @@ func (ec *executionContext) _InviteProjectMemberPayload_member(ctx context.Conte
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "InviteProjectMemberPayload",
+		Object:   "InviteProjectMembersPayload",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -5230,7 +5242,7 @@ func (ec *executionContext) _InviteProjectMemberPayload_member(ctx context.Conte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Member, nil
+		return obj.ProjectID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5242,9 +5254,43 @@ func (ec *executionContext) _InviteProjectMemberPayload_member(ctx context.Conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Member)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMember(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InviteProjectMembersPayload_members(ctx context.Context, field graphql.CollectedField, obj *InviteProjectMembersPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "InviteProjectMembersPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Members, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]Member)
+	fc.Result = res
+	return ec.marshalNMember2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMemberᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LabelColor_id(ctx context.Context, field graphql.CollectedField, obj *db.LabelColor) (ret graphql.Marshaler) {
@@ -6545,7 +6591,7 @@ func (ec *executionContext) _Mutation_updateProjectLabelColor(ctx context.Contex
 	return ec.marshalNProjectLabel2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProjectLabel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_inviteProjectMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_inviteProjectMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6561,7 +6607,7 @@ func (ec *executionContext) _Mutation_inviteProjectMember(ctx context.Context, f
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_inviteProjectMember_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_inviteProjectMembers_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -6570,7 +6616,7 @@ func (ec *executionContext) _Mutation_inviteProjectMember(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().InviteProjectMember(rctx, args["input"].(InviteProjectMember))
+			return ec.resolvers.Mutation().InviteProjectMembers(rctx, args["input"].(InviteProjectMembers))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
@@ -6598,10 +6644,10 @@ func (ec *executionContext) _Mutation_inviteProjectMember(ctx context.Context, f
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*InviteProjectMemberPayload); ok {
+		if data, ok := tmp.(*InviteProjectMembersPayload); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.InviteProjectMemberPayload`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.InviteProjectMembersPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6613,9 +6659,9 @@ func (ec *executionContext) _Mutation_inviteProjectMember(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*InviteProjectMemberPayload)
+	res := resTmp.(*InviteProjectMembersPayload)
 	fc.Result = res
-	return ec.marshalNInviteProjectMemberPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMemberPayload(ctx, field.Selections, res)
+	return ec.marshalNInviteProjectMembersPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMembersPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteProjectMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15403,8 +15449,8 @@ func (ec *executionContext) unmarshalInputFindUser(ctx context.Context, obj inte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputInviteProjectMember(ctx context.Context, obj interface{}) (InviteProjectMember, error) {
-	var it InviteProjectMember
+func (ec *executionContext) unmarshalInputInviteProjectMembers(ctx context.Context, obj interface{}) (InviteProjectMembers, error) {
+	var it InviteProjectMembers
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -15415,15 +15461,9 @@ func (ec *executionContext) unmarshalInputInviteProjectMember(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
-		case "userID":
+		case "members":
 			var err error
-			it.UserID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "email":
-			var err error
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Members, err = ec.unmarshalNMemberInvite2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMemberInviteᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15442,6 +15482,30 @@ func (ec *executionContext) unmarshalInputLogoutUser(ctx context.Context, obj in
 		case "userID":
 			var err error
 			it.UserID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMemberInvite(ctx context.Context, obj interface{}) (MemberInvite, error) {
+	var it MemberInvite
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "userID":
+			var err error
+			it.UserID, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16797,24 +16861,29 @@ func (ec *executionContext) _DuplicateTaskGroupPayload(ctx context.Context, sel 
 	return out
 }
 
-var inviteProjectMemberPayloadImplementors = []string{"InviteProjectMemberPayload"}
+var inviteProjectMembersPayloadImplementors = []string{"InviteProjectMembersPayload"}
 
-func (ec *executionContext) _InviteProjectMemberPayload(ctx context.Context, sel ast.SelectionSet, obj *InviteProjectMemberPayload) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, inviteProjectMemberPayloadImplementors)
+func (ec *executionContext) _InviteProjectMembersPayload(ctx context.Context, sel ast.SelectionSet, obj *InviteProjectMembersPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, inviteProjectMembersPayloadImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("InviteProjectMemberPayload")
+			out.Values[i] = graphql.MarshalString("InviteProjectMembersPayload")
 		case "ok":
-			out.Values[i] = ec._InviteProjectMemberPayload_ok(ctx, field, obj)
+			out.Values[i] = ec._InviteProjectMembersPayload_ok(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "member":
-			out.Values[i] = ec._InviteProjectMemberPayload_member(ctx, field, obj)
+		case "projectID":
+			out.Values[i] = ec._InviteProjectMembersPayload_projectID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "members":
+			out.Values[i] = ec._InviteProjectMembersPayload_members(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17108,8 +17177,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "inviteProjectMember":
-			out.Values[i] = ec._Mutation_inviteProjectMember(ctx, field)
+		case "inviteProjectMembers":
+			out.Values[i] = ec._Mutation_inviteProjectMembers(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19692,22 +19761,22 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNInviteProjectMember2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMember(ctx context.Context, v interface{}) (InviteProjectMember, error) {
-	return ec.unmarshalInputInviteProjectMember(ctx, v)
+func (ec *executionContext) unmarshalNInviteProjectMembers2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMembers(ctx context.Context, v interface{}) (InviteProjectMembers, error) {
+	return ec.unmarshalInputInviteProjectMembers(ctx, v)
 }
 
-func (ec *executionContext) marshalNInviteProjectMemberPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMemberPayload(ctx context.Context, sel ast.SelectionSet, v InviteProjectMemberPayload) graphql.Marshaler {
-	return ec._InviteProjectMemberPayload(ctx, sel, &v)
+func (ec *executionContext) marshalNInviteProjectMembersPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMembersPayload(ctx context.Context, sel ast.SelectionSet, v InviteProjectMembersPayload) graphql.Marshaler {
+	return ec._InviteProjectMembersPayload(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNInviteProjectMemberPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMemberPayload(ctx context.Context, sel ast.SelectionSet, v *InviteProjectMemberPayload) graphql.Marshaler {
+func (ec *executionContext) marshalNInviteProjectMembersPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInviteProjectMembersPayload(ctx context.Context, sel ast.SelectionSet, v *InviteProjectMembersPayload) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._InviteProjectMemberPayload(ctx, sel, v)
+	return ec._InviteProjectMembersPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNLabelColor2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐLabelColor(ctx context.Context, sel ast.SelectionSet, v db.LabelColor) graphql.Marshaler {
@@ -19828,6 +19897,30 @@ func (ec *executionContext) marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋtaskc
 		return graphql.Null
 	}
 	return ec._Member(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMemberInvite2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMemberInvite(ctx context.Context, v interface{}) (MemberInvite, error) {
+	return ec.unmarshalInputMemberInvite(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNMemberInvite2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMemberInviteᚄ(ctx context.Context, v interface{}) ([]MemberInvite, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]MemberInvite, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNMemberInvite2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMemberInvite(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalNMemberList2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMemberList(ctx context.Context, sel ast.SelectionSet, v MemberList) graphql.Marshaler {

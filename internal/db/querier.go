@@ -61,7 +61,7 @@ type Querier interface {
 	GetEntityIDForNotificationID(ctx context.Context, notificationID uuid.UUID) (uuid.UUID, error)
 	GetLabelColorByID(ctx context.Context, labelColorID uuid.UUID) (LabelColor, error)
 	GetLabelColors(ctx context.Context) ([]LabelColor, error)
-	GetMemberData(ctx context.Context) ([]GetMemberDataRow, error)
+	GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error)
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetNotificationForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetNotificationForNotificationIDRow, error)

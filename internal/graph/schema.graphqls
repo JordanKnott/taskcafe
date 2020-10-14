@@ -338,24 +338,28 @@ input UpdateProjectLabelColor {
 }
 
 extend type Mutation {
-  # TODO: rename to inviteProjectMember
-  inviteProjectMember(input: InviteProjectMember!):
-    InviteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  inviteProjectMembers(input: InviteProjectMembers!):
+    InviteProjectMembersPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   deleteProjectMember(input: DeleteProjectMember!):
     DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectMemberRole(input: UpdateProjectMemberRole!):
     UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
 }
 
-input InviteProjectMember {
-  projectID: UUID!
+input MemberInvite {
   userID: UUID
   email: String
 }
 
-type InviteProjectMemberPayload {
+input InviteProjectMembers {
+  projectID: UUID!
+  members: [MemberInvite!]!
+}
+
+type InviteProjectMembersPayload {
   ok: Boolean!
-  member: Member!
+  projectID: UUID!
+  members: [Member!]!
 }
 
 input DeleteProjectMember {

@@ -177,15 +177,15 @@ type FindUser struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
-type InviteProjectMember struct {
-	ProjectID uuid.UUID  `json:"projectID"`
-	UserID    *uuid.UUID `json:"userID"`
-	Email     *string    `json:"email"`
+type InviteProjectMembers struct {
+	ProjectID uuid.UUID      `json:"projectID"`
+	Members   []MemberInvite `json:"members"`
 }
 
-type InviteProjectMemberPayload struct {
-	Ok     bool    `json:"ok"`
-	Member *Member `json:"member"`
+type InviteProjectMembersPayload struct {
+	Ok        bool      `json:"ok"`
+	ProjectID uuid.UUID `json:"projectID"`
+	Members   []Member  `json:"members"`
 }
 
 type LogoutUser struct {
@@ -206,6 +206,11 @@ type Member struct {
 	ProfileIcon *ProfileIcon `json:"profileIcon"`
 	Owned       *OwnedList   `json:"owned"`
 	Member      *MemberList  `json:"member"`
+}
+
+type MemberInvite struct {
+	UserID *uuid.UUID `json:"userID"`
+	Email  *string    `json:"email"`
 }
 
 type MemberList struct {

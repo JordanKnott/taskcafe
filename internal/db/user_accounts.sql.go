@@ -102,30 +102,32 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 }
 
 const getMemberData = `-- name: GetMemberData :many
-SELECT username, full_name, email, user_id FROM user_account
+SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio FROM user_account
+  WHERE username != 'system'
+  AND user_id NOT IN (SELECT user_id FROM project_member WHERE project_id = $1)
 `
 
-type GetMemberDataRow struct {
-	Username string    `json:"username"`
-	FullName string    `json:"full_name"`
-	Email    string    `json:"email"`
-	UserID   uuid.UUID `json:"user_id"`
-}
-
-func (q *Queries) GetMemberData(ctx context.Context) ([]GetMemberDataRow, error) {
-	rows, err := q.db.QueryContext(ctx, getMemberData)
+func (q *Queries) GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error) {
+	rows, err := q.db.QueryContext(ctx, getMemberData, projectID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetMemberDataRow
+	var items []UserAccount
 	for rows.Next() {
-		var i GetMemberDataRow
+		var i UserAccount
 		if err := rows.Scan(
-			&i.Username,
-			&i.FullName,
-			&i.Email,
 			&i.UserID,
+			&i.CreatedAt,
+			&i.Email,
+			&i.Username,
+			&i.PasswordHash,
+			&i.ProfileBgColor,
+			&i.FullName,
+			&i.Initials,
+			&i.ProfileAvatarUrl,
+			&i.RoleCode,
+			&i.Bio,
 		); err != nil {
 			return nil, err
 		}

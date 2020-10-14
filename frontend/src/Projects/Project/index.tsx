@@ -16,7 +16,7 @@ import {
 } from 'react-router-dom';
 import {
   useUpdateProjectMemberRoleMutation,
-  useInviteProjectMemberMutation,
+  useInviteProjectMembersMutation,
   useDeleteProjectMemberMutation,
   useToggleTaskLabelMutation,
   useUpdateProjectNameMutation,
@@ -84,9 +84,10 @@ type InviteUserData = {
   suerID?: string;
 };
 type UserManagementPopupProps = {
+  projectID: string;
   users: Array<User>;
   projectMembers: Array<TaskUser>;
-  onInviteProjectMember: (data: InviteUserData) => void;
+  onInviteProjectMembers: (data: Array<InviteUserData>) => void;
 };
 
 const VisibiltyPrivateIcon = styled(Lock)`
@@ -131,14 +132,14 @@ type MemberFilterOptions = {
   organization?: boolean;
 };
 
-const fetchMembers = async (client: any, options: MemberFilterOptions, input: string, cb: any) => {
+const fetchMembers = async (client: any, projectID: string, options: MemberFilterOptions, input: string, cb: any) => {
   if (input && input.trim().length < 3) {
     return [];
   }
   const res = await client.query({
     query: gql`
     query {
-      searchMembers(input: {SearchFilter:"${input}"}) {
+      searchMembers(input: {SearchFilter:"${input}", projectID:"${projectID}"}) {
         similarity
         confirmed
         joined
@@ -165,7 +166,7 @@ const fetchMembers = async (client: any, options: MemberFilterOptions, input: st
         emails.push(m.user.email);
         return {
           label: m.user.fullName,
-          value: { id: m.id, type: 0, profileIcon: m.user.profileIcon },
+          value: { id: m.user.id, type: 0, profileIcon: m.user.profileIcon },
         };
       }),
     ];
@@ -214,6 +215,7 @@ const OptionContent = styled.div`
 `;
 
 const UserOption: React.FC<UserOptionProps> = ({ isDisabled, isFocused, innerProps, label, data }) => {
+  console.log(data);
   return !isDisabled ? (
     <OptionWrapper {...innerProps} isFocused={isFocused}>
       <TaskAssignee
@@ -280,16 +282,24 @@ const InviteContainer = styled.div`
   flex-direction: column;
 `;
 
-const UserManagementPopup: React.FC<UserManagementPopupProps> = ({ users, projectMembers, onInviteProjectMember }) => {
+const UserManagementPopup: React.FC<UserManagementPopupProps> = ({
+  projectID,
+  users,
+  projectMembers,
+  onInviteProjectMembers,
+}) => {
   const client = useApolloClient();
   const [invitedUsers, setInvitedUsers] = useState<Array<any> | null>(null);
   return (
     <Popup tab={0} title="Invite a user">
       <InviteContainer>
         <AsyncSelect
+          getOptionValue={option => option.value.id}
           placeholder="Email address or username"
           noOptionsMessage={() => null}
-          onChange={(e: any) => setInvitedUsers(e ? e.value : null)}
+          onChange={(e: any) => {
+            setInvitedUsers(e);
+          }}
           isMulti
           autoFocus
           cacheOptions
@@ -301,13 +311,25 @@ const UserManagementPopup: React.FC<UserManagementPopupProps> = ({ users, projec
             IndicatorSeparator: null,
             DropdownIndicator: null,
           }}
-          loadOptions={(i, cb) => fetchMembers(client, {}, i, cb)}
+          loadOptions={(i, cb) => fetchMembers(client, projectID, {}, i, cb)}
         />
       </InviteContainer>
       <InviteButton
         onClick={() => {
-          // FUCK, gotta rewrite invite member to be MULTIPLE. SHIT!
-          // onInviteProjectMember();
+          if (invitedUsers) {
+            onInviteProjectMembers(
+              invitedUsers.map(user => {
+                if (user.value.type === 0) {
+                  return {
+                    userID: user.value.id,
+                  };
+                }
+                return {
+                  email: user.value.id,
+                };
+              }),
+            );
+          }
         }}
         disabled={invitedUsers === null}
         hoverVariant="none"
@@ -398,14 +420,17 @@ const Project = () => {
     },
   });
 
-  const [inviteProjectMember] = useInviteProjectMemberMutation({
+  const [inviteProjectMembers] = useInviteProjectMembersMutation({
     update: (client, response) => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.members.push({ ...response.data.inviteProjectMember.member });
+            draftCache.findProject.members = [
+              ...cache.findProject.members,
+              ...response.data.inviteProjectMembers.members,
+            ];
           }),
         { projectID },
       );
@@ -472,8 +497,10 @@ const Project = () => {
             showPopup(
               $target,
               <UserManagementPopup
-                onInviteProjectMember={userID => {
-                  // /inviteProjectMember({ variables: { userID, projectID } });
+                projectID={projectID}
+                onInviteProjectMembers={members => {
+                  inviteProjectMembers({ variables: { projectID, members } });
+                  hidePopup();
                 }}
                 users={data.users}
                 projectMembers={data.findProject.members}

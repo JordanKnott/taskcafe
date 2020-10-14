@@ -16,7 +16,9 @@ UPDATE user_account SET profile_avatar_url = $2 WHERE user_id = $1
   RETURNING *;
 
 -- name: GetMemberData :many
-SELECT username, full_name, email, user_id FROM user_account;
+SELECT * FROM user_account
+  WHERE username != 'system'
+  AND user_id NOT IN (SELECT user_id FROM project_member WHERE project_id = $1);
 
 -- name: UpdateUserAccountInfo :one
 UPDATE user_account SET bio = $2, full_name = $3, initials = $4, email = $5

@@ -78,8 +78,11 @@ func newWebCmd() *cobra.Command {
 			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},
 	}
+
 	cc.Flags().Bool("migrate", false, "if true, auto run's schema migrations before starting the web server")
+
 	viper.BindPFlag("migrate", cc.Flags().Lookup("migrate"))
+
 	viper.SetDefault("migrate", false)
 	return cc
 }
