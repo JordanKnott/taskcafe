@@ -1215,6 +1215,7 @@ func (r *queryResolver) Notifications(ctx context.Context) ([]db.Notification, e
 func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFilter) ([]MemberSearchResult, error) {
 	availableMembers, err := r.Repository.GetMemberData(ctx, *input.ProjectID)
 	if err != nil {
+		logger.New(ctx).WithField("projectID", input.ProjectID).WithError(err).Error("error while getting member data")
 		return []MemberSearchResult{}, err
 	}
 
@@ -1226,6 +1227,7 @@ func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFil
 		masterList[member.Username] = member.UserID
 		masterList[member.Email] = member.UserID
 	}
+	logger.New(ctx).Info("fuzzy rank finder")
 	rankedList := fuzzy.RankFind(input.SearchFilter, sortList)
 	results := []MemberSearchResult{}
 	memberList := map[uuid.UUID]bool{}
