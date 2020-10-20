@@ -9,6 +9,9 @@ import (
 )
 
 type Querier interface {
+	CreateConfirmToken(ctx context.Context, email string) (UserAccountConfirmToken, error)
+	CreateInvitedProjectMember(ctx context.Context, arg CreateInvitedProjectMemberParams) (ProjectMemberInvited, error)
+	CreateInvitedUser(ctx context.Context, email string) (UserAccountInvited, error)
 	CreateLabelColor(ctx context.Context, arg CreateLabelColorParams) (LabelColor, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateNotificationObject(ctx context.Context, arg CreateNotificationObjectParams) (NotificationObject, error)
@@ -30,10 +33,14 @@ type Querier interface {
 	CreateTeamMember(ctx context.Context, arg CreateTeamMemberParams) (TeamMember, error)
 	CreateTeamProject(ctx context.Context, arg CreateTeamProjectParams) (Project, error)
 	CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error)
+	DeleteConfirmTokenForEmail(ctx context.Context, email string) error
 	DeleteExpiredTokens(ctx context.Context) error
+	DeleteInvitedProjectMemberByID(ctx context.Context, projectMemberInvitedID uuid.UUID) error
+	DeleteInvitedUserAccount(ctx context.Context, userAccountInvitedID uuid.UUID) (UserAccountInvited, error)
 	DeleteProjectByID(ctx context.Context, projectID uuid.UUID) error
 	DeleteProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) error
 	DeleteProjectMember(ctx context.Context, arg DeleteProjectMemberParams) error
+	DeleteProjectMemberInvitedForEmail(ctx context.Context, email string) error
 	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error
 	DeleteRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteTaskAssignedByID(ctx context.Context, arg DeleteTaskAssignedByIDParams) (TaskAssigned, error)
@@ -47,20 +54,27 @@ type Querier interface {
 	DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error
 	DeleteTeamMember(ctx context.Context, arg DeleteTeamMemberParams) error
 	DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) error
+	DeleteUserAccountInvitedForEmail(ctx context.Context, email string) error
 	GetAllNotificationsForUserID(ctx context.Context, notifierID uuid.UUID) ([]Notification, error)
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
-	GetAllProjects(ctx context.Context) ([]Project, error)
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)
 	GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error)
 	GetAllTasks(ctx context.Context) ([]Task, error)
+	GetAllTeamProjects(ctx context.Context) ([]Project, error)
 	GetAllTeams(ctx context.Context) ([]Team, error)
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 	GetAllVisibleProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error)
 	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
+	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
+	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)
 	GetEntityForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetEntityForNotificationIDRow, error)
 	GetEntityIDForNotificationID(ctx context.Context, notificationID uuid.UUID) (uuid.UUID, error)
+	GetInvitedMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]GetInvitedMembersForProjectIDRow, error)
+	GetInvitedUserAccounts(ctx context.Context) ([]UserAccountInvited, error)
+	GetInvitedUserByEmail(ctx context.Context, email string) (UserAccountInvited, error)
 	GetLabelColorByID(ctx context.Context, labelColorID uuid.UUID) (LabelColor, error)
 	GetLabelColors(ctx context.Context) ([]LabelColor, error)
+	GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error)
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetNotificationForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetNotificationForNotificationIDRow, error)
@@ -72,8 +86,10 @@ type Querier interface {
 	GetProjectIDForTaskGroup(ctx context.Context, taskGroupID uuid.UUID) (uuid.UUID, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
+	GetProjectMemberInvitedIDByEmail(ctx context.Context, email string) (GetProjectMemberInvitedIDByEmailRow, error)
 	GetProjectMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]ProjectMember, error)
 	GetProjectRolesForUserID(ctx context.Context, userID uuid.UUID) ([]GetProjectRolesForUserIDRow, error)
+	GetProjectsForInvitedMember(ctx context.Context, email string) ([]uuid.UUID, error)
 	GetRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) (RefreshToken, error)
 	GetRoleForProjectMemberByUserID(ctx context.Context, arg GetRoleForProjectMemberByUserIDParams) (Role, error)
 	GetRoleForTeamMember(ctx context.Context, arg GetRoleForTeamMemberParams) (Role, error)
@@ -97,12 +113,17 @@ type Querier interface {
 	GetTeamRolesForUserID(ctx context.Context, userID uuid.UUID) ([]GetTeamRolesForUserIDRow, error)
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 	GetTeamsForUserIDWhereAdmin(ctx context.Context, userID uuid.UUID) ([]Team, error)
+	GetUserAccountByEmail(ctx context.Context, email string) (UserAccount, error)
 	GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)
 	GetUserRolesForProject(ctx context.Context, arg GetUserRolesForProjectParams) (GetUserRolesForProjectRow, error)
+	HasActiveUser(ctx context.Context) (bool, error)
+	HasAnyUser(ctx context.Context) (bool, error)
+	SetFirstUserActive(ctx context.Context) (UserAccount, error)
 	SetTaskChecklistItemComplete(ctx context.Context, arg SetTaskChecklistItemCompleteParams) (TaskChecklistItem, error)
 	SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams) (Task, error)
 	SetTaskGroupName(ctx context.Context, arg SetTaskGroupNameParams) (TaskGroup, error)
+	SetUserActiveByEmail(ctx context.Context, email string) (UserAccount, error)
 	SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (UserAccount, error)
 	UpdateProjectLabel(ctx context.Context, arg UpdateProjectLabelParams) (ProjectLabel, error)
 	UpdateProjectLabelColor(ctx context.Context, arg UpdateProjectLabelColorParams) (ProjectLabel, error)

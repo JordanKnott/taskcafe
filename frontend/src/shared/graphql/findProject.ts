@@ -22,6 +22,10 @@ query findProject($projectID: UUID!) {
         bgColor
       }
     }
+    invitedMembers {
+      email
+      invitedOn
+    }
     labels {
       id
       createdDate

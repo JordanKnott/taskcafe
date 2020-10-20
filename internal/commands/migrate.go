@@ -34,11 +34,12 @@ func newMigrateCmd() *cobra.Command {
 		Short: "Run the database schema migrations",
 		Long:  "Run the database schema migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s sslmode=disable",
+			connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s port=%s sslmode=disable",
 				viper.GetString("database.user"),
 				viper.GetString("database.password"),
 				viper.GetString("database.host"),
 				viper.GetString("database.name"),
+				viper.GetString("database.port"),
 			)
 			db, err := sqlx.Connect("postgres", connection)
 			if err != nil {

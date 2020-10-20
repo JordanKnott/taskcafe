@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { DoubleChevronUp, Crown } from 'shared/icons';
 
 export const AdminIcon = styled(DoubleChevronUp)`
@@ -24,7 +24,12 @@ const TaskDetailAssignee = styled.div`
   position: relative;
 `;
 
-export const Wrapper = styled.div<{ size: number | string; bgColor: string | null; backgroundURL: string | null }>`
+export const Wrapper = styled.div<{
+  size: number | string;
+  bgColor: string | null;
+  backgroundURL: string | null;
+  hasClick: boolean;
+}>`
   width: ${props => props.size}px;
   height: ${props => props.size}px;
   border-radius: 9999px;
@@ -37,33 +42,60 @@ export const Wrapper = styled.div<{ size: number | string; bgColor: string | nul
   background-size: contain;
   font-size: 14px;
   font-weight: 400;
-  &:hover {
-    opacity: 0.8;
-  }
+  ${props =>
+    props.hasClick &&
+    css`
+      &:hover {
+        opacity: 0.8;
+      }
+    `}
 `;
 
 type TaskAssigneeProps = {
   size: number | string;
   showRoleIcons?: boolean;
   member: TaskUser;
-  onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
+  invited?: boolean;
+  onMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
   className?: string;
 };
 
-const TaskAssignee: React.FC<TaskAssigneeProps> = ({ showRoleIcons, member, onMemberProfile, size, className }) => {
+const TaskAssignee: React.FC<TaskAssigneeProps> = ({
+  showRoleIcons,
+  member,
+  invited,
+  onMemberProfile,
+  size,
+  className,
+}) => {
   const $memberRef = useRef<HTMLDivElement>(null);
+  let profileIcon: ProfileIcon = {
+    url: null,
+    bgColor: null,
+    initials: null,
+  };
+  if (member.profileIcon) {
+    profileIcon = member.profileIcon;
+  }
   return (
     <TaskDetailAssignee
       className={className}
       ref={$memberRef}
       onClick={e => {
         e.stopPropagation();
-        onMemberProfile($memberRef, member.id);
+        if (onMemberProfile) {
+          onMemberProfile($memberRef, member.id);
+        }
       }}
       key={member.id}
     >
-      <Wrapper backgroundURL={member.profileIcon.url ?? null} bgColor={member.profileIcon.bgColor ?? null} size={size}>
-        {(!member.profileIcon.url && member.profileIcon.initials) ?? ''}
+      <Wrapper
+        hasClick={typeof onMemberProfile !== undefined}
+        backgroundURL={profileIcon.url ?? null}
+        bgColor={profileIcon.bgColor ?? null}
+        size={size}
+      >
+        {(!profileIcon.url && profileIcon.initials) ?? ''}
       </Wrapper>
       {showRoleIcons && member.role && member.role.code === 'admin' && <AdminIcon width={10} height={10} />}
       {showRoleIcons && member.role && member.role.code === 'owner' && <OwnerIcon width={10} height={10} />}

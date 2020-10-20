@@ -27,16 +27,6 @@ type ChecklistBadge struct {
 	Total    int `json:"total"`
 }
 
-type CreateProjectMember struct {
-	ProjectID uuid.UUID `json:"projectID"`
-	UserID    uuid.UUID `json:"userID"`
-}
-
-type CreateProjectMemberPayload struct {
-	Ok     bool    `json:"ok"`
-	Member *Member `json:"member"`
-}
-
 type CreateTaskChecklist struct {
 	TaskID   uuid.UUID `json:"taskID"`
 	Name     string    `json:"name"`
@@ -57,6 +47,23 @@ type CreateTeamMember struct {
 type CreateTeamMemberPayload struct {
 	Team       *db.Team `json:"team"`
 	TeamMember *Member  `json:"teamMember"`
+}
+
+type DeleteInvitedProjectMember struct {
+	ProjectID uuid.UUID `json:"projectID"`
+	Email     string    `json:"email"`
+}
+
+type DeleteInvitedProjectMemberPayload struct {
+	InvitedMember *InvitedMember `json:"invitedMember"`
+}
+
+type DeleteInvitedUserAccount struct {
+	InvitedUserID uuid.UUID `json:"invitedUserID"`
+}
+
+type DeleteInvitedUserAccountPayload struct {
+	InvitedUser *InvitedUserAccount `json:"invitedUser"`
 }
 
 type DeleteProject struct {
@@ -187,6 +194,30 @@ type FindUser struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
+type InviteProjectMembers struct {
+	ProjectID uuid.UUID      `json:"projectID"`
+	Members   []MemberInvite `json:"members"`
+}
+
+type InviteProjectMembersPayload struct {
+	Ok             bool            `json:"ok"`
+	ProjectID      uuid.UUID       `json:"projectID"`
+	Members        []Member        `json:"members"`
+	InvitedMembers []InvitedMember `json:"invitedMembers"`
+}
+
+type InvitedMember struct {
+	Email     string    `json:"email"`
+	InvitedOn time.Time `json:"invitedOn"`
+}
+
+type InvitedUserAccount struct {
+	ID        uuid.UUID   `json:"id"`
+	Email     string      `json:"email"`
+	InvitedOn time.Time   `json:"invitedOn"`
+	Member    *MemberList `json:"member"`
+}
+
 type LogoutUser struct {
 	UserID uuid.UUID `json:"userID"`
 }
@@ -207,9 +238,26 @@ type Member struct {
 	Member      *MemberList  `json:"member"`
 }
 
+type MemberInvite struct {
+	UserID *uuid.UUID `json:"userID"`
+	Email  *string    `json:"email"`
+}
+
 type MemberList struct {
 	Teams    []db.Team    `json:"teams"`
 	Projects []db.Project `json:"projects"`
+}
+
+type MemberSearchFilter struct {
+	SearchFilter string     `json:"searchFilter"`
+	ProjectID    *uuid.UUID `json:"projectID"`
+}
+
+type MemberSearchResult struct {
+	Similarity int             `json:"similarity"`
+	ID         string          `json:"id"`
+	User       *db.UserAccount `json:"user"`
+	Status     ShareStatus     `json:"status"`
 }
 
 type NewProject struct {
@@ -779,5 +827,46 @@ func (e *RoleLevel) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RoleLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ShareStatus string
+
+const (
+	ShareStatusInvited ShareStatus = "INVITED"
+	ShareStatusJoined  ShareStatus = "JOINED"
+)
+
+var AllShareStatus = []ShareStatus{
+	ShareStatusInvited,
+	ShareStatusJoined,
+}
+
+func (e ShareStatus) IsValid() bool {
+	switch e {
+	case ShareStatusInvited, ShareStatusJoined:
+		return true
+	}
+	return false
+}
+
+func (e ShareStatus) String() string {
+	return string(e)
+}
+
+func (e *ShareStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ShareStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ShareStatus", str)
+	}
+	return nil
+}
+
+func (e ShareStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

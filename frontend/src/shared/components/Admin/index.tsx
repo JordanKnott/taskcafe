@@ -104,8 +104,8 @@ type TeamRoleManagerPopupProps = {
   user: User;
   users: Array<User>;
   warning?: string | null;
-  canChangeRole: boolean;
-  onChangeRole: (roleCode: RoleCode) => void;
+  canChangeRole?: boolean;
+  onChangeRole?: (roleCode: RoleCode) => void;
   updateUserPassword?: (user: TaskUser, password: string) => void;
   onDeleteUser?: (userID: string, newOwnerID: string | null) => void;
 };
@@ -530,8 +530,10 @@ type AdminProps = {
   onDeleteUser: (userID: string, newOwnerID: string | null) => void;
   onInviteUser: ($target: React.RefObject<HTMLElement>) => void;
   users: Array<User>;
+  invitedUsers: Array<InvitedUserAccount>;
   canInviteUser: boolean;
   onUpdateUserPassword: (user: TaskUser, password: string) => void;
+  onDeleteInvitedUser: (invitedUserID: string) => void;
 };
 
 const Admin: React.FC<AdminProps> = ({
@@ -540,7 +542,9 @@ const Admin: React.FC<AdminProps> = ({
   onUpdateUserPassword,
   canInviteUser,
   onDeleteUser,
+  onDeleteInvitedUser,
   onInviteUser,
+  invitedUsers,
   users,
 }) => {
   const warning =
@@ -577,7 +581,7 @@ const Admin: React.FC<AdminProps> = ({
         <TabContent>
           <MemberListWrapper>
             <MemberListHeader>
-              <ListTitle>{`Members (${users.length})`}</ListTitle>
+              <ListTitle>{`Members (${users.length + invitedUsers.length})`}</ListTitle>
               <ListDesc>
                 Organization admins can create / manage / delete all projects & teams. Members only have access to teams
                 or projects they have been added to.
@@ -625,6 +629,65 @@ const Admin: React.FC<AdminProps> = ({
                                 updateUserRole({ variables: { userID: member.id, roleCode } });
                               }}
                               onDeleteUser={onDeleteUser}
+                            />,
+                          );
+                        }}
+                      >
+                        Manage
+                      </MemberItemOption>
+                    </MemberItemOptions>
+                  </MemberListItem>
+                );
+              })}
+              {invitedUsers.map(member => {
+                return (
+                  <MemberListItem>
+                    <MemberProfile
+                      showRoleIcons
+                      size={32}
+                      onMemberProfile={NOOP}
+                      member={{
+                        id: member.id,
+                        fullName: member.email,
+                        profileIcon: {
+                          bgColor: '#fff',
+                          url: null,
+                          initials: member.email.charAt(0),
+                        },
+                      }}
+                    />
+                    <MemberListItemDetails>
+                      <MemberItemName>{member.email}</MemberItemName>
+                      <MemberItemUsername>Invited</MemberItemUsername>
+                    </MemberListItemDetails>
+                    <MemberItemOptions>
+                      <MemberItemOption
+                        variant="outline"
+                        onClick={$target => {
+                          showPopup(
+                            $target,
+                            <TeamRoleManagerPopup
+                              user={{
+                                id: member.id,
+                                fullName: member.email,
+                                profileIcon: {
+                                  bgColor: '#fff',
+                                  url: null,
+                                  initials: member.email.charAt(0),
+                                },
+                                member: {
+                                  teams: [],
+                                  projects: [],
+                                },
+                                owned: {
+                                  teams: [],
+                                  projects: [],
+                                },
+                              }}
+                              users={users}
+                              onDeleteUser={() => {
+                                onDeleteInvitedUser(member.id);
+                              }}
                             />,
                           );
                         }}

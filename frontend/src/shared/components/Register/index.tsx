@@ -24,7 +24,7 @@ import {
 const EMAIL_PATTERN = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
 const INITIALS_PATTERN = /[a-zA-Z]{2,3}/i;
 
-const Register = ({ onSubmit }: RegisterProps) => {
+const Register = ({ onSubmit, registered = false }: RegisterProps) => {
   const [isComplete, setComplete] = useState(true);
   const { register, handleSubmit, errors, setError } = useForm<RegisterFormData>();
   const loginSubmit = (data: RegisterFormData) => {
@@ -43,103 +43,112 @@ const Register = ({ onSubmit }: RegisterProps) => {
               <Taskcafe width={42} height={42} />
               <LogoTitle>Taskcafé</LogoTitle>
             </LogoWrapper>
-            <Title>Register</Title>
-            <SubTitle>Please create the system admin user</SubTitle>
-            <Form onSubmit={handleSubmit(loginSubmit)}>
-              <FormLabel htmlFor="fullname">
-                Full name
-                <FormTextInput
-                  type="text"
-                  id="fullname"
-                  name="fullname"
-                  ref={register({ required: 'Full name is required' })}
-                />
-                <FormIcon>
-                  <User width={20} height={20} />
-                </FormIcon>
-              </FormLabel>
-              {errors.username && <FormError>{errors.username.message}</FormError>}
-              <FormLabel htmlFor="username">
-                Username
-                <FormTextInput
-                  type="text"
-                  id="username"
-                  name="username"
-                  ref={register({ required: 'Username is required' })}
-                />
-                <FormIcon>
-                  <User width={20} height={20} />
-                </FormIcon>
-              </FormLabel>
-              {errors.username && <FormError>{errors.username.message}</FormError>}
-              <FormLabel htmlFor="email">
-                Email
-                <FormTextInput
-                  type="text"
-                  id="email"
-                  name="email"
-                  ref={register({
-                    required: 'Email is required',
-                    pattern: { value: EMAIL_PATTERN, message: 'Must be a valid email' },
-                  })}
-                />
-                <FormIcon>
-                  <User width={20} height={20} />
-                </FormIcon>
-              </FormLabel>
-              {errors.email && <FormError>{errors.email.message}</FormError>}
-              <FormLabel htmlFor="initials">
-                Initials
-                <FormTextInput
-                  type="text"
-                  id="initials"
-                  name="initials"
-                  ref={register({
-                    required: 'Initials is required',
-                    pattern: {
-                      value: INITIALS_PATTERN,
-                      message: 'Initials must be between 2 to 3 characters.',
-                    },
-                  })}
-                />
-                <FormIcon>
-                  <User width={20} height={20} />
-                </FormIcon>
-              </FormLabel>
-              {errors.initials && <FormError>{errors.initials.message}</FormError>}
-              <FormLabel htmlFor="password">
-                Password
-                <FormTextInput
-                  type="password"
-                  id="password"
-                  name="password"
-                  ref={register({ required: 'Password is required' })}
-                />
-                <FormIcon>
-                  <Lock width={20} height={20} />
-                </FormIcon>
-              </FormLabel>
-              {errors.password && <FormError>{errors.password.message}</FormError>}
-              <FormLabel htmlFor="password_confirm">
-                Password (Confirm)
-                <FormTextInput
-                  type="password"
-                  id="password_confirm"
-                  name="password_confirm"
-                  ref={register({ required: 'Password (confirm) is required' })}
-                />
-                <FormIcon>
-                  <Lock width={20} height={20} />
-                </FormIcon>
-              </FormLabel>
-              {errors.password_confirm && <FormError>{errors.password_confirm.message}</FormError>}
+            {registered ? (
+              <>
+                <Title>Thanks for registering</Title>
+                <SubTitle>Please check your inbox for a confirmation email.</SubTitle>
+              </>
+            ) : (
+              <>
+                <Title>Register</Title>
+                <SubTitle>Please create your user</SubTitle>
+                <Form onSubmit={handleSubmit(loginSubmit)}>
+                  <FormLabel htmlFor="fullname">
+                    Full name
+                    <FormTextInput
+                      type="text"
+                      id="fullname"
+                      name="fullname"
+                      ref={register({ required: 'Full name is required' })}
+                    />
+                    <FormIcon>
+                      <User width={20} height={20} />
+                    </FormIcon>
+                  </FormLabel>
+                  {errors.username && <FormError>{errors.username.message}</FormError>}
+                  <FormLabel htmlFor="username">
+                    Username
+                    <FormTextInput
+                      type="text"
+                      id="username"
+                      name="username"
+                      ref={register({ required: 'Username is required' })}
+                    />
+                    <FormIcon>
+                      <User width={20} height={20} />
+                    </FormIcon>
+                  </FormLabel>
+                  {errors.username && <FormError>{errors.username.message}</FormError>}
+                  <FormLabel htmlFor="email">
+                    Email
+                    <FormTextInput
+                      type="text"
+                      id="email"
+                      name="email"
+                      ref={register({
+                        required: 'Email is required',
+                        pattern: { value: EMAIL_PATTERN, message: 'Must be a valid email' },
+                      })}
+                    />
+                    <FormIcon>
+                      <User width={20} height={20} />
+                    </FormIcon>
+                  </FormLabel>
+                  {errors.email && <FormError>{errors.email.message}</FormError>}
+                  <FormLabel htmlFor="initials">
+                    Initials
+                    <FormTextInput
+                      type="text"
+                      id="initials"
+                      name="initials"
+                      ref={register({
+                        required: 'Initials is required',
+                        pattern: {
+                          value: INITIALS_PATTERN,
+                          message: 'Initials must be between 2 to 3 characters.',
+                        },
+                      })}
+                    />
+                    <FormIcon>
+                      <User width={20} height={20} />
+                    </FormIcon>
+                  </FormLabel>
+                  {errors.initials && <FormError>{errors.initials.message}</FormError>}
+                  <FormLabel htmlFor="password">
+                    Password
+                    <FormTextInput
+                      type="password"
+                      id="password"
+                      name="password"
+                      ref={register({ required: 'Password is required' })}
+                    />
+                    <FormIcon>
+                      <Lock width={20} height={20} />
+                    </FormIcon>
+                  </FormLabel>
+                  {errors.password && <FormError>{errors.password.message}</FormError>}
+                  <FormLabel htmlFor="password_confirm">
+                    Password (Confirm)
+                    <FormTextInput
+                      type="password"
+                      id="password_confirm"
+                      name="password_confirm"
+                      ref={register({ required: 'Password (confirm) is required' })}
+                    />
+                    <FormIcon>
+                      <Lock width={20} height={20} />
+                    </FormIcon>
+                  </FormLabel>
+                  {errors.password_confirm && <FormError>{errors.password_confirm.message}</FormError>}
 
-              <ActionButtons>
-                <RegisterButton type="submit" disabled={!isComplete}>
-                  Register
-                </RegisterButton>
-              </ActionButtons>
-            </Form>
+                  <ActionButtons>
+                    <RegisterButton type="submit" disabled={!isComplete}>
+                      Register
+                    </RegisterButton>
+                  </ActionButtons>
+                </Form>
+              </>
+            )}
           </LoginFormContainer>
         </LoginFormWrapper>
       </Column>

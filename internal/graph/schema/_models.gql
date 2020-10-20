@@ -86,11 +86,24 @@ type UserAccount {
   member: MemberList!
 }
 
+type InvitedUserAccount {
+  id: ID!
+  email: String!
+  invitedOn: Time!
+  member: MemberList!
+}
+
 type Team {
   id: ID!
   createdAt: Time!
   name: String!
   members: [Member!]!
+}
+
+
+type InvitedMember {
+  email: String!
+  invitedOn: Time!
 }
 
 type Project {
@@ -100,6 +113,7 @@ type Project {
   team: Team
   taskGroups: [TaskGroup!]!
   members: [Member!]!
+  invitedMembers: [InvitedMember!]!
   labels: [ProjectLabel!]!
 }
 

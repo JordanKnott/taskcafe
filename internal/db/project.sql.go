@@ -99,6 +99,15 @@ func (q *Queries) CreateTeamProject(ctx context.Context, arg CreateTeamProjectPa
 	return i, err
 }
 
+const deleteInvitedProjectMemberByID = `-- name: DeleteInvitedProjectMemberByID :exec
+DELETE FROM project_member_invited WHERE project_member_invited_id = $1
+`
+
+func (q *Queries) DeleteInvitedProjectMemberByID(ctx context.Context, projectMemberInvitedID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteInvitedProjectMemberByID, projectMemberInvitedID)
+	return err
+}
+
 const deleteProjectByID = `-- name: DeleteProjectByID :exec
 DELETE FROM project WHERE project_id = $1
 `
@@ -122,12 +131,12 @@ func (q *Queries) DeleteProjectMember(ctx context.Context, arg DeleteProjectMemb
 	return err
 }
 
-const getAllProjects = `-- name: GetAllProjects :many
-SELECT project_id, team_id, created_at, name FROM project
+const getAllProjectsForTeam = `-- name: GetAllProjectsForTeam :many
+SELECT project_id, team_id, created_at, name FROM project WHERE team_id = $1
 `
 
-func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, getAllProjects)
+func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getAllProjectsForTeam, teamID)
 	if err != nil {
 		return nil, err
 	}
@@ -154,12 +163,12 @@ func (q *Queries) GetAllProjects(ctx context.Context) ([]Project, error) {
 	return items, nil
 }
 
-const getAllProjectsForTeam = `-- name: GetAllProjectsForTeam :many
-SELECT project_id, team_id, created_at, name FROM project WHERE team_id = $1
+const getAllTeamProjects = `-- name: GetAllTeamProjects :many
+SELECT project_id, team_id, created_at, name FROM project WHERE team_id IS NOT null
 `
 
-func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, getAllProjectsForTeam, teamID)
+func (q *Queries) GetAllTeamProjects(ctx context.Context) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getAllTeamProjects)
 	if err != nil {
 		return nil, err
 	}
@@ -206,6 +215,42 @@ func (q *Queries) GetAllVisibleProjectsForUserID(ctx context.Context, userID uui
 			&i.CreatedAt,
 			&i.Name,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInvitedMembersForProjectID = `-- name: GetInvitedMembersForProjectID :many
+SELECT uai.user_account_invited_id, email, invited_on FROM project_member_invited AS pmi
+     INNER JOIN user_account_invited AS uai
+    ON uai.user_account_invited_id = pmi.user_account_invited_id
+     WHERE project_id = $1
+`
+
+type GetInvitedMembersForProjectIDRow struct {
+	UserAccountInvitedID uuid.UUID `json:"user_account_invited_id"`
+	Email                string    `json:"email"`
+	InvitedOn            time.Time `json:"invited_on"`
+}
+
+func (q *Queries) GetInvitedMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]GetInvitedMembersForProjectIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getInvitedMembersForProjectID, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInvitedMembersForProjectIDRow
+	for rows.Next() {
+		var i GetInvitedMembersForProjectIDRow
+		if err := rows.Scan(&i.UserAccountInvitedID, &i.Email, &i.InvitedOn); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -293,6 +338,26 @@ func (q *Queries) GetProjectByID(ctx context.Context, projectID uuid.UUID) (Proj
 		&i.CreatedAt,
 		&i.Name,
 	)
+	return i, err
+}
+
+const getProjectMemberInvitedIDByEmail = `-- name: GetProjectMemberInvitedIDByEmail :one
+SELECT email, invited_on, project_member_invited_id FROM user_account_invited AS uai
+ inner join project_member_invited AS pmi
+  ON pmi.user_account_invited_id = uai.user_account_invited_id
+  WHERE email = $1
+`
+
+type GetProjectMemberInvitedIDByEmailRow struct {
+	Email                  string    `json:"email"`
+	InvitedOn              time.Time `json:"invited_on"`
+	ProjectMemberInvitedID uuid.UUID `json:"project_member_invited_id"`
+}
+
+func (q *Queries) GetProjectMemberInvitedIDByEmail(ctx context.Context, email string) (GetProjectMemberInvitedIDByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getProjectMemberInvitedIDByEmail, email)
+	var i GetProjectMemberInvitedIDByEmailRow
+	err := row.Scan(&i.Email, &i.InvitedOn, &i.ProjectMemberInvitedID)
 	return i, err
 }
 

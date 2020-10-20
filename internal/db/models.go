@@ -67,6 +67,12 @@ type ProjectMember struct {
 	RoleCode        string    `json:"role_code"`
 }
 
+type ProjectMemberInvited struct {
+	ProjectMemberInvitedID uuid.UUID `json:"project_member_invited_id"`
+	ProjectID              uuid.UUID `json:"project_id"`
+	UserAccountInvitedID   uuid.UUID `json:"user_account_invited_id"`
+}
+
 type RefreshToken struct {
 	TokenID   uuid.UUID `json:"token_id"`
 	UserID    uuid.UUID `json:"user_id"`
@@ -164,4 +170,17 @@ type UserAccount struct {
 	ProfileAvatarUrl sql.NullString `json:"profile_avatar_url"`
 	RoleCode         string         `json:"role_code"`
 	Bio              string         `json:"bio"`
+	Active           bool           `json:"active"`
+}
+
+type UserAccountConfirmToken struct {
+	ConfirmTokenID uuid.UUID `json:"confirm_token_id"`
+	Email          string    `json:"email"`
+}
+
+type UserAccountInvited struct {
+	UserAccountInvitedID uuid.UUID `json:"user_account_invited_id"`
+	Email                string    `json:"email"`
+	InvitedOn            time.Time `json:"invited_on"`
+	HasJoined            bool      `json:"has_joined"`
 }

@@ -87,13 +87,13 @@ func NewRouter(dbConnection *sqlx.DB, jwtKey []byte) (chi.Router, error) {
 		mux.Mount("/auth", authResource{}.Routes(taskcafeHandler))
 		mux.Handle("/__graphql", graph.NewPlaygroundHandler("/graphql"))
 		mux.Mount("/uploads/", http.StripPrefix("/uploads/", imgServer))
-
+		mux.Post("/auth/confirm", taskcafeHandler.ConfirmUser)
+		mux.Post("/auth/register", taskcafeHandler.RegisterUser)
 	})
 	auth := AuthenticationMiddleware{jwtKey}
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
-		mux.Post("/auth/install", taskcafeHandler.InstallHandler)
 		mux.Handle("/graphql", graph.NewHandler(*repository))
 	})
 

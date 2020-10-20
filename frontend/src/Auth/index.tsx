@@ -52,7 +52,20 @@ const Auth = () => {
     }).then(async x => {
       const { status } = x;
       if (status === 200) {
-        history.replace('/projects');
+        const response: RefreshTokenResponse = await x.json();
+        const { accessToken, setup } = response;
+        if (setup) {
+          history.replace(`/register?confirmToken=${setup.confirmToken}`);
+        } else {
+          const claims: JWTToken = JwtDecode(accessToken);
+          const currentUser = {
+            id: claims.userId,
+            roles: { org: claims.orgRole, teams: new Map<string, string>(), projects: new Map<string, string>() },
+          };
+          setUser(currentUser);
+          setAccessToken(accessToken);
+          history.replace('/projects');
+        }
       }
     });
   }, []);

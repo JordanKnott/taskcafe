@@ -16,7 +16,7 @@ function getBackgroundColor(isDisabled: boolean, isSelected: boolean, isFocused:
   return null;
 }
 
-const colourStyles = {
+export const colourStyles = {
   control: (styles: any, data: any) => {
     return {
       ...styles,

@@ -61,7 +61,7 @@ type User = TaskUser & {
 
 type RefreshTokenResponse = {
   accessToken: string;
-  isInstalled: boolean;
+  setup?: null | { confirmToken: string };
 };
 
 type LoginFormData = {
@@ -91,7 +91,14 @@ type ErrorOption =
       type: string;
     };
 
+type SetFailedFn = () => void;
+type ConfirmProps = {
+  hasConfirmToken: boolean;
+  onConfirmUser: (setFailed: SetFailedFn) => void;
+};
+
 type RegisterProps = {
+  registered?: boolean;
   onSubmit: (
     data: RegisterFormData,
     setComplete: (val: boolean) => void,
@@ -127,3 +134,141 @@ type ElementBounds = {
 };
 
 type CardLabelVariant = 'large' | 'small';
+
+type InvitedUser = {
+  email: string;
+  invitedOn: string;
+};
+
+type InvitedUserAccount = {
+  id: string;
+  email: string;
+  invitedOn: string;
+};
+
+type NodeDimensions = {
+  entry: React.RefObject<HTMLElement>;
+  children: React.RefObject<HTMLElement> | null;
+};
+
+type OutlineNode = {
+  id: string;
+  parent: string;
+  depth: number;
+  position: number;
+  ancestors: Array<string>;
+  collapsed: boolean;
+  children: number;
+};
+
+type RelationshipChild = {
+  position: number;
+  id: string;
+  depth: number;
+  children: number;
+};
+
+type NodeRelationships = {
+  self: { id: string; depth: number };
+  children: Array<RelationshipChild>;
+  numberOfSubChildren: number;
+};
+
+type OutlineData = {
+  published: Map<string, string>;
+  nodes: Map<number, Map<string, OutlineNode>>;
+  relationships: Map<string, NodeRelationships>;
+  dimensions: Map<string, NodeDimensions>;
+};
+
+type ImpactZoneData = {
+  node: OutlineNode;
+  dimensions: NodeDimensions;
+};
+
+type ImpactZone = {
+  above: ImpactZoneData | null;
+  below: ImpactZoneData | null;
+};
+
+type ImpactData = {
+  zone: ImpactZone;
+  depth: number;
+};
+
+type ImpactPosition = 'before' | 'after' | 'beforeChildren' | 'afterChildren';
+
+type ImpactAction = {
+  on: 'children' | 'entry';
+  position: ImpactPosition;
+};
+
+type ItemElement = {
+  id: string;
+  parent: null | string;
+  position: number;
+  collapsed: boolean;
+  children?: Array<ItemElement>;
+};
+type NodeDimensions = {
+  entry: React.RefObject<HTMLElement>;
+  children: React.RefObject<HTMLElement> | null;
+};
+
+type OutlineNode = {
+  id: string;
+  parent: string;
+  depth: number;
+  position: number;
+  ancestors: Array<string>;
+  children: number;
+};
+
+type RelationshipChild = {
+  position: number;
+  id: string;
+  depth: number;
+  children: number;
+};
+
+type NodeRelationships = {
+  self: { id: string; depth: number };
+  children: Array<RelationshipChild>;
+  numberOfSubChildren: number;
+};
+
+type OutlineData = {
+  published: Map<string, string>;
+  nodes: Map<number, Map<string, OutlineNode>>;
+  relationships: Map<string, NodeRelationships>;
+  dimensions: Map<string, NodeDimensions>;
+};
+
+type ImpactZoneData = {
+  node: OutlineNode;
+  dimensions: NodeDimensions;
+};
+
+type ImpactZone = {
+  above: ImpactZoneData | null;
+  below: ImpactZoneData | null;
+};
+
+type ImpactData = {
+  zone: ImpactZone;
+  depth: number;
+};
+
+type ImpactPosition = 'before' | 'after' | 'beforeChildren' | 'afterChildren';
+
+type ImpactAction = {
+  on: 'children' | 'entry';
+  position: ImpactPosition;
+};
+
+type ItemElement = {
+  id: string;
+  parent: null | string;
+  position: number;
+  children?: Array<ItemElement>;
+};

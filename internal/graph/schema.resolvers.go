@@ -5,7 +5,9 @@ package graph
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
+
 	"errors"
 	"fmt"
 	"time"
@@ -13,6 +15,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/jordanknott/taskcafe/internal/logger"
+	"github.com/lithammer/fuzzysearch/fuzzy"
+	gomail "gopkg.in/mail.v2"
+
+	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
@@ -28,7 +35,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) 
 		return &db.Project{}, errors.New("user id is missing")
 	}
 	createdAt := time.Now().UTC()
-	log.WithFields(log.Fields{"name": input.Name, "teamID": input.TeamID}).Info("creating new project")
+	logger.New(ctx).WithFields(log.Fields{"name": input.Name, "teamID": input.TeamID}).Info("creating new project")
 	var project db.Project
 	var err error
 	if input.TeamID == nil {
@@ -37,10 +44,10 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) 
 			Name:      input.Name,
 		})
 		if err != nil {
-			log.WithError(err).Error("error while creating project")
+			logger.New(ctx).WithError(err).Error("error while creating project")
 			return &db.Project{}, err
 		}
-		log.WithFields(log.Fields{"userID": userID, "projectID": project.ProjectID}).Info("creating personal project link")
+		logger.New(ctx).WithField("projectID", project.ProjectID).Info("creating personal project link")
 	} else {
 		project, err = r.Repository.CreateTeamProject(ctx, db.CreateTeamProjectParams{
 			CreatedAt: createdAt,
@@ -48,13 +55,13 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input NewProject) 
 			TeamID:    *input.TeamID,
 		})
 		if err != nil {
-			log.WithError(err).Error("error while creating project")
+			logger.New(ctx).WithError(err).Error("error while creating project")
 			return &db.Project{}, err
 		}
 	}
 	_, err = r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: project.ProjectID, UserID: userID, AddedAt: createdAt, RoleCode: "admin"})
 	if err != nil {
-		log.WithError(err).Error("error while creating initial project member")
+		logger.New(ctx).WithError(err).Error("error while creating initial project member")
 		return &db.Project{}, err
 	}
 	return &project, nil
@@ -123,33 +130,162 @@ func (r *mutationResolver) UpdateProjectLabelColor(ctx context.Context, input Up
 	return &label, err
 }
 
-func (r *mutationResolver) CreateProjectMember(ctx context.Context, input CreateProjectMember) (*CreateProjectMemberPayload, error) {
-	addedAt := time.Now().UTC()
-	_, err := r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: input.ProjectID, UserID: input.UserID, AddedAt: addedAt, RoleCode: "member"})
-	if err != nil {
-		return &CreateProjectMemberPayload{Ok: false}, err
-	}
-	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
-	if err != nil {
-		return &CreateProjectMemberPayload{Ok: false}, err
-	}
-	var url *string
-	if user.ProfileAvatarUrl.Valid {
-		url = &user.ProfileAvatarUrl.String
-	}
-	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+func (r *mutationResolver) InviteProjectMembers(ctx context.Context, input InviteProjectMembers) (*InviteProjectMembersPayload, error) {
+	members := []Member{}
+	invitedMembers := []InvitedMember{}
+	for _, invitedMember := range input.Members {
+		if invitedMember.Email != nil && invitedMember.UserID != nil {
+			return &InviteProjectMembersPayload{Ok: false}, &gqlerror.Error{
+				Message: "Both email and userID can not be used to invite a project member",
+				Extensions: map[string]interface{}{
+					"code": "403",
+				},
+			}
+		} else if invitedMember.Email == nil && invitedMember.UserID == nil {
+			return &InviteProjectMembersPayload{Ok: false}, &gqlerror.Error{
+				Message: "Either email or userID must be set to invite a project member",
+				Extensions: map[string]interface{}{
+					"code": "403",
+				},
+			}
+		}
+		if invitedMember.UserID != nil {
+			// Invite by user ID
+			addedAt := time.Now().UTC()
+			_, err := r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: input.ProjectID, UserID: *invitedMember.UserID, AddedAt: addedAt, RoleCode: "member"})
+			if err != nil {
+				return &InviteProjectMembersPayload{Ok: false}, err
+			}
+			user, err := r.Repository.GetUserAccountByID(ctx, *invitedMember.UserID)
+			if err != nil && err != sql.ErrNoRows {
+				return &InviteProjectMembersPayload{Ok: false}, err
 
-	role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: input.UserID, ProjectID: input.ProjectID})
-	if err != nil {
-		return &CreateProjectMemberPayload{Ok: false}, err
+			}
+			var url *string
+			if user.ProfileAvatarUrl.Valid {
+				url = &user.ProfileAvatarUrl.String
+			}
+			profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+
+			role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: *invitedMember.UserID, ProjectID: input.ProjectID})
+			if err != nil {
+				return &InviteProjectMembersPayload{Ok: false}, err
+			}
+			members = append(members, Member{
+				ID:          *invitedMember.UserID,
+				FullName:    user.FullName,
+				Username:    user.Username,
+				ProfileIcon: profileIcon,
+				Role:        &db.Role{Code: role.Code, Name: role.Name},
+			})
+		} else {
+			// Invite by email
+
+			// if invited user does not exist, create entry
+			invitedUser, err := r.Repository.GetInvitedUserByEmail(ctx, *invitedMember.Email)
+			now := time.Now().UTC()
+			if err != nil {
+				if err == sql.ErrNoRows {
+					invitedUser, err = r.Repository.CreateInvitedUser(ctx, *invitedMember.Email)
+					if err != nil {
+						return &InviteProjectMembersPayload{Ok: false}, err
+					}
+					confirmToken, err := r.Repository.CreateConfirmToken(ctx, *invitedMember.Email)
+					if err != nil {
+						return &InviteProjectMembersPayload{Ok: false}, err
+					}
+					// send out invitation
+					// add project invite entry
+					// send out notification?
+					h := hermes.Hermes{
+						// Optional Theme
+						Product: hermes.Product{
+							// Appears in header & footer of e-mails
+							Name: "Taskscafe",
+							Link: "http://localhost:3333/",
+							// Optional product logo
+							Logo: "https://github.com/JordanKnott/taskcafe/raw/master/.github/taskcafe-full.png",
+						},
+					}
+
+					email := hermes.Email{
+						Body: hermes.Body{
+							Name: "Jordan Knott",
+							Intros: []string{
+								"You have been invited to join Taskcafe",
+							},
+							Actions: []hermes.Action{
+								{
+									Instructions: "To get started with Taskcafe, please click here:",
+									Button: hermes.Button{
+										Color:     "#7367F0", // Optional action button color
+										TextColor: "#FFFFFF",
+										Text:      "Register your account",
+										Link:      "http://localhost:3000/register?confirmToken=" + confirmToken.ConfirmTokenID.String(),
+									},
+								},
+							},
+							Outros: []string{
+								"Need help, or have questions? Just reply to this email, we'd love to help.",
+							},
+						},
+					}
+
+					// Generate an HTML email with the provided contents (for modern clients)
+					emailBody, err := h.GenerateHTML(email)
+					if err != nil {
+						panic(err) // Tip: Handle error with something else than a panic ;)
+					}
+					emailBodyPlain, err := h.GeneratePlainText(email)
+					if err != nil {
+						panic(err) // Tip: Handle error with something else than a panic ;)
+					}
+
+					m := gomail.NewMessage()
+
+					// Set E-Mail sender
+					m.SetHeader("From", "no-reply@taskcafe.com")
+
+					// Set E-Mail receivers
+					m.SetHeader("To", invitedUser.Email)
+
+					// Set E-Mail subject
+					m.SetHeader("Subject", "You have been invited to Taskcafe")
+
+					// Set E-Mail body. You can set plain text or html with text/html
+					m.SetBody("text/html", emailBody)
+					m.AddAlternative("text/plain", emailBodyPlain)
+
+					// Settings for SMTP server
+					d := gomail.NewDialer("127.0.0.1", 11500, "no-reply@taskcafe.com", "")
+
+					// This is only needed when SSL/TLS certificate is not valid on server.
+					// In production this should be set to false.
+					d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+					// Now send E-Mail
+					if err := d.DialAndSend(m); err != nil {
+						fmt.Println(err)
+						panic(err)
+					}
+				} else {
+					return &InviteProjectMembersPayload{Ok: false}, err
+				}
+			}
+
+			_, err = r.Repository.CreateInvitedProjectMember(ctx, db.CreateInvitedProjectMemberParams{
+				ProjectID:            input.ProjectID,
+				UserAccountInvitedID: invitedUser.UserAccountInvitedID,
+			})
+			if err != nil {
+				return &InviteProjectMembersPayload{Ok: false}, err
+			}
+			logger.New(ctx).Info("adding invited member")
+			invitedMembers = append(invitedMembers, InvitedMember{Email: *invitedMember.Email, InvitedOn: now})
+
+		}
 	}
-	return &CreateProjectMemberPayload{Ok: true, Member: &Member{
-		ID:          input.UserID,
-		FullName:    user.FullName,
-		Username:    user.Username,
-		ProfileIcon: profileIcon,
-		Role:        &db.Role{Code: role.Code, Name: role.Name},
-	}}, nil
+	return &InviteProjectMembersPayload{Ok: false, ProjectID: input.ProjectID, Members: members, InvitedMembers: invitedMembers}, nil
 }
 
 func (r *mutationResolver) DeleteProjectMember(ctx context.Context, input DeleteProjectMember) (*DeleteProjectMemberPayload, error) {
@@ -181,18 +317,18 @@ func (r *mutationResolver) DeleteProjectMember(ctx context.Context, input Delete
 func (r *mutationResolver) UpdateProjectMemberRole(ctx context.Context, input UpdateProjectMemberRole) (*UpdateProjectMemberRolePayload, error) {
 	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
 	if err != nil {
-		log.WithError(err).Error("get user account")
+		logger.New(ctx).WithError(err).Error("get user account")
 		return &UpdateProjectMemberRolePayload{Ok: false}, err
 	}
 	_, err = r.Repository.UpdateProjectMemberRole(ctx, db.UpdateProjectMemberRoleParams{ProjectID: input.ProjectID,
 		UserID: input.UserID, RoleCode: input.RoleCode.String()})
 	if err != nil {
-		log.WithError(err).Error("update project member role")
+		logger.New(ctx).WithError(err).Error("update project member role")
 		return &UpdateProjectMemberRolePayload{Ok: false}, err
 	}
 	role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: user.UserID, ProjectID: input.ProjectID})
 	if err != nil {
-		log.WithError(err).Error("get role for project member")
+		logger.New(ctx).WithError(err).Error("get role for project member")
 		return &UpdateProjectMemberRolePayload{Ok: false}, err
 	}
 	var url *string
@@ -209,19 +345,33 @@ func (r *mutationResolver) UpdateProjectMemberRole(ctx context.Context, input Up
 	return &UpdateProjectMemberRolePayload{Ok: true, Member: &member}, err
 }
 
+func (r *mutationResolver) DeleteInvitedProjectMember(ctx context.Context, input DeleteInvitedProjectMember) (*DeleteInvitedProjectMemberPayload, error) {
+	member, err := r.Repository.GetProjectMemberInvitedIDByEmail(ctx, input.Email)
+	if err != nil {
+		return &DeleteInvitedProjectMemberPayload{}, err
+	}
+	err = r.Repository.DeleteInvitedProjectMemberByID(ctx, member.ProjectMemberInvitedID)
+	if err != nil {
+		return &DeleteInvitedProjectMemberPayload{}, err
+	}
+	return &DeleteInvitedProjectMemberPayload{
+		InvitedMember: &InvitedMember{Email: member.Email, InvitedOn: member.InvitedOn},
+	}, nil
+}
+
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.Task, error) {
 	createdAt := time.Now().UTC()
-	log.WithFields(log.Fields{"positon": input.Position, "taskGroupID": input.TaskGroupID}).Info("creating task")
+	logger.New(ctx).WithFields(log.Fields{"positon": input.Position, "taskGroupID": input.TaskGroupID}).Info("creating task")
 	task, err := r.Repository.CreateTask(ctx, db.CreateTaskParams{input.TaskGroupID, createdAt, input.Name, input.Position})
 	if err != nil {
-		log.WithError(err).Error("issue while creating task")
+		logger.New(ctx).WithError(err).Error("issue while creating task")
 		return &db.Task{}, err
 	}
 	return &task, nil
 }
 
 func (r *mutationResolver) DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error) {
-	log.WithFields(log.Fields{
+	logger.New(ctx).WithFields(log.Fields{
 		"taskID": input.TaskID,
 	}).Info("deleting task")
 	err := r.Repository.DeleteTaskByID(ctx, input.TaskID)
@@ -278,8 +428,8 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 func (r *mutationResolver) AssignTask(ctx context.Context, input *AssignTaskInput) (*db.Task, error) {
 	assignedDate := time.Now().UTC()
 	assignedTask, err := r.Repository.CreateTaskAssigned(ctx, db.CreateTaskAssignedParams{input.TaskID, input.UserID, assignedDate})
-	log.WithFields(log.Fields{
-		"userID":         assignedTask.UserID,
+	logger.New(ctx).WithFields(log.Fields{
+		"assignedUserID": assignedTask.UserID,
 		"taskID":         assignedTask.TaskID,
 		"assignedTaskID": assignedTask.TaskAssignedID,
 	}).Info("assigned task")
@@ -589,7 +739,7 @@ func (r *mutationResolver) ToggleTaskLabel(ctx context.Context, input ToggleTask
 	createdAt := time.Now().UTC()
 
 	if err == sql.ErrNoRows {
-		log.WithFields(log.Fields{"err": err}).Warning("no rows")
+		logger.New(ctx).WithFields(log.Fields{"err": err}).Warning("no rows")
 		_, err := r.Repository.CreateTaskLabelForTask(ctx, db.CreateTaskLabelForTaskParams{
 			TaskID:         input.TaskID,
 			ProjectLabelID: input.ProjectLabelID,
@@ -622,17 +772,17 @@ func (r *mutationResolver) ToggleTaskLabel(ctx context.Context, input ToggleTask
 func (r *mutationResolver) DeleteTeam(ctx context.Context, input DeleteTeam) (*DeleteTeamPayload, error) {
 	team, err := r.Repository.GetTeamByID(ctx, input.TeamID)
 	if err != nil {
-		log.Error(err)
+		logger.New(ctx).Error(err)
 		return &DeleteTeamPayload{Ok: false}, err
 	}
 	projects, err := r.Repository.GetAllProjectsForTeam(ctx, input.TeamID)
 	if err != nil {
-		log.Error(err)
+		logger.New(ctx).Error(err)
 		return &DeleteTeamPayload{Ok: false}, err
 	}
 	err = r.Repository.DeleteTeamByID(ctx, input.TeamID)
 	if err != nil {
-		log.Error(err)
+		logger.New(ctx).Error(err)
 		return &DeleteTeamPayload{Ok: false}, err
 	}
 
@@ -687,18 +837,18 @@ func (r *mutationResolver) CreateTeamMember(ctx context.Context, input CreateTea
 func (r *mutationResolver) UpdateTeamMemberRole(ctx context.Context, input UpdateTeamMemberRole) (*UpdateTeamMemberRolePayload, error) {
 	user, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
 	if err != nil {
-		log.WithError(err).Error("get user account")
+		logger.New(ctx).WithError(err).Error("get user account")
 		return &UpdateTeamMemberRolePayload{Ok: false}, err
 	}
 	_, err = r.Repository.UpdateTeamMemberRole(ctx, db.UpdateTeamMemberRoleParams{TeamID: input.TeamID,
 		UserID: input.UserID, RoleCode: input.RoleCode.String()})
 	if err != nil {
-		log.WithError(err).Error("update project member role")
+		logger.New(ctx).WithError(err).Error("update project member role")
 		return &UpdateTeamMemberRolePayload{Ok: false}, err
 	}
 	role, err := r.Repository.GetRoleForTeamMember(ctx, db.GetRoleForTeamMemberParams{UserID: user.UserID, TeamID: input.TeamID})
 	if err != nil {
-		log.WithError(err).Error("get role for project member")
+		logger.New(ctx).WithError(err).Error("get role for project member")
 		return &UpdateTeamMemberRolePayload{Ok: false}, err
 	}
 	var url *string
@@ -785,6 +935,25 @@ func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUs
 	return &DeleteUserAccountPayload{UserAccount: &user, Ok: true}, nil
 }
 
+func (r *mutationResolver) DeleteInvitedUserAccount(ctx context.Context, input DeleteInvitedUserAccount) (*DeleteInvitedUserAccountPayload, error) {
+	user, err := r.Repository.DeleteInvitedUserAccount(ctx, input.InvitedUserID)
+	if err != nil {
+		return &DeleteInvitedUserAccountPayload{}, err
+	}
+	err = r.Repository.DeleteConfirmTokenForEmail(ctx, user.Email)
+	if err != nil {
+		logger.New(ctx).WithError(err).Error("issue deleting confirm token")
+		return &DeleteInvitedUserAccountPayload{}, err
+	}
+	return &DeleteInvitedUserAccountPayload{
+		InvitedUser: &InvitedUserAccount{
+			Email:     user.Email,
+			ID:        user.UserAccountInvitedID,
+			InvitedOn: user.InvitedOn,
+		},
+	}, err
+}
+
 func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
 	err := r.Repository.DeleteRefreshTokenByUserID(ctx, input.UserID)
 	return true, err
@@ -850,9 +1019,9 @@ func (r *notificationResolver) ID(ctx context.Context, obj *db.Notification) (uu
 }
 
 func (r *notificationResolver) Entity(ctx context.Context, obj *db.Notification) (*NotificationEntity, error) {
-	log.WithFields(log.Fields{"notificationID": obj.NotificationID}).Info("fetching entity for notification")
+	logger.New(ctx).WithFields(log.Fields{"notificationID": obj.NotificationID}).Info("fetching entity for notification")
 	entity, err := r.Repository.GetEntityForNotificationID(ctx, obj.NotificationID)
-	log.WithFields(log.Fields{"entityID": entity.EntityID}).Info("fetched entity")
+	logger.New(ctx).WithFields(log.Fields{"entityID": entity.EntityID}).Info("fetched entity")
 	if err != nil {
 		return &NotificationEntity{}, err
 	}
@@ -884,7 +1053,7 @@ func (r *notificationResolver) Actor(ctx context.Context, obj *db.Notification) 
 	if err != nil {
 		return &NotificationActor{}, err
 	}
-	log.WithFields(log.Fields{"entityID": entity.ActorID}).Info("fetching actor")
+	logger.New(ctx).WithFields(log.Fields{"entityID": entity.ActorID}).Info("fetching actor")
 	user, err := r.Repository.GetUserAccountByID(ctx, entity.ActorID)
 	if err != nil {
 		return &NotificationActor{}, err
@@ -914,7 +1083,7 @@ func (r *projectResolver) Team(ctx context.Context, obj *db.Project) (*db.Team, 
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		log.WithFields(log.Fields{"teamID": obj.TeamID, "projectID": obj.ProjectID}).WithError(err).Error("issue while getting team for project")
+		logger.New(ctx).WithFields(log.Fields{"teamID": obj.TeamID, "projectID": obj.ProjectID}).WithError(err).Error("issue while getting team for project")
 		return &team, err
 	}
 	return &team, nil
@@ -928,14 +1097,14 @@ func (r *projectResolver) Members(ctx context.Context, obj *db.Project) ([]Membe
 	members := []Member{}
 	projectMembers, err := r.Repository.GetProjectMembersForProjectID(ctx, obj.ProjectID)
 	if err != nil {
-		log.WithError(err).Error("get project members for project id")
+		logger.New(ctx).WithError(err).Error("get project members for project id")
 		return members, err
 	}
 
 	for _, projectMember := range projectMembers {
 		user, err := r.Repository.GetUserAccountByID(ctx, projectMember.UserID)
 		if err != nil {
-			log.WithError(err).Error("get user account by ID")
+			logger.New(ctx).WithError(err).Error("get user account by ID")
 			return members, err
 		}
 		var url *string
@@ -944,7 +1113,7 @@ func (r *projectResolver) Members(ctx context.Context, obj *db.Project) ([]Membe
 		}
 		role, err := r.Repository.GetRoleForProjectMemberByUserID(ctx, db.GetRoleForProjectMemberByUserIDParams{UserID: user.UserID, ProjectID: obj.ProjectID})
 		if err != nil {
-			log.WithError(err).Error("get role for projet member by user ID")
+			logger.New(ctx).WithError(err).Error("get role for projet member by user ID")
 			return members, err
 		}
 		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
@@ -953,6 +1122,18 @@ func (r *projectResolver) Members(ctx context.Context, obj *db.Project) ([]Membe
 		})
 	}
 	return members, nil
+}
+
+func (r *projectResolver) InvitedMembers(ctx context.Context, obj *db.Project) ([]InvitedMember, error) {
+	members, err := r.Repository.GetInvitedMembersForProjectID(ctx, obj.ProjectID)
+	if err != nil && err == sql.ErrNoRows {
+		return []InvitedMember{}, nil
+	}
+	invited := []InvitedMember{}
+	for _, member := range members {
+		invited = append(invited, InvitedMember{Email: member.Email, InvitedOn: member.InvitedOn})
+	}
+	return invited, err
 }
 
 func (r *projectResolver) Labels(ctx context.Context, obj *db.Project) ([]db.ProjectLabel, error) {
@@ -988,6 +1169,25 @@ func (r *queryResolver) Users(ctx context.Context) ([]db.UserAccount, error) {
 	return r.Repository.GetAllUserAccounts(ctx)
 }
 
+func (r *queryResolver) InvitedUsers(ctx context.Context) ([]InvitedUserAccount, error) {
+	invitedMembers, err := r.Repository.GetInvitedUserAccounts(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []InvitedUserAccount{}, nil
+		}
+		return []InvitedUserAccount{}, err
+	}
+	members := []InvitedUserAccount{}
+	for _, invitedMember := range invitedMembers {
+		members = append(members, InvitedUserAccount{
+			ID:        invitedMember.UserAccountInvitedID,
+			Email:     invitedMember.Email,
+			InvitedOn: invitedMember.InvitedOn,
+		})
+	}
+	return members, nil
+}
+
 func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserAccount, error) {
 	account, err := r.Repository.GetUserAccountByID(ctx, input.UserID)
 	if err == sql.ErrNoRows {
@@ -1002,11 +1202,7 @@ func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserA
 }
 
 func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db.Project, error) {
-	userID, role, ok := GetUser(ctx)
-	log.WithFields(log.Fields{"userID": userID, "role": role}).Info("find project user")
-	if !ok {
-		return &db.Project{}, nil
-	}
+	logger.New(ctx).Info("finding project user")
 	project, err := r.Repository.GetProjectByID(ctx, input.ProjectID)
 	if err == sql.ErrNoRows {
 		return &db.Project{}, &gqlerror.Error{
@@ -1027,10 +1223,10 @@ func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*db.Task,
 func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]db.Project, error) {
 	userID, orgRole, ok := GetUser(ctx)
 	if !ok {
-		log.Info("user id was not found from middleware")
+		logger.New(ctx).Info("user id was not found from middleware")
 		return []db.Project{}, nil
 	}
-	log.WithFields(log.Fields{"userID": userID}).Info("fetching projects")
+	logger.New(ctx).Info("fetching projects")
 
 	if input != nil {
 		return r.Repository.GetAllProjectsForTeam(ctx, *input.TeamID)
@@ -1046,37 +1242,36 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 
 	projects := make(map[string]db.Project)
 	for _, team := range teams {
-		log.WithFields(log.Fields{"teamID": team.TeamID}).Info("found team")
+		logger.New(ctx).WithField("teamID", team.TeamID).Info("found team")
 		teamProjects, err := r.Repository.GetAllProjectsForTeam(ctx, team.TeamID)
 		if err != sql.ErrNoRows && err != nil {
 			log.Info("issue getting team projects")
 			return []db.Project{}, nil
 		}
 		for _, project := range teamProjects {
-			log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("adding team project")
+			logger.New(ctx).WithField("projectID", project.ProjectID).Info("adding team project")
 			projects[project.ProjectID.String()] = project
 		}
 	}
 
 	visibleProjects, err := r.Repository.GetAllVisibleProjectsForUserID(ctx, userID)
 	if err != nil {
-		log.WithField("userID", userID).Info("error getting visible projects for user")
+		logger.New(ctx).Info("error getting visible projects for user")
 		return []db.Project{}, nil
 	}
 	for _, project := range visibleProjects {
-		log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("found visible project")
+		logger.New(ctx).WithField("projectID", project.ProjectID).Info("found visible project")
 		if _, ok := projects[project.ProjectID.String()]; !ok {
-			log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("adding visible project")
+			logger.New(ctx).WithField("projectID", project.ProjectID).Info("adding visible project")
 			projects[project.ProjectID.String()] = project
 		}
 	}
-	log.WithFields(log.Fields{"projectLength": len(projects)}).Info("making projects")
+	logger.New(ctx).WithField("projectLength", len(projects)).Info("making projects")
 	allProjects := make([]db.Project, 0, len(projects))
 	for _, project := range projects {
-		log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("add project to final list")
+		logger.New(ctx).WithField("projectID", project.ProjectID).Info("adding project to final list")
 		allProjects = append(allProjects, project)
 	}
-	log.Info(allProjects)
 	return allProjects, nil
 }
 
@@ -1091,7 +1286,7 @@ func (r *queryResolver) FindTeam(ctx context.Context, input FindTeam) (*db.Team,
 func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 	userID, orgRole, ok := GetUser(ctx)
 	if !ok {
-		log.Error("userID or orgRole does not exist!")
+		logger.New(ctx).Error("userID or org role does not exist")
 		return []db.Team{}, errors.New("internal error")
 	}
 	if orgRole == "admin" {
@@ -1102,7 +1297,7 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 	teams := make(map[string]db.Team)
 	adminTeams, err := r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
 	if err != nil {
-		log.WithError(err).Error("error while getting teams for user ID")
+		logger.New(ctx).WithError(err).Error("error while getting teams for user ID")
 		return []db.Team{}, err
 	}
 
@@ -1112,19 +1307,19 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 
 	visibleProjects, err := r.Repository.GetAllVisibleProjectsForUserID(ctx, userID)
 	if err != nil {
-		log.WithField("userID", userID).WithError(err).Error("error while getting visible projects for user ID")
+		logger.New(ctx).WithError(err).Error("error while getting visible projects for user ID")
 		return []db.Team{}, err
 	}
 	for _, project := range visibleProjects {
-		log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("found visible project")
+		logger.New(ctx).WithField("projectID", project.ProjectID).Info("found visible project")
 		if _, ok := teams[project.ProjectID.String()]; !ok {
-			log.WithFields(log.Fields{"projectID": project.ProjectID.String()}).Info("adding visible project")
+			logger.New(ctx).WithField("projectID", project.ProjectID).Info("adding visible project")
 			team, err := r.Repository.GetTeamByID(ctx, project.TeamID)
 			if err != nil {
 				if err == sql.ErrNoRows {
 					continue
 				}
-				log.WithField("teamID", project.TeamID).WithError(err).Error("error getting team by id")
+				logger.New(ctx).WithField("teamID", project.TeamID).WithError(err).Error("error getting team by id")
 				return []db.Team{}, err
 			}
 			teams[project.TeamID.String()] = team
@@ -1152,7 +1347,7 @@ func (r *queryResolver) Me(ctx context.Context) (*MePayload, error) {
 	}
 	user, err := r.Repository.GetUserAccountByID(ctx, userID)
 	if err == sql.ErrNoRows {
-		log.WithFields(log.Fields{"userID": userID}).Warning("can not find user for me query")
+		logger.New(ctx).Warning("can not find user for me query")
 		return &MePayload{}, nil
 	} else if err != nil {
 		return &MePayload{}, err
@@ -1180,7 +1375,7 @@ func (r *queryResolver) Me(ctx context.Context) (*MePayload, error) {
 
 func (r *queryResolver) Notifications(ctx context.Context) ([]db.Notification, error) {
 	userID, ok := GetUserID(ctx)
-	log.WithFields(log.Fields{"userID": userID}).Info("fetching notifications")
+	logger.New(ctx).Info("fetching notifications")
 	if !ok {
 		return []db.Notification{}, errors.New("user id is missing")
 	}
@@ -1191,6 +1386,65 @@ func (r *queryResolver) Notifications(ctx context.Context) ([]db.Notification, e
 		return []db.Notification{}, err
 	}
 	return notifications, nil
+}
+
+func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFilter) ([]MemberSearchResult, error) {
+	availableMembers, err := r.Repository.GetMemberData(ctx, *input.ProjectID)
+	if err != nil {
+		logger.New(ctx).WithField("projectID", input.ProjectID).WithError(err).Error("error while getting member data")
+		return []MemberSearchResult{}, err
+	}
+
+	invitedMembers, err := r.Repository.GetInvitedMembersForProjectID(ctx, *input.ProjectID)
+	if err != nil {
+		logger.New(ctx).WithField("projectID", input.ProjectID).WithError(err).Error("error while getting member data")
+		return []MemberSearchResult{}, err
+	}
+
+	sortList := []string{}
+	masterList := map[string]MasterEntry{}
+	for _, member := range availableMembers {
+		sortList = append(sortList, member.Username)
+		sortList = append(sortList, member.Email)
+		masterList[member.Username] = MasterEntry{ID: member.UserID, MemberType: MemberTypeJoined}
+		masterList[member.Email] = MasterEntry{ID: member.UserID, MemberType: MemberTypeJoined}
+	}
+	for _, member := range invitedMembers {
+		sortList = append(sortList, member.Email)
+		logger.New(ctx).WithField("Email", member.Email).Info("adding member")
+		masterList[member.Email] = MasterEntry{ID: member.UserAccountInvitedID, MemberType: MemberTypeInvited}
+	}
+
+	logger.New(ctx).WithField("searchFilter", input.SearchFilter).Info(sortList)
+	rankedList := fuzzy.RankFind(input.SearchFilter, sortList)
+	logger.New(ctx).Info(rankedList)
+	results := []MemberSearchResult{}
+	memberList := map[uuid.UUID]bool{}
+	for _, rank := range rankedList {
+		entry, _ := masterList[rank.Target]
+		_, ok := memberList[entry.ID]
+		logger.New(ctx).WithField("ok", ok).WithField("target", rank.Target).Info("checking rank")
+		if !ok {
+			if entry.MemberType == MemberTypeJoined {
+				logger.New(ctx).WithFields(log.Fields{"source": rank.Source, "target": rank.Target}).Info("searching")
+				entry := masterList[rank.Target]
+				user, err := r.Repository.GetUserAccountByID(ctx, entry.ID)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						continue
+					}
+					return []MemberSearchResult{}, err
+				}
+				results = append(results, MemberSearchResult{ID: user.UserID.String(), User: &user, Status: ShareStatusJoined, Similarity: rank.Distance})
+			} else {
+				logger.New(ctx).WithField("id", rank.Target).Info("adding target")
+				results = append(results, MemberSearchResult{ID: rank.Target, Status: ShareStatusInvited, Similarity: rank.Distance})
+
+			}
+			memberList[entry.ID] = true
+		}
+	}
+	return results, nil
 }
 
 func (r *refreshTokenResolver) ID(ctx context.Context, obj *db.RefreshToken) (uuid.UUID, error) {
@@ -1257,7 +1511,7 @@ func (r *taskResolver) Assigned(ctx context.Context, obj *db.Task) ([]Member, er
 			if err == sql.ErrNoRows {
 				role = db.Role{Code: "owner", Name: "Owner"}
 			} else {
-				log.WithFields(log.Fields{"userID": user.UserID}).WithError(err).Error("get role for project member")
+				logger.New(ctx).WithError(err).Error("get role for project member")
 				return taskMembers, err
 			}
 		}
@@ -1351,14 +1605,14 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 
 	teamMembers, err := r.Repository.GetTeamMembersForTeamID(ctx, obj.TeamID)
 	if err != nil {
-		log.WithError(err).Error("get project members for project id")
+		logger.New(ctx).Error("get project members for project id")
 		return members, err
 	}
 
 	for _, teamMember := range teamMembers {
 		user, err := r.Repository.GetUserAccountByID(ctx, teamMember.UserID)
 		if err != nil {
-			log.WithError(err).Error("get user account by ID")
+			logger.New(ctx).WithError(err).Error("get user account by ID")
 			return members, err
 		}
 		var url *string
@@ -1367,7 +1621,7 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 		}
 		role, err := r.Repository.GetRoleForTeamMember(ctx, db.GetRoleForTeamMemberParams{UserID: user.UserID, TeamID: obj.TeamID})
 		if err != nil {
-			log.WithError(err).Error("get role for projet member by user ID")
+			logger.New(ctx).WithError(err).Error("get role for projet member by user ID")
 			return members, err
 		}
 
@@ -1395,8 +1649,7 @@ func (r *userAccountResolver) ID(ctx context.Context, obj *db.UserAccount) (uuid
 func (r *userAccountResolver) Role(ctx context.Context, obj *db.UserAccount) (*db.Role, error) {
 	role, err := r.Repository.GetRoleForUserID(ctx, obj.UserID)
 	if err != nil {
-		log.Info("beep!")
-		log.WithError(err).Error("get role for user id")
+		logger.New(ctx).WithError(err).Error("get role for user id")
 		return &db.Role{}, err
 	}
 	return &db.Role{Code: role.Code, Name: role.Name}, nil
@@ -1506,3 +1759,21 @@ type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }
 type userAccountResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+type MemberType string
+
+const (
+	MemberTypeInvited MemberType = "INVITED"
+	MemberTypeJoined  MemberType = "JOINED"
+)
+
+type MasterEntry struct {
+	MemberType MemberType
+	ID         uuid.UUID
+}
