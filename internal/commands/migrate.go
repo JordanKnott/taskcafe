@@ -68,9 +68,5 @@ func newMigrateCmd() *cobra.Command {
 			return nil
 		},
 	}
-	viper.SetDefault("database.host", "127.0.0.1")
-	viper.SetDefault("database.name", "taskcafe")
-	viper.SetDefault("database.user", "taskcafe")
-	viper.SetDefault("database.password", "taskcafe_test")
 	return c
 }
