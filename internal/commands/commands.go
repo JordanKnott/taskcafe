@@ -62,6 +62,16 @@ func initConfig() {
 	if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 		panic(err)
 	}
+
+	viper.SetDefault("server.hostname", "0.0.0.0:3333")
+	viper.SetDefault("database.host", "127.0.0.1")
+	viper.SetDefault("database.name", "taskcafe")
+	viper.SetDefault("database.user", "taskcafe")
+	viper.SetDefault("database.password", "taskcafe_test")
+
+	viper.SetDefault("queue.broker", "amqp://guest:guest@localhost:5672/")
+	viper.SetDefault("queue.store", "memcache://localhost:11211")
+
 }
 
 // Execute the root cobra command
