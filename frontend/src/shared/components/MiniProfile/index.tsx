@@ -47,6 +47,7 @@ const permissions = [
 type MiniProfileProps = {
   bio: string;
   user: TaskUser;
+  invited?: boolean;
   onRemoveFromTask?: () => void;
   onChangeRole?: (roleCode: RoleCode) => void;
   onRemoveFromBoard?: () => void;
@@ -56,6 +57,7 @@ type MiniProfileProps = {
 const MiniProfile: React.FC<MiniProfileProps> = ({
   user,
   bio,
+  invited,
   canChangeRole,
   onRemoveFromTask,
   onChangeRole,
@@ -74,7 +76,7 @@ const MiniProfile: React.FC<MiniProfileProps> = ({
           )}
           <ProfileInfo>
             <InfoTitle>{user.fullName}</InfoTitle>
-            <InfoUsername>{`@${user.username}`}</InfoUsername>
+            {invited ? <InfoUsername>Invited</InfoUsername> : <InfoUsername>{`@${user.username}`}</InfoUsername>}
             <InfoBio>{bio}</InfoBio>
           </ProfileInfo>
         </Profile>

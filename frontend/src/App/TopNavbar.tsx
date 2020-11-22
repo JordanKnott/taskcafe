@@ -230,10 +230,12 @@ type GlobalTopNavbarProps = {
   menuType?: Array<MenuItem>;
   onChangeRole?: (userID: string, roleCode: RoleCode) => void;
   projectMembers?: null | Array<TaskUser>;
+  projectInvitedMembers?: null | Array<InvitedUser>;
   onSaveProjectName?: (projectName: string) => void;
   onInviteUser?: ($target: React.RefObject<HTMLElement>) => void;
   onSetTab?: (tab: number) => void;
   onRemoveFromBoard?: (userID: string) => void;
+  onRemoveInvitedFromBoard?: (email: string) => void;
 };
 
 const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
@@ -246,8 +248,10 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   name,
   popupContent,
   projectMembers,
+  projectInvitedMembers,
   onInviteUser,
   onSaveProjectName,
+  onRemoveInvitedFromBoard,
   onRemoveFromBoard,
 }) => {
   const { user, setUserRoles, setUser } = useCurrentUser();
@@ -333,6 +337,34 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
     return null;
   }
   const userIsTeamOrProjectAdmin = user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID);
+  const onInvitedMemberProfile = ($targetRef: React.RefObject<HTMLElement>, email: string) => {
+    const member = projectInvitedMembers ? projectInvitedMembers.find(u => u.email === email) : null;
+    if (member) {
+      showPopup(
+        $targetRef,
+        <MiniProfile
+          onRemoveFromBoard={() => {
+            if (onRemoveInvitedFromBoard) {
+              onRemoveInvitedFromBoard(member.email);
+            }
+          }}
+          invited
+          user={{
+            id: member.email,
+            fullName: member.email,
+            bio: 'Invited',
+            profileIcon: {
+              bgColor: '#000',
+              url: null,
+              initials: member.email.charAt(0),
+            },
+          }}
+          bio=""
+        />,
+      );
+    }
+  };
+
   const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
     const member = projectMembers ? projectMembers.find(u => u.id === memberID) : null;
     const warning =
@@ -382,6 +414,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
         canEditProjectName={userIsTeamOrProjectAdmin}
         canInviteUser={userIsTeamOrProjectAdmin}
         onMemberProfile={onMemberProfile}
+        onInvitedMemberProfile={onInvitedMemberProfile}
         onInviteUser={onInviteUser}
         onChangeRole={onChangeRole}
         onChangeProjectOwner={onChangeProjectOwner}
@@ -392,6 +425,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
           history.push('/');
         }}
         projectMembers={projectMembers}
+        projectInvitedMembers={projectInvitedMembers}
         onProfileClick={onProfileClick}
         onSaveName={onSaveProjectName}
         onOpenSettings={onOpenSettings}

@@ -49,6 +49,23 @@ type CreateTeamMemberPayload struct {
 	TeamMember *Member  `json:"teamMember"`
 }
 
+type DeleteInvitedProjectMember struct {
+	ProjectID uuid.UUID `json:"projectID"`
+	Email     string    `json:"email"`
+}
+
+type DeleteInvitedProjectMemberPayload struct {
+	InvitedMember *InvitedMember `json:"invitedMember"`
+}
+
+type DeleteInvitedUserAccount struct {
+	InvitedUserID uuid.UUID `json:"invitedUserID"`
+}
+
+type DeleteInvitedUserAccountPayload struct {
+	InvitedUser *InvitedUserAccount `json:"invitedUser"`
+}
+
 type DeleteProject struct {
 	ProjectID uuid.UUID `json:"projectID"`
 }
@@ -183,9 +200,22 @@ type InviteProjectMembers struct {
 }
 
 type InviteProjectMembersPayload struct {
-	Ok        bool      `json:"ok"`
-	ProjectID uuid.UUID `json:"projectID"`
-	Members   []Member  `json:"members"`
+	Ok             bool            `json:"ok"`
+	ProjectID      uuid.UUID       `json:"projectID"`
+	Members        []Member        `json:"members"`
+	InvitedMembers []InvitedMember `json:"invitedMembers"`
+}
+
+type InvitedMember struct {
+	Email     string    `json:"email"`
+	InvitedOn time.Time `json:"invitedOn"`
+}
+
+type InvitedUserAccount struct {
+	ID        uuid.UUID   `json:"id"`
+	Email     string      `json:"email"`
+	InvitedOn time.Time   `json:"invitedOn"`
+	Member    *MemberList `json:"member"`
 }
 
 type LogoutUser struct {

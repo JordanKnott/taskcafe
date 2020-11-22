@@ -55,11 +55,19 @@ type TaskAssigneeProps = {
   size: number | string;
   showRoleIcons?: boolean;
   member: TaskUser;
+  invited?: boolean;
   onMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
   className?: string;
 };
 
-const TaskAssignee: React.FC<TaskAssigneeProps> = ({ showRoleIcons, member, onMemberProfile, size, className }) => {
+const TaskAssignee: React.FC<TaskAssigneeProps> = ({
+  showRoleIcons,
+  member,
+  invited,
+  onMemberProfile,
+  size,
+  className,
+}) => {
   const $memberRef = useRef<HTMLDivElement>(null);
   let profileIcon: ProfileIcon = {
     url: null,

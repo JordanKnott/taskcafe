@@ -113,12 +113,26 @@ export type UserAccount = {
   member: MemberList;
 };
 
+export type InvitedUserAccount = {
+   __typename?: 'InvitedUserAccount';
+  id: Scalars['ID'];
+  email: Scalars['String'];
+  invitedOn: Scalars['Time'];
+  member: MemberList;
+};
+
 export type Team = {
    __typename?: 'Team';
   id: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
   members: Array<Member>;
+};
+
+export type InvitedMember = {
+   __typename?: 'InvitedMember';
+  email: Scalars['String'];
+  invitedOn: Scalars['Time'];
 };
 
 export type Project = {
@@ -129,6 +143,7 @@ export type Project = {
   team?: Maybe<Team>;
   taskGroups: Array<TaskGroup>;
   members: Array<Member>;
+  invitedMembers: Array<InvitedMember>;
   labels: Array<ProjectLabel>;
 };
 
@@ -221,6 +236,7 @@ export type Query = {
   findTask: Task;
   findTeam: Team;
   findUser: UserAccount;
+  invitedUsers: Array<InvitedUserAccount>;
   labelColors: Array<LabelColor>;
   me: MePayload;
   notifications: Array<Notification>;
@@ -277,6 +293,8 @@ export type Mutation = {
   createTeam: Team;
   createTeamMember: CreateTeamMemberPayload;
   createUserAccount: UserAccount;
+  deleteInvitedProjectMember: DeleteInvitedProjectMemberPayload;
+  deleteInvitedUserAccount: DeleteInvitedUserAccountPayload;
   deleteProject: DeleteProjectPayload;
   deleteProjectLabel: ProjectLabel;
   deleteProjectMember: DeleteProjectMemberPayload;
@@ -376,6 +394,16 @@ export type MutationCreateTeamMemberArgs = {
 
 export type MutationCreateUserAccountArgs = {
   input: NewUserAccount;
+};
+
+
+export type MutationDeleteInvitedProjectMemberArgs = {
+  input: DeleteInvitedProjectMember;
+};
+
+
+export type MutationDeleteInvitedUserAccountArgs = {
+  input: DeleteInvitedUserAccount;
 };
 
 
@@ -694,6 +722,16 @@ export type UpdateProjectLabelColor = {
   labelColorID: Scalars['UUID'];
 };
 
+export type DeleteInvitedProjectMember = {
+  projectID: Scalars['UUID'];
+  email: Scalars['String'];
+};
+
+export type DeleteInvitedProjectMemberPayload = {
+   __typename?: 'DeleteInvitedProjectMemberPayload';
+  invitedMember: InvitedMember;
+};
+
 export type MemberInvite = {
   userID?: Maybe<Scalars['UUID']>;
   email?: Maybe<Scalars['String']>;
@@ -709,6 +747,7 @@ export type InviteProjectMembersPayload = {
   ok: Scalars['Boolean'];
   projectID: Scalars['UUID'];
   members: Array<Member>;
+  invitedMembers: Array<InvitedMember>;
 };
 
 export type DeleteProjectMember = {
@@ -1001,6 +1040,15 @@ export type UpdateTeamMemberRolePayload = {
   member: Member;
 };
 
+export type DeleteInvitedUserAccount = {
+  invitedUserID: Scalars['UUID'];
+};
+
+export type DeleteInvitedUserAccountPayload = {
+   __typename?: 'DeleteInvitedUserAccountPayload';
+  invitedUser: InvitedUserAccount;
+};
+
 export type MemberSearchFilter = {
   SearchFilter: Scalars['String'];
   projectID?: Maybe<Scalars['UUID']>;
@@ -1231,6 +1279,9 @@ export type FindProjectQuery = (
         { __typename?: 'ProfileIcon' }
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
       ) }
+    )>, invitedMembers: Array<(
+      { __typename?: 'InvitedMember' }
+      & Pick<InvitedMember, 'email' | 'invitedOn'>
     )>, labels: Array<(
       { __typename?: 'ProjectLabel' }
       & Pick<ProjectLabel, 'id' | 'createdDate' | 'name'>
@@ -1433,6 +1484,23 @@ export type DeleteProjectMutation = (
   ) }
 );
 
+export type DeleteInvitedProjectMemberMutationVariables = {
+  projectID: Scalars['UUID'];
+  email: Scalars['String'];
+};
+
+
+export type DeleteInvitedProjectMemberMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteInvitedProjectMember: (
+    { __typename?: 'DeleteInvitedProjectMemberPayload' }
+    & { invitedMember: (
+      { __typename?: 'InvitedMember' }
+      & Pick<InvitedMember, 'email'>
+    ) }
+  ) }
+);
+
 export type DeleteProjectMemberMutationVariables = {
   projectID: Scalars['UUID'];
   userID: Scalars['UUID'];
@@ -1462,7 +1530,10 @@ export type InviteProjectMembersMutation = (
   & { inviteProjectMembers: (
     { __typename?: 'InviteProjectMembersPayload' }
     & Pick<InviteProjectMembersPayload, 'ok'>
-    & { members: Array<(
+    & { invitedMembers: Array<(
+      { __typename?: 'InvitedMember' }
+      & Pick<InvitedMember, 'email' | 'invitedOn'>
+    )>, members: Array<(
       { __typename?: 'Member' }
       & Pick<Member, 'id' | 'fullName' | 'username'>
       & { profileIcon: (
@@ -2156,6 +2227,22 @@ export type CreateUserAccountMutation = (
   ) }
 );
 
+export type DeleteInvitedUserAccountMutationVariables = {
+  invitedUserID: Scalars['UUID'];
+};
+
+
+export type DeleteInvitedUserAccountMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteInvitedUserAccount: (
+    { __typename?: 'DeleteInvitedUserAccountPayload' }
+    & { invitedUser: (
+      { __typename?: 'InvitedUserAccount' }
+      & Pick<InvitedUserAccount, 'id'>
+    ) }
+  ) }
+);
+
 export type DeleteUserAccountMutationVariables = {
   userID: Scalars['UUID'];
   newOwnerID?: Maybe<Scalars['UUID']>;
@@ -2237,7 +2324,10 @@ export type UsersQueryVariables = {};
 
 export type UsersQuery = (
   { __typename?: 'Query' }
-  & { users: Array<(
+  & { invitedUsers: Array<(
+    { __typename?: 'InvitedUserAccount' }
+    & Pick<InvitedUserAccount, 'id' | 'email' | 'invitedOn'>
+  )>, users: Array<(
     { __typename?: 'UserAccount' }
     & Pick<UserAccount, 'id' | 'email' | 'fullName' | 'username'>
     & { role: (
@@ -2629,6 +2719,10 @@ export const FindProjectDocument = gql`
         bgColor
       }
     }
+    invitedMembers {
+      email
+      invitedOn
+    }
     labels {
       id
       createdDate
@@ -2945,6 +3039,41 @@ export function useDeleteProjectMutation(baseOptions?: ApolloReactHooks.Mutation
 export type DeleteProjectMutationHookResult = ReturnType<typeof useDeleteProjectMutation>;
 export type DeleteProjectMutationResult = ApolloReactCommon.MutationResult<DeleteProjectMutation>;
 export type DeleteProjectMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteProjectMutation, DeleteProjectMutationVariables>;
+export const DeleteInvitedProjectMemberDocument = gql`
+    mutation deleteInvitedProjectMember($projectID: UUID!, $email: String!) {
+  deleteInvitedProjectMember(input: {projectID: $projectID, email: $email}) {
+    invitedMember {
+      email
+    }
+  }
+}
+    `;
+export type DeleteInvitedProjectMemberMutationFn = ApolloReactCommon.MutationFunction<DeleteInvitedProjectMemberMutation, DeleteInvitedProjectMemberMutationVariables>;
+
+/**
+ * __useDeleteInvitedProjectMemberMutation__
+ *
+ * To run a mutation, you first call `useDeleteInvitedProjectMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteInvitedProjectMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteInvitedProjectMemberMutation, { data, loading, error }] = useDeleteInvitedProjectMemberMutation({
+ *   variables: {
+ *      projectID: // value for 'projectID'
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useDeleteInvitedProjectMemberMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteInvitedProjectMemberMutation, DeleteInvitedProjectMemberMutationVariables>) {
+        return ApolloReactHooks.useMutation<DeleteInvitedProjectMemberMutation, DeleteInvitedProjectMemberMutationVariables>(DeleteInvitedProjectMemberDocument, baseOptions);
+      }
+export type DeleteInvitedProjectMemberMutationHookResult = ReturnType<typeof useDeleteInvitedProjectMemberMutation>;
+export type DeleteInvitedProjectMemberMutationResult = ApolloReactCommon.MutationResult<DeleteInvitedProjectMemberMutation>;
+export type DeleteInvitedProjectMemberMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteInvitedProjectMemberMutation, DeleteInvitedProjectMemberMutationVariables>;
 export const DeleteProjectMemberDocument = gql`
     mutation deleteProjectMember($projectID: UUID!, $userID: UUID!) {
   deleteProjectMember(input: {projectID: $projectID, userID: $userID}) {
@@ -2986,6 +3115,10 @@ export const InviteProjectMembersDocument = gql`
     mutation inviteProjectMembers($projectID: UUID!, $members: [MemberInvite!]!) {
   inviteProjectMembers(input: {projectID: $projectID, members: $members}) {
     ok
+    invitedMembers {
+      email
+      invitedOn
+    }
     members {
       id
       fullName
@@ -4407,6 +4540,40 @@ export function useCreateUserAccountMutation(baseOptions?: ApolloReactHooks.Muta
 export type CreateUserAccountMutationHookResult = ReturnType<typeof useCreateUserAccountMutation>;
 export type CreateUserAccountMutationResult = ApolloReactCommon.MutationResult<CreateUserAccountMutation>;
 export type CreateUserAccountMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateUserAccountMutation, CreateUserAccountMutationVariables>;
+export const DeleteInvitedUserAccountDocument = gql`
+    mutation deleteInvitedUserAccount($invitedUserID: UUID!) {
+  deleteInvitedUserAccount(input: {invitedUserID: $invitedUserID}) {
+    invitedUser {
+      id
+    }
+  }
+}
+    `;
+export type DeleteInvitedUserAccountMutationFn = ApolloReactCommon.MutationFunction<DeleteInvitedUserAccountMutation, DeleteInvitedUserAccountMutationVariables>;
+
+/**
+ * __useDeleteInvitedUserAccountMutation__
+ *
+ * To run a mutation, you first call `useDeleteInvitedUserAccountMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteInvitedUserAccountMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteInvitedUserAccountMutation, { data, loading, error }] = useDeleteInvitedUserAccountMutation({
+ *   variables: {
+ *      invitedUserID: // value for 'invitedUserID'
+ *   },
+ * });
+ */
+export function useDeleteInvitedUserAccountMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteInvitedUserAccountMutation, DeleteInvitedUserAccountMutationVariables>) {
+        return ApolloReactHooks.useMutation<DeleteInvitedUserAccountMutation, DeleteInvitedUserAccountMutationVariables>(DeleteInvitedUserAccountDocument, baseOptions);
+      }
+export type DeleteInvitedUserAccountMutationHookResult = ReturnType<typeof useDeleteInvitedUserAccountMutation>;
+export type DeleteInvitedUserAccountMutationResult = ApolloReactCommon.MutationResult<DeleteInvitedUserAccountMutation>;
+export type DeleteInvitedUserAccountMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteInvitedUserAccountMutation, DeleteInvitedUserAccountMutationVariables>;
 export const DeleteUserAccountDocument = gql`
     mutation deleteUserAccount($userID: UUID!, $newOwnerID: UUID) {
   deleteUserAccount(input: {userID: $userID, newOwnerID: $newOwnerID}) {
@@ -4560,6 +4727,11 @@ export type UpdateUserRoleMutationResult = ApolloReactCommon.MutationResult<Upda
 export type UpdateUserRoleMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateUserRoleMutation, UpdateUserRoleMutationVariables>;
 export const UsersDocument = gql`
     query users {
+  invitedUsers {
+    id
+    email
+    invitedOn
+  }
   users {
     id
     email

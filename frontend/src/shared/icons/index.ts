@@ -1,10 +1,12 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import ListUnordered from './ListUnordered';
 import Eye from './Eye';
 import EyeSlash from './EyeSlash';
 import List from './List';
 import At from './At';
 import Task from './Task';
+import DotCircle from './DotCircle';
 import Smile from './Smile';
 import Paperclip from './Paperclip';
 import Calendar from './Calendar';
@@ -89,6 +91,8 @@ export {
   Paperclip,
   Share,
   Eye,
+  ListUnordered,
   EyeSlash,
   List,
+  DotCircle,
 };

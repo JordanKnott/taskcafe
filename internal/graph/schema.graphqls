@@ -86,11 +86,24 @@ type UserAccount {
   member: MemberList!
 }
 
+type InvitedUserAccount {
+  id: ID!
+  email: String!
+  invitedOn: Time!
+  member: MemberList!
+}
+
 type Team {
   id: ID!
   createdAt: Time!
   name: String!
   members: [Member!]!
+}
+
+
+type InvitedMember {
+  email: String!
+  invitedOn: Time!
 }
 
 type Project {
@@ -100,6 +113,7 @@ type Project {
   team: Team
   taskGroups: [TaskGroup!]!
   members: [Member!]!
+  invitedMembers: [InvitedMember!]!
   labels: [ProjectLabel!]!
 }
 
@@ -184,6 +198,7 @@ directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!)
 type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
+  invitedUsers: [InvitedUserAccount!]!
   findUser(input: FindUser!): UserAccount!
   findProject(input: FindProject!):
     Project! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
@@ -344,6 +359,18 @@ extend type Mutation {
     DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectMemberRole(input: UpdateProjectMemberRole!):
     UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+
+deleteInvitedProjectMember(input: DeleteInvitedProjectMember!):
+  DeleteInvitedProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input DeleteInvitedProjectMember {
+  projectID: UUID!
+  email: String!
+}
+
+type DeleteInvitedProjectMemberPayload {
+  invitedMember: InvitedMember!
 }
 
 input MemberInvite {
@@ -360,6 +387,7 @@ type InviteProjectMembersPayload {
   ok: Boolean!
   projectID: UUID!
   members: [Member!]!
+  invitedMembers: [InvitedMember!]!
 }
 
 input DeleteProjectMember {
@@ -729,6 +757,8 @@ extend type Mutation {
     UserAccount! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
   deleteUserAccount(input: DeleteUserAccount!):
     DeleteUserAccountPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+  deleteInvitedUserAccount(input: DeleteInvitedUserAccount!):
+    DeleteInvitedUserAccountPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
@@ -742,6 +772,14 @@ extend type Mutation {
 
 extend type Query {
   searchMembers(input: MemberSearchFilter!): [MemberSearchResult!]!
+}
+
+input DeleteInvitedUserAccount {
+  invitedUserID: UUID!
+}
+
+type DeleteInvitedUserAccountPayload {
+  invitedUser: InvitedUserAccount!
 }
 
 input MemberSearchFilter {
@@ -813,3 +851,4 @@ type DeleteUserAccountPayload {
   ok: Boolean!
   userAccount: UserAccount!
 }
+

@@ -11,6 +11,39 @@ import (
 	"github.com/google/uuid"
 )
 
+const createInvitedProjectMember = `-- name: CreateInvitedProjectMember :one
+INSERT INTO project_member_invited (project_id, user_account_invited_id) VALUES ($1, $2)
+  RETURNING project_member_invited_id, project_id, user_account_invited_id
+`
+
+type CreateInvitedProjectMemberParams struct {
+	ProjectID            uuid.UUID `json:"project_id"`
+	UserAccountInvitedID uuid.UUID `json:"user_account_invited_id"`
+}
+
+func (q *Queries) CreateInvitedProjectMember(ctx context.Context, arg CreateInvitedProjectMemberParams) (ProjectMemberInvited, error) {
+	row := q.db.QueryRowContext(ctx, createInvitedProjectMember, arg.ProjectID, arg.UserAccountInvitedID)
+	var i ProjectMemberInvited
+	err := row.Scan(&i.ProjectMemberInvitedID, &i.ProjectID, &i.UserAccountInvitedID)
+	return i, err
+}
+
+const createInvitedUser = `-- name: CreateInvitedUser :one
+INSERT INTO user_account_invited (email) VALUES ($1) RETURNING user_account_invited_id, email, invited_on, has_joined
+`
+
+func (q *Queries) CreateInvitedUser(ctx context.Context, email string) (UserAccountInvited, error) {
+	row := q.db.QueryRowContext(ctx, createInvitedUser, email)
+	var i UserAccountInvited
+	err := row.Scan(
+		&i.UserAccountInvitedID,
+		&i.Email,
+		&i.InvitedOn,
+		&i.HasJoined,
+	)
+	return i, err
+}
+
 const createUserAccount = `-- name: CreateUserAccount :one
 INSERT INTO user_account(full_name, initials, email, username, created_at, password_hash, role_code)
   VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio
@@ -49,6 +82,22 @@ func (q *Queries) CreateUserAccount(ctx context.Context, arg CreateUserAccountPa
 		&i.ProfileAvatarUrl,
 		&i.RoleCode,
 		&i.Bio,
+	)
+	return i, err
+}
+
+const deleteInvitedUserAccount = `-- name: DeleteInvitedUserAccount :one
+DELETE FROM user_account_invited WHERE user_account_invited_id = $1 RETURNING user_account_invited_id, email, invited_on, has_joined
+`
+
+func (q *Queries) DeleteInvitedUserAccount(ctx context.Context, userAccountInvitedID uuid.UUID) (UserAccountInvited, error) {
+	row := q.db.QueryRowContext(ctx, deleteInvitedUserAccount, userAccountInvitedID)
+	var i UserAccountInvited
+	err := row.Scan(
+		&i.UserAccountInvitedID,
+		&i.Email,
+		&i.InvitedOn,
+		&i.HasJoined,
 	)
 	return i, err
 }
@@ -99,6 +148,54 @@ func (q *Queries) GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 		return nil, err
 	}
 	return items, nil
+}
+
+const getInvitedUserAccounts = `-- name: GetInvitedUserAccounts :many
+SELECT user_account_invited_id, email, invited_on, has_joined FROM user_account_invited
+`
+
+func (q *Queries) GetInvitedUserAccounts(ctx context.Context) ([]UserAccountInvited, error) {
+	rows, err := q.db.QueryContext(ctx, getInvitedUserAccounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserAccountInvited
+	for rows.Next() {
+		var i UserAccountInvited
+		if err := rows.Scan(
+			&i.UserAccountInvitedID,
+			&i.Email,
+			&i.InvitedOn,
+			&i.HasJoined,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInvitedUserByEmail = `-- name: GetInvitedUserByEmail :one
+SELECT user_account_invited_id, email, invited_on, has_joined FROM user_account_invited WHERE email = $1
+`
+
+func (q *Queries) GetInvitedUserByEmail(ctx context.Context, email string) (UserAccountInvited, error) {
+	row := q.db.QueryRowContext(ctx, getInvitedUserByEmail, email)
+	var i UserAccountInvited
+	err := row.Scan(
+		&i.UserAccountInvitedID,
+		&i.Email,
+		&i.InvitedOn,
+		&i.HasJoined,
+	)
+	return i, err
 }
 
 const getMemberData = `-- name: GetMemberData :many

@@ -5,6 +5,7 @@ import GlobalTopNavbar from 'App/TopNavbar';
 import {
   useUsersQuery,
   useDeleteUserAccountMutation,
+  useDeleteInvitedUserAccountMutation,
   useCreateUserAccountMutation,
   UsersDocument,
   UsersQuery,
@@ -176,6 +177,17 @@ const AdminRoute = () => {
   const { loading, data } = useUsersQuery();
   const { showPopup, hidePopup } = usePopup();
   const { user } = useCurrentUser();
+  const [deleteInvitedUser] = useDeleteInvitedUserAccountMutation({
+    update: (client, response) => {
+      updateApolloCache<UsersQuery>(client, UsersDocument, cache =>
+        produce(cache, draftCache => {
+          draftCache.invitedUsers = cache.invitedUsers.filter(
+            u => u.id !== response.data.deleteInvitedUserAccount.invitedUser.id,
+          );
+        }),
+      );
+    },
+  });
   const [deleteUser] = useDeleteUserAccountMutation({
     update: (client, response) => {
       updateApolloCache<UsersQuery>(client, UsersDocument, cache =>
@@ -215,9 +227,14 @@ const AdminRoute = () => {
         <Admin
           initialTab={0}
           users={data.users}
+          invitedUsers={data.invitedUsers}
           canInviteUser={user.roles.org === 'admin'}
           onInviteUser={NOOP}
           onUpdateUserPassword={() => {
+            hidePopup();
+          }}
+          onDeleteInvitedUser={invitedUserID => {
+            deleteInvitedUser({ variables: { invitedUserID } });
             hidePopup();
           }}
           onDeleteUser={(userID, newOwnerID) => {

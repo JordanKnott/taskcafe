@@ -24,6 +24,7 @@ directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!)
 type Query {
   organizations: [Organization!]!
   users: [UserAccount!]!
+  invitedUsers: [InvitedUserAccount!]!
   findUser(input: FindUser!): UserAccount!
   findProject(input: FindProject!):
     Project! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)

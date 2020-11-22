@@ -1,4 +1,9 @@
 query users {
+  invitedUsers {
+    id
+    email
+    invitedOn
+  }
   users {
     id
     email

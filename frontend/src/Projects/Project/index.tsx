@@ -21,6 +21,7 @@ import {
   useToggleTaskLabelMutation,
   useUpdateProjectNameMutation,
   useFindProjectQuery,
+  useDeleteInvitedProjectMemberMutation,
   useUpdateTaskNameMutation,
   useCreateTaskMutation,
   useDeleteTaskMutation,
@@ -431,6 +432,25 @@ const Project = () => {
               ...cache.findProject.members,
               ...response.data.inviteProjectMembers.members,
             ];
+            draftCache.findProject.invitedMembers = [
+              ...cache.findProject.invitedMembers,
+              ...response.data.inviteProjectMembers.invitedMembers,
+            ];
+          }),
+        { projectID },
+      );
+    },
+  });
+  const [deleteInvitedProjectMember] = useDeleteInvitedProjectMemberMutation({
+    update: (client, response) => {
+      updateApolloCache<FindProjectQuery>(
+        client,
+        FindProjectDocument,
+        cache =>
+          produce(cache, draftCache => {
+            draftCache.findProject.invitedMembers = cache.findProject.invitedMembers.filter(
+              m => m.email !== response.data.deleteInvitedProjectMember.invitedMember.email,
+            );
           }),
         { projectID },
       );
@@ -490,6 +510,10 @@ const Project = () => {
             deleteProjectMember({ variables: { userID, projectID } });
             hidePopup();
           }}
+          onRemoveInvitedFromBoard={email => {
+            deleteInvitedProjectMember({ variables: { projectID, email } });
+            hidePopup();
+          }}
           onSaveProjectName={projectName => {
             updateProjectName({ variables: { projectID, name: projectName } });
           }}
@@ -511,6 +535,7 @@ const Project = () => {
           menuType={[{ name: 'Board', link: location.pathname }]}
           currentTab={0}
           projectMembers={data.findProject.members}
+          projectInvitedMembers={data.findProject.invitedMembers}
           projectID={projectID}
           teamID={data.findProject.team ? data.findProject.team.id : null}
           name={data.findProject.name}

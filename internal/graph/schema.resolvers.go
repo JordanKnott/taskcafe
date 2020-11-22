@@ -127,6 +127,7 @@ func (r *mutationResolver) UpdateProjectLabelColor(ctx context.Context, input Up
 
 func (r *mutationResolver) InviteProjectMembers(ctx context.Context, input InviteProjectMembers) (*InviteProjectMembersPayload, error) {
 	members := []Member{}
+	invitedMembers := []InvitedMember{}
 	for _, invitedMember := range input.Members {
 		if invitedMember.Email != nil && invitedMember.UserID != nil {
 			return &InviteProjectMembersPayload{Ok: false}, &gqlerror.Error{
@@ -144,6 +145,7 @@ func (r *mutationResolver) InviteProjectMembers(ctx context.Context, input Invit
 			}
 		}
 		if invitedMember.UserID != nil {
+			// Invite by user ID
 			addedAt := time.Now().UTC()
 			_, err := r.Repository.CreateProjectMember(ctx, db.CreateProjectMemberParams{ProjectID: input.ProjectID, UserID: *invitedMember.UserID, AddedAt: addedAt, RoleCode: "member"})
 			if err != nil {
@@ -171,9 +173,39 @@ func (r *mutationResolver) InviteProjectMembers(ctx context.Context, input Invit
 				ProfileIcon: profileIcon,
 				Role:        &db.Role{Code: role.Code, Name: role.Name},
 			})
+		} else {
+			// Invite by email
+
+			// if invited user does not exist, create entry
+			invitedUser, err := r.Repository.GetInvitedUserByEmail(ctx, *invitedMember.Email)
+			now := time.Now().UTC()
+			if err != nil {
+				if err == sql.ErrNoRows {
+					invitedUser, err = r.Repository.CreateInvitedUser(ctx, *invitedMember.Email)
+					if err != nil {
+						return &InviteProjectMembersPayload{Ok: false}, err
+					}
+				} else {
+					return &InviteProjectMembersPayload{Ok: false}, err
+				}
+			}
+
+			_, err = r.Repository.CreateInvitedProjectMember(ctx, db.CreateInvitedProjectMemberParams{
+				ProjectID:            input.ProjectID,
+				UserAccountInvitedID: invitedUser.UserAccountInvitedID,
+			})
+			if err != nil {
+				return &InviteProjectMembersPayload{Ok: false}, err
+			}
+			logger.New(ctx).Info("adding invited member")
+			invitedMembers = append(invitedMembers, InvitedMember{Email: *invitedMember.Email, InvitedOn: now})
+			// send out invitation
+			// add project invite entry
+			// send out notification?
+
 		}
 	}
-	return &InviteProjectMembersPayload{Ok: false, ProjectID: input.ProjectID, Members: members}, nil
+	return &InviteProjectMembersPayload{Ok: false, ProjectID: input.ProjectID, Members: members, InvitedMembers: invitedMembers}, nil
 }
 
 func (r *mutationResolver) DeleteProjectMember(ctx context.Context, input DeleteProjectMember) (*DeleteProjectMemberPayload, error) {
@@ -231,6 +263,20 @@ func (r *mutationResolver) UpdateProjectMemberRole(ctx context.Context, input Up
 		Role: &db.Role{Code: role.Code, Name: role.Name},
 	}
 	return &UpdateProjectMemberRolePayload{Ok: true, Member: &member}, err
+}
+
+func (r *mutationResolver) DeleteInvitedProjectMember(ctx context.Context, input DeleteInvitedProjectMember) (*DeleteInvitedProjectMemberPayload, error) {
+	member, err := r.Repository.GetProjectMemberInvitedIDByEmail(ctx, input.Email)
+	if err != nil {
+		return &DeleteInvitedProjectMemberPayload{}, err
+	}
+	err = r.Repository.DeleteInvitedProjectMemberByID(ctx, member.ProjectMemberInvitedID)
+	if err != nil {
+		return &DeleteInvitedProjectMemberPayload{}, err
+	}
+	return &DeleteInvitedProjectMemberPayload{
+		InvitedMember: &InvitedMember{Email: member.Email, InvitedOn: member.InvitedOn},
+	}, nil
 }
 
 func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.Task, error) {
@@ -809,6 +855,20 @@ func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUs
 	return &DeleteUserAccountPayload{UserAccount: &user, Ok: true}, nil
 }
 
+func (r *mutationResolver) DeleteInvitedUserAccount(ctx context.Context, input DeleteInvitedUserAccount) (*DeleteInvitedUserAccountPayload, error) {
+	user, err := r.Repository.DeleteInvitedUserAccount(ctx, input.InvitedUserID)
+	if err != nil {
+		return &DeleteInvitedUserAccountPayload{}, err
+	}
+	return &DeleteInvitedUserAccountPayload{
+		InvitedUser: &InvitedUserAccount{
+			Email:     user.Email,
+			ID:        user.UserAccountInvitedID,
+			InvitedOn: user.InvitedOn,
+		},
+	}, err
+}
+
 func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
 	err := r.Repository.DeleteRefreshTokenByUserID(ctx, input.UserID)
 	return true, err
@@ -979,6 +1039,18 @@ func (r *projectResolver) Members(ctx context.Context, obj *db.Project) ([]Membe
 	return members, nil
 }
 
+func (r *projectResolver) InvitedMembers(ctx context.Context, obj *db.Project) ([]InvitedMember, error) {
+	members, err := r.Repository.GetInvitedMembersForProjectID(ctx, obj.ProjectID)
+	if err != nil && err == sql.ErrNoRows {
+		return []InvitedMember{}, nil
+	}
+	invited := []InvitedMember{}
+	for _, member := range members {
+		invited = append(invited, InvitedMember{Email: member.Email, InvitedOn: member.InvitedOn})
+	}
+	return invited, err
+}
+
 func (r *projectResolver) Labels(ctx context.Context, obj *db.Project) ([]db.ProjectLabel, error) {
 	labels, err := r.Repository.GetProjectLabelsForProject(ctx, obj.ProjectID)
 	return labels, err
@@ -1010,6 +1082,25 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]db.Organization, e
 
 func (r *queryResolver) Users(ctx context.Context) ([]db.UserAccount, error) {
 	return r.Repository.GetAllUserAccounts(ctx)
+}
+
+func (r *queryResolver) InvitedUsers(ctx context.Context) ([]InvitedUserAccount, error) {
+	invitedMembers, err := r.Repository.GetInvitedUserAccounts(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []InvitedUserAccount{}, nil
+		}
+		return []InvitedUserAccount{}, err
+	}
+	members := []InvitedUserAccount{}
+	for _, invitedMember := range invitedMembers {
+		members = append(members, InvitedUserAccount{
+			ID:        invitedMember.UserAccountInvitedID,
+			Email:     invitedMember.Email,
+			InvitedOn: invitedMember.InvitedOn,
+		})
+	}
+	return members, nil
 }
 
 func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserAccount, error) {

@@ -5,6 +5,7 @@ import * as H from 'history';
 import Dashboard from 'Dashboard';
 import Admin from 'Admin';
 import Projects from 'Projects';
+import Outline from 'Outline';
 import Project from 'Projects/Project';
 import Teams from 'Teams';
 import Login from 'Auth';
@@ -36,6 +37,7 @@ const Routes: React.FC<RoutesProps> = () => (
       <Route path="/teams/:teamID" component={Teams} />
       <Route path="/profile" component={Profile} />
       <Route path="/admin" component={Admin} />
+      <Route path="/outline" component={Outline} />
     </MainContent>
   </Switch>
 );

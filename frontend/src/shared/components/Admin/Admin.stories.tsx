@@ -51,7 +51,9 @@ export const Default = () => {
               },
             },
           ]}
+          invitedUsers={[]}
           onAddUser={action('add user')}
+          onDeleteInvitedUser={action('delete invited user')}
         />
       </ThemeProvider>
     </>

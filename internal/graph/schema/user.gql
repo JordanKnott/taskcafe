@@ -4,6 +4,8 @@ extend type Mutation {
     UserAccount! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
   deleteUserAccount(input: DeleteUserAccount!):
     DeleteUserAccountPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+  deleteInvitedUserAccount(input: DeleteInvitedUserAccount!):
+    DeleteInvitedUserAccountPayload! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
 
   logoutUser(input: LogoutUser!): Boolean!
   clearProfileAvatar:  UserAccount!
@@ -17,6 +19,14 @@ extend type Mutation {
 
 extend type Query {
   searchMembers(input: MemberSearchFilter!): [MemberSearchResult!]!
+}
+
+input DeleteInvitedUserAccount {
+  invitedUserID: UUID!
+}
+
+type DeleteInvitedUserAccountPayload {
+  invitedUser: InvitedUserAccount!
 }
 
 input MemberSearchFilter {

@@ -37,3 +37,19 @@ UPDATE user_account SET role_code = $2 WHERE user_id = $1 RETURNING *;
 
 -- name: SetUserPassword :one
 UPDATE user_account SET password_hash = $2 WHERE user_id = $1 RETURNING *;
+
+-- name: CreateInvitedUser :one
+INSERT INTO user_account_invited (email) VALUES ($1) RETURNING *;
+
+-- name: GetInvitedUserByEmail :one
+SELECT * FROM user_account_invited WHERE email = $1;
+
+-- name: CreateInvitedProjectMember :one
+INSERT INTO project_member_invited (project_id, user_account_invited_id) VALUES ($1, $2)
+  RETURNING *;
+
+-- name: GetInvitedUserAccounts :many
+SELECT * FROM user_account_invited;
+
+-- name: DeleteInvitedUserAccount :one
+DELETE FROM user_account_invited WHERE user_account_invited_id = $1 RETURNING *;

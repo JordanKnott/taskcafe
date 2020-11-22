@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Home, Star, Bell, AngleDown, BarChart, CheckCircle } from 'shared/icons';
+import { Home, Star, Bell, AngleDown, BarChart, CheckCircle, ListUnordered } from 'shared/icons';
 import styled from 'styled-components';
 import ProfileIcon from 'shared/components/ProfileIcon';
 import { usePopup } from 'shared/components/PopupMenu';
@@ -30,6 +30,7 @@ import {
   ProjectMember,
   ProjectMembers,
 } from './Styles';
+import { useHistory } from 'react-router';
 
 type IconContainerProps = {
   disabled?: boolean;
@@ -173,8 +174,11 @@ type NavBarProps = {
   user: TaskUser | null;
   onOpenSettings: ($target: React.RefObject<HTMLElement>) => void;
   projectMembers?: Array<TaskUser> | null;
+  projectInvitedMembers?: Array<InvitedUser> | null;
+
   onRemoveFromBoard?: (userID: string) => void;
   onMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
+  onInvitedMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, email: string) => void;
 };
 
 const NavBar: React.FC<NavBarProps> = ({
@@ -184,10 +188,12 @@ const NavBar: React.FC<NavBarProps> = ({
   onChangeProjectOwner,
   currentTab,
   onMemberProfile,
+  onInvitedMemberProfile,
   canEditProjectName = false,
   onOpenProjectFinder,
   onFavorite,
   onSetTab,
+  projectInvitedMembers,
   onChangeRole,
   name,
   onRemoveFromBoard,
@@ -204,6 +210,7 @@ const NavBar: React.FC<NavBarProps> = ({
       onProfileClick($target);
     }
   };
+  const history = useHistory();
   const { showPopup } = usePopup();
   return (
     <NavbarWrapper>
@@ -245,17 +252,36 @@ const NavBar: React.FC<NavBarProps> = ({
           <TaskcafeTitle>Taskcafé</TaskcafeTitle>
         </LogoContainer>
         <GlobalActions>
-          {projectMembers && onMemberProfile && (
+          {projectMembers && projectInvitedMembers && onMemberProfile && onInvitedMemberProfile && (
             <>
               <ProjectMembers>
                 {projectMembers.map((member, idx) => (
                   <ProjectMember
                     showRoleIcons
-                    zIndex={projectMembers.length - idx}
+                    zIndex={projectMembers.length - idx + projectInvitedMembers.length}
                     key={member.id}
                     size={28}
                     member={member}
                     onMemberProfile={onMemberProfile}
+                  />
+                ))}
+                {projectInvitedMembers.map((member, idx) => (
+                  <ProjectMember
+                    showRoleIcons
+                    zIndex={projectInvitedMembers.length - idx}
+                    key={member.email}
+                    size={28}
+                    invited
+                    member={{
+                      id: member.email,
+                      fullName: member.email,
+                      profileIcon: {
+                        url: null,
+                        initials: member.email.charAt(0),
+                        bgColor: '#fff',
+                      },
+                    }}
+                    onMemberProfile={onInvitedMemberProfile}
                   />
                 ))}
                 {canInviteUser && (
@@ -282,6 +308,9 @@ const NavBar: React.FC<NavBarProps> = ({
           </IconContainer>
           <IconContainer disabled onClick={NOOP}>
             <CheckCircle width={20} height={20} />
+          </IconContainer>
+          <IconContainer onClick={() => history.push('/outline')}>
+            <ListUnordered width={20} height={20} />
           </IconContainer>
           <IconContainer disabled onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />

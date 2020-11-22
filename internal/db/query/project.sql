@@ -43,6 +43,21 @@ SELECT project_id, role_code FROM project_member WHERE user_id = $1;
 -- name: GetMemberProjectIDsForUserID :many
 SELECT project_id FROM project_member WHERE user_id = $1;
 
+-- name: GetInvitedMembersForProjectID :many
+SELECT email, invited_on FROM project_member_invited AS pmi
+     INNER JOIN user_account_invited AS uai
+    ON uai.user_account_invited_id = pmi.user_account_invited_id
+     WHERE project_id = $1;
+
+-- name: GetProjectMemberInvitedIDByEmail :one
+SELECT email, invited_on, project_member_invited_id FROM user_account_invited AS uai
+ inner join project_member_invited AS pmi
+  ON pmi.user_account_invited_id = uai.user_account_invited_id
+  WHERE email = $1;
+
+-- name: DeleteInvitedProjectMemberByID :exec
+DELETE FROM project_member_invited WHERE project_member_invited_id = $1;
+
 -- name: GetAllVisibleProjectsForUserID :many
 SELECT project.* FROM project LEFT JOIN
  project_member ON project_member.project_id = project.project_id WHERE project_member.user_id = $1;

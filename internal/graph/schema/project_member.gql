@@ -5,6 +5,18 @@ extend type Mutation {
     DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectMemberRole(input: UpdateProjectMemberRole!):
     UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+
+deleteInvitedProjectMember(input: DeleteInvitedProjectMember!):
+  DeleteInvitedProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input DeleteInvitedProjectMember {
+  projectID: UUID!
+  email: String!
+}
+
+type DeleteInvitedProjectMemberPayload {
+  invitedMember: InvitedMember!
 }
 
 input MemberInvite {
@@ -21,6 +33,7 @@ type InviteProjectMembersPayload {
   ok: Boolean!
   projectID: UUID!
   members: [Member!]!
+  invitedMembers: [InvitedMember!]!
 }
 
 input DeleteProjectMember {

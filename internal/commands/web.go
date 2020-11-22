@@ -32,11 +32,12 @@ func newWebCmd() *cobra.Command {
 			log.SetFormatter(Formatter)
 			log.SetLevel(log.InfoLevel)
 
-			connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s sslmode=disable",
+			connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s port=%s sslmode=disable",
 				viper.GetString("database.user"),
 				viper.GetString("database.password"),
 				viper.GetString("database.host"),
 				viper.GetString("database.name"),
+				viper.GetString("database.port"),
 			)
 			var db *sqlx.DB
 			var err error

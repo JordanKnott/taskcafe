@@ -4,6 +4,10 @@ export const INVITE_PROJECT_MEMBERS_MUTATION = gql`
   mutation inviteProjectMembers($projectID: UUID!, $members: [MemberInvite!]!) {
     inviteProjectMembers(input: { projectID: $projectID, members: $members }) {
       ok
+      invitedMembers {
+        email
+        invitedOn
+      }
       members {
         id
         fullName
