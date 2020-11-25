@@ -43,7 +43,7 @@ func NewHandler(repo db.Repository) http.Handler {
 		}
 
 		var subjectID uuid.UUID
-		in := graphql.GetResolverContext(ctx).Args["input"]
+		in := graphql.GetFieldContext(ctx).Args["input"]
 		val := reflect.ValueOf(in) // could be any underlying type
 		if val.Kind() == reflect.Ptr {
 			val = reflect.Indirect(val)
