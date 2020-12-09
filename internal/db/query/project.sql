@@ -44,7 +44,7 @@ SELECT project_id, role_code FROM project_member WHERE user_id = $1;
 SELECT project_id FROM project_member WHERE user_id = $1;
 
 -- name: GetInvitedMembersForProjectID :many
-SELECT email, invited_on FROM project_member_invited AS pmi
+SELECT uai.user_account_invited_id, email, invited_on FROM project_member_invited AS pmi
      INNER JOIN user_account_invited AS uai
     ON uai.user_account_invited_id = pmi.user_account_invited_id
      WHERE project_id = $1;

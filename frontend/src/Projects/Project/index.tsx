@@ -134,16 +134,17 @@ type MemberFilterOptions = {
 };
 
 const fetchMembers = async (client: any, projectID: string, options: MemberFilterOptions, input: string, cb: any) => {
+  console.log(input.trim().length < 3);
   if (input && input.trim().length < 3) {
     return [];
   }
   const res = await client.query({
     query: gql`
     query {
-      searchMembers(input: {SearchFilter:"${input}", projectID:"${projectID}"}) {
+      searchMembers(input: {searchFilter:"${input}", projectID:"${projectID}"}) {
+        id
         similarity
-        confirmed
-        joined
+        status
         user {
           id
           fullName
@@ -161,16 +162,34 @@ const fetchMembers = async (client: any, projectID: string, options: MemberFilte
 
   let results: any = [];
   const emails: Array<string> = [];
+  console.log(res.data && res.data.searchMembers);
   if (res.data && res.data.searchMembers) {
     results = [
       ...res.data.searchMembers.map((m: any) => {
-        emails.push(m.user.email);
-        return {
-          label: m.user.fullName,
-          value: { id: m.user.id, type: 0, profileIcon: m.user.profileIcon },
-        };
+        if (m.status === 'INVITED') {
+          console.log(`${m.id} is added`);
+          return {
+            label: m.id,
+            value: {
+              id: m.id,
+              type: 2,
+              profileIcon: {
+                bgColor: '#ccc',
+                initials: m.id.charAt(0),
+              },
+            },
+          };
+        } else {
+          console.log(`${m.user.email} is added`);
+          emails.push(m.user.email);
+          return {
+            label: m.user.fullName,
+            value: { id: m.user.id, type: 0, profileIcon: m.user.profileIcon },
+          };
+        }
       }),
     ];
+    console.log(results);
   }
 
   if (RFC2822_EMAIL.test(input) && !emails.find(e => e === input)) {
@@ -215,6 +234,13 @@ const OptionContent = styled.div`
   margin-left: 12px;
 `;
 
+const OptionLabel = styled.span<{ fontSize: number; quiet: boolean }>`
+  display: flex;
+  align-items: center;
+  font-size: ${p => p.fontSize}px;
+  color: rgba(${p => (p.quiet ? p.theme.colors.text.primary : p.theme.colors.text.primary)});
+`;
+
 const UserOption: React.FC<UserOptionProps> = ({ isDisabled, isFocused, innerProps, label, data }) => {
   console.log(data);
   return !isDisabled ? (
@@ -223,11 +249,20 @@ const UserOption: React.FC<UserOptionProps> = ({ isDisabled, isFocused, innerPro
         size={32}
         member={{
           id: '',
-          fullName: 'Jordan Knott',
+          fullName: data.value.label,
           profileIcon: data.value.profileIcon,
         }}
       />
-      <OptionContent>{label}</OptionContent>
+      <OptionContent>
+        <OptionLabel fontSize={16} quiet={false}>
+          {label}
+        </OptionLabel>
+        {data.value.type === 2 && (
+          <OptionLabel fontSize={14} quiet>
+            Joined
+          </OptionLabel>
+        )}
+      </OptionContent>
     </OptionWrapper>
   ) : null;
 };

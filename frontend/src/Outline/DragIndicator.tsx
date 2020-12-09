@@ -32,7 +32,8 @@ const DragIndicator: React.FC<DragIndicatorProps> = ({ container, zone, depthTar
   }
   let left = 0;
   if (container && container.current) {
-    left = container.current.getBoundingClientRect().left + 25 + depthTarget * 35;
+    left = container.current.getBoundingClientRect().left + (depthTarget - 1) * 35;
+    width = container.current.getBoundingClientRect().width - depthTarget * 35;
   }
   return <DragIndicatorBar top={top} left={left} width={width} />;
 };

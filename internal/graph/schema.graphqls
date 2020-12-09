@@ -172,6 +172,11 @@ type TaskChecklist {
   items: [TaskChecklistItem!]!
 }
 
+enum ShareStatus {
+  INVITED
+  JOINED
+}
+
 enum RoleLevel {
   ADMIN
   MEMBER
@@ -783,16 +788,16 @@ type DeleteInvitedUserAccountPayload {
 }
 
 input MemberSearchFilter {
-  SearchFilter: String!
+  searchFilter: String!
   projectID: UUID
 }
 
+
 type MemberSearchResult {
   similarity: Int!
-  user: UserAccount!
-  confirmed: Boolean!
-  invited: Boolean!
-  joined: Boolean!
+  id: String!
+  user: UserAccount
+  status: ShareStatus!
 }
 
 type UpdateUserInfoPayload {

@@ -150,6 +150,7 @@ type OutlineNode = {
   depth: number;
   position: number;
   ancestors: Array<string>;
+  collapsed: boolean;
   children: number;
 };
 
@@ -199,6 +200,7 @@ type ItemElement = {
   id: string;
   parent: null | string;
   position: number;
+  collapsed: boolean;
   children?: Array<ItemElement>;
 };
 type NodeDimensions = {

@@ -4,10 +4,10 @@ import { DragDebugWrapper } from './Styles';
 type DragDebugProps = {
   zone: ImpactZone | null;
   depthTarget: number;
-  draggingID: string | null;
+  draggedNodes: Array<string> | null;
 };
 
-const DragDebug: React.FC<DragDebugProps> = ({ zone, depthTarget, draggingID }) => {
+const DragDebug: React.FC<DragDebugProps> = ({ zone, depthTarget, draggedNodes }) => {
   let aboveID = null;
   let belowID = null;
   if (zone) {
@@ -15,7 +15,9 @@ const DragDebug: React.FC<DragDebugProps> = ({ zone, depthTarget, draggingID }) 
     belowID = zone.below ? zone.below.node.id : null;
   }
   return (
-    <DragDebugWrapper>{`aboveID=${aboveID} / belowID=${belowID} / depthTarget=${depthTarget} draggingID=${draggingID}`}</DragDebugWrapper>
+    <DragDebugWrapper>{`aboveID=${aboveID} / belowID=${belowID} / depthTarget=${depthTarget} draggedNodes=${
+      draggedNodes ? draggedNodes.toString() : null
+    }`}</DragDebugWrapper>
   );
 };
 

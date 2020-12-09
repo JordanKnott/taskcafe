@@ -229,15 +229,16 @@ func (q *Queries) GetAllVisibleProjectsForUserID(ctx context.Context, userID uui
 }
 
 const getInvitedMembersForProjectID = `-- name: GetInvitedMembersForProjectID :many
-SELECT email, invited_on FROM project_member_invited AS pmi
+SELECT uai.user_account_invited_id, email, invited_on FROM project_member_invited AS pmi
      INNER JOIN user_account_invited AS uai
     ON uai.user_account_invited_id = pmi.user_account_invited_id
      WHERE project_id = $1
 `
 
 type GetInvitedMembersForProjectIDRow struct {
-	Email     string    `json:"email"`
-	InvitedOn time.Time `json:"invited_on"`
+	UserAccountInvitedID uuid.UUID `json:"user_account_invited_id"`
+	Email                string    `json:"email"`
+	InvitedOn            time.Time `json:"invited_on"`
 }
 
 func (q *Queries) GetInvitedMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]GetInvitedMembersForProjectIDRow, error) {
@@ -249,7 +250,7 @@ func (q *Queries) GetInvitedMembersForProjectID(ctx context.Context, projectID u
 	var items []GetInvitedMembersForProjectIDRow
 	for rows.Next() {
 		var i GetInvitedMembersForProjectIDRow
-		if err := rows.Scan(&i.Email, &i.InvitedOn); err != nil {
+		if err := rows.Scan(&i.UserAccountInvitedID, &i.Email, &i.InvitedOn); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

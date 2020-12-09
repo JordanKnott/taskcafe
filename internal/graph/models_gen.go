@@ -249,16 +249,15 @@ type MemberList struct {
 }
 
 type MemberSearchFilter struct {
-	SearchFilter string     `json:"SearchFilter"`
+	SearchFilter string     `json:"searchFilter"`
 	ProjectID    *uuid.UUID `json:"projectID"`
 }
 
 type MemberSearchResult struct {
 	Similarity int             `json:"similarity"`
+	ID         string          `json:"id"`
 	User       *db.UserAccount `json:"user"`
-	Confirmed  bool            `json:"confirmed"`
-	Invited    bool            `json:"invited"`
-	Joined     bool            `json:"joined"`
+	Status     ShareStatus     `json:"status"`
 }
 
 type NewProject struct {
@@ -828,5 +827,46 @@ func (e *RoleLevel) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RoleLevel) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ShareStatus string
+
+const (
+	ShareStatusInvited ShareStatus = "INVITED"
+	ShareStatusJoined  ShareStatus = "JOINED"
+)
+
+var AllShareStatus = []ShareStatus{
+	ShareStatusInvited,
+	ShareStatusJoined,
+}
+
+func (e ShareStatus) IsValid() bool {
+	switch e {
+	case ShareStatusInvited, ShareStatusJoined:
+		return true
+	}
+	return false
+}
+
+func (e ShareStatus) String() string {
+	return string(e)
+}
+
+func (e *ShareStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ShareStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ShareStatus", str)
+	}
+	return nil
+}
+
+func (e ShareStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

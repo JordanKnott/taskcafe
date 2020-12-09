@@ -1,6 +1,25 @@
 import _ from 'lodash';
 
-export function validateDepth(node: OutlineNode | null, depth: number) {
+export function getCorrectNode(data: OutlineData, node: OutlineNode | null, depth: number) {
+  if (node) {
+    console.log(depth, node);
+    if (depth === node.depth) {
+      return node;
+    }
+    const parent = node.ancestors[depth];
+    console.log('parent', parent);
+    if (parent) {
+      const parentNode = data.relationships.get(parent);
+      if (parentNode) {
+        const parentDepth = parentNode.self.depth;
+        const nodeDepth = data.nodes.get(parentDepth);
+        return nodeDepth ? nodeDepth.get(parent) : null;
+      }
+    }
+  }
+  return null;
+}
+export function validateDepth(node: OutlineNode | null | undefined, depth: number) {
   if (node) {
     return node.depth === depth ? node : null;
   }
@@ -14,9 +33,9 @@ export function getNodeAbove(node: OutlineNode, startingParent: RelationshipChil
   while (hasChildren) {
     const targetParent = outline.relationships.get(aboveTargetID);
     if (targetParent) {
+      const parentNodes = outline.nodes.get(targetParent.self.depth);
+      const parentNode = parentNodes ? parentNodes.get(targetParent.self.id) : null;
       if (targetParent.children.length === 0) {
-        const parentNodes = outline.nodes.get(targetParent.self.depth);
-        const parentNode = parentNodes ? parentNodes.get(targetParent.self.id) : null;
         if (parentNode) {
           nodeAbove = {
             id: parentNode.id,
@@ -24,7 +43,9 @@ export function getNodeAbove(node: OutlineNode, startingParent: RelationshipChil
             position: parentNode.position,
             children: parentNode.children,
           };
+          console.log('node above', nodeAbove);
         }
+        hasChildren = false;
         continue;
       }
       nodeAbove = targetParent.children[targetParent.children.length - 1];
@@ -44,6 +65,7 @@ export function getNodeAbove(node: OutlineNode, startingParent: RelationshipChil
       }
     }
   }
+  console.log('final node above', nodeAbove);
   return nodeAbove;
 }
 
@@ -103,12 +125,7 @@ export function getTargetDepth(mouseX: number, handleLeft: number, availableDept
   return availableDepths.min;
 }
 
-export function findNextDraggable(
-  pos: { x: number; y: number },
-  outline: OutlineData,
-  curDepth: number,
-  draggingID: string,
-) {
+export function findNextDraggable(pos: { x: number; y: number }, outline: OutlineData, curDepth: number) {
   let index = 0;
   const currentDepthNodes = outline.nodes.get(curDepth);
   let nodeAbove: null | RelationshipChild = null;
@@ -257,6 +274,88 @@ export function findNodeAbove(outline: OutlineData, curDepth: number, belowNode:
     if (depthNodes) {
       return depthNodes.get(targetAboveNode.id) ?? null;
     }
+  }
+  return null;
+}
+
+export function getNodeOver(mouse: { x: number; y: number }, outline: OutlineData) {
+  let curDepth = 1;
+  let curDraggables: any;
+  let curDraggable: any;
+  let curPosition: ImpactPosition = 'after';
+  while (outline.nodes.size + 1 > curDepth) {
+    curDraggables = outline.nodes.get(curDepth);
+    if (curDraggables) {
+      const nextDraggable = findNextDraggable(mouse, outline, curDepth);
+      if (nextDraggable) {
+        curDraggable = nextDraggable.node;
+        curPosition = nextDraggable.position;
+        if (nextDraggable.found) {
+          break;
+        }
+        curDepth += 1;
+      } else {
+        break;
+      }
+    }
+  }
+  return {
+    curDepth,
+    curDraggable,
+    curPosition,
+  };
+}
+
+export function findCommonParent(outline: OutlineData, aboveNode: OutlineNode, belowNode: OutlineNode) {
+  let aboveParentID = null;
+  let depth = 0;
+  for (let aIdx = aboveNode.ancestors.length - 1; aIdx !== 0; aIdx--) {
+    depth = aIdx;
+    const aboveNodeParent = aboveNode.ancestors[aIdx];
+    for (let bIdx = belowNode.ancestors.length - 1; bIdx !== 0; bIdx--) {
+      if (belowNode.ancestors[bIdx] === aboveNodeParent) {
+        aboveParentID = aboveNodeParent;
+      }
+    }
+  }
+  if (aboveParentID) {
+    const parent = outline.relationships.get(aboveParentID) ?? null;
+    if (parent) {
+      return {
+        parent,
+        depth,
+      };
+    }
+    return null;
+  }
+  return null;
+}
+
+export function getLastChildInBranch(outline: OutlineData, lastParentNode: OutlineNode) {
+  let curParentRelation = outline.relationships.get(lastParentNode.id);
+  if (!curParentRelation) {
+    return { id: lastParentNode.id, depth: 1 };
+  }
+  let hasChildren = lastParentNode.children !== 0;
+  let depth = 1;
+  let finalID: null | string = null;
+  while (hasChildren) {
+    if (curParentRelation) {
+      const lastChild = curParentRelation.children.sort((a, b) => a.position - b.position)[
+        curParentRelation.children.length - 1
+      ];
+      depth += 1;
+      if (lastChild.children === 0) {
+        finalID = lastChild.id;
+        break;
+      }
+      curParentRelation = outline.relationships.get(lastChild.id);
+    } else {
+      hasChildren = false;
+    }
+  }
+  if (finalID !== null) {
+    return { id: finalID, depth };
   }
   return null;
 }

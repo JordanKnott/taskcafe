@@ -1310,31 +1310,52 @@ func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFil
 		return []MemberSearchResult{}, err
 	}
 
+	invitedMembers, err := r.Repository.GetInvitedMembersForProjectID(ctx, *input.ProjectID)
+	if err != nil {
+		logger.New(ctx).WithField("projectID", input.ProjectID).WithError(err).Error("error while getting member data")
+		return []MemberSearchResult{}, err
+	}
+
 	sortList := []string{}
-	masterList := map[string]uuid.UUID{}
+	masterList := map[string]MasterEntry{}
 	for _, member := range availableMembers {
 		sortList = append(sortList, member.Username)
 		sortList = append(sortList, member.Email)
-		masterList[member.Username] = member.UserID
-		masterList[member.Email] = member.UserID
+		masterList[member.Username] = MasterEntry{ID: member.UserID, MemberType: MemberTypeJoined}
+		masterList[member.Email] = MasterEntry{ID: member.UserID, MemberType: MemberTypeJoined}
 	}
-	logger.New(ctx).Info("fuzzy rank finder")
+	for _, member := range invitedMembers {
+		sortList = append(sortList, member.Email)
+		logger.New(ctx).WithField("Email", member.Email).Info("adding member")
+		masterList[member.Email] = MasterEntry{ID: member.UserAccountInvitedID, MemberType: MemberTypeInvited}
+	}
+
+	logger.New(ctx).WithField("searchFilter", input.SearchFilter).Info(sortList)
 	rankedList := fuzzy.RankFind(input.SearchFilter, sortList)
+	logger.New(ctx).Info(rankedList)
 	results := []MemberSearchResult{}
 	memberList := map[uuid.UUID]bool{}
 	for _, rank := range rankedList {
-		if _, ok := memberList[masterList[rank.Target]]; !ok {
-			logger.New(ctx).WithFields(log.Fields{"source": rank.Source, "target": rank.Target}).Info("searching")
-			userID := masterList[rank.Target]
-			user, err := r.Repository.GetUserAccountByID(ctx, userID)
-			if err != nil {
-				if err == sql.ErrNoRows {
-					continue
+		entry, _ := masterList[rank.Target]
+		_, ok := memberList[entry.ID]
+		logger.New(ctx).WithField("ok", ok).WithField("target", rank.Target).Info("checking rank")
+		if !ok {
+			if entry.MemberType == MemberTypeJoined {
+				logger.New(ctx).WithFields(log.Fields{"source": rank.Source, "target": rank.Target}).Info("searching")
+				entry := masterList[rank.Target]
+				user, err := r.Repository.GetUserAccountByID(ctx, entry.ID)
+				if err != nil {
+					if err == sql.ErrNoRows {
+						continue
+					}
+					return []MemberSearchResult{}, err
 				}
-				return []MemberSearchResult{}, err
+				results = append(results, MemberSearchResult{ID: user.UserID.String(), User: &user, Status: ShareStatusJoined, Similarity: rank.Distance})
+			} else {
+				logger.New(ctx).WithField("id", rank.Target).Info("adding target")
+				results = append(results, MemberSearchResult{ID: rank.Target, Status: ShareStatusInvited, Similarity: rank.Distance})
 			}
-			results = append(results, MemberSearchResult{User: &user, Joined: false, Confirmed: false, Similarity: rank.Distance})
-			memberList[masterList[rank.Target]] = true
+			memberList[entry.ID] = true
 		}
 	}
 	return results, nil
@@ -1621,9 +1642,7 @@ func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklistResolver{r} }
 
 // TaskChecklistItem returns TaskChecklistItemResolver implementation.
-func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver {
-	return &taskChecklistItemResolver{r}
-}
+func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver { return &taskChecklistItemResolver{r} }
 
 // TaskGroup returns TaskGroupResolver implementation.
 func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }
@@ -1652,3 +1671,21 @@ type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }
 type userAccountResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+type MemberType string
+
+const (
+	MemberTypeInvited MemberType = "INVITED"
+	MemberTypeJoined  MemberType = "JOINED"
+)
+
+type MasterEntry struct {
+	MemberType MemberType
+	ID         uuid.UUID
+}

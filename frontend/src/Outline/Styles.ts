@@ -1,7 +1,7 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 
-export const EntryWrapper = styled.div<{ isDragging: boolean }>`
+export const EntryWrapper = styled.div<{ isDragging: boolean; isSelected: boolean }>`
   position: relative;
   ${props =>
     props.isDragging &&
@@ -11,10 +11,24 @@ export const EntryWrapper = styled.div<{ isDragging: boolean }>`
         content: '';
         position: absolute;
         top: 2px;
-        right: -2px;
-        left: -2px;
+        right: -5px;
+        left: -5px;
         bottom: -2px;
         background-color: #eceef0;
+      }
+    `}
+  ${props =>
+    props.isSelected &&
+    css`
+      &:before {
+        border-radius: 3px;
+        content: '';
+        position: absolute;
+        top: 2px;
+        right: -5px;
+        bottom: -2px;
+        left: -5px;
+        background-color: rgba(${props.theme.colors.primary}, 0.75);
       }
     `}
 `;
@@ -26,7 +40,7 @@ export const EntryChildren = styled.div<{ isRoot: boolean }>`
     css`
       margin-left: 10px;
       padding-left: 25px;
-      border-left: 1px solid rgb(236, 238, 240);
+      border-left: 1px solid rgba(${props.theme.colors.text.primary}, 0.6);
     `}
 `;
 
@@ -45,15 +59,7 @@ export const PageContent = styled.div`
   padding-right: 56px;
   padding-top: 24px;
   padding-bottom: 24px;
-  margin-top: 72px;
   text-size-adjust: none;
-  background: rgb(255, 255, 255);
-  border-radius: 6px;
-`;
-export const EntryContent = styled.div`
-  position: relative;
-  margin-left: -500px;
-  padding-left: 524px;
 `;
 
 export const DragHandle = styled.div<{ top: number; left: number }>`
@@ -70,6 +76,7 @@ export const DragHandle = styled.div<{ top: number; left: number }>`
   color: rgb(75, 81, 85);
   border-radius: 9px;
 `;
+export const RootWrapper = styled.div``;
 
 export const EntryHandle = styled.div`
   display: flex;
@@ -80,8 +87,15 @@ export const EntryHandle = styled.div`
   top: 7px;
   width: 18px;
   height: 18px;
-  color: rgb(75, 81, 85);
+  color: rgba(${p => p.theme.colors.text.primary});
   border-radius: 9px;
+  &:hover {
+    background: rgba(${p => p.theme.colors.primary});
+  }
+  svg {
+    fill: rgba(${p => p.theme.colors.text.primary});
+    stroke: rgba(${p => p.theme.colors.text.primary});
+  }
 `;
 
 export const EntryInnerContent = styled.div`
@@ -93,6 +107,10 @@ export const EntryInnerContent = styled.div`
   overflow-wrap: break-word;
   position: relative;
   user-select: text;
+  color: rgba(${p => p.theme.colors.text.primary});
+  &::selection {
+    background: #a49de8;
+  }
   &:focus {
     outline: 0;
   }
@@ -113,4 +131,34 @@ export const DragIndicatorBar = styled.div<{ left: number; top: number; width: n
   height: 4px;
   border-radius: 3px;
   background: rgb(204, 204, 204);
+`;
+
+export const ExpandButton = styled.div`
+  top: 6px;
+  cursor: default;
+  color: transparent;
+  position: absolute;
+  top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  left: 478px;
+  width: 20px;
+  height: 20px;
+  svg {
+    fill: transparent;
+  }
+`;
+export const EntryContent = styled.div`
+  position: relative;
+  margin-left: -500px;
+  padding-left: 524px;
+
+  &:hover ${ExpandButton} svg {
+    fill: rgb(${props => props.theme.colors.text.primary});
+  }
+`;
+
+export const PageContainer = styled.div`
+  overflow: scroll;
 `;

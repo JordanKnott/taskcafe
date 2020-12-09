@@ -7,6 +7,7 @@ type DragContextData = {
     nodeID: string,
     ref: { entry: React.RefObject<HTMLElement>; children: React.RefObject<HTMLElement> | null },
   ) => void;
+  clearNodeDimensions: (nodeID: string) => void;
   setImpact: (data: ImpactData | null) => void;
 };
 

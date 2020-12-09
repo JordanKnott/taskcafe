@@ -183,10 +183,9 @@ type ComplexityRoot struct {
 	}
 
 	MemberSearchResult struct {
-		Confirmed  func(childComplexity int) int
-		Invited    func(childComplexity int) int
-		Joined     func(childComplexity int) int
+		ID         func(childComplexity int) int
 		Similarity func(childComplexity int) int
+		Status     func(childComplexity int) int
 		User       func(childComplexity int) int
 	}
 
@@ -1027,26 +1026,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MemberList.Teams(childComplexity), true
 
-	case "MemberSearchResult.confirmed":
-		if e.complexity.MemberSearchResult.Confirmed == nil {
+	case "MemberSearchResult.id":
+		if e.complexity.MemberSearchResult.ID == nil {
 			break
 		}
 
-		return e.complexity.MemberSearchResult.Confirmed(childComplexity), true
-
-	case "MemberSearchResult.invited":
-		if e.complexity.MemberSearchResult.Invited == nil {
-			break
-		}
-
-		return e.complexity.MemberSearchResult.Invited(childComplexity), true
-
-	case "MemberSearchResult.joined":
-		if e.complexity.MemberSearchResult.Joined == nil {
-			break
-		}
-
-		return e.complexity.MemberSearchResult.Joined(childComplexity), true
+		return e.complexity.MemberSearchResult.ID(childComplexity), true
 
 	case "MemberSearchResult.similarity":
 		if e.complexity.MemberSearchResult.Similarity == nil {
@@ -1054,6 +1039,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MemberSearchResult.Similarity(childComplexity), true
+
+	case "MemberSearchResult.status":
+		if e.complexity.MemberSearchResult.Status == nil {
+			break
+		}
+
+		return e.complexity.MemberSearchResult.Status(childComplexity), true
 
 	case "MemberSearchResult.user":
 		if e.complexity.MemberSearchResult.User == nil {
@@ -2841,6 +2833,11 @@ type TaskChecklist {
   items: [TaskChecklistItem!]!
 }
 
+enum ShareStatus {
+  INVITED
+  JOINED
+}
+
 enum RoleLevel {
   ADMIN
   MEMBER
@@ -3452,16 +3449,16 @@ type DeleteInvitedUserAccountPayload {
 }
 
 input MemberSearchFilter {
-  SearchFilter: String!
+  searchFilter: String!
   projectID: UUID
 }
 
+
 type MemberSearchResult {
   similarity: Int!
-  user: UserAccount!
-  confirmed: Boolean!
-  invited: Boolean!
-  joined: Boolean!
+  id: String!
+  user: UserAccount
+  status: ShareStatus!
 }
 
 type UpdateUserInfoPayload {
@@ -6373,6 +6370,40 @@ func (ec *executionContext) _MemberSearchResult_similarity(ctx context.Context, 
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _MemberSearchResult_id(ctx context.Context, field graphql.CollectedField, obj *MemberSearchResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MemberSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _MemberSearchResult_user(ctx context.Context, field graphql.CollectedField, obj *MemberSearchResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6397,17 +6428,14 @@ func (ec *executionContext) _MemberSearchResult_user(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*db.UserAccount)
 	fc.Result = res
-	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
+	return ec.marshalOUserAccount2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _MemberSearchResult_confirmed(ctx context.Context, field graphql.CollectedField, obj *MemberSearchResult) (ret graphql.Marshaler) {
+func (ec *executionContext) _MemberSearchResult_status(ctx context.Context, field graphql.CollectedField, obj *MemberSearchResult) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6424,7 +6452,7 @@ func (ec *executionContext) _MemberSearchResult_confirmed(ctx context.Context, f
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Confirmed, nil
+		return obj.Status, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6436,77 +6464,9 @@ func (ec *executionContext) _MemberSearchResult_confirmed(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(ShareStatus)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MemberSearchResult_invited(ctx context.Context, field graphql.CollectedField, obj *MemberSearchResult) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "MemberSearchResult",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Invited, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MemberSearchResult_joined(ctx context.Context, field graphql.CollectedField, obj *MemberSearchResult) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "MemberSearchResult",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Joined, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNShareStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐShareStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16279,7 +16239,7 @@ func (ec *executionContext) unmarshalInputMemberSearchFilter(ctx context.Context
 
 	for k, v := range asMap {
 		switch k {
-		case "SearchFilter":
+		case "searchFilter":
 			var err error
 			it.SearchFilter, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
@@ -17982,23 +17942,15 @@ func (ec *executionContext) _MemberSearchResult(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "id":
+			out.Values[i] = ec._MemberSearchResult_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "user":
 			out.Values[i] = ec._MemberSearchResult_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "confirmed":
-			out.Values[i] = ec._MemberSearchResult_confirmed(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "invited":
-			out.Values[i] = ec._MemberSearchResult_invited(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "joined":
-			out.Values[i] = ec._MemberSearchResult_joined(ctx, field, obj)
+		case "status":
+			out.Values[i] = ec._MemberSearchResult_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21486,6 +21438,15 @@ func (ec *executionContext) unmarshalNSetTaskComplete2githubᚗcomᚋjordanknott
 	return ec.unmarshalInputSetTaskComplete(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNShareStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐShareStatus(ctx context.Context, v interface{}) (ShareStatus, error) {
+	var res ShareStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNShareStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐShareStatus(ctx context.Context, sel ast.SelectionSet, v ShareStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNSortTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroup(ctx context.Context, v interface{}) (SortTaskGroup, error) {
 	return ec.unmarshalInputSortTaskGroup(ctx, v)
 }
@@ -22623,6 +22584,17 @@ func (ec *executionContext) unmarshalOUpdateProjectName2ᚖgithubᚗcomᚋjordan
 	}
 	res, err := ec.unmarshalOUpdateProjectName2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateProjectName(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalOUserAccount2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐUserAccount(ctx context.Context, sel ast.SelectionSet, v db.UserAccount) graphql.Marshaler {
+	return ec._UserAccount(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUserAccount2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐUserAccount(ctx context.Context, sel ast.SelectionSet, v *db.UserAccount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserAccount(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
