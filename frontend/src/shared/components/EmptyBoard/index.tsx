@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components/macro';
 import { mixin } from 'shared/utils/styles';
+import theme from '../../../App/ThemeStyles';
 
 export const BoardContainer = styled.div`
   position: relative;
@@ -34,9 +35,9 @@ export const Container = styled.div`
   white-space: nowrap;
 `;
 
-export const defaultBaseColor = '#10163a';
+export const defaultBaseColor = theme.colors.bg.primary;
 
-export const defaultHighlightColor = mixin.lighten('#10163a', 0.25);
+export const defaultHighlightColor = mixin.lighten(theme.colors.bg.primary, 0.25);
 
 export const skeletonKeyframes = keyframes`
   0% {

@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
+import { mixin } from 'shared/utils/styles';
 
 export const Wrapper = styled.div`
   background: #eff2f7;
@@ -68,7 +69,7 @@ export const FormIcon = styled.div`
 
 export const FormError = styled.span`
   font-size: 0.875rem;
-  color: rgb(234, 84, 85);
+  color: ${props => props.theme.colors.danger};
 `;
 
 export const LoginButton = styled(Button)``;
@@ -99,5 +100,5 @@ export const LogoWrapper = styled.div`
   padding-bottom: 16px;
   margin-bottom: 24px;
   color: rgb(222, 235, 255);
-  border-bottom: 1px solid rgba(65, 69, 97, 0.65);
+  border-bottom: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0.65)};
 `;

@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import Button from 'shared/components/Button';
 import { Checkmark } from 'shared/icons';
+import { mixin } from 'shared/utils/styles';
 
 export const RoleCheckmark = styled(Checkmark)`
   padding-left: 4px;
@@ -80,36 +81,36 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
       ? css`
           user-select: none;
           pointer-events: none;
-          color: rgba(${props.theme.colors.text.primary}, 0.4);
+          color: ${mixin.rgba(props.theme.colors.text.primary, 0.4)};
         `
       : css`
           cursor: pointer;
           &:hover {
-            background: rgb(115, 103, 240);
+            background: ${props.theme.colors.primary};
           }
         `}
 `;
 
 export const CurrentPermission = styled.span`
   margin-left: 4px;
-  color: rgba(${props => props.theme.colors.text.secondary}, 0.4);
+  color: ${props => mixin.rgba(props.theme.colors.text.secondary, 0.4)};
 `;
 
 export const Separator = styled.div`
   height: 1px;
-  border-top: 1px solid #414561;
+  border-top: 1px solid ${props => props.theme.colors.alternate};
   margin: 0.25rem !important;
 `;
 
 export const WarningText = styled.span`
   display: flex;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.4);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.4)};
   padding: 6px;
 `;
 
 export const DeleteDescription = styled.div`
   font-size: 14px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 export const RemoveMemberButton = styled(Button)`

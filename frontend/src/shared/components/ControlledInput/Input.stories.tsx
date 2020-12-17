@@ -19,7 +19,7 @@ export default {
 };
 
 const Wrapper = styled.div`
-  background: rgba(${props => props.theme.colors.bg.primary});
+  background: ${props => props.theme.colors.bg.primary};
   padding: 45px;
   margin: 25px;
   display: flex;

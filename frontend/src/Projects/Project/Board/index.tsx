@@ -136,14 +136,14 @@ const ProjectActionWrapper = styled.div<{ disabled?: boolean }>`
   display: flex;
   align-items: center;
   font-size: 15px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 
   &:not(:last-of-type) {
     margin-right: 16px;
   }
 
   &:hover {
-    color: rgba(${props => props.theme.colors.text.secondary});
+    color: ${props => props.theme.colors.text.secondary};
   }
   ${props =>
     props.disabled &&

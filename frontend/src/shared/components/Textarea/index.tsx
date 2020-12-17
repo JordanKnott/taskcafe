@@ -24,7 +24,7 @@ const Textarea = styled(TextareaAutosize)`
   font-size: 20px;
   padding: 3px 10px 3px 8px;
   &:focus {
-    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
   }
 `;
 

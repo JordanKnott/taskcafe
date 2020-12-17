@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import { mixin } from 'shared/utils/styles';
 
 export const Logo = styled.div``;
 
@@ -9,7 +10,7 @@ export const LogoTitle = styled.div`
   font-size: 24px;
   font-weight: 600;
   transition: visibility, opacity, transform 0.25s ease;
-  color: #7367f0;
+  color: #22ff00;
 `;
 export const ActionContainer = styled.div`
   position: relative;
@@ -46,8 +47,8 @@ export const ActionButtonWrapper = styled.div<{ active?: boolean }>`
   ${props =>
     props.active &&
     css`
-      background: rgb(115, 103, 240);
-      box-shadow: 0 0 10px 1px rgba(115, 103, 240, 0.7);
+      background: ${props.theme.colors.primary};
+      box-shadow: 0 0 10px 1px ${mixin.rgba(props.theme.colors.primary, 0.7)};
     `}
   border-radius: 6px;
   cursor: pointer;
@@ -73,7 +74,7 @@ export const LogoWrapper = styled.div`
   color: rgb(222, 235, 255);
   cursor: pointer;
   transition: color 0.1s ease 0s, border 0.1s ease 0s;
-  border-bottom: 1px solid rgba(65, 69, 97, 0.65);
+  border-bottom: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0.65)};
 `;
 
 export const Container = styled.aside`
@@ -87,12 +88,12 @@ export const Container = styled.aside`
   transform: translateZ(0px);
   background: #10163a;
   transition: all 0.1s ease 0s;
-  border-right: 1px solid rgba(65, 69, 97, 0.65);
+  border-right: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0.65)};
 
   &:hover {
     width: 260px;
     box-shadow: rgba(0, 0, 0, 0.6) 0px 0px 50px 0px;
-    border-right: 1px solid rgba(65, 69, 97, 0);
+    border-right: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0)};
   }
   &:hover ${LogoTitle} {
     bottom: -12px;
@@ -106,6 +107,6 @@ export const Container = styled.aside`
   }
 
   &:hover ${LogoWrapper} {
-    border-bottom: 1px solid rgba(65, 69, 97, 0);
+    border-bottom: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0)};
   }
 `;

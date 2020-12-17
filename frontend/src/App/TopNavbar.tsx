@@ -20,6 +20,7 @@ import MiniProfile from 'shared/components/MiniProfile';
 import cache from 'App/cache';
 import NOOP from 'shared/utils/noop';
 import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
+import theme from './ThemeStyles';
 
 const TeamContainer = styled.div`
   display: flex;
@@ -62,7 +63,7 @@ const TeamProjectBackground = styled.div<{ color: string }>`
   opacity: 1;
   border-radius: 3px;
   &:before {
-    background: rgba(${props => props.theme.colors.bg.secondary});
+    background: ${props => props.theme.colors.bg.secondary};
     bottom: 0;
     content: '';
     left: 0;
@@ -114,7 +115,7 @@ const TeamProjectContainer = styled.div`
   margin: 0 4px 4px 0;
   min-width: 0;
   &:hover ${TeamProjectTitle} {
-    color: rgba(${props => props.theme.colors.text.secondary});
+    color: ${props => props.theme.colors.text.secondary};
   }
   &:hover ${TeamProjectAvatar} {
     opacity: 1;
@@ -124,7 +125,7 @@ const TeamProjectContainer = styled.div`
   }
 `;
 
-const colors = ['#e362e3', '#7a6ff0', '#37c5ab', '#aa62e3', '#e8384f'];
+const colors = [theme.colors.primary, theme.colors.secondary];
 
 const ProjectFinder = () => {
   const { loading, data } = useGetProjectsQuery();
@@ -328,7 +329,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
             />
           ))}
         </NotificationPopup>,
-        { width: 415, borders: false, diamondColor: '#7367f0' },
+        { width: 415, borders: false, diamondColor: theme.colors.primary },
       );
     }
   };

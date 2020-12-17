@@ -20,14 +20,14 @@ export const MemberManagerSearch = styled(TextareaAutosize)`
   font-size: 14px;
   font-weight: 400;
 
-  background: #262c49;
+  background: ${props => props.theme.colors.bgColor.secondary};
   outline: none;
-  color: #c2c6dc;
-  border-color: #414561;
+  color: ${props => props.theme.colors.text.primary};
+  border-color: ${props => props.theme.colors.border};
 
   &:focus {
-    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
-    background: ${mixin.darken('#262c49', 0.15)};
+    box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
+    background: ${props => mixin.darken(props.theme.colors.bgColor.secondary, 0.15)};
   }
 `;
 
@@ -66,8 +66,8 @@ export const BoardMemberListItemContent = styled(Member)`
   color: #c2c6dc;
 
   &:hover {
-    background-color: rgba(${props => props.theme.colors.primary});
-    color: rgba(${props => props.theme.colors.text.secondary});
+    background-color: ${props => props.theme.colors.primary};
+    color: ${props => props.theme.colors.text.secondary};
   }
 `;
 
@@ -80,7 +80,7 @@ export const ProfileIcon = styled.div`
   justify-content: center;
   color: #c2c6dc;
   font-weight: 700;
-  background: rgb(115, 103, 240);
+  background: ${props => props.theme.colors.primary};
   cursor: pointer;
   margin-right: 6px;
 `;

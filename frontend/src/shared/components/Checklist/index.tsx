@@ -12,6 +12,7 @@ import Button from 'shared/components/Button';
 import TextareaAutosize from 'react-autosize-textarea';
 import Control from 'react-select/src/components/Control';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+import { mixin } from 'shared/utils/styles';
 
 const Wrapper = styled.div`
   margin-bottom: 24px;
@@ -38,7 +39,7 @@ const WindowChecklistTitle = styled.div`
 
 const WindowTitleText = styled.h3`
   cursor: pointer;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   margin: 6px 0;
   display: inline-block;
   width: auto;
@@ -73,7 +74,7 @@ const ChecklistProgressPercent = styled.span`
 `;
 
 const ChecklistProgressBar = styled.div`
-  background: rgba(${props => props.theme.colors.bg.primary});
+  background: ${props => props.theme.colors.bg.primary};
   border-radius: 4px;
   clear: both;
   height: 8px;
@@ -83,7 +84,7 @@ const ChecklistProgressBar = styled.div`
 `;
 const ChecklistProgressBarCurrent = styled.div<{ width: number }>`
   width: ${props => props.width}%;
-  background: rgba(${props => (props.width === 100 ? props.theme.colors.success : props.theme.colors.primary)});
+  background: ${props => (props.width === 100 ? props.theme.colors.success : props.theme.colors.primary)};
   bottom: 0;
   left: 0;
   position: absolute;
@@ -111,7 +112,7 @@ const ChecklistIcon = styled.div`
 `;
 
 const ChecklistItemCheckedIcon = styled(CheckSquare)`
-  fill: rgba(${props => props.theme.colors.primary});
+  fill: ${props => props.theme.colors.primary};
 `;
 
 const ChecklistItemDetails = styled.div`
@@ -133,7 +134,7 @@ const ChecklistItemTextControls = styled.div`
 `;
 
 const ChecklistItemText = styled.span<{ complete: boolean }>`
-  color: ${props => (props.complete ? '#5e6c84' : `rgba(${props.theme.colors.text.primary})`)};
+  color: ${props => (props.complete ? '#5e6c84' : `${props.theme.colors.text.primary}`)};
   ${props => props.complete && 'text-decoration: line-through;'}
   line-height: 20px;
   font-size: 16px;
@@ -155,14 +156,14 @@ const ControlButton = styled.div`
   margin-left: 4px;
   padding: 4px 6px;
   border-radius: 6px;
-  background-color: rgba(${props => props.theme.colors.bg.primary}, 0.8);
+  background-color: ${props => mixin.rgba(props.theme.colors.bg.primary, 0.8)};
   display: flex;
   width: 32px;
   height: 32px;
   align-items: center;
   justify-content: center;
   &:hover {
-    background-color: rgba(${props => props.theme.colors.primary}, 1);
+    background-color: ${props => mixin.rgba(props.theme.colors.primary, 1)};
   }
 `;
 
@@ -189,27 +190,27 @@ export const ChecklistNameEditor = styled(TextareaAutosize)`
   padding: 8px 12px;
   font-size: 16px;
   line-height: 20px;
-  border: 1px solid rgba(${props => props.theme.colors.primary});
+  border: 1px solid ${props => props.theme.colors.primary};
   border-radius: 3px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 
-  border-color: rgba(${props => props.theme.colors.border});
-  background-color: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+  border-color: ${props => props.theme.colors.border};
+  background-color: ${props => mixin.rgba(props.theme.colors.bg.primary, 0.4)};
   &:focus {
-    border-color: rgba(${props => props.theme.colors.primary});
+    border-color: ${props => props.theme.colors.primary};
   }
 `;
 
 const AssignUserButton = styled(AccountPlus)`
-  fill: rgba(${props => props.theme.colors.text.primary});
+  fill: ${props => props.theme.colors.text.primary};
 `;
 
 const ClockButton = styled(Clock)`
-  fill: rgba(${props => props.theme.colors.text.primary});
+  fill: ${props => props.theme.colors.text.primary};
 `;
 
 const TrashButton = styled(Trash)`
-  fill: rgba(${props => props.theme.colors.text.primary});
+  fill: ${props => props.theme.colors.text.primary};
 `;
 
 const ChecklistItemWrapper = styled.div<{ ref: any }>`
@@ -224,7 +225,7 @@ const ChecklistItemWrapper = styled.div<{ ref: any }>`
   }
 
   &:hover {
-    background-color: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+    background-color: ${props => mixin.rgba(props.theme.colors.bg.primary, 0.4)};
   }
   &:hover ${ControlButton} {
     opacity: 1;
@@ -246,10 +247,10 @@ const CancelButton = styled.div`
   cursor: pointer;
   margin: 5px;
   & svg {
-    fill: rgba(${props => props.theme.colors.text.primary});
+    fill: ${props => props.theme.colors.text.primary};
   }
   &:hover svg {
-    fill: rgba(${props => props.theme.colors.text.secondary});
+    fill: ${props => props.theme.colors.text.secondary};
   }
 `;
 
@@ -265,7 +266,7 @@ const EditableDeleteButton = styled.button`
   border-radius: 3px;
 
   &:hover {
-    background: rgba(${props => props.theme.colors.primary}, 0.8);
+    background: ${props => mixin.rgba(props.theme.colors.primary, 0.8)};
   }
 `;
 

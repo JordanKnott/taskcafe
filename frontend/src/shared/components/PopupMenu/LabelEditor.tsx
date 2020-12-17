@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { SaveButton, DeleteButton, LabelBox, EditLabelForm, FieldLabel, FieldName } from './Styles';
 
 const WhiteCheckmark = styled(Checkmark)`
-  fill: rgba(${props => props.theme.colors.text.secondary});
+  fill: ${props => props.theme.colors.text.secondary};
 `;
 type Props = {
   labelColors: Array<LabelColor>;

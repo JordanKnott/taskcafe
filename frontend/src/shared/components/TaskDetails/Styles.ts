@@ -3,8 +3,6 @@ import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 import TaskAssignee from 'shared/components/TaskAssignee';
-import { User, Trash, Paperclip } from 'shared/icons';
-import Member from 'shared/components/Member';
 
 export const Container = styled.div`
   display: flex;
@@ -33,35 +31,35 @@ export const MarkCompleteButton = styled.button<{ invert: boolean }>`
   ${props =>
     props.invert
       ? css`
-          background: rgba(${props.theme.colors.success});
+          background: ${props.theme.colors.success};
           & svg {
-            fill: rgba(${props.theme.colors.text.secondary});
+            fill: ${props.theme.colors.text.secondary};
           }
           & span {
-            color: rgba(${props.theme.colors.text.secondary});
+            color: ${props.theme.colors.text.secondary};
           }
           &:hover {
-            background: rgba(${props.theme.colors.success}, 0.8);
+            background: ${mixin.rgba(props.theme.colors.success, 0.8)};
           }
         `
       : css`
           background: none;
-          border: 1px solid rgba(${props.theme.colors.text.secondary});
+          border: 1px solid ${props.theme.colors.text.secondary};
           & svg {
-            fill: rgba(${props.theme.colors.text.secondary});
+            fill: ${props.theme.colors.text.secondary};
           }
           & span {
-            color: rgba(${props.theme.colors.text.secondary});
+            color: ${props.theme.colors.text.secondary};
           }
           &:hover {
-            background: rgba(${props.theme.colors.success}, 0.08);
-            border: 1px solid rgba(${props.theme.colors.success});
+            background: ${mixin.rgba(props.theme.colors.success, 0.08)};
+            border: 1px solid ${props.theme.colors.success};
           }
           &:hover svg {
-            fill: rgba(${props.theme.colors.success});
+            fill: ${props.theme.colors.success};
           }
           &:hover span {
-            color: rgba(${props.theme.colors.success});
+            color: ${props.theme.colors.success};
           }
         `}
 `;
@@ -85,7 +83,7 @@ export const SidebarTitle = styled.div`
   font-size: 12px;
   min-height: 24px;
   margin-left: 8px;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.75);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.75)};
   padding-top: 4px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -93,7 +91,7 @@ export const SidebarTitle = styled.div`
 
 export const SidebarButton = styled.div`
   font-size: 14px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   min-height: 32px;
   width: 100%;
 
@@ -168,7 +166,7 @@ export const TaskDetailsTitle = styled(TextareaAutosize)`
   }
 
   &:focus {
-    border-color: rgba(${props => props.theme.colors.primary});
+    border-color: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -176,7 +174,7 @@ export const DueDateTitle = styled.div`
   font-size: 12px;
   min-height: 24px;
   margin-left: 8px;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.75);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.75)};
   padding-top: 8px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -187,7 +185,7 @@ export const AssignedUsersSection = styled.div`
   padding-right: 32px;
   padding-top: 24px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #414561;
+  border-bottom: 1px solid ${props => props.theme.colors.alternate};
   display: flex;
   flex-direction: column;
 `;
@@ -205,10 +203,10 @@ export const AssignUserIcon = styled.div`
   justify-content: center;
   align-items: center;
   &:hover {
-    border: 1px solid rgba(${props => props.theme.colors.text.secondary}, 0.75);
+    border: 1px solid ${props => mixin.rgba(props.theme.colors.text.secondary, 0.75)};
   }
   &:hover svg {
-    fill: rgba(${props => props.theme.colors.text.secondary}, 0.75);
+    fill: ${props => mixin.rgba(props.theme.colors.text.secondary, 0.75)};
   }
 `;
 
@@ -223,17 +221,17 @@ export const AssignUsersButton = styled.div`
   align-items: center;
   border: 1px solid transparent;
   &:hover {
-    border: 1px solid ${mixin.darken('#414561', 0.15)};
+    border: 1px solid ${props => mixin.darken(props.theme.colors.alternate, 0.15)};
   }
   &:hover ${AssignUserIcon} {
-    border: 1px solid #414561;
+    border: 1px solid ${props => props.theme.colors.alternate};
   }
 `;
 
 export const AssignUserLabel = styled.span`
   flex: 1 1 auto;
   line-height: 15px;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.75);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.75)};
 `;
 
 export const ExtraActionsSection = styled.div`
@@ -245,7 +243,7 @@ export const ExtraActionsSection = styled.div`
 `;
 
 export const ActionButtonsTitle = styled.h3`
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -255,7 +253,7 @@ export const ActionButton = styled(Button)`
   margin-top: 8px;
   margin-left: -10px;
   padding: 8px 16px;
-  background: rgba(${props => props.theme.colors.bg.primary}, 0.5);
+  background: ${props => mixin.rgba(props.theme.colors.bg.primary, 0.5)};
   text-align: left;
   transition: transform 0.2s ease;
   & span {
@@ -264,7 +262,7 @@ export const ActionButton = styled(Button)`
   &:hover {
     box-shadow: none;
     transform: translateX(4px);
-    background: rgba(${props => props.theme.colors.bg.primary}, 0.75);
+    background: ${props => mixin.rgba(props.theme.colors.bg.primary, 0.75)};
   }
 `;
 
@@ -283,10 +281,10 @@ export const HeaderActionIcon = styled.div`
 
   cursor: pointer;
   svg {
-    fill: rgba(${props => props.theme.colors.text.primary}, 0.75);
+    fill: ${props => mixin.rgba(props.theme.colors.text.primary, 0.75)};
   }
   &:hover svg {
-    fill: rgba(${props => props.theme.colors.primary});
+    fill: ${props => mixin.rgba(props.theme.colors.primary, 0.75)});
   }
 `;
 
@@ -343,7 +341,7 @@ export const MetaDetail = styled.div`
 `;
 
 export const MetaDetailTitle = styled.h3`
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -362,7 +360,7 @@ export const MetaDetailContent = styled.div`
 `;
 export const TaskDetailsAddLabel = styled.div`
   border-radius: 3px;
-  background: ${mixin.darken('#262c49', 0.15)};
+  background: ${props => mixin.darken(props.theme.colors.bg.secondary, 0.15)};
   cursor: pointer;
   &:hover {
     opacity: 0.8;
@@ -377,7 +375,7 @@ export const TaskDetailsAddLabelIcon = styled.div`
   align-items: center;
   justify-content: center;
   border-radius: 3px;
-  background: ${mixin.darken('#262c49', 0.15)};
+  background: ${props => mixin.darken(props.theme.colors.bg.secondary, 0.15)};
   cursor: pointer;
   &:hover {
     opacity: 0.8;
@@ -452,11 +450,11 @@ export const TabBarSection = styled.div`
 `;
 
 export const TabBarItem = styled.div`
-  box-shadow: inset 0 -2px rgba(216, 93, 216);
+  box-shadow: inset 0 -2px ${props => props.theme.colors.primary};
   padding: 12px 7px 14px 7px;
   margin-bottom: -1px;
   margin-right: 36px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 export const CommentContainer = styled.div`
@@ -491,7 +489,7 @@ export const CommentTextArea = styled(TextareaAutosize)`
   line-height: 28px;
   padding: 4px 6px;
   border-radius: 6px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   background: #1f243e;
   border: none;
   transition: max-height 200ms, height 200ms, min-height 200ms;
@@ -556,13 +554,13 @@ export const ActivityItemHeaderTitle = styled.div`
 `;
 
 export const ActivityItemHeaderTitleName = styled.span`
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   font-weight: 500;
 `;
 
 export const ActivityItemTimestamp = styled.span<{ margin: number }>`
   font-size: 12px;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.65);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.65)};
   margin-left: ${props => props.margin}px;
 `;
 
@@ -575,15 +573,15 @@ export const ActivityItemComment = styled.div`
   border-radius: 3px;
   ${mixin.boxShadowCard}
   position: relative;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   padding: 8px 12px;
   margin: 4px 0;
-  background-color: ${mixin.darken('#262c49', 0.1)};
+  background-color: ${props => mixin.darken(props.theme.colors.alternate, 0.1)};
 `;
 
 export const ActivityItemLog = styled.span`
   margin-left: 2px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 export const ViewRawButton = styled.button`
@@ -594,9 +592,9 @@ export const ViewRawButton = styled.button`
   right: 4px;
   bottom: -24px;
   cursor: pointer;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.25);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.25)};
   &:hover {
-    color: rgba(${props => props.theme.colors.text.primary});
+    color: ${props => props.theme.colors.text.primary};
   }
 `;
 

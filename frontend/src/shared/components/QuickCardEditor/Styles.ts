@@ -1,6 +1,4 @@
 import styled, { keyframes, css } from 'styled-components';
-import TextareaAutosize from 'react-autosize-textarea';
-import { mixin } from 'shared/utils/styles';
 
 export const Wrapper = styled.div<{ open: boolean }>`
   background: rgba(0, 0, 0, 0.55);
@@ -30,7 +28,7 @@ export const Container = styled.div<{ fixed: boolean; width: number; top: number
 
 export const SaveButton = styled.button`
   cursor: pointer;
-  background: rgb(115, 103, 240);
+  background: ${props => props.theme.colors.primary};
   box-shadow: none;
   border: none;
   color: #fff;

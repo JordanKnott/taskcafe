@@ -1,5 +1,6 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
+import theme from 'App/ThemeStyles';
 import AddList from '.';
 
 export default {
@@ -7,7 +8,7 @@ export default {
   title: 'AddList',
   parameters: {
     backgrounds: [
-      { name: 'gray', value: '#262c49', default: true },
+      { name: 'gray', value: theme.colors.bg.secondary, default: true },
       { name: 'white', value: '#ffffff' },
     ],
   },

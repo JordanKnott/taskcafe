@@ -8,6 +8,7 @@ import { RoleCode, useUpdateUserRoleMutation } from 'shared/generated/graphql';
 import Input from 'shared/components/Input';
 import Button from 'shared/components/Button';
 import NOOP from 'shared/utils/noop';
+import { mixin } from 'shared/utils/styles';
 
 export const RoleCheckmark = styled(Checkmark)`
   padding-left: 4px;
@@ -58,12 +59,12 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
       ? css`
           user-select: none;
           pointer-events: none;
-          color: rgba(${props.theme.colors.text.primary}, 0.4);
+          color: ${mixin.rgba(props.theme.colors.text.primary, 0.4)};
         `
       : css`
           cursor: pointer;
           &:hover {
-            background: rgb(115, 103, 240);
+            background: ${props.theme.colors.primary};
           }
         `}
 `;
@@ -74,7 +75,7 @@ export const Content = styled.div`
 
 export const CurrentPermission = styled.span`
   margin-left: 4px;
-  color: rgba(${props => props.theme.colors.text.secondary}, 0.4);
+  color: ${props => mixin.rgba(props.theme.colors.text.secondary, 0.4)};
 `;
 
 export const Separator = styled.div`
@@ -85,13 +86,13 @@ export const Separator = styled.div`
 
 export const WarningText = styled.span`
   display: flex;
-  color: rgba(${props => props.theme.colors.text.primary}, 0.4);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.4)};
   padding: 6px;
 `;
 
 export const DeleteDescription = styled.div`
   font-size: 14px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 export const RemoveMemberButton = styled(Button)`
@@ -333,14 +334,14 @@ const MemberItemOption = styled(Button)`
 `;
 
 const MemberList = styled.div`
-  border-top: 1px solid rgba(${props => props.theme.colors.border});
+  border-top: 1px solid ${props => props.theme.colors.border};
 `;
 
 const MemberListItem = styled.div`
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(${props => props.theme.colors.border});
+  border-bottom: 1px solid ${props => props.theme.colors.border};
   min-height: 40px;
   padding: 12px 0 12px 40px;
   position: relative;
@@ -364,11 +365,11 @@ const MemberProfile = styled(TaskAssignee)`
 `;
 
 const MemberItemName = styled.p`
-  color: rgba(${props => props.theme.colors.text.secondary});
+  color: ${props => props.theme.colors.text.secondary};
 `;
 
 const MemberItemUsername = styled.p`
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 const MemberListHeader = styled.div`
@@ -377,12 +378,12 @@ const MemberListHeader = styled.div`
 `;
 const ListTitle = styled.h3`
   font-size: 18px;
-  color: rgba(${props => props.theme.colors.text.secondary});
+  color: ${props => props.theme.colors.text.secondary};
   margin-bottom: 12px;
 `;
 const ListDesc = styled.span`
   font-size: 16px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 const FilterSearch = styled(Input)`
   margin: 0;
@@ -443,17 +444,17 @@ const TabNavItemButton = styled.button<{ active: boolean }>`
   width: 100%;
   position: relative;
 
-  color: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')};
+  color: ${props => (props.active ? `${props.theme.colors.secondary}` : props.theme.colors.text.primary)};
   &:hover {
-    color: rgba(115, 103, 240);
+    color: ${props => `${props.theme.colors.primary}`};
   }
   &:hover svg {
-    fill: rgba(115, 103, 240);
+    fill: ${props => props.theme.colors.primary};
   }
 `;
 const TabItemUser = styled(User)<{ active: boolean }>`
-fill: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')}
-stroke: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')}
+fill: ${props => (props.active ? `${props.theme.colors.primary}` : props.theme.colors.text.primary)}
+stroke: ${props => (props.active ? `${props.theme.colors.primary}` : props.theme.colors.text.primary)}
 `;
 
 const TabNavItemSpan = styled.span`
@@ -470,8 +471,8 @@ const TabNavLine = styled.span<{ top: number }>`
   transform: scaleX(1);
   top: ${props => props.top}px;
 
-  background: linear-gradient(30deg, rgba(115, 103, 240), rgba(115, 103, 240));
-  box-shadow: 0 0 8px 0 rgba(115, 103, 240);
+  background: linear-gradient(30deg, ${props => props.theme.colors.primary}, ${props => props.theme.colors.primary});
+  box-shadow: 0 0 8px 0 ${props => props.theme.colors.primary};
   display: block;
   position: absolute;
   transition: all 0.2s ease;

@@ -12,7 +12,7 @@ const FilterMember = styled(Member)`
   margin: 2px 0;
   &:hover {
     cursor: pointer;
-    background: rgba(${props => props.theme.colors.primary});
+    background: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -71,7 +71,7 @@ export const ActionItem = styled.li`
   align-items: center;
   font-size: 14px;
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -80,7 +80,7 @@ export const ActionTitle = styled.span`
 `;
 
 const ActionItemSeparator = styled.li`
-  color: rgba(${props => props.theme.colors.text.primary}, 0.4);
+  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.4)};
   font-size: 12px;
   padding-left: 4px;
   padding-right: 4px;

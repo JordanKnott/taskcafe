@@ -28,13 +28,13 @@ const StyledContainer = styled(ToastContainer).attrs({
     color: #fff;
   }
   .Toastify__toast--error {
-    background: rgba(${props => props.theme.colors.danger});
+    background: ${props => props.theme.colors.danger};
   }
   .Toastify__toast--warning {
-    background: rgba(${props => props.theme.colors.warning});
+    background: ${props => props.theme.colors.warning};
   }
   .Toastify__toast--success {
-    background: rgba(${props => props.theme.colors.success});
+    background: ${props => props.theme.colors.success};
   }
   .Toastify__toast-body {
   }

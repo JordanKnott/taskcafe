@@ -37,7 +37,7 @@ const ItemTextContainer = styled.div`
 const ItemTextTitle = styled.span`
   font-weight: 500;
   display: block;
-  color: rgba(${props => props.theme.colors.primary});
+  color: ${props => props.theme.colors.primary};
   font-size: 14px;
 `;
 const ItemTextDesc = styled.span`
@@ -76,21 +76,21 @@ const NotificationHeader = styled.div`
   text-align: center;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
-  background: rgba(${props => props.theme.colors.primary});
+  background: ${props => props.theme.colors.primary};
 `;
 
 const NotificationHeaderTitle = styled.span`
   font-size: 14px;
-  color: rgba(${props => props.theme.colors.text.secondary});
+  color: ${props => props.theme.colors.text.secondary};
 `;
 
 const NotificationFooter = styled.div`
   cursor: pointer;
   padding: 0.5rem;
   text-align: center;
-  color: rgba(${props => props.theme.colors.primary});
+  color: ${props => props.theme.colors.primary};
   &:hover {
-    background: #10163a;
+    background: ${props => props.theme.colors.bg.primary};
   }
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;

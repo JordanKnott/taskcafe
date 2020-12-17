@@ -43,7 +43,7 @@ const HeaderSelectLabel = styled.div`
   color: #c2c6dc;
 
   &:hover {
-    background: rgba(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
     color: #c2c6dc;
   }
 `;
@@ -60,8 +60,8 @@ const HeaderSelect = styled.select`
   appearance: none;
 
   &:hover {
-    background: #262c49;
-    border: 1px solid rgba(115, 103, 240);
+    background: ${props => props.theme.colors.bg.secondary};
+    border: 1px solid ${props => props.theme.colors.primary};
     outline: none !important;
     box-shadow: none;
     color: #c2c6dc;
@@ -93,7 +93,7 @@ const HeaderButton = styled.button`
   border: none;
   border-radius: 3px;
   &:hover {
-    background: rgba(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
     color: #fff;
   }
 `;

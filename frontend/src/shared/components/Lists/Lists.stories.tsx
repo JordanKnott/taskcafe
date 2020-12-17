@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { action } from '@storybook/addon-actions';
+import theme from 'App/ThemeStyles';
 import Lists from '.';
 
 export default {
@@ -7,7 +8,7 @@ export default {
   title: 'Lists',
   parameters: {
     backgrounds: [
-      { name: 'gray', value: '#262c49', default: true },
+      { name: 'gray', value: theme.colors.bg.secondary, default: true },
       { name: 'white', value: '#ffffff' },
     ],
   },

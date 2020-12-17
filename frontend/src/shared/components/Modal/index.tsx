@@ -30,9 +30,9 @@ const CloseIcon = styled(Cross)`
   top: 16px;
   right: -32px;
   cursor: pointer;
-  fill: rgba(${props => props.theme.colors.text.primary});
+  fill: ${props => props.theme.colors.text.primary};
   &:hover {
-    fill: rgba(${props => props.theme.colors.text.secondary});
+    fill: ${props => props.theme.colors.text.secondary};
   }
 `;
 

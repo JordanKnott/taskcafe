@@ -48,6 +48,7 @@ import { colourStyles } from 'shared/components/Select';
 import Board, { BoardLoading } from './Board';
 import Details from './Details';
 import LabelManagerEditor from './LabelManagerEditor';
+import { mixin } from '../../shared/utils/styles';
 
 const CARD_LABEL_VARIANT_STORAGE_KEY = 'card_label_variant';
 
@@ -71,7 +72,7 @@ const UserMember = styled(Member)`
   padding: 4px 0;
   cursor: pointer;
   &:hover {
-    background: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+    background: ${props => mixin.rgba(props.theme.colors.bg.primary, 0.4)};
   }
   border-radius: 6px;
 `;

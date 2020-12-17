@@ -5,8 +5,8 @@ import { CheckCircle, CheckSquareOutline, Clock } from 'shared/icons';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
 export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
-  box-shadow: 0 0 0 2px rgba(${props => props.theme.colors.bg.secondary}),
-    inset 0 0 0 1px rgba(${props => props.theme.colors.bg.secondary}, 0.07);
+  box-shadow: 0 0 0 2px ${props => props.theme.colors.bg.secondary},
+    inset 0 0 0 1px ${props => mixin.rgba(props.theme.colors.bg.secondary, 0.07)};
   z-index: ${props => props.zIndex};
   position: relative;
 `;
@@ -14,8 +14,8 @@ export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'no
   ${props =>
     props.color === 'success' &&
     css`
-      fill: rgba(${props.theme.colors.success});
-      stroke: rgba(${props.theme.colors.success});
+      fill: ${props.theme.colors.success};
+      stroke: ${props.theme.colors.success};
     `}
 `;
 export const ClockIcon = styled(Clock)<{ color: string }>`
@@ -38,7 +38,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   padding: 0;
   font-size: 14px;
   line-height: 18px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   &:focus {
     border: none;
     outline: none;
@@ -89,7 +89,7 @@ export const ListCardBadgeText = styled.span<{ color?: 'success' | 'normal' }>`
   padding: 0 4px 0 6px;
   vertical-align: top;
   white-space: nowrap;
-  ${props => props.color === 'success' && `color: rgba(${props.theme.colors.success});`}
+  ${props => props.color === 'success' && `color: ${props.theme.colors.success};`}
 `;
 
 export const ListCardContainer = styled.div<{ isActive: boolean; editable: boolean }>`
@@ -101,7 +101,9 @@ export const ListCardContainer = styled.div<{ isActive: boolean; editable: boole
   position: relative;
 
   background-color: ${props =>
-    props.isActive && !props.editable ? mixin.darken('#262c49', 0.1) : `rgba(${props.theme.colors.bg.secondary})`};
+    props.isActive && !props.editable
+      ? mixin.darken(props.theme.colors.bg.secondary, 0.1)
+      : `${props.theme.colors.bg.secondary}`};
 `;
 
 export const ListCardInnerContainer = styled.div`
@@ -221,7 +223,7 @@ export const ListCardOperation = styled.span`
   top: 2px;
   z-index: 100;
   &:hover {
-    background-color: ${props => mixin.darken('#262c49', 0.25)};
+    background-color: ${props => mixin.darken(props.theme.colors.bg.secondary, 0.25)};
   }
 `;
 
@@ -233,7 +235,7 @@ export const CardTitle = styled.span`
   word-wrap: break-word;
   line-height: 18px;
   font-size: 14px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 
   display: flex;
   align-items: center;
@@ -246,7 +248,7 @@ export const CardMembers = styled.div`
 `;
 
 export const CompleteIcon = styled(CheckCircle)`
-  fill: rgba(${props => props.theme.colors.success});
+  fill: ${props => props.theme.colors.success};
   margin-right: 4px;
   flex-shrink: 0;
 `;

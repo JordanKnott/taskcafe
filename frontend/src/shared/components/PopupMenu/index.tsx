@@ -4,6 +4,7 @@ import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import { createPortal } from 'react-dom';
 import NOOP from 'shared/utils/noop';
 import produce from 'immer';
+import theme from 'App/ThemeStyles';
 import {
   Container,
   ContainerDiamond,
@@ -18,7 +19,7 @@ import {
 function getPopupOptions(options?: PopupOptions) {
   const popupOptions = {
     borders: true,
-    diamondColor: '#262c49',
+    diamondColor: theme.colors.bg.secondary,
     targetPadding: '10px',
     showDiamond: true,
     width: 316,
