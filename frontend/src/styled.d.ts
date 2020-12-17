@@ -10,6 +10,7 @@ declare module 'styled-components' {
     };
     colors: {
       [key: string]: any;
+      multiColors: string[];
       primary: string;
       secondary: string;
       success: string;

@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 import ControlledInput from 'shared/components/ControlledInput';
+import theme from 'App/ThemeStyles';
 
 export const Container = styled.div<{
   invertY: boolean;
@@ -176,7 +177,7 @@ export const LabelIcon = styled.div`
   cursor: pointer;
 
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -233,8 +234,8 @@ export const FieldName = styled.input`
   font-weight: 400;
 
   &:focus {
-    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
-    background: ${mixin.darken('#262c49', 0.15)};
+    box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
+    background: ${mixin.darken(theme.colors.bg.secondary, 0.15)};
   }
 `;
 
@@ -258,7 +259,7 @@ export const LabelBox = styled.span<{ color: string }>`
 `;
 
 export const SaveButton = styled.input`
-  background: rgb(115, 103, 240);
+  background: ${props => props.theme.colors.primary};
   box-shadow: none;
   border: none;
   color: #fff;
@@ -296,7 +297,7 @@ export const DeleteButton = styled.input`
 
   &:hover {
     color: #fff;
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
     border-color: transparent;
   }
 `;
@@ -317,7 +318,7 @@ export const CreateLabelButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 

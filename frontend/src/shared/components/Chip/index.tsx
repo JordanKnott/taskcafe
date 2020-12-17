@@ -7,7 +7,7 @@ const LabelText = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 const Container = styled.div<{ color?: string }>`
@@ -24,11 +24,11 @@ const Container = styled.div<{ color?: string }>`
       ? css`
           background: ${props.color};
           & ${LabelText} {
-            color: rgba(${props.theme.colors.text.secondary});
+            color: ${props.theme.colors.text.secondary};
           }
         `
       : css`
-          background: rgba(${props.theme.colors.bg.primary});
+          background: ${props.theme.colors.bg.primary};
         `}
 `;
 

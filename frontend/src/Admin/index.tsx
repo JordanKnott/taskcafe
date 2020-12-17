@@ -82,7 +82,7 @@ const AddUserInput = styled(Input)`
 `;
 
 const InputError = styled.span`
-  color: rgba(${props => props.theme.colors.danger});
+  color: ${props => props.theme.colors.danger};
   font-size: 12px;
 `;
 

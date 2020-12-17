@@ -11,7 +11,8 @@ export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
   position: relative;
 
-  box-shadow: 0 0 0 2px rgba(16, 22, 58), inset 0 0 0 1px rgba(16, 22, 58, 0.07);
+  box-shadow: 0 0 0 2px ${props => props.theme.colors.bg.primary},
+    inset 0 0 0 1px ${props => mixin.rgba(props.theme.colors.bg.primary, 0.07)};
 `;
 
 export const NavbarWrapper = styled.div`
@@ -28,9 +29,9 @@ export const NavbarHeader = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgb(16, 22, 58);
+  background: ${props => props.theme.colors.bg.primary};
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(65, 69, 97, 0.65);
+  border-bottom: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0.65)};
 `;
 export const Breadcrumbs = styled.div`
   color: rgb(94, 108, 132);
@@ -124,7 +125,7 @@ export const ProjectTabs = styled.div`
 
 export const ProjectTab = styled(NavLink)`
   font-size: 80%;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   font-size: 15px;
   cursor: pointer;
   display: flex;
@@ -141,22 +142,22 @@ export const ProjectTab = styled(NavLink)`
   }
 
   &:hover {
-    box-shadow: inset 0 -2px rgba(${props => props.theme.colors.text.secondary});
-    color: rgba(${props => props.theme.colors.text.secondary});
+    box-shadow: inset 0 -2px ${props => props.theme.colors.text.secondary};
+    color: ${props => props.theme.colors.text.secondary};
   }
 
   &.active {
-    box-shadow: inset 0 -2px rgba(${props => props.theme.colors.secondary});
-    color: rgba(${props => props.theme.colors.secondary});
+    box-shadow: inset 0 -2px ${props => props.theme.colors.secondary};
+    color: ${props => props.theme.colors.secondary};
   }
   &.active:hover {
-    box-shadow: inset 0 -2px rgba(${props => props.theme.colors.secondary});
-    color: rgba(${props => props.theme.colors.secondary});
+    box-shadow: inset 0 -2px ${props => props.theme.colors.secondary};
+    color: ${props => props.theme.colors.secondary};
   }
 `;
 
 export const ProjectName = styled.h1`
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   font-weight: 600;
   font-size: 20px;
   padding: 3px 10px 3px 8px;
@@ -185,7 +186,7 @@ export const ProjectNameTextarea = styled(TextareaAutosize)`
   font-size: 20px;
   padding: 3px 10px 3px 8px;
   &:focus {
-    box-shadow: rgb(115, 103, 240) 0px 0px 0px 1px;
+    box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
   }
 `;
 
@@ -203,7 +204,7 @@ export const ProjectSwitcher = styled.button`
   color: #c2c6dc;
   cursor: pointer;
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -227,7 +228,7 @@ export const ProjectSettingsButton = styled.button`
   justify-content: center;
   cursor: pointer;
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -243,7 +244,7 @@ export const ProjectFinder = styled(Button)`
 
 export const NavSeparator = styled.div`
   width: 1px;
-  background: rgba(${props => props.theme.colors.border});
+  background: ${props => props.theme.colors.border};
   height: 34px;
   margin: 0 20px;
 `;
@@ -260,11 +261,11 @@ export const LogoContainer = styled(Link)`
 
 export const TaskcafeTitle = styled.h2`
   margin-left: 5px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   font-size: 20px;
 `;
 
 export const TaskcafeLogo = styled(Taskcafe)`
-  fill: rgba(${props => props.theme.colors.text.primary});
-  stroke: rgba(${props => props.theme.colors.text.primary});
+  fill: ${props => props.theme.colors.text.primary};
+  stroke: ${props => props.theme.colors.text.primary};
 `;

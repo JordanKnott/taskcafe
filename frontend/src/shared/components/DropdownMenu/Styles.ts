@@ -59,7 +59,7 @@ export const ActionItem = styled.li`
   align-items: center;
   font-size: 14px;
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 

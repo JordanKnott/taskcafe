@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { LoadingSpinnerWrapper} from './Styles';
+import { LoadingSpinnerWrapper } from './Styles';
 
 type LoadingSpinnerProps = {
   color?: 'primary' | 'danger' | 'success' | 'warning' | 'dark';
@@ -30,11 +30,11 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   borderSize = '80px',
 }) => {
   return (
-      <LoadingSpinnerWrapper color={color} size={size} thickness={thickness} borderSize={borderSize}>
-        <div />
-        <div />
-        <div />
-      </LoadingSpinnerWrapper>
+    <LoadingSpinnerWrapper color={color} size={size} thickness={thickness} borderSize={borderSize}>
+      <div />
+      <div />
+      <div />
+    </LoadingSpinnerWrapper>
   );
 };
 

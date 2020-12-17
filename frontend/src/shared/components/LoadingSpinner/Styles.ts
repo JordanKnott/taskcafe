@@ -22,10 +22,10 @@ export const LoadingSpinnerWrapper = styled.div<{ color: string; size: string; b
     width: ${props => props.size};
     height: ${props => props.size};
     margin: ${props => props.thickness};
-    border: ${props => props.thickness} solid rgba(${props => props.theme.colors[props.color]});
+    border: ${props => props.thickness} solid ${props => props.theme.colors[props.color]};
     border-radius: 50%;
     animation: 1.2s ${LoadingSpinnerKeyframes} cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    border-color: rgba(${props => props.theme.colors[props.color]}) transparent transparent transparent;
+    border-color: ${props => props.theme.colors[props.color]} transparent transparent transparent;
   }
 
   & > div:nth-child(1) {

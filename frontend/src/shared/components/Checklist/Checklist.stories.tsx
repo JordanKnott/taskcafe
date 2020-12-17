@@ -22,7 +22,7 @@ export default {
 const Container = styled.div`
   width: 552px;
   margin: 25px;
-  border: 1px solid rgba(${props => props.theme.colors.bg.primary});
+  border: 1px solid ${props => props.theme.colors.bg.primary};
 `;
 
 const defaultItems = [

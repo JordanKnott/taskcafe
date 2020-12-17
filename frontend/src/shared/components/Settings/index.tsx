@@ -17,7 +17,7 @@ const UserInfoInput = styled(Input)`
 
 const FormError = styled.span`
   font-size: 12px;
-  color: rgba(${props => props.theme.colors.warning});
+  color: ${props => props.theme.colors.warning};
 `;
 
 const ProfileContainer = styled.div`
@@ -152,12 +152,12 @@ const TabNavItemButton = styled.button<{ active: boolean }>`
   width: 100%;
   position: relative;
 
-  color: ${props => (props.active ? 'rgba(115, 103, 240)' : '#c2c6dc')};
+  color: ${props => (props.active ? `${props.theme.colors.primary}` : '#c2c6dc')};
   &:hover {
-    color: rgba(115, 103, 240);
+    color: ${props => props.theme.colors.primary};
   }
   &:hover svg {
-    fill: rgba(115, 103, 240);
+    fill: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -175,8 +175,8 @@ const TabNavLine = styled.span<{ top: number }>`
   transform: scaleX(1);
   top: ${props => props.top}px;
 
-  background: linear-gradient(30deg, rgba(115, 103, 240), rgba(115, 103, 240));
-  box-shadow: 0 0 8px 0 rgba(115, 103, 240);
+  background: linear-gradient(30deg, ${props => props.theme.colors.primary}, ${props => props.theme.colors.primary});
+  box-shadow: 0 0 8px 0 ${props => props.theme.colors.primary};
   display: block;
   position: absolute;
   transition: all 0.2s ease;

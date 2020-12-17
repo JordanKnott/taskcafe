@@ -8,6 +8,7 @@ import {
 } from 'shared/generated/graphql';
 import { Link } from 'react-router-dom';
 import Input from 'shared/components/Input';
+import theme from 'App/ThemeStyles';
 
 const FilterSearch = styled(Input)`
   margin: 0;
@@ -34,11 +35,11 @@ const FilterTabItem = styled.li`
   font-weight: 700;
   text-decoration: none;
   padding: 6px 8px;
-  color: rgba(${props => props.theme.colors.text.primary});
+  color: ${props => props.theme.colors.text.primary};
   &:hover {
     border-radius: 6px;
-    background: rgba(${props => props.theme.colors.primary});
-    color: rgba(${props => props.theme.colors.text.secondary});
+    background: ${props => props.theme.colors.primary};
+    color: ${props => props.theme.colors.text.secondary};
   }
 `;
 
@@ -55,7 +56,7 @@ const FilterTabTitle = styled.h2`
 `;
 
 const ProjectAddTile = styled.div`
-  background-color: rgba(${props => props.theme.colors.bg.primary}, 0.4);
+  background-color: ${props => props.theme.colors.bg.primary};
   background-size: cover;
   background-position: 50%;
   color: #fff;
@@ -147,7 +148,7 @@ const ProjectListWrapper = styled.div`
   flex: 1 1;
 `;
 
-const colors = ['#e362e3', '#7a6ff0', '#37c5ab', '#aa62e3', '#e8384f'];
+const colors = theme.colors.multiColors;
 
 type TeamProjectsProps = {
   teamID: string;

@@ -19,23 +19,23 @@ display: flex
   }
 
   & .react-datepicker-time__header {
-    color: rgba(${props => props.theme.colors.text.primary});
+    color: ${props => props.theme.colors.text.primary};
   }
   & .react-datepicker__time-list-item {
-    color: rgba(${props => props.theme.colors.text.primary});
+    color: ${props => props.theme.colors.text.primary};
   }
   & .react-datepicker__time-container .react-datepicker__time
   .react-datepicker__time-box ul.react-datepicker__time-list
   li.react-datepicker__time-list-item:hover {
-    color: rgba(${props => props.theme.colors.text.secondary});
-    background: rgba(${props => props.theme.colors.bg.secondary});
+    color: ${props => props.theme.colors.text.secondary};
+    background: ${props => props.theme.colors.bg.secondary};
   }
   & .react-datepicker__time-container .react-datepicker__time {
-    background: rgba(${props => props.theme.colors.bg.primary});
+    background: ${props => props.theme.colors.bg.primary};
   }
   & .react-datepicker--time-only {
-    background: rgba(${props => props.theme.colors.bg.primary});
-    border: 1px solid rgba(${props => props.theme.colors.border});
+    background: ${props => props.theme.colors.bg.primary};
+    border: 1px solid ${props => props.theme.colors.border};
   }
 
   & .react-datepicker * {
@@ -75,12 +75,12 @@ display: flex
   }
   & .react-datepicker__day--selected {
     border-radius: 50%;
-    background: rgba(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
     color: #fff;
   }
   & .react-datepicker__day--selected:hover {
     border-radius: 50%;
-    background: rgba(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
     color: #fff;
   }
   & .react-datepicker__header {
@@ -88,7 +88,7 @@ display: flex
     border: none;
   }
   & .react-datepicker__header--time {
-    border-bottom: 1px solid rgba(${props => props.theme.colors.border});
+    border-bottom: 1px solid ${props => props.theme.colors.border};
   }
 
 `;

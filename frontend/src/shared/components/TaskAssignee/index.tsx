@@ -36,7 +36,7 @@ export const Wrapper = styled.div<{
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(${props => (props.backgroundURL ? props.theme.colors.text.primary : '0,0,0')});
+  color: ${props => (props.backgroundURL ? props.theme.colors.text.primary : 'rgb(0,0,0)')};
   background: ${props => (props.backgroundURL ? `url(${props.backgroundURL})` : props.bgColor)};
   background-position: center;
   background-size: contain;

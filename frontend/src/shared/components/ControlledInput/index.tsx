@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components/macro';
+import theme from '../../../App/ThemeStyles';
 
 const InputWrapper = styled.div<{ width: string }>`
   position: relative;
@@ -57,14 +58,14 @@ const InputInput = styled.input<{
     background: ${props => props.focusBg};
   }
   &:focus ~ ${InputLabel} {
-    color: rgba(115, 103, 240);
+    color: ${props => props.theme.colors.primary};
     transform: translate(-3px, -90%);
   }
   ${props =>
     props.hasValue &&
     css`
       & ~ ${InputLabel} {
-        color: rgba(115, 103, 240);
+        color: ${props.theme.colors.primary};
         transform: translate(-3px, -90%);
       }
     `}
@@ -115,8 +116,8 @@ const ControlledInput = ({
 }: ControlledInputProps) => {
   const $input = useRef<HTMLInputElement>(null);
   const [hasValue, setHasValue] = useState(false);
-  const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : '#414561';
-  const focusBg = variant === 'normal' ? 'rgba(38, 44, 73, )' : 'rgba(16, 22, 58, 1)';
+  const borderColor = variant === 'normal' ? 'rgba(0, 0, 0, 0.2)' : theme.colors.alternate;
+  const focusBg = variant === 'normal' ? theme.colors.bg.secondary : theme.colors.bg.primary;
   useEffect(() => {
     if (autoFocus && $input && $input.current) {
       $input.current.focus();

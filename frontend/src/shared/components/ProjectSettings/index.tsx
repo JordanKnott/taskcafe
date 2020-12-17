@@ -24,7 +24,7 @@ export const ListActionItem = styled.span`
   margin: 0 -12px;
   text-decoration: none;
   &:hover {
-    background: rgb(115, 103, 240);
+    background: ${props => props.theme.colors.primary};
   }
 `;
 

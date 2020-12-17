@@ -2,6 +2,7 @@ import React, { createRef, useState } from 'react';
 import styled from 'styled-components';
 import { action } from '@storybook/addon-actions';
 import DropdownMenu from '.';
+import theme from '../../../App/ThemeStyles';
 
 export default {
   component: DropdownMenu,
@@ -10,7 +11,7 @@ export default {
     backgrounds: [
       { name: 'white', value: '#ffffff' },
       { name: 'gray', value: '#f8f8f8' },
-      { name: 'darkBlue', value: '#262c49', default: true },
+      { name: 'darkBlue', value: theme.colors.bg.secondary, default: true },
     ],
   },
 };

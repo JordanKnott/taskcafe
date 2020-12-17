@@ -2,16 +2,17 @@ import React from 'react';
 import Select from 'react-select';
 import styled from 'styled-components';
 import { mixin } from 'shared/utils/styles';
+import theme from 'App/ThemeStyles';
 
 function getBackgroundColor(isDisabled: boolean, isSelected: boolean, isFocused: boolean) {
   if (isDisabled) {
     return null;
   }
   if (isSelected) {
-    return mixin.darken('#262c49', 0.25);
+    return mixin.darken(theme.colors.bg.secondary, 0.25);
   }
   if (isFocused) {
-    return mixin.darken('#262c49', 0.15);
+    return mixin.darken(theme.colors.bg.secondary, 0.15);
   }
   return null;
 }
@@ -20,35 +21,35 @@ export const colourStyles = {
   control: (styles: any, data: any) => {
     return {
       ...styles,
-      backgroundColor: data.isMenuOpen ? mixin.darken('#262c49', 0.15) : '#262c49',
-      boxShadow: data.menuIsOpen ? 'rgb(115, 103, 240) 0px 0px 0px 1px' : 'none',
+      backgroundColor: data.isMenuOpen ? mixin.darken(theme.colors.bg.secondary, 0.15) : theme.colors.bg.secondary,
+      boxShadow: data.menuIsOpen ? `${theme.colors.primary} 0px 0px 0px 1px` : 'none',
       borderRadius: '3px',
       borderWidth: '1px',
       borderStyle: 'solid',
       borderImage: 'initial',
-      borderColor: '#414561',
+      borderColor: theme.colors.alternate,
       ':hover': {
-        boxShadow: 'rgb(115, 103, 240) 0px 0px 0px 1px',
+        boxShadow: `${theme.colors.primary} 0px 0px 0px 1px`,
         borderRadius: '3px',
         borderWidth: '1px',
         borderStyle: 'solid',
         borderImage: 'initial',
-        borderColor: '#414561',
+        borderColor: theme.colors.alternate,
       },
       ':active': {
-        boxShadow: 'rgb(115, 103, 240) 0px 0px 0px 1px',
+        boxShadow: `${theme.colors.primary} 0px 0px 0px 1px`,
         borderRadius: '3px',
         borderWidth: '1px',
         borderStyle: 'solid',
         borderImage: 'initial',
-        borderColor: 'rgb(115, 103, 240)',
+        borderColor: `${theme.colors.primary}`,
       },
     };
   },
   menu: (styles: any) => {
     return {
       ...styles,
-      backgroundColor: mixin.darken('#262c49', 0.15),
+      backgroundColor: mixin.darken(theme.colors.bg.secondary, 0.15),
     };
   },
   dropdownIndicator: (styles: any) => ({ ...styles, color: '#c2c6dc', ':hover': { color: '#c2c6dc' } }),
@@ -61,11 +62,11 @@ export const colourStyles = {
       cursor: isDisabled ? 'not-allowed' : 'default',
       ':active': {
         ...styles[':active'],
-        backgroundColor: !isDisabled && (isSelected ? mixin.darken('#262c49', 0.25) : '#fff'),
+        backgroundColor: !isDisabled && (isSelected ? mixin.darken(theme.colors.bg.secondary, 0.25) : '#fff'),
       },
       ':hover': {
         ...styles[':hover'],
-        backgroundColor: !isDisabled && (isSelected ? 'rgb(115, 103, 240)' : 'rgb(115, 103, 240)'),
+        backgroundColor: !isDisabled && (isSelected ? theme.colors.primary : theme.colors.primary),
       },
     };
   },
@@ -86,7 +87,7 @@ export const colourStyles = {
 const InputLabel = styled.span<{ width: string }>`
 width: ${props => props.width};
 padding-left: 0.7rem;
-color: rgba(115, 103, 240);
+color: ${props => props.theme.colors.primary};
 left: 0;
 top: 0;
 transition: all 0.2s ease;
