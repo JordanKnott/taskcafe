@@ -22,6 +22,12 @@ type AssignTaskInput struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
+type CausedBy struct {
+	ID          uuid.UUID    `json:"id"`
+	FullName    string       `json:"fullName"`
+	ProfileIcon *ProfileIcon `json:"profileIcon"`
+}
+
 type ChecklistBadge struct {
 	Complete int `json:"complete"`
 	Total    int `json:"total"`
@@ -374,6 +380,11 @@ type SortTaskGroupPayload struct {
 	Tasks       []db.Task `json:"tasks"`
 }
 
+type TaskActivityData struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type TaskBadges struct {
 	Checklist *ChecklistBadge `json:"checklist"`
 }
@@ -612,6 +623,63 @@ func (e *ActionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ActionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ActivityType string
+
+const (
+	ActivityTypeTaskAdded            ActivityType = "TASK_ADDED"
+	ActivityTypeTaskMoved            ActivityType = "TASK_MOVED"
+	ActivityTypeTaskMarkedComplete   ActivityType = "TASK_MARKED_COMPLETE"
+	ActivityTypeTaskMarkedIncomplete ActivityType = "TASK_MARKED_INCOMPLETE"
+	ActivityTypeTaskDueDateChanged   ActivityType = "TASK_DUE_DATE_CHANGED"
+	ActivityTypeTaskDueDateAdded     ActivityType = "TASK_DUE_DATE_ADDED"
+	ActivityTypeTaskDueDateRemoved   ActivityType = "TASK_DUE_DATE_REMOVED"
+	ActivityTypeTaskChecklistChanged ActivityType = "TASK_CHECKLIST_CHANGED"
+	ActivityTypeTaskChecklistAdded   ActivityType = "TASK_CHECKLIST_ADDED"
+	ActivityTypeTaskChecklistRemoved ActivityType = "TASK_CHECKLIST_REMOVED"
+)
+
+var AllActivityType = []ActivityType{
+	ActivityTypeTaskAdded,
+	ActivityTypeTaskMoved,
+	ActivityTypeTaskMarkedComplete,
+	ActivityTypeTaskMarkedIncomplete,
+	ActivityTypeTaskDueDateChanged,
+	ActivityTypeTaskDueDateAdded,
+	ActivityTypeTaskDueDateRemoved,
+	ActivityTypeTaskChecklistChanged,
+	ActivityTypeTaskChecklistAdded,
+	ActivityTypeTaskChecklistRemoved,
+}
+
+func (e ActivityType) IsValid() bool {
+	switch e {
+	case ActivityTypeTaskAdded, ActivityTypeTaskMoved, ActivityTypeTaskMarkedComplete, ActivityTypeTaskMarkedIncomplete, ActivityTypeTaskDueDateChanged, ActivityTypeTaskDueDateAdded, ActivityTypeTaskDueDateRemoved, ActivityTypeTaskChecklistChanged, ActivityTypeTaskChecklistAdded, ActivityTypeTaskChecklistRemoved:
+		return true
+	}
+	return false
+}
+
+func (e ActivityType) String() string {
+	return string(e)
+}
+
+func (e *ActivityType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ActivityType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ActivityType", str)
+	}
+	return nil
+}
+
+func (e ActivityType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

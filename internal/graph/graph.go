@@ -255,3 +255,15 @@ func GetActionType(actionType int32) ActionType {
 		panic("Not a valid entity type!")
 	}
 }
+
+type MemberType string
+
+const (
+	MemberTypeInvited MemberType = "INVITED"
+	MemberTypeJoined  MemberType = "JOINED"
+)
+
+type MasterEntry struct {
+	MemberType MemberType
+	ID         uuid.UUID
+}

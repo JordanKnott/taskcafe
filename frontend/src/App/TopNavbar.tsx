@@ -167,7 +167,7 @@ const ProjectFinder = () => {
   return <span>error</span>;
 };
 type ProjectPopupProps = {
-  history: History<History.PoorMansUnknown>;
+  history: any;
   name: string;
   projectID: string;
 };
@@ -182,7 +182,7 @@ export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, proje
 
       const newData = produce(cacheData, (draftState: any) => {
         draftState.projects = draftState.projects.filter(
-          (project: any) => project.id !== deleteData.data.deleteProject.project.id,
+          (project: any) => project.id !== deleteData.data?.deleteProject.project.id,
         );
       });
 

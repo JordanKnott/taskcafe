@@ -32,7 +32,6 @@ import {
   FindProjectDocument,
   FindProjectQuery,
 } from 'shared/generated/graphql';
-
 import produce from 'immer';
 import UserContext, { useCurrentUser } from 'App/context';
 import Input from 'shared/components/Input';
@@ -423,14 +422,16 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            const taskGroupIdx = draftCache.findProject.taskGroups.findIndex(
-              tg => tg.tasks.findIndex(t => t.id === resp.data.deleteTask.taskID) !== -1,
-            );
+            if (resp.data) {
+              const taskGroupIdx = draftCache.findProject.taskGroups.findIndex(
+                tg => tg.tasks.findIndex(t => t.id === resp.data?.deleteTask.taskID) !== -1,
+              );
 
-            if (taskGroupIdx !== -1) {
-              draftCache.findProject.taskGroups[taskGroupIdx].tasks = cache.findProject.taskGroups[
-                taskGroupIdx
-              ].tasks.filter(t => t.id !== resp.data.deleteTask.taskID);
+              if (taskGroupIdx !== -1) {
+                draftCache.findProject.taskGroups[taskGroupIdx].tasks = cache.findProject.taskGroups[
+                  taskGroupIdx
+                ].tasks.filter(t => t.id !== resp.data?.deleteTask.taskID);
+              }
             }
           }),
         { projectID },
@@ -450,7 +451,7 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.name = newName.data.updateProjectName.name;
+            draftCache.findProject.name = newName.data?.updateProjectName.name ?? '';
           }),
         { projectID },
       );
@@ -464,14 +465,16 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.members = [
-              ...cache.findProject.members,
-              ...response.data.inviteProjectMembers.members,
-            ];
-            draftCache.findProject.invitedMembers = [
-              ...cache.findProject.invitedMembers,
-              ...response.data.inviteProjectMembers.invitedMembers,
-            ];
+            if (response.data) {
+              draftCache.findProject.members = [
+                ...cache.findProject.members,
+                ...response.data.inviteProjectMembers.members,
+              ];
+              draftCache.findProject.invitedMembers = [
+                ...cache.findProject.invitedMembers,
+                ...response.data.inviteProjectMembers.invitedMembers,
+              ];
+            }
           }),
         { projectID },
       );
@@ -485,7 +488,7 @@ const Project = () => {
         cache =>
           produce(cache, draftCache => {
             draftCache.findProject.invitedMembers = cache.findProject.invitedMembers.filter(
-              m => m.email !== response.data.deleteInvitedProjectMember.invitedMember.email,
+              m => m.email !== response.data?.deleteInvitedProjectMember.invitedMember.email ?? '',
             );
           }),
         { projectID },
@@ -500,7 +503,7 @@ const Project = () => {
         cache =>
           produce(cache, draftCache => {
             draftCache.findProject.members = cache.findProject.members.filter(
-              m => m.id !== response.data.deleteProjectMember.member.id,
+              m => m.id !== response.data?.deleteProjectMember.member.id,
             );
           }),
         { projectID },

@@ -168,6 +168,41 @@ export type TaskBadges = {
   checklist?: Maybe<ChecklistBadge>;
 };
 
+export type CausedBy = {
+   __typename?: 'CausedBy';
+  id: Scalars['ID'];
+  fullName: Scalars['String'];
+  profileIcon?: Maybe<ProfileIcon>;
+};
+
+export type TaskActivityData = {
+   __typename?: 'TaskActivityData';
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export enum ActivityType {
+  TaskAdded = 'TASK_ADDED',
+  TaskMoved = 'TASK_MOVED',
+  TaskMarkedComplete = 'TASK_MARKED_COMPLETE',
+  TaskMarkedIncomplete = 'TASK_MARKED_INCOMPLETE',
+  TaskDueDateChanged = 'TASK_DUE_DATE_CHANGED',
+  TaskDueDateAdded = 'TASK_DUE_DATE_ADDED',
+  TaskDueDateRemoved = 'TASK_DUE_DATE_REMOVED',
+  TaskChecklistChanged = 'TASK_CHECKLIST_CHANGED',
+  TaskChecklistAdded = 'TASK_CHECKLIST_ADDED',
+  TaskChecklistRemoved = 'TASK_CHECKLIST_REMOVED'
+}
+
+export type TaskActivity = {
+   __typename?: 'TaskActivity';
+  id: Scalars['ID'];
+  type: ActivityType;
+  data: Array<TaskActivityData>;
+  causedBy: CausedBy;
+  createdAt: Scalars['Time'];
+};
+
 export type Task = {
    __typename?: 'Task';
   id: Scalars['ID'];
@@ -183,6 +218,7 @@ export type Task = {
   labels: Array<TaskLabel>;
   checklists: Array<TaskChecklist>;
   badges: TaskBadges;
+  activity: Array<TaskActivity>;
 };
 
 export type Organization = {
@@ -208,6 +244,11 @@ export type TaskChecklist = {
   position: Scalars['Float'];
   items: Array<TaskChecklistItem>;
 };
+
+export enum ShareStatus {
+  Invited = 'INVITED',
+  Joined = 'JOINED'
+}
 
 export enum RoleLevel {
   Admin = 'ADMIN',
@@ -1050,17 +1091,16 @@ export type DeleteInvitedUserAccountPayload = {
 };
 
 export type MemberSearchFilter = {
-  SearchFilter: Scalars['String'];
+  searchFilter: Scalars['String'];
   projectID?: Maybe<Scalars['UUID']>;
 };
 
 export type MemberSearchResult = {
    __typename?: 'MemberSearchResult';
   similarity: Scalars['Int'];
-  user: UserAccount;
-  confirmed: Scalars['Boolean'];
-  invited: Scalars['Boolean'];
-  joined: Scalars['Boolean'];
+  id: Scalars['String'];
+  user?: Maybe<UserAccount>;
+  status: ShareStatus;
 };
 
 export type UpdateUserInfoPayload = {
@@ -1344,7 +1384,21 @@ export type FindTaskQuery = (
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name'>
-    ), badges: (
+    ), activity: Array<(
+      { __typename?: 'TaskActivity' }
+      & Pick<TaskActivity, 'id' | 'type' | 'createdAt'>
+      & { causedBy: (
+        { __typename?: 'CausedBy' }
+        & Pick<CausedBy, 'id' | 'fullName'>
+        & { profileIcon?: Maybe<(
+          { __typename?: 'ProfileIcon' }
+          & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+        )> }
+      ), data: Array<(
+        { __typename?: 'TaskActivityData' }
+        & Pick<TaskActivityData, 'name' | 'value'>
+      )> }
+    )>, badges: (
       { __typename?: 'TaskBadges' }
       & { checklist?: Maybe<(
         { __typename?: 'ChecklistBadge' }
@@ -2824,6 +2878,24 @@ export const FindTaskDocument = gql`
     taskGroup {
       id
       name
+    }
+    activity {
+      id
+      type
+      causedBy {
+        id
+        fullName
+        profileIcon {
+          initials
+          bgColor
+          url
+        }
+      }
+      createdAt
+      data {
+        name
+        value
+      }
     }
     badges {
       checklist {

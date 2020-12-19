@@ -138,21 +138,23 @@ const Details: React.FC<DetailsProps> = ({
         FindTaskDocument,
         cache =>
           produce(cache, draftCache => {
-            const { prevChecklistID, checklistID, checklistItem } = response.data.updateTaskChecklistItemLocation;
-            if (checklistID !== prevChecklistID) {
-              const oldIdx = cache.findTask.checklists.findIndex(c => c.id === prevChecklistID);
-              const newIdx = cache.findTask.checklists.findIndex(c => c.id === checklistID);
-              if (oldIdx > -1 && newIdx > -1) {
-                const item = cache.findTask.checklists[oldIdx].items.find(i => i.id === checklistItem.id);
-                if (item) {
-                  draftCache.findTask.checklists[oldIdx].items = cache.findTask.checklists[oldIdx].items.filter(
-                    i => i.id !== checklistItem.id,
-                  );
-                  draftCache.findTask.checklists[newIdx].items.push({
-                    ...item,
-                    position: checklistItem.position,
-                    taskChecklistID: checklistID,
-                  });
+            if (response.data) {
+              const { prevChecklistID, taskChecklistID, checklistItem } = response.data.updateTaskChecklistItemLocation;
+              if (taskChecklistID !== prevChecklistID) {
+                const oldIdx = cache.findTask.checklists.findIndex(c => c.id === prevChecklistID);
+                const newIdx = cache.findTask.checklists.findIndex(c => c.id === taskChecklistID);
+                if (oldIdx > -1 && newIdx > -1) {
+                  const item = cache.findTask.checklists[oldIdx].items.find(i => i.id === checklistItem.id);
+                  if (item) {
+                    draftCache.findTask.checklists[oldIdx].items = cache.findTask.checklists[oldIdx].items.filter(
+                      i => i.id !== checklistItem.id,
+                    );
+                    draftCache.findTask.checklists[newIdx].items.push({
+                      ...item,
+                      position: checklistItem.position,
+                      taskChecklistID: taskChecklistID,
+                    });
+                  }
                 }
               }
             }
@@ -188,7 +190,7 @@ const Details: React.FC<DetailsProps> = ({
           produce(cache, draftCache => {
             const { checklists } = cache.findTask;
             draftCache.findTask.checklists = checklists.filter(
-              c => c.id !== deleteData.data.deleteTaskChecklist.taskChecklist.id,
+              c => c.id !== deleteData.data?.deleteTaskChecklist.taskChecklist.id,
             );
             const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
             draftCache.findTask.badges.checklist = {
@@ -212,8 +214,10 @@ const Details: React.FC<DetailsProps> = ({
         FindTaskDocument,
         cache =>
           produce(cache, draftCache => {
-            const item = createData.data.createTaskChecklist;
-            draftCache.findTask.checklists.push({ ...item });
+            if (createData.data) {
+              const item = createData.data.createTaskChecklist;
+              draftCache.findTask.checklists.push({ ...item });
+            }
           }),
         { taskID },
       );
@@ -227,36 +231,14 @@ const Details: React.FC<DetailsProps> = ({
         FindTaskDocument,
         cache =>
           produce(cache, draftCache => {
-            const item = deleteData.data.deleteTaskChecklistItem.taskChecklistItem;
-            const targetIdx = cache.findTask.checklists.findIndex(c => c.id === item.taskChecklistID);
-            if (targetIdx > -1) {
-              draftCache.findTask.checklists[targetIdx].items = cache.findTask.checklists[targetIdx].items.filter(
-                c => item.id !== c.id,
-              );
-            }
-            const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
-            draftCache.findTask.badges.checklist = {
-              __typename: 'ChecklistBadge',
-              complete,
-              total,
-            };
-          }),
-        { taskID },
-      );
-    },
-  });
-  const [createTaskChecklistItem] = useCreateTaskChecklistItemMutation({
-    update: (client, newTaskItem) => {
-      updateApolloCache<FindTaskQuery>(
-        client,
-        FindTaskDocument,
-        cache =>
-          produce(cache, draftCache => {
-            const item = newTaskItem.data.createTaskChecklistItem;
-            const { checklists } = cache.findTask;
-            const idx = checklists.findIndex(c => c.id === item.taskChecklistID);
-            if (idx !== -1) {
-              draftCache.findTask.checklists[idx].items.push({ ...item });
+            if (deleteData.data) {
+              const item = deleteData.data.deleteTaskChecklistItem.taskChecklistItem;
+              const targetIdx = cache.findTask.checklists.findIndex(c => c.id === item.taskChecklistID);
+              if (targetIdx > -1) {
+                draftCache.findTask.checklists[targetIdx].items = cache.findTask.checklists[targetIdx].items.filter(
+                  c => item.id !== c.id,
+                );
+              }
               const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
               draftCache.findTask.badges.checklist = {
                 __typename: 'ChecklistBadge',
@@ -269,7 +251,33 @@ const Details: React.FC<DetailsProps> = ({
       );
     },
   });
-  const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID } });
+  const [createTaskChecklistItem] = useCreateTaskChecklistItemMutation({
+    update: (client, newTaskItem) => {
+      updateApolloCache<FindTaskQuery>(
+        client,
+        FindTaskDocument,
+        cache =>
+          produce(cache, draftCache => {
+            if (newTaskItem.data) {
+              const item = newTaskItem.data.createTaskChecklistItem;
+              const { checklists } = cache.findTask;
+              const idx = checklists.findIndex(c => c.id === item.taskChecklistID);
+              if (idx !== -1) {
+                draftCache.findTask.checklists[idx].items.push({ ...item });
+                const { complete, total } = calculateChecklistBadge(draftCache.findTask.checklists);
+                draftCache.findTask.badges.checklist = {
+                  __typename: 'ChecklistBadge',
+                  complete,
+                  total,
+                };
+              }
+            }
+          }),
+        { taskID },
+      );
+    },
+  });
+  const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID }, fetchPolicy: 'cache-and-network' });
   const [setTaskComplete] = useSetTaskCompleteMutation();
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
     onCompleted: () => {

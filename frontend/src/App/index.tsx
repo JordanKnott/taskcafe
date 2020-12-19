@@ -46,10 +46,6 @@ const StyledContainer = styled(ToastContainer).attrs({
 `;
 
 const history = createBrowserHistory();
-type RefreshTokenResponse = {
-  accessToken: string;
-  isInstalled: boolean;
-};
 
 const App = () => {
   const [user, setUser] = useState<CurrentUserRaw | null>(null);

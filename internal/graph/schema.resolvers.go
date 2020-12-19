@@ -7,7 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
-
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -17,12 +17,11 @@ import (
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	gomail "gopkg.in/mail.v2"
-
 	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
+	gomail "gopkg.in/mail.v2"
 )
 
 func (r *labelColorResolver) ID(ctx context.Context, obj *db.LabelColor) (uuid.UUID, error) {
@@ -367,6 +366,26 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.T
 		logger.New(ctx).WithError(err).Error("issue while creating task")
 		return &db.Task{}, err
 	}
+	taskGroup, err := r.Repository.GetTaskGroupByID(ctx, input.TaskGroupID)
+	if err != nil {
+		logger.New(ctx).WithError(err).Error("issue while creating task")
+		return &db.Task{}, err
+	}
+	data := map[string]string{
+		"TaskGroup": taskGroup.Name,
+	}
+	d, err := json.Marshal(data)
+	_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+		TaskID:         task.TaskID,
+		Data:           d,
+		CreatedAt:      createdAt,
+		ActivityTypeID: 1,
+	})
+
+	if err != nil {
+		logger.New(ctx).WithError(err).Error("issue while creating task")
+		return &db.Task{}, err
+	}
 	return &task, nil
 }
 
@@ -387,12 +406,44 @@ func (r *mutationResolver) UpdateTaskDescription(ctx context.Context, input Upda
 }
 
 func (r *mutationResolver) UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error) {
+	userID, _ := GetUserID(ctx)
 	previousTask, err := r.Repository.GetTaskByID(ctx, input.TaskID)
 	if err != nil {
 		return &UpdateTaskLocationPayload{}, err
 	}
-	task, err := r.Repository.UpdateTaskLocation(ctx, db.UpdateTaskLocationParams{input.TaskID, input.TaskGroupID, input.Position})
+	task, _ := r.Repository.UpdateTaskLocation(ctx, db.UpdateTaskLocationParams{TaskID: input.TaskID, TaskGroupID: input.TaskGroupID, Position: input.Position})
+	if previousTask.TaskGroupID != input.TaskGroupID {
+		skipAndDelete := false
+		lastMove, err := r.Repository.GetLastMoveForTaskID(ctx, input.TaskID)
+		if err == nil {
+			if lastMove.Active && lastMove.PrevTaskGroupID == input.TaskGroupID.String() {
+				skipAndDelete = true
+			}
+		}
+		if skipAndDelete {
+			_ = r.Repository.SetInactiveLastMoveForTaskID(ctx, input.TaskID)
+		} else {
+			prevTaskGroup, _ := r.Repository.GetTaskGroupByID(ctx, previousTask.TaskGroupID)
+			curTaskGroup, _ := r.Repository.GetTaskGroupByID(ctx, input.TaskGroupID)
 
+			data := map[string]string{
+				"PrevTaskGroup":   prevTaskGroup.Name,
+				"PrevTaskGroupID": prevTaskGroup.TaskGroupID.String(),
+				"CurTaskGroup":    curTaskGroup.Name,
+				"CurTaskGroupID":  curTaskGroup.TaskGroupID.String(),
+			}
+
+			createdAt := time.Now().UTC()
+			d, _ := json.Marshal(data)
+			_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+				TaskID:         task.TaskID,
+				Data:           d,
+				CausedBy:       userID,
+				CreatedAt:      createdAt,
+				ActivityTypeID: 2,
+			})
+		}
+	}
 	return &UpdateTaskLocationPayload{Task: &task, PreviousTaskGroupID: previousTask.TaskGroupID}, err
 }
 
@@ -1558,6 +1609,72 @@ func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, e
 	return &TaskBadges{Checklist: &ChecklistBadge{Total: total, Complete: complete}}, nil
 }
 
+func (r *taskResolver) Activity(ctx context.Context, obj *db.Task) ([]db.TaskActivity, error) {
+	activity, err := r.Repository.GetActivityForTaskID(ctx, obj.TaskID)
+	if err == sql.ErrNoRows {
+		return []db.TaskActivity{}, nil
+	}
+	return activity, err
+}
+
+func (r *taskActivityResolver) ID(ctx context.Context, obj *db.TaskActivity) (uuid.UUID, error) {
+	return obj.TaskActivityID, nil
+}
+
+func (r *taskActivityResolver) Type(ctx context.Context, obj *db.TaskActivity) (ActivityType, error) {
+	switch obj.ActivityTypeID {
+	case 1:
+		return ActivityTypeTaskAdded, nil
+	case 2:
+		return ActivityTypeTaskMoved, nil
+	case 3:
+		return ActivityTypeTaskMarkedComplete, nil
+	case 4:
+		return ActivityTypeTaskMarkedIncomplete, nil
+	case 5:
+		return ActivityTypeTaskDueDateChanged, nil
+	case 6:
+		return ActivityTypeTaskDueDateAdded, nil
+	case 7:
+		return ActivityTypeTaskDueDateRemoved, nil
+	case 8:
+		return ActivityTypeTaskChecklistChanged, nil
+	case 9:
+		return ActivityTypeTaskChecklistAdded, nil
+	case 10:
+		return ActivityTypeTaskChecklistRemoved, nil
+	default:
+		return ActivityTypeTaskAdded, errors.New("unknown type")
+	}
+}
+
+func (r *taskActivityResolver) Data(ctx context.Context, obj *db.TaskActivity) ([]TaskActivityData, error) {
+	var data map[string]string
+	_ = json.Unmarshal(obj.Data, &data)
+	activity := []TaskActivityData{}
+	for name, value := range data {
+		activity = append(activity, TaskActivityData{
+			Name:  name,
+			Value: value,
+		})
+	}
+	return activity, nil
+}
+
+func (r *taskActivityResolver) CausedBy(ctx context.Context, obj *db.TaskActivity) (*CausedBy, error) {
+	user, err := r.Repository.GetUserAccountByID(ctx, obj.CausedBy)
+	var url *string
+	if user.ProfileAvatarUrl.Valid {
+		url = &user.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	return &CausedBy{
+		ID:          obj.CausedBy,
+		FullName:    user.FullName,
+		ProfileIcon: profileIcon,
+	}, err
+}
+
 func (r *taskChecklistResolver) ID(ctx context.Context, obj *db.TaskChecklist) (uuid.UUID, error) {
 	return obj.TaskChecklistID, nil
 }
@@ -1619,6 +1736,7 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 		if user.ProfileAvatarUrl.Valid {
 			url = &user.ProfileAvatarUrl.String
 		}
+		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 		role, err := r.Repository.GetRoleForTeamMember(ctx, db.GetRoleForTeamMemberParams{UserID: user.UserID, TeamID: obj.TeamID})
 		if err != nil {
 			logger.New(ctx).WithError(err).Error("get role for projet member by user ID")
@@ -1634,7 +1752,6 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 			return members, err
 		}
 
-		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 		members = append(members, Member{ID: user.UserID, FullName: user.FullName, ProfileIcon: profileIcon,
 			Username: user.Username, Owned: ownedList, Member: memberList, Role: &db.Role{Code: role.Code, Name: role.Name},
 		})
@@ -1724,6 +1841,9 @@ func (r *Resolver) RefreshToken() RefreshTokenResolver { return &refreshTokenRes
 // Task returns TaskResolver implementation.
 func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 
+// TaskActivity returns TaskActivityResolver implementation.
+func (r *Resolver) TaskActivity() TaskActivityResolver { return &taskActivityResolver{r} }
+
 // TaskChecklist returns TaskChecklistResolver implementation.
 func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklistResolver{r} }
 
@@ -1753,27 +1873,10 @@ type projectLabelResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type refreshTokenResolver struct{ *Resolver }
 type taskResolver struct{ *Resolver }
+type taskActivityResolver struct{ *Resolver }
 type taskChecklistResolver struct{ *Resolver }
 type taskChecklistItemResolver struct{ *Resolver }
 type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }
 type userAccountResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-type MemberType string
-
-const (
-	MemberTypeInvited MemberType = "INVITED"
-	MemberTypeJoined  MemberType = "JOINED"
-)
-
-type MasterEntry struct {
-	MemberType MemberType
-	ID         uuid.UUID
-}

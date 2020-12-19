@@ -25,6 +25,11 @@ const MainContent = styled.div`
   flex-grow: 1;
 `;
 
+type RefreshTokenResponse = {
+  accessToken: string;
+  setup?: null | { confirmToken: string };
+};
+
 const AuthorizedRoutes = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);

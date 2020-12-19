@@ -537,25 +537,26 @@ export const ActivityItem = styled.div`
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
+  display: flex;
 `;
 
 export const ActivityItemHeader = styled.div`
   display: flex;
+  flex-direction: column;
+  padding-left: 8px;
 `;
-export const ActivityItemHeaderUser = styled(TaskAssignee)`
-  margin-right: 4px;
-`;
+export const ActivityItemHeaderUser = styled(TaskAssignee)``;
 
 export const ActivityItemHeaderTitle = styled.div`
-  margin-left: 4px;
-  line-height: 18px;
   display: flex;
   align-items: center;
+  color: ${props => props.theme.colors.text.primary};
+  padding-bottom: 2px;
 `;
 
 export const ActivityItemHeaderTitleName = styled.span`
-  color: ${props => props.theme.colors.text.primary};
   font-weight: 500;
+  padding-right: 2px;
 `;
 
 export const ActivityItemTimestamp = styled.span<{ margin: number }>`

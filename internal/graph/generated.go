@@ -47,6 +47,7 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	RefreshToken() RefreshTokenResolver
 	Task() TaskResolver
+	TaskActivity() TaskActivityResolver
 	TaskChecklist() TaskChecklistResolver
 	TaskChecklistItem() TaskChecklistItemResolver
 	TaskGroup() TaskGroupResolver
@@ -60,6 +61,12 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	CausedBy struct {
+		FullName    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ProfileIcon func(childComplexity int) int
+	}
+
 	ChecklistBadge struct {
 		Complete func(childComplexity int) int
 		Total    func(childComplexity int) int
@@ -346,6 +353,7 @@ type ComplexityRoot struct {
 	}
 
 	Task struct {
+		Activity    func(childComplexity int) int
 		Assigned    func(childComplexity int) int
 		Badges      func(childComplexity int) int
 		Checklists  func(childComplexity int) int
@@ -359,6 +367,19 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		Position    func(childComplexity int) int
 		TaskGroup   func(childComplexity int) int
+	}
+
+	TaskActivity struct {
+		CausedBy  func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Data      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Type      func(childComplexity int) int
+	}
+
+	TaskActivityData struct {
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	TaskBadges struct {
@@ -583,6 +604,13 @@ type TaskResolver interface {
 	Labels(ctx context.Context, obj *db.Task) ([]db.TaskLabel, error)
 	Checklists(ctx context.Context, obj *db.Task) ([]db.TaskChecklist, error)
 	Badges(ctx context.Context, obj *db.Task) (*TaskBadges, error)
+	Activity(ctx context.Context, obj *db.Task) ([]db.TaskActivity, error)
+}
+type TaskActivityResolver interface {
+	ID(ctx context.Context, obj *db.TaskActivity) (uuid.UUID, error)
+	Type(ctx context.Context, obj *db.TaskActivity) (ActivityType, error)
+	Data(ctx context.Context, obj *db.TaskActivity) ([]TaskActivityData, error)
+	CausedBy(ctx context.Context, obj *db.TaskActivity) (*CausedBy, error)
 }
 type TaskChecklistResolver interface {
 	ID(ctx context.Context, obj *db.TaskChecklist) (uuid.UUID, error)
@@ -633,6 +661,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "CausedBy.fullName":
+		if e.complexity.CausedBy.FullName == nil {
+			break
+		}
+
+		return e.complexity.CausedBy.FullName(childComplexity), true
+
+	case "CausedBy.id":
+		if e.complexity.CausedBy.ID == nil {
+			break
+		}
+
+		return e.complexity.CausedBy.ID(childComplexity), true
+
+	case "CausedBy.profileIcon":
+		if e.complexity.CausedBy.ProfileIcon == nil {
+			break
+		}
+
+		return e.complexity.CausedBy.ProfileIcon(childComplexity), true
 
 	case "ChecklistBadge.complete":
 		if e.complexity.ChecklistBadge.Complete == nil {
@@ -2126,6 +2175,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SortTaskGroupPayload.Tasks(childComplexity), true
 
+	case "Task.activity":
+		if e.complexity.Task.Activity == nil {
+			break
+		}
+
+		return e.complexity.Task.Activity(childComplexity), true
+
 	case "Task.assigned":
 		if e.complexity.Task.Assigned == nil {
 			break
@@ -2216,6 +2272,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Task.TaskGroup(childComplexity), true
+
+	case "TaskActivity.causedBy":
+		if e.complexity.TaskActivity.CausedBy == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.CausedBy(childComplexity), true
+
+	case "TaskActivity.createdAt":
+		if e.complexity.TaskActivity.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.CreatedAt(childComplexity), true
+
+	case "TaskActivity.data":
+		if e.complexity.TaskActivity.Data == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.Data(childComplexity), true
+
+	case "TaskActivity.id":
+		if e.complexity.TaskActivity.ID == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.ID(childComplexity), true
+
+	case "TaskActivity.type":
+		if e.complexity.TaskActivity.Type == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.Type(childComplexity), true
+
+	case "TaskActivityData.name":
+		if e.complexity.TaskActivityData.Name == nil {
+			break
+		}
+
+		return e.complexity.TaskActivityData.Name(childComplexity), true
+
+	case "TaskActivityData.value":
+		if e.complexity.TaskActivityData.Value == nil {
+			break
+		}
+
+		return e.complexity.TaskActivityData.Value(childComplexity), true
 
 	case "TaskBadges.checklist":
 		if e.complexity.TaskBadges.Checklist == nil {
@@ -2796,6 +2901,38 @@ type TaskBadges {
   checklist: ChecklistBadge
 }
 
+type CausedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon
+}
+
+type TaskActivityData {
+  name: String!
+  value: String!
+}
+
+enum ActivityType {
+  TASK_ADDED
+  TASK_MOVED
+  TASK_MARKED_COMPLETE
+  TASK_MARKED_INCOMPLETE
+  TASK_DUE_DATE_CHANGED
+  TASK_DUE_DATE_ADDED
+  TASK_DUE_DATE_REMOVED
+  TASK_CHECKLIST_CHANGED
+  TASK_CHECKLIST_ADDED
+  TASK_CHECKLIST_REMOVED
+}
+
+type TaskActivity {
+  id: ID!
+  type: ActivityType!
+  data: [TaskActivityData!]!
+  causedBy: CausedBy!
+  createdAt: Time!
+}
+
 type Task {
   id: ID!
   taskGroup: TaskGroup!
@@ -2810,6 +2947,7 @@ type Task {
   labels: [TaskLabel!]!
   checklists: [TaskChecklist!]!
   badges: TaskBadges!
+  activity: [TaskActivity!]!
 }
 
 type Organization {
@@ -4431,6 +4569,105 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _CausedBy_id(ctx context.Context, field graphql.CollectedField, obj *CausedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CausedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CausedBy_fullName(ctx context.Context, field graphql.CollectedField, obj *CausedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CausedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CausedBy_profileIcon(ctx context.Context, field graphql.CollectedField, obj *CausedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CausedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileIcon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ProfileIcon)
+	fc.Result = res
+	return ec.marshalOProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _ChecklistBadge_complete(ctx context.Context, field graphql.CollectedField, obj *ChecklistBadge) (ret graphql.Marshaler) {
 	defer func() {
@@ -12775,6 +13012,278 @@ func (ec *executionContext) _Task_badges(ctx context.Context, field graphql.Coll
 	return ec.marshalNTaskBadges2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskBadges(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Task_activity(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Task",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Task().Activity(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.TaskActivity)
+	fc.Result = res
+	return ec.marshalNTaskActivity2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivityᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_id(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_type(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().Type(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ActivityType)
+	fc.Result = res
+	return ec.marshalNActivityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActivityType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_data(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().Data(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]TaskActivityData)
+	fc.Result = res
+	return ec.marshalNTaskActivityData2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityDataᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_causedBy(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().CausedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CausedBy)
+	fc.Result = res
+	return ec.marshalNCausedBy2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCausedBy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_createdAt(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivityData_name(ctx context.Context, field graphql.CollectedField, obj *TaskActivityData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivityData",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivityData_value(ctx context.Context, field graphql.CollectedField, obj *TaskActivityData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivityData",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TaskBadges_checklist(ctx context.Context, field graphql.CollectedField, obj *TaskBadges) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17153,6 +17662,40 @@ func (ec *executionContext) unmarshalInputUpdateUserRole(ctx context.Context, ob
 
 // region    **************************** object.gotpl ****************************
 
+var causedByImplementors = []string{"CausedBy"}
+
+func (ec *executionContext) _CausedBy(ctx context.Context, sel ast.SelectionSet, obj *CausedBy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, causedByImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CausedBy")
+		case "id":
+			out.Values[i] = ec._CausedBy_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullName":
+			out.Values[i] = ec._CausedBy_fullName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "profileIcon":
+			out.Values[i] = ec._CausedBy_profileIcon(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var checklistBadgeImplementors = []string{"ChecklistBadge"}
 
 func (ec *executionContext) _ChecklistBadge(ctx context.Context, sel ast.SelectionSet, obj *ChecklistBadge) graphql.Marshaler {
@@ -19265,6 +19808,135 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "activity":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Task_activity(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var taskActivityImplementors = []string{"TaskActivity"}
+
+func (ec *executionContext) _TaskActivity(ctx context.Context, sel ast.SelectionSet, obj *db.TaskActivity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, taskActivityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TaskActivity")
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "type":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "data":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_data(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "causedBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_causedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createdAt":
+			out.Values[i] = ec._TaskActivity_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var taskActivityDataImplementors = []string{"TaskActivityData"}
+
+func (ec *executionContext) _TaskActivityData(ctx context.Context, sel ast.SelectionSet, obj *TaskActivityData) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, taskActivityDataImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TaskActivityData")
+		case "name":
+			out.Values[i] = ec._TaskActivityData_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._TaskActivityData_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20324,6 +20996,15 @@ func (ec *executionContext) marshalNActionType2githubᚗcomᚋjordanknottᚋtask
 	return v
 }
 
+func (ec *executionContext) unmarshalNActivityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActivityType(ctx context.Context, v interface{}) (ActivityType, error) {
+	var res ActivityType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNActivityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActivityType(ctx context.Context, sel ast.SelectionSet, v ActivityType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNActorType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActorType(ctx context.Context, v interface{}) (ActorType, error) {
 	var res ActorType
 	return res, res.UnmarshalGQL(v)
@@ -20345,6 +21026,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNCausedBy2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCausedBy(ctx context.Context, sel ast.SelectionSet, v CausedBy) graphql.Marshaler {
+	return ec._CausedBy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCausedBy2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCausedBy(ctx context.Context, sel ast.SelectionSet, v *CausedBy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CausedBy(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCreateTaskChecklist2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskChecklist(ctx context.Context, v interface{}) (CreateTaskChecklist, error) {
@@ -21530,6 +22225,88 @@ func (ec *executionContext) marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcaf
 	return ec._Task(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNTaskActivity2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivity(ctx context.Context, sel ast.SelectionSet, v db.TaskActivity) graphql.Marshaler {
+	return ec._TaskActivity(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTaskActivity2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivityᚄ(ctx context.Context, sel ast.SelectionSet, v []db.TaskActivity) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTaskActivity2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivity(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNTaskActivityData2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityData(ctx context.Context, sel ast.SelectionSet, v TaskActivityData) graphql.Marshaler {
+	return ec._TaskActivityData(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTaskActivityData2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityDataᚄ(ctx context.Context, sel ast.SelectionSet, v []TaskActivityData) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTaskActivityData2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityData(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNTaskBadges2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskBadges(ctx context.Context, sel ast.SelectionSet, v TaskBadges) graphql.Marshaler {
 	return ec._TaskBadges(ctx, sel, &v)
 }
@@ -22456,6 +23233,17 @@ func (ec *executionContext) marshalOChecklistBadge2ᚖgithubᚗcomᚋjordanknott
 		return graphql.Null
 	}
 	return ec._ChecklistBadge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProfileIcon2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx context.Context, sel ast.SelectionSet, v ProfileIcon) graphql.Marshaler {
+	return ec._ProfileIcon(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx context.Context, sel ast.SelectionSet, v *ProfileIcon) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProfileIcon(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOProjectsFilter2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectsFilter(ctx context.Context, v interface{}) (ProjectsFilter, error) {

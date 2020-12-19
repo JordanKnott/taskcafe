@@ -19,8 +19,12 @@ import styled from 'styled-components';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import dayjs from 'dayjs';
 
+import ActivityMessage from './ActivityMessage';
 import Task from 'shared/icons/Task';
 import {
+  ActivityItemHeader,
+  ActivityItemTimestamp,
+  ActivityItem,
   TaskDetailLabel,
   CommentContainer,
   MetaDetailContent,
@@ -67,9 +71,13 @@ import {
   CommentInnerWrapper,
   ActivitySection,
   TaskDetailsEditor,
+  ActivityItemHeaderUser,
+  ActivityItemHeaderTitle,
+  ActivityItemHeaderTitleName,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
+import TaskAssignee from 'shared/components/TaskAssignee';
 
 const ChecklistContainer = styled.div``;
 
@@ -425,7 +433,36 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TabBarSection>
             <TabBarItem>Activity</TabBarItem>
           </TabBarSection>
-          <ActivitySection />
+          <ActivitySection>
+            {task.activity &&
+              task.activity.map(activity => (
+                <ActivityItem>
+                  <ActivityItemHeaderUser
+                    size={32}
+                    member={{
+                      id: activity.causedBy.id,
+                      fullName: activity.causedBy.fullName,
+                      profileIcon: activity.causedBy.profileIcon
+                        ? activity.causedBy.profileIcon
+                        : {
+                            url: null,
+                            initials: activity.causedBy.fullName.charAt(0),
+                            bgColor: '#fff',
+                          },
+                    }}
+                  />
+                  <ActivityItemHeader>
+                    <ActivityItemHeaderTitle>
+                      <ActivityItemHeaderTitleName>{activity.causedBy.fullName}</ActivityItemHeaderTitleName>
+                      <ActivityMessage type={activity.type} data={activity.data} />
+                    </ActivityItemHeaderTitle>
+                    <ActivityItemTimestamp margin={0}>
+                      {dayjs(activity.createdAt).format('MMM D [at] h:mm A')}
+                    </ActivityItemTimestamp>
+                  </ActivityItemHeader>
+                </ActivityItem>
+              ))}
+          </ActivitySection>
         </InnerContentContainer>
         <CommentContainer>
           {me && (
