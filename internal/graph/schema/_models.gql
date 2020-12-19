@@ -135,6 +135,38 @@ type TaskBadges {
   checklist: ChecklistBadge
 }
 
+type CausedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon
+}
+
+type TaskActivityData {
+  name: String!
+  value: String!
+}
+
+enum ActivityType {
+  TASK_ADDED
+  TASK_MOVED
+  TASK_MARKED_COMPLETE
+  TASK_MARKED_INCOMPLETE
+  TASK_DUE_DATE_CHANGED
+  TASK_DUE_DATE_ADDED
+  TASK_DUE_DATE_REMOVED
+  TASK_CHECKLIST_CHANGED
+  TASK_CHECKLIST_ADDED
+  TASK_CHECKLIST_REMOVED
+}
+
+type TaskActivity {
+  id: ID!
+  type: ActivityType!
+  data: [TaskActivityData!]!
+  causedBy: CausedBy!
+  createdAt: Time!
+}
+
 type Task {
   id: ID!
   taskGroup: TaskGroup!
@@ -149,6 +181,23 @@ type Task {
   labels: [TaskLabel!]!
   checklists: [TaskChecklist!]!
   badges: TaskBadges!
+  activity: [TaskActivity!]!
+  comments: [TaskComment!]!
+}
+
+type CreatedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon!
+}
+
+type TaskComment {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time
+  message: String!
+  createdBy: CreatedBy!
+  pinned: Boolean!
 }
 
 type Organization {

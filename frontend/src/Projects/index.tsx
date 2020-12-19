@@ -210,7 +210,9 @@ const Projects = () => {
     update: (client, newProject) => {
       updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
         produce(cache, draftCache => {
-          draftCache.projects.push({ ...newProject.data.createProject });
+          if (newProject.data) {
+            draftCache.projects.push({ ...newProject.data.createProject });
+          }
         }),
       );
     },
@@ -222,7 +224,9 @@ const Projects = () => {
     update: (client, createData) => {
       updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
         produce(cache, draftCache => {
-          draftCache.teams.push({ ...createData.data.createTeam });
+          if (createData.data) {
+            draftCache.teams.push({ ...createData.data?.createTeam });
+          }
         }),
       );
     },

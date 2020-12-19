@@ -430,11 +430,13 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
         GetTeamDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findTeam.members.push({
-              ...response.data.createTeamMember.teamMember,
-              member: { __typename: 'MemberList', projects: [], teams: [] },
-              owned: { __typename: 'OwnedList', projects: [], teams: [] },
-            });
+            if (response.data) {
+              draftCache.findTeam.members.push({
+                ...response.data.createTeamMember.teamMember,
+                member: { __typename: 'MemberList', projects: [], teams: [] },
+                owned: { __typename: 'OwnedList', projects: [], teams: [] },
+              });
+            }
           }),
         { teamID },
       );
@@ -459,7 +461,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
         cache =>
           produce(cache, draftCache => {
             draftCache.findTeam.members = cache.findTeam.members.filter(
-              member => member.id !== response.data.deleteTeamMember.userID,
+              member => member.id !== response.data?.deleteTeamMember.userID,
             );
           }),
         { teamID },

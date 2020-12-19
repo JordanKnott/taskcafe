@@ -9,7 +9,7 @@ export function updateApolloCache<T>(
   update: UpdateCacheFn<T>,
   variables?: object,
 ) {
-  let queryArgs: DataProxy.Query<any>;
+  let queryArgs: DataProxy.Query<any, any>;
   if (variables) {
     queryArgs = {
       query: document,

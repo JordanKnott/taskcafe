@@ -7,7 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
-
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -17,12 +17,11 @@ import (
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	gomail "gopkg.in/mail.v2"
-
 	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
+	gomail "gopkg.in/mail.v2"
 )
 
 func (r *labelColorResolver) ID(ctx context.Context, obj *db.LabelColor) (uuid.UUID, error) {
@@ -367,6 +366,28 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.T
 		logger.New(ctx).WithError(err).Error("issue while creating task")
 		return &db.Task{}, err
 	}
+	taskGroup, err := r.Repository.GetTaskGroupByID(ctx, input.TaskGroupID)
+	if err != nil {
+		logger.New(ctx).WithError(err).Error("issue while creating task")
+		return &db.Task{}, err
+	}
+	data := map[string]string{
+		"TaskGroup": taskGroup.Name,
+	}
+	userID, _ := GetUserID(ctx)
+	d, err := json.Marshal(data)
+	_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+		TaskID:         task.TaskID,
+		Data:           d,
+		CreatedAt:      createdAt,
+		CausedBy:       userID,
+		ActivityTypeID: 1,
+	})
+
+	if err != nil {
+		logger.New(ctx).WithError(err).Error("issue while creating task")
+		return &db.Task{}, err
+	}
 	return &task, nil
 }
 
@@ -387,12 +408,44 @@ func (r *mutationResolver) UpdateTaskDescription(ctx context.Context, input Upda
 }
 
 func (r *mutationResolver) UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error) {
+	userID, _ := GetUserID(ctx)
 	previousTask, err := r.Repository.GetTaskByID(ctx, input.TaskID)
 	if err != nil {
 		return &UpdateTaskLocationPayload{}, err
 	}
-	task, err := r.Repository.UpdateTaskLocation(ctx, db.UpdateTaskLocationParams{input.TaskID, input.TaskGroupID, input.Position})
+	task, _ := r.Repository.UpdateTaskLocation(ctx, db.UpdateTaskLocationParams{TaskID: input.TaskID, TaskGroupID: input.TaskGroupID, Position: input.Position})
+	if previousTask.TaskGroupID != input.TaskGroupID {
+		skipAndDelete := false
+		lastMove, err := r.Repository.GetLastMoveForTaskID(ctx, input.TaskID)
+		if err == nil {
+			if lastMove.Active && lastMove.PrevTaskGroupID == input.TaskGroupID.String() {
+				skipAndDelete = true
+			}
+		}
+		if skipAndDelete {
+			_ = r.Repository.SetInactiveLastMoveForTaskID(ctx, input.TaskID)
+		} else {
+			prevTaskGroup, _ := r.Repository.GetTaskGroupByID(ctx, previousTask.TaskGroupID)
+			curTaskGroup, _ := r.Repository.GetTaskGroupByID(ctx, input.TaskGroupID)
 
+			data := map[string]string{
+				"PrevTaskGroup":   prevTaskGroup.Name,
+				"PrevTaskGroupID": prevTaskGroup.TaskGroupID.String(),
+				"CurTaskGroup":    curTaskGroup.Name,
+				"CurTaskGroupID":  curTaskGroup.TaskGroupID.String(),
+			}
+
+			createdAt := time.Now().UTC()
+			d, _ := json.Marshal(data)
+			_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+				TaskID:         task.TaskID,
+				Data:           d,
+				CausedBy:       userID,
+				CreatedAt:      createdAt,
+				ActivityTypeID: 2,
+			})
+		}
+	}
 	return &UpdateTaskLocationPayload{Task: &task, PreviousTaskGroupID: previousTask.TaskGroupID}, err
 }
 
@@ -403,6 +456,21 @@ func (r *mutationResolver) UpdateTaskName(ctx context.Context, input UpdateTaskN
 
 func (r *mutationResolver) SetTaskComplete(ctx context.Context, input SetTaskComplete) (*db.Task, error) {
 	completedAt := time.Now().UTC()
+	data := map[string]string{}
+	activityType := TASK_MARK_INCOMPLETE
+	if input.Complete {
+		activityType = TASK_MARK_COMPLETE
+	}
+	createdAt := time.Now().UTC()
+	userID, _ := GetUserID(ctx)
+	d, err := json.Marshal(data)
+	_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+		TaskID:         input.TaskID,
+		Data:           d,
+		CausedBy:       userID,
+		CreatedAt:      createdAt,
+		ActivityTypeID: activityType,
+	})
 	task, err := r.Repository.SetTaskComplete(ctx, db.SetTaskCompleteParams{TaskID: input.TaskID, Complete: input.Complete, CompletedAt: sql.NullTime{Time: completedAt, Valid: true}})
 	if err != nil {
 		return &db.Task{}, err
@@ -411,6 +479,23 @@ func (r *mutationResolver) SetTaskComplete(ctx context.Context, input SetTaskCom
 }
 
 func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTaskDueDate) (*db.Task, error) {
+	userID, _ := GetUserID(ctx)
+	prevTask, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	if err != nil {
+		return &db.Task{}, err
+	}
+	data := map[string]string{}
+	var activityType = TASK_DUE_DATE_ADDED
+	if input.DueDate == nil && prevTask.DueDate.Valid {
+		activityType = TASK_DUE_DATE_REMOVED
+		data["PrevDueDate"] = prevTask.DueDate.Time.String()
+	} else if prevTask.DueDate.Valid {
+		activityType = TASK_DUE_DATE_CHANGED
+		data["PrevDueDate"] = prevTask.DueDate.Time.String()
+		data["CurDueDate"] = input.DueDate.String()
+	} else {
+		data["DueDate"] = input.DueDate.String()
+	}
 	var dueDate sql.NullTime
 	if input.DueDate == nil {
 		dueDate = sql.NullTime{Valid: false, Time: time.Now()}
@@ -420,6 +505,15 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 	task, err := r.Repository.UpdateTaskDueDate(ctx, db.UpdateTaskDueDateParams{
 		TaskID:  input.TaskID,
 		DueDate: dueDate,
+	})
+	createdAt := time.Now().UTC()
+	d, err := json.Marshal(data)
+	_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+		TaskID:         task.TaskID,
+		Data:           d,
+		CausedBy:       userID,
+		CreatedAt:      createdAt,
+		ActivityTypeID: activityType,
 	})
 
 	return &task, err
@@ -560,6 +654,33 @@ func (r *mutationResolver) UpdateTaskChecklistItemLocation(ctx context.Context, 
 		return &UpdateTaskChecklistItemLocationPayload{}, err
 	}
 	return &UpdateTaskChecklistItemLocationPayload{PrevChecklistID: currentChecklistItem.TaskChecklistID, TaskChecklistID: input.TaskChecklistID, ChecklistItem: &checklistItem}, err
+}
+
+func (r *mutationResolver) CreateTaskComment(ctx context.Context, input *CreateTaskComment) (*CreateTaskCommentPayload, error) {
+	userID, _ := GetUserID(ctx)
+	createdAt := time.Now().UTC()
+	comment, err := r.Repository.CreateTaskComment(ctx, db.CreateTaskCommentParams{
+		TaskID:    input.TaskID,
+		CreatedAt: createdAt,
+		CreatedBy: userID,
+		Message:   input.Message,
+	})
+	return &CreateTaskCommentPayload{Comment: &comment, TaskID: input.TaskID}, err
+}
+
+func (r *mutationResolver) DeleteTaskComment(ctx context.Context, input *DeleteTaskComment) (*DeleteTaskCommentPayload, error) {
+	task, err := r.Repository.DeleteTaskCommentByID(ctx, input.CommentID)
+	return &DeleteTaskCommentPayload{TaskID: task.TaskID, CommentID: input.CommentID}, err
+}
+
+func (r *mutationResolver) UpdateTaskComment(ctx context.Context, input *UpdateTaskComment) (*UpdateTaskCommentPayload, error) {
+	updatedAt := time.Now().UTC()
+	comment, err := r.Repository.UpdateTaskComment(ctx, db.UpdateTaskCommentParams{
+		TaskCommentID: input.CommentID,
+		UpdatedAt:     sql.NullTime{Valid: true, Time: updatedAt},
+		Message:       input.Message,
+	})
+	return &UpdateTaskCommentPayload{Comment: &comment}, err
 }
 
 func (r *mutationResolver) CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*db.TaskGroup, error) {
@@ -1558,6 +1679,80 @@ func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, e
 	return &TaskBadges{Checklist: &ChecklistBadge{Total: total, Complete: complete}}, nil
 }
 
+func (r *taskResolver) Activity(ctx context.Context, obj *db.Task) ([]db.TaskActivity, error) {
+	activity, err := r.Repository.GetActivityForTaskID(ctx, obj.TaskID)
+	if err == sql.ErrNoRows {
+		return []db.TaskActivity{}, nil
+	}
+	return activity, err
+}
+
+func (r *taskResolver) Comments(ctx context.Context, obj *db.Task) ([]db.TaskComment, error) {
+	comments, err := r.Repository.GetCommentsForTaskID(ctx, obj.TaskID)
+	if err == sql.ErrNoRows {
+		return []db.TaskComment{}, nil
+	}
+	return comments, err
+}
+
+func (r *taskActivityResolver) ID(ctx context.Context, obj *db.TaskActivity) (uuid.UUID, error) {
+	return obj.TaskActivityID, nil
+}
+
+func (r *taskActivityResolver) Type(ctx context.Context, obj *db.TaskActivity) (ActivityType, error) {
+	switch obj.ActivityTypeID {
+	case 1:
+		return ActivityTypeTaskAdded, nil
+	case 2:
+		return ActivityTypeTaskMoved, nil
+	case 3:
+		return ActivityTypeTaskMarkedComplete, nil
+	case 4:
+		return ActivityTypeTaskMarkedIncomplete, nil
+	case 5:
+		return ActivityTypeTaskDueDateChanged, nil
+	case 6:
+		return ActivityTypeTaskDueDateAdded, nil
+	case 7:
+		return ActivityTypeTaskDueDateRemoved, nil
+	case 8:
+		return ActivityTypeTaskChecklistChanged, nil
+	case 9:
+		return ActivityTypeTaskChecklistAdded, nil
+	case 10:
+		return ActivityTypeTaskChecklistRemoved, nil
+	default:
+		return ActivityTypeTaskAdded, errors.New("unknown type")
+	}
+}
+
+func (r *taskActivityResolver) Data(ctx context.Context, obj *db.TaskActivity) ([]TaskActivityData, error) {
+	var data map[string]string
+	_ = json.Unmarshal(obj.Data, &data)
+	activity := []TaskActivityData{}
+	for name, value := range data {
+		activity = append(activity, TaskActivityData{
+			Name:  name,
+			Value: value,
+		})
+	}
+	return activity, nil
+}
+
+func (r *taskActivityResolver) CausedBy(ctx context.Context, obj *db.TaskActivity) (*CausedBy, error) {
+	user, err := r.Repository.GetUserAccountByID(ctx, obj.CausedBy)
+	var url *string
+	if user.ProfileAvatarUrl.Valid {
+		url = &user.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	return &CausedBy{
+		ID:          obj.CausedBy,
+		FullName:    user.FullName,
+		ProfileIcon: profileIcon,
+	}, err
+}
+
 func (r *taskChecklistResolver) ID(ctx context.Context, obj *db.TaskChecklist) (uuid.UUID, error) {
 	return obj.TaskChecklistID, nil
 }
@@ -1572,6 +1767,31 @@ func (r *taskChecklistItemResolver) ID(ctx context.Context, obj *db.TaskChecklis
 
 func (r *taskChecklistItemResolver) DueDate(ctx context.Context, obj *db.TaskChecklistItem) (*time.Time, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *taskCommentResolver) ID(ctx context.Context, obj *db.TaskComment) (uuid.UUID, error) {
+	return obj.TaskCommentID, nil
+}
+
+func (r *taskCommentResolver) UpdatedAt(ctx context.Context, obj *db.TaskComment) (*time.Time, error) {
+	if obj.UpdatedAt.Valid {
+		return &obj.UpdatedAt.Time, nil
+	}
+	return nil, nil
+}
+
+func (r *taskCommentResolver) CreatedBy(ctx context.Context, obj *db.TaskComment) (*CreatedBy, error) {
+	user, err := r.Repository.GetUserAccountByID(ctx, obj.CreatedBy)
+	var url *string
+	if user.ProfileAvatarUrl.Valid {
+		url = &user.ProfileAvatarUrl.String
+	}
+	profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
+	return &CreatedBy{
+		ID:          obj.CreatedBy,
+		FullName:    user.FullName,
+		ProfileIcon: profileIcon,
+	}, err
 }
 
 func (r *taskGroupResolver) ID(ctx context.Context, obj *db.TaskGroup) (uuid.UUID, error) {
@@ -1619,6 +1839,7 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 		if user.ProfileAvatarUrl.Valid {
 			url = &user.ProfileAvatarUrl.String
 		}
+		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 		role, err := r.Repository.GetRoleForTeamMember(ctx, db.GetRoleForTeamMemberParams{UserID: user.UserID, TeamID: obj.TeamID})
 		if err != nil {
 			logger.New(ctx).WithError(err).Error("get role for projet member by user ID")
@@ -1634,7 +1855,6 @@ func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, err
 			return members, err
 		}
 
-		profileIcon := &ProfileIcon{url, &user.Initials, &user.ProfileBgColor}
 		members = append(members, Member{ID: user.UserID, FullName: user.FullName, ProfileIcon: profileIcon,
 			Username: user.Username, Owned: ownedList, Member: memberList, Role: &db.Role{Code: role.Code, Name: role.Name},
 		})
@@ -1724,6 +1944,9 @@ func (r *Resolver) RefreshToken() RefreshTokenResolver { return &refreshTokenRes
 // Task returns TaskResolver implementation.
 func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 
+// TaskActivity returns TaskActivityResolver implementation.
+func (r *Resolver) TaskActivity() TaskActivityResolver { return &taskActivityResolver{r} }
+
 // TaskChecklist returns TaskChecklistResolver implementation.
 func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklistResolver{r} }
 
@@ -1731,6 +1954,9 @@ func (r *Resolver) TaskChecklist() TaskChecklistResolver { return &taskChecklist
 func (r *Resolver) TaskChecklistItem() TaskChecklistItemResolver {
 	return &taskChecklistItemResolver{r}
 }
+
+// TaskComment returns TaskCommentResolver implementation.
+func (r *Resolver) TaskComment() TaskCommentResolver { return &taskCommentResolver{r} }
 
 // TaskGroup returns TaskGroupResolver implementation.
 func (r *Resolver) TaskGroup() TaskGroupResolver { return &taskGroupResolver{r} }
@@ -1753,27 +1979,11 @@ type projectLabelResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type refreshTokenResolver struct{ *Resolver }
 type taskResolver struct{ *Resolver }
+type taskActivityResolver struct{ *Resolver }
 type taskChecklistResolver struct{ *Resolver }
 type taskChecklistItemResolver struct{ *Resolver }
+type taskCommentResolver struct{ *Resolver }
 type taskGroupResolver struct{ *Resolver }
 type taskLabelResolver struct{ *Resolver }
 type teamResolver struct{ *Resolver }
 type userAccountResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-type MemberType string
-
-const (
-	MemberTypeInvited MemberType = "INVITED"
-	MemberTypeJoined  MemberType = "JOINED"
-)
-
-type MasterEntry struct {
-	MemberType MemberType
-	ID         uuid.UUID
-}

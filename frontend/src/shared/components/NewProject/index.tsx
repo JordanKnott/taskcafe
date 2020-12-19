@@ -263,7 +263,7 @@ const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, 
                   onChange={(e: any) => {
                     setTeam(e.value);
                   }}
-                  value={options.filter(d => d.value === team)}
+                  value={options.find(d => d.value === team)}
                   styles={colourStyles}
                   classNamePrefix="teamSelect"
                   options={options}

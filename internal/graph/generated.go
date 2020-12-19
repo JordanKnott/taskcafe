@@ -47,8 +47,10 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	RefreshToken() RefreshTokenResolver
 	Task() TaskResolver
+	TaskActivity() TaskActivityResolver
 	TaskChecklist() TaskChecklistResolver
 	TaskChecklistItem() TaskChecklistItemResolver
+	TaskComment() TaskCommentResolver
 	TaskGroup() TaskGroupResolver
 	TaskLabel() TaskLabelResolver
 	Team() TeamResolver
@@ -60,14 +62,31 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	CausedBy struct {
+		FullName    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ProfileIcon func(childComplexity int) int
+	}
+
 	ChecklistBadge struct {
 		Complete func(childComplexity int) int
 		Total    func(childComplexity int) int
 	}
 
+	CreateTaskCommentPayload struct {
+		Comment func(childComplexity int) int
+		TaskID  func(childComplexity int) int
+	}
+
 	CreateTeamMemberPayload struct {
 		Team       func(childComplexity int) int
 		TeamMember func(childComplexity int) int
+	}
+
+	CreatedBy struct {
+		FullName    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ProfileIcon func(childComplexity int) int
 	}
 
 	DeleteInvitedProjectMemberPayload struct {
@@ -97,6 +116,11 @@ type ComplexityRoot struct {
 	DeleteTaskChecklistPayload struct {
 		Ok            func(childComplexity int) int
 		TaskChecklist func(childComplexity int) int
+	}
+
+	DeleteTaskCommentPayload struct {
+		CommentID func(childComplexity int) int
+		TaskID    func(childComplexity int) int
 	}
 
 	DeleteTaskGroupPayload struct {
@@ -199,6 +223,7 @@ type ComplexityRoot struct {
 		CreateTask                      func(childComplexity int, input NewTask) int
 		CreateTaskChecklist             func(childComplexity int, input CreateTaskChecklist) int
 		CreateTaskChecklistItem         func(childComplexity int, input CreateTaskChecklistItem) int
+		CreateTaskComment               func(childComplexity int, input *CreateTaskComment) int
 		CreateTaskGroup                 func(childComplexity int, input NewTaskGroup) int
 		CreateTeam                      func(childComplexity int, input NewTeam) int
 		CreateTeamMember                func(childComplexity int, input CreateTeamMember) int
@@ -211,6 +236,7 @@ type ComplexityRoot struct {
 		DeleteTask                      func(childComplexity int, input DeleteTaskInput) int
 		DeleteTaskChecklist             func(childComplexity int, input DeleteTaskChecklist) int
 		DeleteTaskChecklistItem         func(childComplexity int, input DeleteTaskChecklistItem) int
+		DeleteTaskComment               func(childComplexity int, input *DeleteTaskComment) int
 		DeleteTaskGroup                 func(childComplexity int, input DeleteTaskGroupInput) int
 		DeleteTaskGroupTasks            func(childComplexity int, input DeleteTaskGroupTasks) int
 		DeleteTeam                      func(childComplexity int, input DeleteTeam) int
@@ -234,6 +260,7 @@ type ComplexityRoot struct {
 		UpdateTaskChecklistItemName     func(childComplexity int, input UpdateTaskChecklistItemName) int
 		UpdateTaskChecklistLocation     func(childComplexity int, input UpdateTaskChecklistLocation) int
 		UpdateTaskChecklistName         func(childComplexity int, input UpdateTaskChecklistName) int
+		UpdateTaskComment               func(childComplexity int, input *UpdateTaskComment) int
 		UpdateTaskDescription           func(childComplexity int, input UpdateTaskDescriptionInput) int
 		UpdateTaskDueDate               func(childComplexity int, input UpdateTaskDueDate) int
 		UpdateTaskGroupLocation         func(childComplexity int, input NewTaskGroupLocation) int
@@ -346,9 +373,11 @@ type ComplexityRoot struct {
 	}
 
 	Task struct {
+		Activity    func(childComplexity int) int
 		Assigned    func(childComplexity int) int
 		Badges      func(childComplexity int) int
 		Checklists  func(childComplexity int) int
+		Comments    func(childComplexity int) int
 		Complete    func(childComplexity int) int
 		CompletedAt func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
@@ -359,6 +388,19 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		Position    func(childComplexity int) int
 		TaskGroup   func(childComplexity int) int
+	}
+
+	TaskActivity struct {
+		CausedBy  func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Data      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Type      func(childComplexity int) int
+	}
+
+	TaskActivityData struct {
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	TaskBadges struct {
@@ -379,6 +421,15 @@ type ComplexityRoot struct {
 		Name            func(childComplexity int) int
 		Position        func(childComplexity int) int
 		TaskChecklistID func(childComplexity int) int
+	}
+
+	TaskComment struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Message   func(childComplexity int) int
+		Pinned    func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
 	}
 
 	TaskGroup struct {
@@ -426,6 +477,11 @@ type ComplexityRoot struct {
 
 	UpdateTaskChecklistLocationPayload struct {
 		Checklist func(childComplexity int) int
+	}
+
+	UpdateTaskCommentPayload struct {
+		Comment func(childComplexity int) int
+		TaskID  func(childComplexity int) int
 	}
 
 	UpdateTaskLocationPayload struct {
@@ -501,6 +557,9 @@ type MutationResolver interface {
 	SetTaskChecklistItemComplete(ctx context.Context, input SetTaskChecklistItemComplete) (*db.TaskChecklistItem, error)
 	DeleteTaskChecklistItem(ctx context.Context, input DeleteTaskChecklistItem) (*DeleteTaskChecklistItemPayload, error)
 	UpdateTaskChecklistItemLocation(ctx context.Context, input UpdateTaskChecklistItemLocation) (*UpdateTaskChecklistItemLocationPayload, error)
+	CreateTaskComment(ctx context.Context, input *CreateTaskComment) (*CreateTaskCommentPayload, error)
+	DeleteTaskComment(ctx context.Context, input *DeleteTaskComment) (*DeleteTaskCommentPayload, error)
+	UpdateTaskComment(ctx context.Context, input *UpdateTaskComment) (*UpdateTaskCommentPayload, error)
 	CreateTaskGroup(ctx context.Context, input NewTaskGroup) (*db.TaskGroup, error)
 	UpdateTaskGroupLocation(ctx context.Context, input NewTaskGroupLocation) (*db.TaskGroup, error)
 	UpdateTaskGroupName(ctx context.Context, input UpdateTaskGroupName) (*db.TaskGroup, error)
@@ -583,6 +642,14 @@ type TaskResolver interface {
 	Labels(ctx context.Context, obj *db.Task) ([]db.TaskLabel, error)
 	Checklists(ctx context.Context, obj *db.Task) ([]db.TaskChecklist, error)
 	Badges(ctx context.Context, obj *db.Task) (*TaskBadges, error)
+	Activity(ctx context.Context, obj *db.Task) ([]db.TaskActivity, error)
+	Comments(ctx context.Context, obj *db.Task) ([]db.TaskComment, error)
+}
+type TaskActivityResolver interface {
+	ID(ctx context.Context, obj *db.TaskActivity) (uuid.UUID, error)
+	Type(ctx context.Context, obj *db.TaskActivity) (ActivityType, error)
+	Data(ctx context.Context, obj *db.TaskActivity) ([]TaskActivityData, error)
+	CausedBy(ctx context.Context, obj *db.TaskActivity) (*CausedBy, error)
 }
 type TaskChecklistResolver interface {
 	ID(ctx context.Context, obj *db.TaskChecklist) (uuid.UUID, error)
@@ -593,6 +660,13 @@ type TaskChecklistItemResolver interface {
 	ID(ctx context.Context, obj *db.TaskChecklistItem) (uuid.UUID, error)
 
 	DueDate(ctx context.Context, obj *db.TaskChecklistItem) (*time.Time, error)
+}
+type TaskCommentResolver interface {
+	ID(ctx context.Context, obj *db.TaskComment) (uuid.UUID, error)
+
+	UpdatedAt(ctx context.Context, obj *db.TaskComment) (*time.Time, error)
+
+	CreatedBy(ctx context.Context, obj *db.TaskComment) (*CreatedBy, error)
 }
 type TaskGroupResolver interface {
 	ID(ctx context.Context, obj *db.TaskGroup) (uuid.UUID, error)
@@ -634,6 +708,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "CausedBy.fullName":
+		if e.complexity.CausedBy.FullName == nil {
+			break
+		}
+
+		return e.complexity.CausedBy.FullName(childComplexity), true
+
+	case "CausedBy.id":
+		if e.complexity.CausedBy.ID == nil {
+			break
+		}
+
+		return e.complexity.CausedBy.ID(childComplexity), true
+
+	case "CausedBy.profileIcon":
+		if e.complexity.CausedBy.ProfileIcon == nil {
+			break
+		}
+
+		return e.complexity.CausedBy.ProfileIcon(childComplexity), true
+
 	case "ChecklistBadge.complete":
 		if e.complexity.ChecklistBadge.Complete == nil {
 			break
@@ -648,6 +743,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChecklistBadge.Total(childComplexity), true
 
+	case "CreateTaskCommentPayload.comment":
+		if e.complexity.CreateTaskCommentPayload.Comment == nil {
+			break
+		}
+
+		return e.complexity.CreateTaskCommentPayload.Comment(childComplexity), true
+
+	case "CreateTaskCommentPayload.taskID":
+		if e.complexity.CreateTaskCommentPayload.TaskID == nil {
+			break
+		}
+
+		return e.complexity.CreateTaskCommentPayload.TaskID(childComplexity), true
+
 	case "CreateTeamMemberPayload.team":
 		if e.complexity.CreateTeamMemberPayload.Team == nil {
 			break
@@ -661,6 +770,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CreateTeamMemberPayload.TeamMember(childComplexity), true
+
+	case "CreatedBy.fullName":
+		if e.complexity.CreatedBy.FullName == nil {
+			break
+		}
+
+		return e.complexity.CreatedBy.FullName(childComplexity), true
+
+	case "CreatedBy.id":
+		if e.complexity.CreatedBy.ID == nil {
+			break
+		}
+
+		return e.complexity.CreatedBy.ID(childComplexity), true
+
+	case "CreatedBy.profileIcon":
+		if e.complexity.CreatedBy.ProfileIcon == nil {
+			break
+		}
+
+		return e.complexity.CreatedBy.ProfileIcon(childComplexity), true
 
 	case "DeleteInvitedProjectMemberPayload.invitedMember":
 		if e.complexity.DeleteInvitedProjectMemberPayload.InvitedMember == nil {
@@ -738,6 +868,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteTaskChecklistPayload.TaskChecklist(childComplexity), true
+
+	case "DeleteTaskCommentPayload.commentID":
+		if e.complexity.DeleteTaskCommentPayload.CommentID == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskCommentPayload.CommentID(childComplexity), true
+
+	case "DeleteTaskCommentPayload.taskID":
+		if e.complexity.DeleteTaskCommentPayload.TaskID == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskCommentPayload.TaskID(childComplexity), true
 
 	case "DeleteTaskGroupPayload.affectedRows":
 		if e.complexity.DeleteTaskGroupPayload.AffectedRows == nil {
@@ -1157,6 +1301,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTaskChecklistItem(childComplexity, args["input"].(CreateTaskChecklistItem)), true
 
+	case "Mutation.createTaskComment":
+		if e.complexity.Mutation.CreateTaskComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTaskComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTaskComment(childComplexity, args["input"].(*CreateTaskComment)), true
+
 	case "Mutation.createTaskGroup":
 		if e.complexity.Mutation.CreateTaskGroup == nil {
 			break
@@ -1300,6 +1456,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteTaskChecklistItem(childComplexity, args["input"].(DeleteTaskChecklistItem)), true
+
+	case "Mutation.deleteTaskComment":
+		if e.complexity.Mutation.DeleteTaskComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTaskComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTaskComment(childComplexity, args["input"].(*DeleteTaskComment)), true
 
 	case "Mutation.deleteTaskGroup":
 		if e.complexity.Mutation.DeleteTaskGroup == nil {
@@ -1576,6 +1744,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTaskChecklistName(childComplexity, args["input"].(UpdateTaskChecklistName)), true
+
+	case "Mutation.updateTaskComment":
+		if e.complexity.Mutation.UpdateTaskComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskComment(childComplexity, args["input"].(*UpdateTaskComment)), true
 
 	case "Mutation.updateTaskDescription":
 		if e.complexity.Mutation.UpdateTaskDescription == nil {
@@ -2126,6 +2306,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SortTaskGroupPayload.Tasks(childComplexity), true
 
+	case "Task.activity":
+		if e.complexity.Task.Activity == nil {
+			break
+		}
+
+		return e.complexity.Task.Activity(childComplexity), true
+
 	case "Task.assigned":
 		if e.complexity.Task.Assigned == nil {
 			break
@@ -2146,6 +2333,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Task.Checklists(childComplexity), true
+
+	case "Task.comments":
+		if e.complexity.Task.Comments == nil {
+			break
+		}
+
+		return e.complexity.Task.Comments(childComplexity), true
 
 	case "Task.complete":
 		if e.complexity.Task.Complete == nil {
@@ -2216,6 +2410,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Task.TaskGroup(childComplexity), true
+
+	case "TaskActivity.causedBy":
+		if e.complexity.TaskActivity.CausedBy == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.CausedBy(childComplexity), true
+
+	case "TaskActivity.createdAt":
+		if e.complexity.TaskActivity.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.CreatedAt(childComplexity), true
+
+	case "TaskActivity.data":
+		if e.complexity.TaskActivity.Data == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.Data(childComplexity), true
+
+	case "TaskActivity.id":
+		if e.complexity.TaskActivity.ID == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.ID(childComplexity), true
+
+	case "TaskActivity.type":
+		if e.complexity.TaskActivity.Type == nil {
+			break
+		}
+
+		return e.complexity.TaskActivity.Type(childComplexity), true
+
+	case "TaskActivityData.name":
+		if e.complexity.TaskActivityData.Name == nil {
+			break
+		}
+
+		return e.complexity.TaskActivityData.Name(childComplexity), true
+
+	case "TaskActivityData.value":
+		if e.complexity.TaskActivityData.Value == nil {
+			break
+		}
+
+		return e.complexity.TaskActivityData.Value(childComplexity), true
 
 	case "TaskBadges.checklist":
 		if e.complexity.TaskBadges.Checklist == nil {
@@ -2293,6 +2536,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TaskChecklistItem.TaskChecklistID(childComplexity), true
+
+	case "TaskComment.createdAt":
+		if e.complexity.TaskComment.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.TaskComment.CreatedAt(childComplexity), true
+
+	case "TaskComment.createdBy":
+		if e.complexity.TaskComment.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.TaskComment.CreatedBy(childComplexity), true
+
+	case "TaskComment.id":
+		if e.complexity.TaskComment.ID == nil {
+			break
+		}
+
+		return e.complexity.TaskComment.ID(childComplexity), true
+
+	case "TaskComment.message":
+		if e.complexity.TaskComment.Message == nil {
+			break
+		}
+
+		return e.complexity.TaskComment.Message(childComplexity), true
+
+	case "TaskComment.pinned":
+		if e.complexity.TaskComment.Pinned == nil {
+			break
+		}
+
+		return e.complexity.TaskComment.Pinned(childComplexity), true
+
+	case "TaskComment.updatedAt":
+		if e.complexity.TaskComment.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.TaskComment.UpdatedAt(childComplexity), true
 
 	case "TaskGroup.createdAt":
 		if e.complexity.TaskGroup.CreatedAt == nil {
@@ -2454,6 +2739,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UpdateTaskChecklistLocationPayload.Checklist(childComplexity), true
+
+	case "UpdateTaskCommentPayload.comment":
+		if e.complexity.UpdateTaskCommentPayload.Comment == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskCommentPayload.Comment(childComplexity), true
+
+	case "UpdateTaskCommentPayload.taskID":
+		if e.complexity.UpdateTaskCommentPayload.TaskID == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskCommentPayload.TaskID(childComplexity), true
 
 	case "UpdateTaskLocationPayload.previousTaskGroupID":
 		if e.complexity.UpdateTaskLocationPayload.PreviousTaskGroupID == nil {
@@ -2796,6 +3095,38 @@ type TaskBadges {
   checklist: ChecklistBadge
 }
 
+type CausedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon
+}
+
+type TaskActivityData {
+  name: String!
+  value: String!
+}
+
+enum ActivityType {
+  TASK_ADDED
+  TASK_MOVED
+  TASK_MARKED_COMPLETE
+  TASK_MARKED_INCOMPLETE
+  TASK_DUE_DATE_CHANGED
+  TASK_DUE_DATE_ADDED
+  TASK_DUE_DATE_REMOVED
+  TASK_CHECKLIST_CHANGED
+  TASK_CHECKLIST_ADDED
+  TASK_CHECKLIST_REMOVED
+}
+
+type TaskActivity {
+  id: ID!
+  type: ActivityType!
+  data: [TaskActivityData!]!
+  causedBy: CausedBy!
+  createdAt: Time!
+}
+
 type Task {
   id: ID!
   taskGroup: TaskGroup!
@@ -2810,6 +3141,23 @@ type Task {
   labels: [TaskLabel!]!
   checklists: [TaskChecklist!]!
   badges: TaskBadges!
+  activity: [TaskActivity!]!
+  comments: [TaskComment!]!
+}
+
+type CreatedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon!
+}
+
+type TaskComment {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time
+  message: String!
+  createdBy: CreatedBy!
+  pinned: Boolean!
 }
 
 type Organization {
@@ -3244,6 +3592,44 @@ type DeleteTaskChecklistPayload {
 }
 
 extend type Mutation {
+  createTaskComment(input: CreateTaskComment):
+    CreateTaskCommentPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  deleteTaskComment(input: DeleteTaskComment):
+    DeleteTaskCommentPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  updateTaskComment(input: UpdateTaskComment):
+    UpdateTaskCommentPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+}
+
+input CreateTaskComment {
+  taskID: UUID!
+  message: String!
+}
+
+type CreateTaskCommentPayload {
+  taskID: UUID!
+  comment: TaskComment!
+}
+
+input UpdateTaskComment {
+  commentID: UUID!
+  message: String!
+}
+
+type UpdateTaskCommentPayload {
+  taskID: UUID!
+  comment: TaskComment!
+}
+
+input DeleteTaskComment {
+  commentID: UUID!
+}
+
+type DeleteTaskCommentPayload {
+  taskID: UUID!
+  commentID: UUID!
+}
+
+extend type Mutation {
   createTaskGroup(input: NewTaskGroup!):
     TaskGroup! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
   updateTaskGroupLocation(input: NewTaskGroupLocation!):
@@ -3654,6 +4040,20 @@ func (ec *executionContext) field_Mutation_createTaskChecklist_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createTaskComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *CreateTaskComment
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOCreateTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskComment(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3814,6 +4214,20 @@ func (ec *executionContext) field_Mutation_deleteTaskChecklist_args(ctx context.
 	var arg0 DeleteTaskChecklist
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNDeleteTaskChecklist2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskChecklist(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteTaskComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *DeleteTaskComment
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalODeleteTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskComment(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4158,6 +4572,20 @@ func (ec *executionContext) field_Mutation_updateTaskChecklistName_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateTaskComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *UpdateTaskComment
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOUpdateTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskComment(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateTaskDescription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4432,6 +4860,105 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _CausedBy_id(ctx context.Context, field graphql.CollectedField, obj *CausedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CausedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CausedBy_fullName(ctx context.Context, field graphql.CollectedField, obj *CausedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CausedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CausedBy_profileIcon(ctx context.Context, field graphql.CollectedField, obj *CausedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CausedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileIcon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ProfileIcon)
+	fc.Result = res
+	return ec.marshalOProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ChecklistBadge_complete(ctx context.Context, field graphql.CollectedField, obj *ChecklistBadge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4500,6 +5027,74 @@ func (ec *executionContext) _ChecklistBadge_total(ctx context.Context, field gra
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _CreateTaskCommentPayload_taskID(ctx context.Context, field graphql.CollectedField, obj *CreateTaskCommentPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CreateTaskCommentPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CreateTaskCommentPayload_comment(ctx context.Context, field graphql.CollectedField, obj *CreateTaskCommentPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CreateTaskCommentPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Comment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.TaskComment)
+	fc.Result = res
+	return ec.marshalNTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _CreateTeamMemberPayload_team(ctx context.Context, field graphql.CollectedField, obj *CreateTeamMemberPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4566,6 +5161,108 @@ func (ec *executionContext) _CreateTeamMemberPayload_teamMember(ctx context.Cont
 	res := resTmp.(*Member)
 	fc.Result = res
 	return ec.marshalNMember2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CreatedBy_id(ctx context.Context, field graphql.CollectedField, obj *CreatedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CreatedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CreatedBy_fullName(ctx context.Context, field graphql.CollectedField, obj *CreatedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CreatedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CreatedBy_profileIcon(ctx context.Context, field graphql.CollectedField, obj *CreatedBy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CreatedBy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileIcon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ProfileIcon)
+	fc.Result = res
+	return ec.marshalNProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DeleteInvitedProjectMemberPayload_invitedMember(ctx context.Context, field graphql.CollectedField, obj *DeleteInvitedProjectMemberPayload) (ret graphql.Marshaler) {
@@ -4940,6 +5637,74 @@ func (ec *executionContext) _DeleteTaskChecklistPayload_taskChecklist(ctx contex
 	res := resTmp.(*db.TaskChecklist)
 	fc.Result = res
 	return ec.marshalNTaskChecklist2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskChecklist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTaskCommentPayload_taskID(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskCommentPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskCommentPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DeleteTaskCommentPayload_commentID(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskCommentPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "DeleteTaskCommentPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CommentID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DeleteTaskGroupPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupPayload) (ret graphql.Marshaler) {
@@ -8657,6 +9422,225 @@ func (ec *executionContext) _Mutation_updateTaskChecklistItemLocation(ctx contex
 	res := resTmp.(*UpdateTaskChecklistItemLocationPayload)
 	fc.Result = res
 	return ec.marshalNUpdateTaskChecklistItemLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskChecklistItemLocationPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createTaskComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createTaskComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTaskComment(rctx, args["input"].(*CreateTaskComment))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*CreateTaskCommentPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.CreateTaskCommentPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CreateTaskCommentPayload)
+	fc.Result = res
+	return ec.marshalNCreateTaskCommentPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskCommentPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTaskComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTaskComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTaskComment(rctx, args["input"].(*DeleteTaskComment))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTaskCommentPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskCommentPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTaskCommentPayload)
+	fc.Result = res
+	return ec.marshalNDeleteTaskCommentPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskCommentPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskComment(rctx, args["input"].(*UpdateTaskComment))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdateTaskCommentPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskCommentPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateTaskCommentPayload)
+	fc.Result = res
+	return ec.marshalNUpdateTaskCommentPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskCommentPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTaskGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12775,6 +13759,312 @@ func (ec *executionContext) _Task_badges(ctx context.Context, field graphql.Coll
 	return ec.marshalNTaskBadges2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskBadges(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Task_activity(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Task",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Task().Activity(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.TaskActivity)
+	fc.Result = res
+	return ec.marshalNTaskActivity2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivityᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Task_comments(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Task",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Task().Comments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.TaskComment)
+	fc.Result = res
+	return ec.marshalNTaskComment2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskCommentᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_id(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_type(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().Type(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ActivityType)
+	fc.Result = res
+	return ec.marshalNActivityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActivityType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_data(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().Data(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]TaskActivityData)
+	fc.Result = res
+	return ec.marshalNTaskActivityData2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityDataᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_causedBy(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskActivity().CausedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CausedBy)
+	fc.Result = res
+	return ec.marshalNCausedBy2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCausedBy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivity_createdAt(ctx context.Context, field graphql.CollectedField, obj *db.TaskActivity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivity",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivityData_name(ctx context.Context, field graphql.CollectedField, obj *TaskActivityData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivityData",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskActivityData_value(ctx context.Context, field graphql.CollectedField, obj *TaskActivityData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskActivityData",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TaskBadges_checklist(ctx context.Context, field graphql.CollectedField, obj *TaskBadges) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13144,6 +14434,207 @@ func (ec *executionContext) _TaskChecklistItem_dueDate(ctx context.Context, fiel
 	res := resTmp.(*time.Time)
 	fc.Result = res
 	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskComment_id(ctx context.Context, field graphql.CollectedField, obj *db.TaskComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskComment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskComment().ID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskComment_createdAt(ctx context.Context, field graphql.CollectedField, obj *db.TaskComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskComment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskComment_updatedAt(ctx context.Context, field graphql.CollectedField, obj *db.TaskComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskComment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskComment().UpdatedAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskComment_message(ctx context.Context, field graphql.CollectedField, obj *db.TaskComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskComment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskComment_createdBy(ctx context.Context, field graphql.CollectedField, obj *db.TaskComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskComment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TaskComment().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CreatedBy)
+	fc.Result = res
+	return ec.marshalNCreatedBy2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreatedBy(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TaskComment_pinned(ctx context.Context, field graphql.CollectedField, obj *db.TaskComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TaskComment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pinned, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TaskGroup_id(ctx context.Context, field graphql.CollectedField, obj *db.TaskGroup) (ret graphql.Marshaler) {
@@ -13926,6 +15417,74 @@ func (ec *executionContext) _UpdateTaskChecklistLocationPayload_checklist(ctx co
 	res := resTmp.(*db.TaskChecklist)
 	fc.Result = res
 	return ec.marshalNTaskChecklist2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskChecklist(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskCommentPayload_taskID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskCommentPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskCommentPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdateTaskCommentPayload_comment(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskCommentPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdateTaskCommentPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Comment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.TaskComment)
+	fc.Result = res
+	return ec.marshalNTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UpdateTaskLocationPayload_previousTaskGroupID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskLocationPayload) (ret graphql.Marshaler) {
@@ -15771,6 +17330,30 @@ func (ec *executionContext) unmarshalInputCreateTaskChecklistItem(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateTaskComment(ctx context.Context, obj interface{}) (CreateTaskComment, error) {
+	var it CreateTaskComment
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskID":
+			var err error
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "message":
+			var err error
+			it.Message, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateTeamMember(ctx context.Context, obj interface{}) (CreateTeamMember, error) {
 	var it CreateTeamMember
 	var asMap = obj.(map[string]interface{})
@@ -15924,6 +17507,24 @@ func (ec *executionContext) unmarshalInputDeleteTaskChecklistItem(ctx context.Co
 		case "taskChecklistItemID":
 			var err error
 			it.TaskChecklistItemID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDeleteTaskComment(ctx context.Context, obj interface{}) (DeleteTaskComment, error) {
+	var it DeleteTaskComment
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "commentID":
+			var err error
+			it.CommentID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16935,6 +18536,30 @@ func (ec *executionContext) unmarshalInputUpdateTaskChecklistName(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateTaskComment(ctx context.Context, obj interface{}) (UpdateTaskComment, error) {
+	var it UpdateTaskComment
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "commentID":
+			var err error
+			it.CommentID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "message":
+			var err error
+			it.Message, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateTaskDescriptionInput(ctx context.Context, obj interface{}) (UpdateTaskDescriptionInput, error) {
 	var it UpdateTaskDescriptionInput
 	var asMap = obj.(map[string]interface{})
@@ -17153,6 +18778,40 @@ func (ec *executionContext) unmarshalInputUpdateUserRole(ctx context.Context, ob
 
 // region    **************************** object.gotpl ****************************
 
+var causedByImplementors = []string{"CausedBy"}
+
+func (ec *executionContext) _CausedBy(ctx context.Context, sel ast.SelectionSet, obj *CausedBy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, causedByImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CausedBy")
+		case "id":
+			out.Values[i] = ec._CausedBy_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullName":
+			out.Values[i] = ec._CausedBy_fullName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "profileIcon":
+			out.Values[i] = ec._CausedBy_profileIcon(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var checklistBadgeImplementors = []string{"ChecklistBadge"}
 
 func (ec *executionContext) _ChecklistBadge(ctx context.Context, sel ast.SelectionSet, obj *ChecklistBadge) graphql.Marshaler {
@@ -17185,6 +18844,38 @@ func (ec *executionContext) _ChecklistBadge(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var createTaskCommentPayloadImplementors = []string{"CreateTaskCommentPayload"}
+
+func (ec *executionContext) _CreateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, obj *CreateTaskCommentPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createTaskCommentPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreateTaskCommentPayload")
+		case "taskID":
+			out.Values[i] = ec._CreateTaskCommentPayload_taskID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "comment":
+			out.Values[i] = ec._CreateTaskCommentPayload_comment(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var createTeamMemberPayloadImplementors = []string{"CreateTeamMemberPayload"}
 
 func (ec *executionContext) _CreateTeamMemberPayload(ctx context.Context, sel ast.SelectionSet, obj *CreateTeamMemberPayload) graphql.Marshaler {
@@ -17203,6 +18894,43 @@ func (ec *executionContext) _CreateTeamMemberPayload(ctx context.Context, sel as
 			}
 		case "teamMember":
 			out.Values[i] = ec._CreateTeamMemberPayload_teamMember(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var createdByImplementors = []string{"CreatedBy"}
+
+func (ec *executionContext) _CreatedBy(ctx context.Context, sel ast.SelectionSet, obj *CreatedBy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createdByImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreatedBy")
+		case "id":
+			out.Values[i] = ec._CreatedBy_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fullName":
+			out.Values[i] = ec._CreatedBy_fullName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "profileIcon":
+			out.Values[i] = ec._CreatedBy_profileIcon(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17390,6 +19118,38 @@ func (ec *executionContext) _DeleteTaskChecklistPayload(ctx context.Context, sel
 			}
 		case "taskChecklist":
 			out.Values[i] = ec._DeleteTaskChecklistPayload_taskChecklist(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deleteTaskCommentPayloadImplementors = []string{"DeleteTaskCommentPayload"}
+
+func (ec *executionContext) _DeleteTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskCommentPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTaskCommentPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTaskCommentPayload")
+		case "taskID":
+			out.Values[i] = ec._DeleteTaskCommentPayload_taskID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "commentID":
+			out.Values[i] = ec._DeleteTaskCommentPayload_commentID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18127,6 +19887,21 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateTaskChecklistItemLocation":
 			out.Values[i] = ec._Mutation_updateTaskChecklistItemLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createTaskComment":
+			out.Values[i] = ec._Mutation_createTaskComment(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTaskComment":
+			out.Values[i] = ec._Mutation_deleteTaskComment(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskComment":
+			out.Values[i] = ec._Mutation_updateTaskComment(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -19265,6 +21040,149 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "activity":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Task_activity(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "comments":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Task_comments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var taskActivityImplementors = []string{"TaskActivity"}
+
+func (ec *executionContext) _TaskActivity(ctx context.Context, sel ast.SelectionSet, obj *db.TaskActivity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, taskActivityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TaskActivity")
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "type":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "data":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_data(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "causedBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskActivity_causedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createdAt":
+			out.Values[i] = ec._TaskActivity_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var taskActivityDataImplementors = []string{"TaskActivityData"}
+
+func (ec *executionContext) _TaskActivityData(ctx context.Context, sel ast.SelectionSet, obj *TaskActivityData) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, taskActivityDataImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TaskActivityData")
+		case "name":
+			out.Values[i] = ec._TaskActivityData_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._TaskActivityData_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19419,6 +21337,82 @@ func (ec *executionContext) _TaskChecklistItem(ctx context.Context, sel ast.Sele
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var taskCommentImplementors = []string{"TaskComment"}
+
+func (ec *executionContext) _TaskComment(ctx context.Context, sel ast.SelectionSet, obj *db.TaskComment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, taskCommentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TaskComment")
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskComment_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createdAt":
+			out.Values[i] = ec._TaskComment_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updatedAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskComment_updatedAt(ctx, field, obj)
+				return res
+			})
+		case "message":
+			out.Values[i] = ec._TaskComment_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TaskComment_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "pinned":
+			out.Values[i] = ec._TaskComment_pinned(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19770,6 +21764,38 @@ func (ec *executionContext) _UpdateTaskChecklistLocationPayload(ctx context.Cont
 			out.Values[i] = graphql.MarshalString("UpdateTaskChecklistLocationPayload")
 		case "checklist":
 			out.Values[i] = ec._UpdateTaskChecklistLocationPayload_checklist(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateTaskCommentPayloadImplementors = []string{"UpdateTaskCommentPayload"}
+
+func (ec *executionContext) _UpdateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskCommentPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateTaskCommentPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateTaskCommentPayload")
+		case "taskID":
+			out.Values[i] = ec._UpdateTaskCommentPayload_taskID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "comment":
+			out.Values[i] = ec._UpdateTaskCommentPayload_comment(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20324,6 +22350,15 @@ func (ec *executionContext) marshalNActionType2githubᚗcomᚋjordanknottᚋtask
 	return v
 }
 
+func (ec *executionContext) unmarshalNActivityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActivityType(ctx context.Context, v interface{}) (ActivityType, error) {
+	var res ActivityType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNActivityType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActivityType(ctx context.Context, sel ast.SelectionSet, v ActivityType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNActorType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActorType(ctx context.Context, v interface{}) (ActorType, error) {
 	var res ActorType
 	return res, res.UnmarshalGQL(v)
@@ -20347,12 +22382,40 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCausedBy2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCausedBy(ctx context.Context, sel ast.SelectionSet, v CausedBy) graphql.Marshaler {
+	return ec._CausedBy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCausedBy2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCausedBy(ctx context.Context, sel ast.SelectionSet, v *CausedBy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CausedBy(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCreateTaskChecklist2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskChecklist(ctx context.Context, v interface{}) (CreateTaskChecklist, error) {
 	return ec.unmarshalInputCreateTaskChecklist(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNCreateTaskChecklistItem2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskChecklistItem(ctx context.Context, v interface{}) (CreateTaskChecklistItem, error) {
 	return ec.unmarshalInputCreateTaskChecklistItem(ctx, v)
+}
+
+func (ec *executionContext) marshalNCreateTaskCommentPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, v CreateTaskCommentPayload) graphql.Marshaler {
+	return ec._CreateTaskCommentPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreateTaskCommentPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, v *CreateTaskCommentPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CreateTaskCommentPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCreateTeamMember2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTeamMember(ctx context.Context, v interface{}) (CreateTeamMember, error) {
@@ -20371,6 +22434,20 @@ func (ec *executionContext) marshalNCreateTeamMemberPayload2ᚖgithubᚗcomᚋjo
 		return graphql.Null
 	}
 	return ec._CreateTeamMemberPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCreatedBy2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreatedBy(ctx context.Context, sel ast.SelectionSet, v CreatedBy) graphql.Marshaler {
+	return ec._CreatedBy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreatedBy2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreatedBy(ctx context.Context, sel ast.SelectionSet, v *CreatedBy) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CreatedBy(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDeleteInvitedProjectMember2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteInvitedProjectMember(ctx context.Context, v interface{}) (DeleteInvitedProjectMember, error) {
@@ -20483,6 +22560,20 @@ func (ec *executionContext) marshalNDeleteTaskChecklistPayload2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._DeleteTaskChecklistPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskCommentPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, v DeleteTaskCommentPayload) graphql.Marshaler {
+	return ec._DeleteTaskCommentPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskCommentPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, v *DeleteTaskCommentPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteTaskCommentPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDeleteTaskGroupInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupInput(ctx context.Context, v interface{}) (DeleteTaskGroupInput, error) {
@@ -21530,6 +23621,88 @@ func (ec *executionContext) marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcaf
 	return ec._Task(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNTaskActivity2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivity(ctx context.Context, sel ast.SelectionSet, v db.TaskActivity) graphql.Marshaler {
+	return ec._TaskActivity(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTaskActivity2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivityᚄ(ctx context.Context, sel ast.SelectionSet, v []db.TaskActivity) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTaskActivity2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskActivity(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNTaskActivityData2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityData(ctx context.Context, sel ast.SelectionSet, v TaskActivityData) graphql.Marshaler {
+	return ec._TaskActivityData(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTaskActivityData2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityDataᚄ(ctx context.Context, sel ast.SelectionSet, v []TaskActivityData) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTaskActivityData2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskActivityData(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNTaskBadges2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐTaskBadges(ctx context.Context, sel ast.SelectionSet, v TaskBadges) graphql.Marshaler {
 	return ec._TaskBadges(ctx, sel, &v)
 }
@@ -21644,6 +23817,57 @@ func (ec *executionContext) marshalNTaskChecklistItem2ᚖgithubᚗcomᚋjordankn
 		return graphql.Null
 	}
 	return ec._TaskChecklistItem(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx context.Context, sel ast.SelectionSet, v db.TaskComment) graphql.Marshaler {
+	return ec._TaskComment(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTaskComment2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskCommentᚄ(ctx context.Context, sel ast.SelectionSet, v []db.TaskComment) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx context.Context, sel ast.SelectionSet, v *db.TaskComment) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._TaskComment(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskGroup(ctx context.Context, sel ast.SelectionSet, v db.TaskGroup) graphql.Marshaler {
@@ -22019,6 +24243,20 @@ func (ec *executionContext) marshalNUpdateTaskChecklistLocationPayload2ᚖgithub
 
 func (ec *executionContext) unmarshalNUpdateTaskChecklistName2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskChecklistName(ctx context.Context, v interface{}) (UpdateTaskChecklistName, error) {
 	return ec.unmarshalInputUpdateTaskChecklistName(ctx, v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskCommentPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, v UpdateTaskCommentPayload) graphql.Marshaler {
+	return ec._UpdateTaskCommentPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskCommentPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, v *UpdateTaskCommentPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateTaskCommentPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDescriptionInput(ctx context.Context, v interface{}) (UpdateTaskDescriptionInput, error) {
@@ -22458,6 +24696,41 @@ func (ec *executionContext) marshalOChecklistBadge2ᚖgithubᚗcomᚋjordanknott
 	return ec._ChecklistBadge(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOCreateTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskComment(ctx context.Context, v interface{}) (CreateTaskComment, error) {
+	return ec.unmarshalInputCreateTaskComment(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOCreateTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskComment(ctx context.Context, v interface{}) (*CreateTaskComment, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOCreateTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskComment(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalODeleteTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskComment(ctx context.Context, v interface{}) (DeleteTaskComment, error) {
+	return ec.unmarshalInputDeleteTaskComment(ctx, v)
+}
+
+func (ec *executionContext) unmarshalODeleteTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskComment(ctx context.Context, v interface{}) (*DeleteTaskComment, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalODeleteTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskComment(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOProfileIcon2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx context.Context, sel ast.SelectionSet, v ProfileIcon) graphql.Marshaler {
+	return ec._ProfileIcon(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx context.Context, sel ast.SelectionSet, v *ProfileIcon) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProfileIcon(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOProjectsFilter2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectsFilter(ctx context.Context, v interface{}) (ProjectsFilter, error) {
 	return ec.unmarshalInputProjectsFilter(ctx, v)
 }
@@ -22583,6 +24856,18 @@ func (ec *executionContext) unmarshalOUpdateProjectName2ᚖgithubᚗcomᚋjordan
 		return nil, nil
 	}
 	res, err := ec.unmarshalOUpdateProjectName2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateProjectName(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOUpdateTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskComment(ctx context.Context, v interface{}) (UpdateTaskComment, error) {
+	return ec.unmarshalInputUpdateTaskComment(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOUpdateTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskComment(ctx context.Context, v interface{}) (*UpdateTaskComment, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOUpdateTaskComment2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskComment(ctx, v)
 	return &res, err
 }
 

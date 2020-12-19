@@ -10,6 +10,40 @@ query findTask($taskID: UUID!) {
       id
       name
     }
+    comments {
+      id
+      pinned
+      message
+      createdAt
+      updatedAt
+      createdBy {
+        id
+        fullName
+        profileIcon {
+          initials
+          bgColor
+          url
+        }
+      }
+    }
+    activity {
+      id
+      type
+      causedBy {
+        id
+        fullName
+        profileIcon {
+          initials
+          bgColor
+          url
+        }
+      }
+      createdAt
+      data {
+        name
+        value
+      }
+    }
     badges {
       checklist {
         total

@@ -475,6 +475,7 @@ export const CommentEditorContainer = styled.div`
   border: 1px solid #414561;
   display: flex;
   flex-direction: column;
+  background: #1f243e;
 `;
 export const CommentProfile = styled(TaskAssignee)`
   margin-right: 8px;
@@ -484,7 +485,7 @@ export const CommentProfile = styled(TaskAssignee)`
   align-items: normal;
 `;
 
-export const CommentTextArea = styled(TextareaAutosize)`
+export const CommentTextArea = styled(TextareaAutosize)<{ showCommentActions: boolean }>`
   width: 100%;
   line-height: 28px;
   padding: 4px 6px;
@@ -495,14 +496,16 @@ export const CommentTextArea = styled(TextareaAutosize)`
   transition: max-height 200ms, height 200ms, min-height 200ms;
   min-height: 36px;
   max-height: 36px;
-  &:not(:focus) {
-    height: 36px;
-  }
-  &:focus {
-    min-height: 80px;
-    max-height: none;
-    line-height: 20px;
-  }
+  ${props =>
+    props.showCommentActions
+      ? css`
+          min-height: 80px;
+          max-height: none;
+          line-height: 20px;
+        `
+      : css`
+          height: 36px;
+        `}
 `;
 
 export const CommentEditorActions = styled.div<{ visible: boolean }>`
@@ -529,6 +532,18 @@ export const ActivitySection = styled.div`
   overflow-x: hidden;
 
   padding: 8px 26px;
+  display: flex;
+  flex-direction: column-reverse;
+`;
+
+export const ActivityItemCommentAction = styled.div`
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  svg {
+    fill: ${props => props.theme.colors.text.primary} !important;
+  }
 `;
 
 export const ActivityItem = styled.div`
@@ -537,25 +552,32 @@ export const ActivityItem = styled.div`
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
+  display: flex;
+  &:hover ${ActivityItemCommentAction} {
+    display: flex;
+  }
 `;
 
-export const ActivityItemHeader = styled.div`
+export const ActivityItemHeader = styled.div<{ editable?: boolean }>`
   display: flex;
+  flex-direction: column;
+  padding-left: 8px;
+  ${props => props.editable && 'width: 100%;'}
 `;
 export const ActivityItemHeaderUser = styled(TaskAssignee)`
-  margin-right: 4px;
+  align-items: start;
 `;
 
 export const ActivityItemHeaderTitle = styled.div`
-  margin-left: 4px;
-  line-height: 18px;
   display: flex;
   align-items: center;
+  color: ${props => props.theme.colors.text.primary};
+  padding-bottom: 2px;
 `;
 
 export const ActivityItemHeaderTitleName = styled.span`
-  color: ${props => props.theme.colors.text.primary};
   font-weight: 500;
+  padding-right: 3px;
 `;
 
 export const ActivityItemTimestamp = styled.span<{ margin: number }>`
@@ -568,8 +590,10 @@ export const ActivityItemDetails = styled.div`
   margin-left: 32px;
 `;
 
-export const ActivityItemComment = styled.div`
+export const ActivityItemCommentContainer = styled.div``;
+export const ActivityItemComment = styled.div<{ editable: boolean }>`
   display: inline-flex;
+  flex-direction: column;
   border-radius: 3px;
   ${mixin.boxShadowCard}
   position: relative;
@@ -577,6 +601,32 @@ export const ActivityItemComment = styled.div`
   padding: 8px 12px;
   margin: 4px 0;
   background-color: ${props => mixin.darken(props.theme.colors.alternate, 0.1)};
+  ${props => props.editable && 'width: 100%;'}
+
+  & span {
+    display: flex;
+    align-items: center;
+  }
+  & ul {
+    list-style-type: disc;
+    margin: 8px 0;
+  }
+  & ul > li {
+    margin: 8px 8px 8px 24px;
+    margin-inline-start: 24px;
+    margin-inline-end: 8px;
+  }
+  & ul > li ul > li {
+    list-style: circle;
+  }
+`;
+
+export const ActivityItemCommentActions = styled.div`
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 8px;
+  right: 0;
 `;
 
 export const ActivityItemLog = styled.span`

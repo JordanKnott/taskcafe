@@ -280,7 +280,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         cache =>
           produce(cache, draftCache => {
             draftCache.findProject.taskGroups = draftCache.findProject.taskGroups.filter(
-              (taskGroup: TaskGroup) => taskGroup.id !== deletedTaskGroupData.data.deleteTaskGroup.taskGroup.id,
+              (taskGroup: TaskGroup) => taskGroup.id !== deletedTaskGroupData.data?.deleteTaskGroup.taskGroup.id,
             );
           }),
         { projectID },
@@ -296,9 +296,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         cache =>
           produce(cache, draftCache => {
             const { taskGroups } = cache.findProject;
-            const idx = taskGroups.findIndex(taskGroup => taskGroup.id === newTaskData.data.createTask.taskGroup.id);
+            const idx = taskGroups.findIndex(taskGroup => taskGroup.id === newTaskData.data?.createTask.taskGroup.id);
             if (idx !== -1) {
-              draftCache.findProject.taskGroups[idx].tasks.push({ ...newTaskData.data.createTask });
+              if (newTaskData.data) {
+                draftCache.findProject.taskGroups[idx].tasks.push({ ...newTaskData.data.createTask });
+              }
             }
           }),
         { projectID },
@@ -313,7 +315,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.taskGroups.push({ ...newTaskGroupData.data.createTaskGroup, tasks: [] });
+            if (newTaskGroupData.data) {
+              draftCache.findProject.taskGroups.push({ ...newTaskGroupData.data.createTaskGroup, tasks: [] });
+            }
           }),
         { projectID },
       );
@@ -332,7 +336,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         cache =>
           produce(cache, draftCache => {
             const idx = cache.findProject.taskGroups.findIndex(
-              t => t.id === resp.data.deleteTaskGroupTasks.taskGroupID,
+              t => t.id === resp.data?.deleteTaskGroupTasks.taskGroupID,
             );
             if (idx !== -1) {
               draftCache.findProject.taskGroups[idx].tasks = [];
@@ -348,7 +352,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.taskGroups.push(resp.data.duplicateTaskGroup.taskGroup);
+            if (resp.data) {
+              draftCache.findProject.taskGroups.push(resp.data.duplicateTaskGroup.taskGroup);
+            }
           }),
         { projectID },
       );
@@ -364,19 +370,24 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
-            if (previousTaskGroupID !== task.taskGroup.id) {
-              const { taskGroups } = cache.findProject;
-              const oldTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
-              const newTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
-              if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
-                draftCache.findProject.taskGroups[oldTaskGroupIdx].tasks = taskGroups[oldTaskGroupIdx].tasks.filter(
-                  (t: Task) => t.id !== task.id,
-                );
-                draftCache.findProject.taskGroups[newTaskGroupIdx].tasks = [
-                  ...taskGroups[newTaskGroupIdx].tasks,
-                  { ...task },
-                ];
+            if (newTask.data) {
+              const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
+              if (previousTaskGroupID !== task.taskGroup.id) {
+                const { taskGroups } = cache.findProject;
+                const oldTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
+                const newTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
+                if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
+                  const previousTask = cache.findProject.taskGroups[oldTaskGroupIdx].tasks.find(t => t.id === task.id);
+                  draftCache.findProject.taskGroups[oldTaskGroupIdx].tasks = taskGroups[oldTaskGroupIdx].tasks.filter(
+                    (t: Task) => t.id !== task.id,
+                  );
+                  if (previousTask) {
+                    draftCache.findProject.taskGroups[newTaskGroupIdx].tasks = [
+                      ...taskGroups[newTaskGroupIdx].tasks,
+                      { ...previousTask },
+                    ];
+                  }
+                }
               }
             }
           }),

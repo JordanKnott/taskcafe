@@ -43,3 +43,16 @@ UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING *;
 SELECT project_id FROM task
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
   WHERE task_id = $1;
+
+-- name: CreateTaskComment :one
+INSERT INTO task_comment (task_id, message, created_at, created_by)
+  VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: GetCommentsForTaskID :many
+SELECT * FROM task_comment WHERE task_id = $1 ORDER BY created_at;
+
+-- name: DeleteTaskCommentByID :one
+DELETE FROM task_comment WHERE task_comment_id = $1 RETURNING *;
+
+-- name: UpdateTaskComment :one
+UPDATE task_comment SET message = $2, updated_at = $3 WHERE task_comment_id = $1 RETURNING *;

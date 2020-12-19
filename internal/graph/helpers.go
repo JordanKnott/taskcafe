@@ -41,3 +41,7 @@ func GetMemberList(ctx context.Context, r db.Repository, user db.UserAccount) (*
 
 	return &MemberList{Teams: teams, Projects: projects}, nil
 }
+
+type ActivityData struct {
+	Data map[string]string
+}

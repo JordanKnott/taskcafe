@@ -2,6 +2,9 @@ import gql from 'graphql-tag';
 import * as ApolloReactCommon from '@apollo/react-common';
 import * as ApolloReactHooks from '@apollo/react-hooks';
 export type Maybe<T> = T | null;
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -26,7 +29,7 @@ export enum RoleCode {
 }
 
 export type ProjectLabel = {
-   __typename?: 'ProjectLabel';
+  __typename?: 'ProjectLabel';
   id: Scalars['ID'];
   createdDate: Scalars['Time'];
   labelColor: LabelColor;
@@ -34,7 +37,7 @@ export type ProjectLabel = {
 };
 
 export type LabelColor = {
-   __typename?: 'LabelColor';
+  __typename?: 'LabelColor';
   id: Scalars['ID'];
   name: Scalars['String'];
   position: Scalars['Float'];
@@ -42,27 +45,27 @@ export type LabelColor = {
 };
 
 export type TaskLabel = {
-   __typename?: 'TaskLabel';
+  __typename?: 'TaskLabel';
   id: Scalars['ID'];
   projectLabel: ProjectLabel;
   assignedDate: Scalars['Time'];
 };
 
 export type ProfileIcon = {
-   __typename?: 'ProfileIcon';
+  __typename?: 'ProfileIcon';
   url?: Maybe<Scalars['String']>;
   initials?: Maybe<Scalars['String']>;
   bgColor?: Maybe<Scalars['String']>;
 };
 
 export type OwnersList = {
-   __typename?: 'OwnersList';
+  __typename?: 'OwnersList';
   projects: Array<Scalars['UUID']>;
   teams: Array<Scalars['UUID']>;
 };
 
 export type Member = {
-   __typename?: 'Member';
+  __typename?: 'Member';
   id: Scalars['ID'];
   role: Role;
   fullName: Scalars['String'];
@@ -73,7 +76,7 @@ export type Member = {
 };
 
 export type RefreshToken = {
-   __typename?: 'RefreshToken';
+  __typename?: 'RefreshToken';
   id: Scalars['ID'];
   userId: Scalars['UUID'];
   expiresAt: Scalars['Time'];
@@ -81,25 +84,25 @@ export type RefreshToken = {
 };
 
 export type Role = {
-   __typename?: 'Role';
+  __typename?: 'Role';
   code: Scalars['String'];
   name: Scalars['String'];
 };
 
 export type OwnedList = {
-   __typename?: 'OwnedList';
+  __typename?: 'OwnedList';
   teams: Array<Team>;
   projects: Array<Project>;
 };
 
 export type MemberList = {
-   __typename?: 'MemberList';
+  __typename?: 'MemberList';
   teams: Array<Team>;
   projects: Array<Project>;
 };
 
 export type UserAccount = {
-   __typename?: 'UserAccount';
+  __typename?: 'UserAccount';
   id: Scalars['ID'];
   email: Scalars['String'];
   createdAt: Scalars['Time'];
@@ -114,7 +117,7 @@ export type UserAccount = {
 };
 
 export type InvitedUserAccount = {
-   __typename?: 'InvitedUserAccount';
+  __typename?: 'InvitedUserAccount';
   id: Scalars['ID'];
   email: Scalars['String'];
   invitedOn: Scalars['Time'];
@@ -122,7 +125,7 @@ export type InvitedUserAccount = {
 };
 
 export type Team = {
-   __typename?: 'Team';
+  __typename?: 'Team';
   id: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
@@ -130,13 +133,13 @@ export type Team = {
 };
 
 export type InvitedMember = {
-   __typename?: 'InvitedMember';
+  __typename?: 'InvitedMember';
   email: Scalars['String'];
   invitedOn: Scalars['Time'];
 };
 
 export type Project = {
-   __typename?: 'Project';
+  __typename?: 'Project';
   id: Scalars['ID'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
@@ -148,7 +151,7 @@ export type Project = {
 };
 
 export type TaskGroup = {
-   __typename?: 'TaskGroup';
+  __typename?: 'TaskGroup';
   id: Scalars['ID'];
   projectID: Scalars['String'];
   createdAt: Scalars['Time'];
@@ -158,18 +161,53 @@ export type TaskGroup = {
 };
 
 export type ChecklistBadge = {
-   __typename?: 'ChecklistBadge';
+  __typename?: 'ChecklistBadge';
   complete: Scalars['Int'];
   total: Scalars['Int'];
 };
 
 export type TaskBadges = {
-   __typename?: 'TaskBadges';
+  __typename?: 'TaskBadges';
   checklist?: Maybe<ChecklistBadge>;
 };
 
+export type CausedBy = {
+  __typename?: 'CausedBy';
+  id: Scalars['ID'];
+  fullName: Scalars['String'];
+  profileIcon?: Maybe<ProfileIcon>;
+};
+
+export type TaskActivityData = {
+  __typename?: 'TaskActivityData';
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export enum ActivityType {
+  TaskAdded = 'TASK_ADDED',
+  TaskMoved = 'TASK_MOVED',
+  TaskMarkedComplete = 'TASK_MARKED_COMPLETE',
+  TaskMarkedIncomplete = 'TASK_MARKED_INCOMPLETE',
+  TaskDueDateChanged = 'TASK_DUE_DATE_CHANGED',
+  TaskDueDateAdded = 'TASK_DUE_DATE_ADDED',
+  TaskDueDateRemoved = 'TASK_DUE_DATE_REMOVED',
+  TaskChecklistChanged = 'TASK_CHECKLIST_CHANGED',
+  TaskChecklistAdded = 'TASK_CHECKLIST_ADDED',
+  TaskChecklistRemoved = 'TASK_CHECKLIST_REMOVED'
+}
+
+export type TaskActivity = {
+  __typename?: 'TaskActivity';
+  id: Scalars['ID'];
+  type: ActivityType;
+  data: Array<TaskActivityData>;
+  causedBy: CausedBy;
+  createdAt: Scalars['Time'];
+};
+
 export type Task = {
-   __typename?: 'Task';
+  __typename?: 'Task';
   id: Scalars['ID'];
   taskGroup: TaskGroup;
   createdAt: Scalars['Time'];
@@ -183,16 +221,35 @@ export type Task = {
   labels: Array<TaskLabel>;
   checklists: Array<TaskChecklist>;
   badges: TaskBadges;
+  activity: Array<TaskActivity>;
+  comments: Array<TaskComment>;
+};
+
+export type CreatedBy = {
+  __typename?: 'CreatedBy';
+  id: Scalars['ID'];
+  fullName: Scalars['String'];
+  profileIcon: ProfileIcon;
+};
+
+export type TaskComment = {
+  __typename?: 'TaskComment';
+  id: Scalars['ID'];
+  createdAt: Scalars['Time'];
+  updatedAt?: Maybe<Scalars['Time']>;
+  message: Scalars['String'];
+  createdBy: CreatedBy;
+  pinned: Scalars['Boolean'];
 };
 
 export type Organization = {
-   __typename?: 'Organization';
+  __typename?: 'Organization';
   id: Scalars['ID'];
   name: Scalars['String'];
 };
 
 export type TaskChecklistItem = {
-   __typename?: 'TaskChecklistItem';
+  __typename?: 'TaskChecklistItem';
   id: Scalars['ID'];
   name: Scalars['String'];
   taskChecklistID: Scalars['UUID'];
@@ -202,12 +259,17 @@ export type TaskChecklistItem = {
 };
 
 export type TaskChecklist = {
-   __typename?: 'TaskChecklist';
+  __typename?: 'TaskChecklist';
   id: Scalars['ID'];
   name: Scalars['String'];
   position: Scalars['Float'];
   items: Array<TaskChecklistItem>;
 };
+
+export enum ShareStatus {
+  Invited = 'INVITED',
+  Joined = 'JOINED'
+}
 
 export enum RoleLevel {
   Admin = 'ADMIN',
@@ -231,7 +293,7 @@ export enum ObjectType {
 }
 
 export type Query = {
-   __typename?: 'Query';
+  __typename?: 'Query';
   findProject: Project;
   findTask: Task;
   findTeam: Team;
@@ -279,7 +341,7 @@ export type QuerySearchMembersArgs = {
 };
 
 export type Mutation = {
-   __typename?: 'Mutation';
+  __typename?: 'Mutation';
   addTaskLabel: Task;
   assignTask: Task;
   clearProfileAvatar: UserAccount;
@@ -289,6 +351,7 @@ export type Mutation = {
   createTask: Task;
   createTaskChecklist: TaskChecklist;
   createTaskChecklistItem: TaskChecklistItem;
+  createTaskComment: CreateTaskCommentPayload;
   createTaskGroup: TaskGroup;
   createTeam: Team;
   createTeamMember: CreateTeamMemberPayload;
@@ -301,6 +364,7 @@ export type Mutation = {
   deleteTask: DeleteTaskPayload;
   deleteTaskChecklist: DeleteTaskChecklistPayload;
   deleteTaskChecklistItem: DeleteTaskChecklistItemPayload;
+  deleteTaskComment: DeleteTaskCommentPayload;
   deleteTaskGroup: DeleteTaskGroupPayload;
   deleteTaskGroupTasks: DeleteTaskGroupTasksPayload;
   deleteTeam: DeleteTeamPayload;
@@ -324,6 +388,7 @@ export type Mutation = {
   updateTaskChecklistItemName: TaskChecklistItem;
   updateTaskChecklistLocation: UpdateTaskChecklistLocationPayload;
   updateTaskChecklistName: TaskChecklist;
+  updateTaskComment: UpdateTaskCommentPayload;
   updateTaskDescription: Task;
   updateTaskDueDate: Task;
   updateTaskGroupLocation: TaskGroup;
@@ -374,6 +439,11 @@ export type MutationCreateTaskChecklistArgs = {
 
 export type MutationCreateTaskChecklistItemArgs = {
   input: CreateTaskChecklistItem;
+};
+
+
+export type MutationCreateTaskCommentArgs = {
+  input?: Maybe<CreateTaskComment>;
 };
 
 
@@ -434,6 +504,11 @@ export type MutationDeleteTaskChecklistArgs = {
 
 export type MutationDeleteTaskChecklistItemArgs = {
   input: DeleteTaskChecklistItem;
+};
+
+
+export type MutationDeleteTaskCommentArgs = {
+  input?: Maybe<DeleteTaskComment>;
 };
 
 
@@ -552,6 +627,11 @@ export type MutationUpdateTaskChecklistNameArgs = {
 };
 
 
+export type MutationUpdateTaskCommentArgs = {
+  input?: Maybe<UpdateTaskComment>;
+};
+
+
 export type MutationUpdateTaskDescriptionArgs = {
   input: UpdateTaskDescriptionInput;
 };
@@ -602,19 +682,19 @@ export type MutationUpdateUserRoleArgs = {
 };
 
 export type TeamRole = {
-   __typename?: 'TeamRole';
+  __typename?: 'TeamRole';
   teamID: Scalars['UUID'];
   roleCode: RoleCode;
 };
 
 export type ProjectRole = {
-   __typename?: 'ProjectRole';
+  __typename?: 'ProjectRole';
   projectID: Scalars['UUID'];
   roleCode: RoleCode;
 };
 
 export type MePayload = {
-   __typename?: 'MePayload';
+  __typename?: 'MePayload';
   user: UserAccount;
   teamRoles: Array<TeamRole>;
   projectRoles: Array<ProjectRole>;
@@ -653,21 +733,21 @@ export enum ActionType {
 }
 
 export type NotificationActor = {
-   __typename?: 'NotificationActor';
+  __typename?: 'NotificationActor';
   id: Scalars['UUID'];
   type: ActorType;
   name: Scalars['String'];
 };
 
 export type NotificationEntity = {
-   __typename?: 'NotificationEntity';
+  __typename?: 'NotificationEntity';
   id: Scalars['UUID'];
   type: EntityType;
   name: Scalars['String'];
 };
 
 export type Notification = {
-   __typename?: 'Notification';
+  __typename?: 'Notification';
   id: Scalars['ID'];
   entity: NotificationEntity;
   actionType: ActionType;
@@ -691,7 +771,7 @@ export type DeleteProject = {
 };
 
 export type DeleteProjectPayload = {
-   __typename?: 'DeleteProjectPayload';
+  __typename?: 'DeleteProjectPayload';
   ok: Scalars['Boolean'];
   project: Project;
 };
@@ -728,7 +808,7 @@ export type DeleteInvitedProjectMember = {
 };
 
 export type DeleteInvitedProjectMemberPayload = {
-   __typename?: 'DeleteInvitedProjectMemberPayload';
+  __typename?: 'DeleteInvitedProjectMemberPayload';
   invitedMember: InvitedMember;
 };
 
@@ -743,7 +823,7 @@ export type InviteProjectMembers = {
 };
 
 export type InviteProjectMembersPayload = {
-   __typename?: 'InviteProjectMembersPayload';
+  __typename?: 'InviteProjectMembersPayload';
   ok: Scalars['Boolean'];
   projectID: Scalars['UUID'];
   members: Array<Member>;
@@ -756,7 +836,7 @@ export type DeleteProjectMember = {
 };
 
 export type DeleteProjectMemberPayload = {
-   __typename?: 'DeleteProjectMemberPayload';
+  __typename?: 'DeleteProjectMemberPayload';
   ok: Scalars['Boolean'];
   member: Member;
   projectID: Scalars['UUID'];
@@ -769,7 +849,7 @@ export type UpdateProjectMemberRole = {
 };
 
 export type UpdateProjectMemberRolePayload = {
-   __typename?: 'UpdateProjectMemberRolePayload';
+  __typename?: 'UpdateProjectMemberRolePayload';
   ok: Scalars['Boolean'];
   member: Member;
 };
@@ -796,7 +876,7 @@ export type UpdateTaskDescriptionInput = {
 };
 
 export type UpdateTaskLocationPayload = {
-   __typename?: 'UpdateTaskLocationPayload';
+  __typename?: 'UpdateTaskLocationPayload';
   previousTaskGroupID: Scalars['UUID'];
   task: Task;
 };
@@ -822,7 +902,7 @@ export type DeleteTaskInput = {
 };
 
 export type DeleteTaskPayload = {
-   __typename?: 'DeleteTaskPayload';
+  __typename?: 'DeleteTaskPayload';
   taskID: Scalars['UUID'];
 };
 
@@ -838,7 +918,7 @@ export type UpdateTaskChecklistItemLocation = {
 };
 
 export type UpdateTaskChecklistItemLocationPayload = {
-   __typename?: 'UpdateTaskChecklistItemLocationPayload';
+  __typename?: 'UpdateTaskChecklistItemLocationPayload';
   taskChecklistID: Scalars['UUID'];
   prevChecklistID: Scalars['UUID'];
   checklistItem: TaskChecklistItem;
@@ -850,7 +930,7 @@ export type UpdateTaskChecklistLocation = {
 };
 
 export type UpdateTaskChecklistLocationPayload = {
-   __typename?: 'UpdateTaskChecklistLocationPayload';
+  __typename?: 'UpdateTaskChecklistLocationPayload';
   checklist: TaskChecklist;
 };
 
@@ -861,7 +941,7 @@ export type CreateTaskChecklist = {
 };
 
 export type DeleteTaskChecklistItemPayload = {
-   __typename?: 'DeleteTaskChecklistItemPayload';
+  __typename?: 'DeleteTaskChecklistItemPayload';
   ok: Scalars['Boolean'];
   taskChecklistItem: TaskChecklistItem;
 };
@@ -896,9 +976,41 @@ export type DeleteTaskChecklist = {
 };
 
 export type DeleteTaskChecklistPayload = {
-   __typename?: 'DeleteTaskChecklistPayload';
+  __typename?: 'DeleteTaskChecklistPayload';
   ok: Scalars['Boolean'];
   taskChecklist: TaskChecklist;
+};
+
+export type CreateTaskComment = {
+  taskID: Scalars['UUID'];
+  message: Scalars['String'];
+};
+
+export type CreateTaskCommentPayload = {
+  __typename?: 'CreateTaskCommentPayload';
+  taskID: Scalars['UUID'];
+  comment: TaskComment;
+};
+
+export type UpdateTaskComment = {
+  commentID: Scalars['UUID'];
+  message: Scalars['String'];
+};
+
+export type UpdateTaskCommentPayload = {
+  __typename?: 'UpdateTaskCommentPayload';
+  taskID: Scalars['UUID'];
+  comment: TaskComment;
+};
+
+export type DeleteTaskComment = {
+  commentID: Scalars['UUID'];
+};
+
+export type DeleteTaskCommentPayload = {
+  __typename?: 'DeleteTaskCommentPayload';
+  taskID: Scalars['UUID'];
+  commentID: Scalars['UUID'];
 };
 
 export type DeleteTaskGroupTasks = {
@@ -906,7 +1018,7 @@ export type DeleteTaskGroupTasks = {
 };
 
 export type DeleteTaskGroupTasksPayload = {
-   __typename?: 'DeleteTaskGroupTasksPayload';
+  __typename?: 'DeleteTaskGroupTasksPayload';
   taskGroupID: Scalars['UUID'];
   tasks: Array<Scalars['UUID']>;
 };
@@ -917,7 +1029,7 @@ export type TaskPositionUpdate = {
 };
 
 export type SortTaskGroupPayload = {
-   __typename?: 'SortTaskGroupPayload';
+  __typename?: 'SortTaskGroupPayload';
   taskGroupID: Scalars['UUID'];
   tasks: Array<Task>;
 };
@@ -935,7 +1047,7 @@ export type DuplicateTaskGroup = {
 };
 
 export type DuplicateTaskGroupPayload = {
-   __typename?: 'DuplicateTaskGroupPayload';
+  __typename?: 'DuplicateTaskGroupPayload';
   taskGroup: TaskGroup;
 };
 
@@ -954,7 +1066,7 @@ export type DeleteTaskGroupInput = {
 };
 
 export type DeleteTaskGroupPayload = {
-   __typename?: 'DeleteTaskGroupPayload';
+  __typename?: 'DeleteTaskGroupPayload';
   ok: Scalars['Boolean'];
   affectedRows: Scalars['Int'];
   taskGroup: TaskGroup;
@@ -982,7 +1094,7 @@ export type ToggleTaskLabelInput = {
 };
 
 export type ToggleTaskLabelPayload = {
-   __typename?: 'ToggleTaskLabelPayload';
+  __typename?: 'ToggleTaskLabelPayload';
   active: Scalars['Boolean'];
   task: Task;
 };
@@ -997,7 +1109,7 @@ export type DeleteTeam = {
 };
 
 export type DeleteTeamPayload = {
-   __typename?: 'DeleteTeamPayload';
+  __typename?: 'DeleteTeamPayload';
   ok: Scalars['Boolean'];
   team: Team;
   projects: Array<Project>;
@@ -1010,7 +1122,7 @@ export type DeleteTeamMember = {
 };
 
 export type DeleteTeamMemberPayload = {
-   __typename?: 'DeleteTeamMemberPayload';
+  __typename?: 'DeleteTeamMemberPayload';
   teamID: Scalars['UUID'];
   userID: Scalars['UUID'];
   affectedProjects: Array<Project>;
@@ -1022,7 +1134,7 @@ export type CreateTeamMember = {
 };
 
 export type CreateTeamMemberPayload = {
-   __typename?: 'CreateTeamMemberPayload';
+  __typename?: 'CreateTeamMemberPayload';
   team: Team;
   teamMember: Member;
 };
@@ -1034,7 +1146,7 @@ export type UpdateTeamMemberRole = {
 };
 
 export type UpdateTeamMemberRolePayload = {
-   __typename?: 'UpdateTeamMemberRolePayload';
+  __typename?: 'UpdateTeamMemberRolePayload';
   ok: Scalars['Boolean'];
   teamID: Scalars['UUID'];
   member: Member;
@@ -1045,26 +1157,25 @@ export type DeleteInvitedUserAccount = {
 };
 
 export type DeleteInvitedUserAccountPayload = {
-   __typename?: 'DeleteInvitedUserAccountPayload';
+  __typename?: 'DeleteInvitedUserAccountPayload';
   invitedUser: InvitedUserAccount;
 };
 
 export type MemberSearchFilter = {
-  SearchFilter: Scalars['String'];
+  searchFilter: Scalars['String'];
   projectID?: Maybe<Scalars['UUID']>;
 };
 
 export type MemberSearchResult = {
-   __typename?: 'MemberSearchResult';
+  __typename?: 'MemberSearchResult';
   similarity: Scalars['Int'];
-  user: UserAccount;
-  confirmed: Scalars['Boolean'];
-  invited: Scalars['Boolean'];
-  joined: Scalars['Boolean'];
+  id: Scalars['String'];
+  user?: Maybe<UserAccount>;
+  status: ShareStatus;
 };
 
 export type UpdateUserInfoPayload = {
-   __typename?: 'UpdateUserInfoPayload';
+  __typename?: 'UpdateUserInfoPayload';
   user: UserAccount;
 };
 
@@ -1081,7 +1192,7 @@ export type UpdateUserPassword = {
 };
 
 export type UpdateUserPasswordPayload = {
-   __typename?: 'UpdateUserPasswordPayload';
+  __typename?: 'UpdateUserPasswordPayload';
   ok: Scalars['Boolean'];
   user: UserAccount;
 };
@@ -1092,7 +1203,7 @@ export type UpdateUserRole = {
 };
 
 export type UpdateUserRolePayload = {
-   __typename?: 'UpdateUserRolePayload';
+  __typename?: 'UpdateUserRolePayload';
   user: UserAccount;
 };
 
@@ -1119,15 +1230,15 @@ export type DeleteUserAccount = {
 };
 
 export type DeleteUserAccountPayload = {
-   __typename?: 'DeleteUserAccountPayload';
+  __typename?: 'DeleteUserAccountPayload';
   ok: Scalars['Boolean'];
   userAccount: UserAccount;
 };
 
-export type AssignTaskMutationVariables = {
+export type AssignTaskMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   userID: Scalars['UUID'];
-};
+}>;
 
 
 export type AssignTaskMutation = (
@@ -1142,7 +1253,7 @@ export type AssignTaskMutation = (
   ) }
 );
 
-export type ClearProfileAvatarMutationVariables = {};
+export type ClearProfileAvatarMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ClearProfileAvatarMutation = (
@@ -1157,10 +1268,10 @@ export type ClearProfileAvatarMutation = (
   ) }
 );
 
-export type CreateProjectMutationVariables = {
+export type CreateProjectMutationVariables = Exact<{
   teamID?: Maybe<Scalars['UUID']>;
   name: Scalars['String'];
-};
+}>;
 
 
 export type CreateProjectMutation = (
@@ -1175,11 +1286,11 @@ export type CreateProjectMutation = (
   ) }
 );
 
-export type CreateProjectLabelMutationVariables = {
+export type CreateProjectLabelMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   labelColorID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type CreateProjectLabelMutation = (
@@ -1194,11 +1305,11 @@ export type CreateProjectLabelMutation = (
   ) }
 );
 
-export type CreateTaskGroupMutationVariables = {
+export type CreateTaskGroupMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type CreateTaskGroupMutation = (
@@ -1209,9 +1320,9 @@ export type CreateTaskGroupMutation = (
   ) }
 );
 
-export type DeleteProjectLabelMutationVariables = {
+export type DeleteProjectLabelMutationVariables = Exact<{
   projectLabelID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteProjectLabelMutation = (
@@ -1222,9 +1333,9 @@ export type DeleteProjectLabelMutation = (
   ) }
 );
 
-export type DeleteTaskMutationVariables = {
+export type DeleteTaskMutationVariables = Exact<{
   taskID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteTaskMutation = (
@@ -1235,9 +1346,9 @@ export type DeleteTaskMutation = (
   ) }
 );
 
-export type DeleteTaskGroupMutationVariables = {
+export type DeleteTaskGroupMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteTaskGroupMutation = (
@@ -1256,9 +1367,9 @@ export type DeleteTaskGroupMutation = (
   ) }
 );
 
-export type FindProjectQueryVariables = {
+export type FindProjectQueryVariables = Exact<{
   projectID: Scalars['UUID'];
-};
+}>;
 
 
 export type FindProjectQuery = (
@@ -1331,9 +1442,9 @@ export type FindProjectQuery = (
   )> }
 );
 
-export type FindTaskQueryVariables = {
+export type FindTaskQueryVariables = Exact<{
   taskID: Scalars['UUID'];
-};
+}>;
 
 
 export type FindTaskQuery = (
@@ -1344,7 +1455,32 @@ export type FindTaskQuery = (
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name'>
-    ), badges: (
+    ), comments: Array<(
+      { __typename?: 'TaskComment' }
+      & Pick<TaskComment, 'id' | 'pinned' | 'message' | 'createdAt' | 'updatedAt'>
+      & { createdBy: (
+        { __typename?: 'CreatedBy' }
+        & Pick<CreatedBy, 'id' | 'fullName'>
+        & { profileIcon: (
+          { __typename?: 'ProfileIcon' }
+          & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+        ) }
+      ) }
+    )>, activity: Array<(
+      { __typename?: 'TaskActivity' }
+      & Pick<TaskActivity, 'id' | 'type' | 'createdAt'>
+      & { causedBy: (
+        { __typename?: 'CausedBy' }
+        & Pick<CausedBy, 'id' | 'fullName'>
+        & { profileIcon?: Maybe<(
+          { __typename?: 'ProfileIcon' }
+          & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+        )> }
+      ), data: Array<(
+        { __typename?: 'TaskActivityData' }
+        & Pick<TaskActivityData, 'name' | 'value'>
+      )> }
+    )>, badges: (
       { __typename?: 'TaskBadges' }
       & { checklist?: Maybe<(
         { __typename?: 'ChecklistBadge' }
@@ -1422,7 +1558,7 @@ export type TaskFieldsFragment = (
   )> }
 );
 
-export type GetProjectsQueryVariables = {};
+export type GetProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetProjectsQuery = (
@@ -1443,7 +1579,7 @@ export type GetProjectsQuery = (
   )> }
 );
 
-export type MeQueryVariables = {};
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = (
@@ -1467,9 +1603,9 @@ export type MeQuery = (
   ) }
 );
 
-export type DeleteProjectMutationVariables = {
+export type DeleteProjectMutationVariables = Exact<{
   projectID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteProjectMutation = (
@@ -1484,10 +1620,10 @@ export type DeleteProjectMutation = (
   ) }
 );
 
-export type DeleteInvitedProjectMemberMutationVariables = {
+export type DeleteInvitedProjectMemberMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   email: Scalars['String'];
-};
+}>;
 
 
 export type DeleteInvitedProjectMemberMutation = (
@@ -1501,10 +1637,10 @@ export type DeleteInvitedProjectMemberMutation = (
   ) }
 );
 
-export type DeleteProjectMemberMutationVariables = {
+export type DeleteProjectMemberMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   userID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteProjectMemberMutation = (
@@ -1519,10 +1655,10 @@ export type DeleteProjectMemberMutation = (
   ) }
 );
 
-export type InviteProjectMembersMutationVariables = {
+export type InviteProjectMembersMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   members: Array<MemberInvite>;
-};
+}>;
 
 
 export type InviteProjectMembersMutation = (
@@ -1547,11 +1683,11 @@ export type InviteProjectMembersMutation = (
   ) }
 );
 
-export type UpdateProjectMemberRoleMutationVariables = {
+export type UpdateProjectMemberRoleMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   userID: Scalars['UUID'];
   roleCode: RoleCode;
-};
+}>;
 
 
 export type UpdateProjectMemberRoleMutation = (
@@ -1570,11 +1706,11 @@ export type UpdateProjectMemberRoleMutation = (
   ) }
 );
 
-export type CreateTaskMutationVariables = {
+export type CreateTaskMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type CreateTaskMutation = (
@@ -1585,11 +1721,11 @@ export type CreateTaskMutation = (
   ) }
 );
 
-export type CreateTaskChecklistMutationVariables = {
+export type CreateTaskChecklistMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type CreateTaskChecklistMutation = (
@@ -1604,11 +1740,11 @@ export type CreateTaskChecklistMutation = (
   ) }
 );
 
-export type CreateTaskChecklistItemMutationVariables = {
+export type CreateTaskChecklistItemMutationVariables = Exact<{
   taskChecklistID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type CreateTaskChecklistItemMutation = (
@@ -1619,9 +1755,35 @@ export type CreateTaskChecklistItemMutation = (
   ) }
 );
 
-export type DeleteTaskChecklistMutationVariables = {
+export type CreateTaskCommentMutationVariables = Exact<{
+  taskID: Scalars['UUID'];
+  message: Scalars['String'];
+}>;
+
+
+export type CreateTaskCommentMutation = (
+  { __typename?: 'Mutation' }
+  & { createTaskComment: (
+    { __typename?: 'CreateTaskCommentPayload' }
+    & Pick<CreateTaskCommentPayload, 'taskID'>
+    & { comment: (
+      { __typename?: 'TaskComment' }
+      & Pick<TaskComment, 'id' | 'message' | 'pinned' | 'createdAt' | 'updatedAt'>
+      & { createdBy: (
+        { __typename?: 'CreatedBy' }
+        & Pick<CreatedBy, 'id' | 'fullName'>
+        & { profileIcon: (
+          { __typename?: 'ProfileIcon' }
+          & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
+        ) }
+      ) }
+    ) }
+  ) }
+);
+
+export type DeleteTaskChecklistMutationVariables = Exact<{
   taskChecklistID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteTaskChecklistMutation = (
@@ -1636,9 +1798,9 @@ export type DeleteTaskChecklistMutation = (
   ) }
 );
 
-export type DeleteTaskChecklistItemMutationVariables = {
+export type DeleteTaskChecklistItemMutationVariables = Exact<{
   taskChecklistItemID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteTaskChecklistItemMutation = (
@@ -1653,10 +1815,23 @@ export type DeleteTaskChecklistItemMutation = (
   ) }
 );
 
-export type SetTaskChecklistItemCompleteMutationVariables = {
+export type DeleteTaskCommentMutationVariables = Exact<{
+  commentID: Scalars['UUID'];
+}>;
+
+
+export type DeleteTaskCommentMutation = (
+  { __typename?: 'Mutation' }
+  & { deleteTaskComment: (
+    { __typename?: 'DeleteTaskCommentPayload' }
+    & Pick<DeleteTaskCommentPayload, 'commentID'>
+  ) }
+);
+
+export type SetTaskChecklistItemCompleteMutationVariables = Exact<{
   taskChecklistItemID: Scalars['UUID'];
   complete: Scalars['Boolean'];
-};
+}>;
 
 
 export type SetTaskChecklistItemCompleteMutation = (
@@ -1667,10 +1842,10 @@ export type SetTaskChecklistItemCompleteMutation = (
   ) }
 );
 
-export type SetTaskCompleteMutationVariables = {
+export type SetTaskCompleteMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   complete: Scalars['Boolean'];
-};
+}>;
 
 
 export type SetTaskCompleteMutation = (
@@ -1681,11 +1856,11 @@ export type SetTaskCompleteMutation = (
   ) }
 );
 
-export type UpdateTaskChecklistItemLocationMutationVariables = {
+export type UpdateTaskChecklistItemLocationMutationVariables = Exact<{
   taskChecklistID: Scalars['UUID'];
   taskChecklistItemID: Scalars['UUID'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type UpdateTaskChecklistItemLocationMutation = (
@@ -1700,10 +1875,10 @@ export type UpdateTaskChecklistItemLocationMutation = (
   ) }
 );
 
-export type UpdateTaskChecklistItemNameMutationVariables = {
+export type UpdateTaskChecklistItemNameMutationVariables = Exact<{
   taskChecklistItemID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type UpdateTaskChecklistItemNameMutation = (
@@ -1714,10 +1889,10 @@ export type UpdateTaskChecklistItemNameMutation = (
   ) }
 );
 
-export type UpdateTaskChecklistLocationMutationVariables = {
+export type UpdateTaskChecklistLocationMutationVariables = Exact<{
   taskChecklistID: Scalars['UUID'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type UpdateTaskChecklistLocationMutation = (
@@ -1731,10 +1906,10 @@ export type UpdateTaskChecklistLocationMutation = (
   ) }
 );
 
-export type UpdateTaskChecklistNameMutationVariables = {
+export type UpdateTaskChecklistNameMutationVariables = Exact<{
   taskChecklistID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type UpdateTaskChecklistNameMutation = (
@@ -1749,9 +1924,26 @@ export type UpdateTaskChecklistNameMutation = (
   ) }
 );
 
-export type DeleteTaskGroupTasksMutationVariables = {
+export type UpdateTaskCommentMutationVariables = Exact<{
+  commentID: Scalars['UUID'];
+  message: Scalars['String'];
+}>;
+
+
+export type UpdateTaskCommentMutation = (
+  { __typename?: 'Mutation' }
+  & { updateTaskComment: (
+    { __typename?: 'UpdateTaskCommentPayload' }
+    & { comment: (
+      { __typename?: 'TaskComment' }
+      & Pick<TaskComment, 'id' | 'updatedAt' | 'message'>
+    ) }
+  ) }
+);
+
+export type DeleteTaskGroupTasksMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteTaskGroupTasksMutation = (
@@ -1762,12 +1954,12 @@ export type DeleteTaskGroupTasksMutation = (
   ) }
 );
 
-export type DuplicateTaskGroupMutationVariables = {
+export type DuplicateTaskGroupMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
   projectID: Scalars['UUID'];
-};
+}>;
 
 
 export type DuplicateTaskGroupMutation = (
@@ -1785,10 +1977,10 @@ export type DuplicateTaskGroupMutation = (
   ) }
 );
 
-export type SortTaskGroupMutationVariables = {
+export type SortTaskGroupMutationVariables = Exact<{
   tasks: Array<TaskPositionUpdate>;
   taskGroupID: Scalars['UUID'];
-};
+}>;
 
 
 export type SortTaskGroupMutation = (
@@ -1803,10 +1995,10 @@ export type SortTaskGroupMutation = (
   ) }
 );
 
-export type UpdateTaskGroupNameMutationVariables = {
+export type UpdateTaskGroupNameMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type UpdateTaskGroupNameMutation = (
@@ -1817,10 +2009,10 @@ export type UpdateTaskGroupNameMutation = (
   ) }
 );
 
-export type CreateTeamMutationVariables = {
+export type CreateTeamMutationVariables = Exact<{
   name: Scalars['String'];
   organizationID: Scalars['UUID'];
-};
+}>;
 
 
 export type CreateTeamMutation = (
@@ -1831,10 +2023,10 @@ export type CreateTeamMutation = (
   ) }
 );
 
-export type CreateTeamMemberMutationVariables = {
+export type CreateTeamMemberMutationVariables = Exact<{
   userID: Scalars['UUID'];
   teamID: Scalars['UUID'];
-};
+}>;
 
 
 export type CreateTeamMemberMutation = (
@@ -1858,9 +2050,9 @@ export type CreateTeamMemberMutation = (
   ) }
 );
 
-export type DeleteTeamMutationVariables = {
+export type DeleteTeamMutationVariables = Exact<{
   teamID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteTeamMutation = (
@@ -1875,11 +2067,11 @@ export type DeleteTeamMutation = (
   ) }
 );
 
-export type DeleteTeamMemberMutationVariables = {
+export type DeleteTeamMemberMutationVariables = Exact<{
   teamID: Scalars['UUID'];
   userID: Scalars['UUID'];
   newOwnerID?: Maybe<Scalars['UUID']>;
-};
+}>;
 
 
 export type DeleteTeamMemberMutation = (
@@ -1890,9 +2082,9 @@ export type DeleteTeamMemberMutation = (
   ) }
 );
 
-export type GetTeamQueryVariables = {
+export type GetTeamQueryVariables = Exact<{
   teamID: Scalars['UUID'];
-};
+}>;
 
 
 export type GetTeamQuery = (
@@ -1967,11 +2159,11 @@ export type GetTeamQuery = (
   )> }
 );
 
-export type UpdateTeamMemberRoleMutationVariables = {
+export type UpdateTeamMemberRoleMutationVariables = Exact<{
   teamID: Scalars['UUID'];
   userID: Scalars['UUID'];
   roleCode: RoleCode;
-};
+}>;
 
 
 export type UpdateTeamMemberRoleMutation = (
@@ -1990,10 +2182,10 @@ export type UpdateTeamMemberRoleMutation = (
   ) }
 );
 
-export type ToggleTaskLabelMutationVariables = {
+export type ToggleTaskLabelMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   projectLabelID: Scalars['UUID'];
-};
+}>;
 
 
 export type ToggleTaskLabelMutation = (
@@ -2020,7 +2212,7 @@ export type ToggleTaskLabelMutation = (
   ) }
 );
 
-export type TopNavbarQueryVariables = {};
+export type TopNavbarQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type TopNavbarQuery = (
@@ -2054,10 +2246,10 @@ export type TopNavbarQuery = (
   ) }
 );
 
-export type UnassignTaskMutationVariables = {
+export type UnassignTaskMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   userID: Scalars['UUID'];
-};
+}>;
 
 
 export type UnassignTaskMutation = (
@@ -2072,11 +2264,11 @@ export type UnassignTaskMutation = (
   ) }
 );
 
-export type UpdateProjectLabelMutationVariables = {
+export type UpdateProjectLabelMutationVariables = Exact<{
   projectLabelID: Scalars['UUID'];
   labelColorID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type UpdateProjectLabelMutation = (
@@ -2091,10 +2283,10 @@ export type UpdateProjectLabelMutation = (
   ) }
 );
 
-export type UpdateProjectNameMutationVariables = {
+export type UpdateProjectNameMutationVariables = Exact<{
   projectID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type UpdateProjectNameMutation = (
@@ -2105,10 +2297,10 @@ export type UpdateProjectNameMutation = (
   ) }
 );
 
-export type UpdateTaskDescriptionMutationVariables = {
+export type UpdateTaskDescriptionMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   description: Scalars['String'];
-};
+}>;
 
 
 export type UpdateTaskDescriptionMutation = (
@@ -2119,10 +2311,10 @@ export type UpdateTaskDescriptionMutation = (
   ) }
 );
 
-export type UpdateTaskDueDateMutationVariables = {
+export type UpdateTaskDueDateMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   dueDate?: Maybe<Scalars['Time']>;
-};
+}>;
 
 
 export type UpdateTaskDueDateMutation = (
@@ -2133,10 +2325,10 @@ export type UpdateTaskDueDateMutation = (
   ) }
 );
 
-export type UpdateTaskGroupLocationMutationVariables = {
+export type UpdateTaskGroupLocationMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type UpdateTaskGroupLocationMutation = (
@@ -2147,11 +2339,11 @@ export type UpdateTaskGroupLocationMutation = (
   ) }
 );
 
-export type UpdateTaskLocationMutationVariables = {
+export type UpdateTaskLocationMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   taskGroupID: Scalars['UUID'];
   position: Scalars['Float'];
-};
+}>;
 
 
 export type UpdateTaskLocationMutation = (
@@ -2170,10 +2362,10 @@ export type UpdateTaskLocationMutation = (
   ) }
 );
 
-export type UpdateTaskNameMutationVariables = {
+export type UpdateTaskNameMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   name: Scalars['String'];
-};
+}>;
 
 
 export type UpdateTaskNameMutation = (
@@ -2184,14 +2376,14 @@ export type UpdateTaskNameMutation = (
   ) }
 );
 
-export type CreateUserAccountMutationVariables = {
+export type CreateUserAccountMutationVariables = Exact<{
   username: Scalars['String'];
   roleCode: Scalars['String'];
   email: Scalars['String'];
   fullName: Scalars['String'];
   initials: Scalars['String'];
   password: Scalars['String'];
-};
+}>;
 
 
 export type CreateUserAccountMutation = (
@@ -2227,9 +2419,9 @@ export type CreateUserAccountMutation = (
   ) }
 );
 
-export type DeleteInvitedUserAccountMutationVariables = {
+export type DeleteInvitedUserAccountMutationVariables = Exact<{
   invitedUserID: Scalars['UUID'];
-};
+}>;
 
 
 export type DeleteInvitedUserAccountMutation = (
@@ -2243,10 +2435,10 @@ export type DeleteInvitedUserAccountMutation = (
   ) }
 );
 
-export type DeleteUserAccountMutationVariables = {
+export type DeleteUserAccountMutationVariables = Exact<{
   userID: Scalars['UUID'];
   newOwnerID?: Maybe<Scalars['UUID']>;
-};
+}>;
 
 
 export type DeleteUserAccountMutation = (
@@ -2261,12 +2453,12 @@ export type DeleteUserAccountMutation = (
   ) }
 );
 
-export type UpdateUserInfoMutationVariables = {
+export type UpdateUserInfoMutationVariables = Exact<{
   name: Scalars['String'];
   initials: Scalars['String'];
   email: Scalars['String'];
   bio: Scalars['String'];
-};
+}>;
 
 
 export type UpdateUserInfoMutation = (
@@ -2284,10 +2476,10 @@ export type UpdateUserInfoMutation = (
   ) }
 );
 
-export type UpdateUserPasswordMutationVariables = {
+export type UpdateUserPasswordMutationVariables = Exact<{
   userID: Scalars['UUID'];
   password: Scalars['String'];
-};
+}>;
 
 
 export type UpdateUserPasswordMutation = (
@@ -2298,10 +2490,10 @@ export type UpdateUserPasswordMutation = (
   ) }
 );
 
-export type UpdateUserRoleMutationVariables = {
+export type UpdateUserRoleMutationVariables = Exact<{
   userID: Scalars['UUID'];
   roleCode: RoleCode;
-};
+}>;
 
 
 export type UpdateUserRoleMutation = (
@@ -2319,7 +2511,7 @@ export type UpdateUserRoleMutation = (
   ) }
 );
 
-export type UsersQueryVariables = {};
+export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type UsersQuery = (
@@ -2518,7 +2710,9 @@ export type CreateProjectMutationResult = ApolloReactCommon.MutationResult<Creat
 export type CreateProjectMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateProjectMutation, CreateProjectMutationVariables>;
 export const CreateProjectLabelDocument = gql`
     mutation createProjectLabel($projectID: UUID!, $labelColorID: UUID!, $name: String!) {
-  createProjectLabel(input: {projectID: $projectID, labelColorID: $labelColorID, name: $name}) {
+  createProjectLabel(
+    input: {projectID: $projectID, labelColorID: $labelColorID, name: $name}
+  ) {
     id
     createdDate
     labelColor {
@@ -2560,7 +2754,9 @@ export type CreateProjectLabelMutationResult = ApolloReactCommon.MutationResult<
 export type CreateProjectLabelMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateProjectLabelMutation, CreateProjectLabelMutationVariables>;
 export const CreateTaskGroupDocument = gql`
     mutation createTaskGroup($projectID: UUID!, $name: String!, $position: Float!) {
-  createTaskGroup(input: {projectID: $projectID, name: $name, position: $position}) {
+  createTaskGroup(
+    input: {projectID: $projectID, name: $name, position: $position}
+  ) {
     id
     name
     position
@@ -2824,6 +3020,40 @@ export const FindTaskDocument = gql`
     taskGroup {
       id
       name
+    }
+    comments {
+      id
+      pinned
+      message
+      createdAt
+      updatedAt
+      createdBy {
+        id
+        fullName
+        profileIcon {
+          initials
+          bgColor
+          url
+        }
+      }
+    }
+    activity {
+      id
+      type
+      causedBy {
+        id
+        fullName
+        profileIcon {
+          initials
+          bgColor
+          url
+        }
+      }
+      createdAt
+      data {
+        name
+        value
+      }
     }
     badges {
       checklist {
@@ -3164,7 +3394,9 @@ export type InviteProjectMembersMutationResult = ApolloReactCommon.MutationResul
 export type InviteProjectMembersMutationOptions = ApolloReactCommon.BaseMutationOptions<InviteProjectMembersMutation, InviteProjectMembersMutationVariables>;
 export const UpdateProjectMemberRoleDocument = gql`
     mutation updateProjectMemberRole($projectID: UUID!, $userID: UUID!, $roleCode: RoleCode!) {
-  updateProjectMemberRole(input: {projectID: $projectID, userID: $userID, roleCode: $roleCode}) {
+  updateProjectMemberRole(
+    input: {projectID: $projectID, userID: $userID, roleCode: $roleCode}
+  ) {
     ok
     member {
       id
@@ -3282,7 +3514,9 @@ export type CreateTaskChecklistMutationResult = ApolloReactCommon.MutationResult
 export type CreateTaskChecklistMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateTaskChecklistMutation, CreateTaskChecklistMutationVariables>;
 export const CreateTaskChecklistItemDocument = gql`
     mutation createTaskChecklistItem($taskChecklistID: UUID!, $name: String!, $position: Float!) {
-  createTaskChecklistItem(input: {taskChecklistID: $taskChecklistID, name: $name, position: $position}) {
+  createTaskChecklistItem(
+    input: {taskChecklistID: $taskChecklistID, name: $name, position: $position}
+  ) {
     id
     name
     taskChecklistID
@@ -3318,6 +3552,55 @@ export function useCreateTaskChecklistItemMutation(baseOptions?: ApolloReactHook
 export type CreateTaskChecklistItemMutationHookResult = ReturnType<typeof useCreateTaskChecklistItemMutation>;
 export type CreateTaskChecklistItemMutationResult = ApolloReactCommon.MutationResult<CreateTaskChecklistItemMutation>;
 export type CreateTaskChecklistItemMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateTaskChecklistItemMutation, CreateTaskChecklistItemMutationVariables>;
+export const CreateTaskCommentDocument = gql`
+    mutation createTaskComment($taskID: UUID!, $message: String!) {
+  createTaskComment(input: {taskID: $taskID, message: $message}) {
+    taskID
+    comment {
+      id
+      message
+      pinned
+      createdAt
+      updatedAt
+      createdBy {
+        id
+        fullName
+        profileIcon {
+          initials
+          bgColor
+          url
+        }
+      }
+    }
+  }
+}
+    `;
+export type CreateTaskCommentMutationFn = ApolloReactCommon.MutationFunction<CreateTaskCommentMutation, CreateTaskCommentMutationVariables>;
+
+/**
+ * __useCreateTaskCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateTaskCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTaskCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTaskCommentMutation, { data, loading, error }] = useCreateTaskCommentMutation({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *      message: // value for 'message'
+ *   },
+ * });
+ */
+export function useCreateTaskCommentMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateTaskCommentMutation, CreateTaskCommentMutationVariables>) {
+        return ApolloReactHooks.useMutation<CreateTaskCommentMutation, CreateTaskCommentMutationVariables>(CreateTaskCommentDocument, baseOptions);
+      }
+export type CreateTaskCommentMutationHookResult = ReturnType<typeof useCreateTaskCommentMutation>;
+export type CreateTaskCommentMutationResult = ApolloReactCommon.MutationResult<CreateTaskCommentMutation>;
+export type CreateTaskCommentMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateTaskCommentMutation, CreateTaskCommentMutationVariables>;
 export const DeleteTaskChecklistDocument = gql`
     mutation deleteTaskChecklist($taskChecklistID: UUID!) {
   deleteTaskChecklist(input: {taskChecklistID: $taskChecklistID}) {
@@ -3389,9 +3672,43 @@ export function useDeleteTaskChecklistItemMutation(baseOptions?: ApolloReactHook
 export type DeleteTaskChecklistItemMutationHookResult = ReturnType<typeof useDeleteTaskChecklistItemMutation>;
 export type DeleteTaskChecklistItemMutationResult = ApolloReactCommon.MutationResult<DeleteTaskChecklistItemMutation>;
 export type DeleteTaskChecklistItemMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTaskChecklistItemMutation, DeleteTaskChecklistItemMutationVariables>;
+export const DeleteTaskCommentDocument = gql`
+    mutation deleteTaskComment($commentID: UUID!) {
+  deleteTaskComment(input: {commentID: $commentID}) {
+    commentID
+  }
+}
+    `;
+export type DeleteTaskCommentMutationFn = ApolloReactCommon.MutationFunction<DeleteTaskCommentMutation, DeleteTaskCommentMutationVariables>;
+
+/**
+ * __useDeleteTaskCommentMutation__
+ *
+ * To run a mutation, you first call `useDeleteTaskCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteTaskCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteTaskCommentMutation, { data, loading, error }] = useDeleteTaskCommentMutation({
+ *   variables: {
+ *      commentID: // value for 'commentID'
+ *   },
+ * });
+ */
+export function useDeleteTaskCommentMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<DeleteTaskCommentMutation, DeleteTaskCommentMutationVariables>) {
+        return ApolloReactHooks.useMutation<DeleteTaskCommentMutation, DeleteTaskCommentMutationVariables>(DeleteTaskCommentDocument, baseOptions);
+      }
+export type DeleteTaskCommentMutationHookResult = ReturnType<typeof useDeleteTaskCommentMutation>;
+export type DeleteTaskCommentMutationResult = ApolloReactCommon.MutationResult<DeleteTaskCommentMutation>;
+export type DeleteTaskCommentMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTaskCommentMutation, DeleteTaskCommentMutationVariables>;
 export const SetTaskChecklistItemCompleteDocument = gql`
     mutation setTaskChecklistItemComplete($taskChecklistItemID: UUID!, $complete: Boolean!) {
-  setTaskChecklistItemComplete(input: {taskChecklistItemID: $taskChecklistItemID, complete: $complete}) {
+  setTaskChecklistItemComplete(
+    input: {taskChecklistItemID: $taskChecklistItemID, complete: $complete}
+  ) {
     id
     complete
   }
@@ -3458,7 +3775,9 @@ export type SetTaskCompleteMutationResult = ApolloReactCommon.MutationResult<Set
 export type SetTaskCompleteMutationOptions = ApolloReactCommon.BaseMutationOptions<SetTaskCompleteMutation, SetTaskCompleteMutationVariables>;
 export const UpdateTaskChecklistItemLocationDocument = gql`
     mutation updateTaskChecklistItemLocation($taskChecklistID: UUID!, $taskChecklistItemID: UUID!, $position: Float!) {
-  updateTaskChecklistItemLocation(input: {taskChecklistID: $taskChecklistID, taskChecklistItemID: $taskChecklistItemID, position: $position}) {
+  updateTaskChecklistItemLocation(
+    input: {taskChecklistID: $taskChecklistID, taskChecklistItemID: $taskChecklistItemID, position: $position}
+  ) {
     taskChecklistID
     prevChecklistID
     checklistItem {
@@ -3498,7 +3817,9 @@ export type UpdateTaskChecklistItemLocationMutationResult = ApolloReactCommon.Mu
 export type UpdateTaskChecklistItemLocationMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskChecklistItemLocationMutation, UpdateTaskChecklistItemLocationMutationVariables>;
 export const UpdateTaskChecklistItemNameDocument = gql`
     mutation updateTaskChecklistItemName($taskChecklistItemID: UUID!, $name: String!) {
-  updateTaskChecklistItemName(input: {taskChecklistItemID: $taskChecklistItemID, name: $name}) {
+  updateTaskChecklistItemName(
+    input: {taskChecklistItemID: $taskChecklistItemID, name: $name}
+  ) {
     id
     name
   }
@@ -3532,7 +3853,9 @@ export type UpdateTaskChecklistItemNameMutationResult = ApolloReactCommon.Mutati
 export type UpdateTaskChecklistItemNameMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskChecklistItemNameMutation, UpdateTaskChecklistItemNameMutationVariables>;
 export const UpdateTaskChecklistLocationDocument = gql`
     mutation updateTaskChecklistLocation($taskChecklistID: UUID!, $position: Float!) {
-  updateTaskChecklistLocation(input: {taskChecklistID: $taskChecklistID, position: $position}) {
+  updateTaskChecklistLocation(
+    input: {taskChecklistID: $taskChecklistID, position: $position}
+  ) {
     checklist {
       id
       position
@@ -3608,6 +3931,43 @@ export function useUpdateTaskChecklistNameMutation(baseOptions?: ApolloReactHook
 export type UpdateTaskChecklistNameMutationHookResult = ReturnType<typeof useUpdateTaskChecklistNameMutation>;
 export type UpdateTaskChecklistNameMutationResult = ApolloReactCommon.MutationResult<UpdateTaskChecklistNameMutation>;
 export type UpdateTaskChecklistNameMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskChecklistNameMutation, UpdateTaskChecklistNameMutationVariables>;
+export const UpdateTaskCommentDocument = gql`
+    mutation updateTaskComment($commentID: UUID!, $message: String!) {
+  updateTaskComment(input: {commentID: $commentID, message: $message}) {
+    comment {
+      id
+      updatedAt
+      message
+    }
+  }
+}
+    `;
+export type UpdateTaskCommentMutationFn = ApolloReactCommon.MutationFunction<UpdateTaskCommentMutation, UpdateTaskCommentMutationVariables>;
+
+/**
+ * __useUpdateTaskCommentMutation__
+ *
+ * To run a mutation, you first call `useUpdateTaskCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTaskCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTaskCommentMutation, { data, loading, error }] = useUpdateTaskCommentMutation({
+ *   variables: {
+ *      commentID: // value for 'commentID'
+ *      message: // value for 'message'
+ *   },
+ * });
+ */
+export function useUpdateTaskCommentMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<UpdateTaskCommentMutation, UpdateTaskCommentMutationVariables>) {
+        return ApolloReactHooks.useMutation<UpdateTaskCommentMutation, UpdateTaskCommentMutationVariables>(UpdateTaskCommentDocument, baseOptions);
+      }
+export type UpdateTaskCommentMutationHookResult = ReturnType<typeof useUpdateTaskCommentMutation>;
+export type UpdateTaskCommentMutationResult = ApolloReactCommon.MutationResult<UpdateTaskCommentMutation>;
+export type UpdateTaskCommentMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskCommentMutation, UpdateTaskCommentMutationVariables>;
 export const DeleteTaskGroupTasksDocument = gql`
     mutation deleteTaskGroupTasks($taskGroupID: UUID!) {
   deleteTaskGroupTasks(input: {taskGroupID: $taskGroupID}) {
@@ -3643,7 +4003,9 @@ export type DeleteTaskGroupTasksMutationResult = ApolloReactCommon.MutationResul
 export type DeleteTaskGroupTasksMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTaskGroupTasksMutation, DeleteTaskGroupTasksMutationVariables>;
 export const DuplicateTaskGroupDocument = gql`
     mutation duplicateTaskGroup($taskGroupID: UUID!, $name: String!, $position: Float!, $projectID: UUID!) {
-  duplicateTaskGroup(input: {projectID: $projectID, taskGroupID: $taskGroupID, name: $name, position: $position}) {
+  duplicateTaskGroup(
+    input: {projectID: $projectID, taskGroupID: $taskGroupID, name: $name, position: $position}
+  ) {
     taskGroup {
       id
       name
@@ -3875,7 +4237,9 @@ export type DeleteTeamMutationResult = ApolloReactCommon.MutationResult<DeleteTe
 export type DeleteTeamMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteTeamMutation, DeleteTeamMutationVariables>;
 export const DeleteTeamMemberDocument = gql`
     mutation deleteTeamMember($teamID: UUID!, $userID: UUID!, $newOwnerID: UUID) {
-  deleteTeamMember(input: {teamID: $teamID, userID: $userID, newOwnerID: $newOwnerID}) {
+  deleteTeamMember(
+    input: {teamID: $teamID, userID: $userID, newOwnerID: $newOwnerID}
+  ) {
     teamID
     userID
   }
@@ -4022,7 +4386,9 @@ export type GetTeamLazyQueryHookResult = ReturnType<typeof useGetTeamLazyQuery>;
 export type GetTeamQueryResult = ApolloReactCommon.QueryResult<GetTeamQuery, GetTeamQueryVariables>;
 export const UpdateTeamMemberRoleDocument = gql`
     mutation updateTeamMemberRole($teamID: UUID!, $userID: UUID!, $roleCode: RoleCode!) {
-  updateTeamMemberRole(input: {teamID: $teamID, userID: $userID, roleCode: $roleCode}) {
+  updateTeamMemberRole(
+    input: {teamID: $teamID, userID: $userID, roleCode: $roleCode}
+  ) {
     member {
       id
       role {
@@ -4215,7 +4581,9 @@ export type UnassignTaskMutationResult = ApolloReactCommon.MutationResult<Unassi
 export type UnassignTaskMutationOptions = ApolloReactCommon.BaseMutationOptions<UnassignTaskMutation, UnassignTaskMutationVariables>;
 export const UpdateProjectLabelDocument = gql`
     mutation updateProjectLabel($projectLabelID: UUID!, $labelColorID: UUID!, $name: String!) {
-  updateProjectLabel(input: {projectLabelID: $projectLabelID, labelColorID: $labelColorID, name: $name}) {
+  updateProjectLabel(
+    input: {projectLabelID: $projectLabelID, labelColorID: $labelColorID, name: $name}
+  ) {
     id
     createdDate
     labelColor {
@@ -4393,7 +4761,9 @@ export type UpdateTaskGroupLocationMutationResult = ApolloReactCommon.MutationRe
 export type UpdateTaskGroupLocationMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskGroupLocationMutation, UpdateTaskGroupLocationMutationVariables>;
 export const UpdateTaskLocationDocument = gql`
     mutation updateTaskLocation($taskID: UUID!, $taskGroupID: UUID!, $position: Float!) {
-  updateTaskLocation(input: {taskID: $taskID, taskGroupID: $taskGroupID, position: $position}) {
+  updateTaskLocation(
+    input: {taskID: $taskID, taskGroupID: $taskGroupID, position: $position}
+  ) {
     previousTaskGroupID
     task {
       id
@@ -4471,7 +4841,9 @@ export type UpdateTaskNameMutationResult = ApolloReactCommon.MutationResult<Upda
 export type UpdateTaskNameMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskNameMutation, UpdateTaskNameMutationVariables>;
 export const CreateUserAccountDocument = gql`
     mutation createUserAccount($username: String!, $roleCode: String!, $email: String!, $fullName: String!, $initials: String!, $password: String!) {
-  createUserAccount(input: {roleCode: $roleCode, username: $username, email: $email, fullName: $fullName, initials: $initials, password: $password}) {
+  createUserAccount(
+    input: {roleCode: $roleCode, username: $username, email: $email, fullName: $fullName, initials: $initials, password: $password}
+  ) {
     id
     email
     fullName
@@ -4612,7 +4984,9 @@ export type DeleteUserAccountMutationResult = ApolloReactCommon.MutationResult<D
 export type DeleteUserAccountMutationOptions = ApolloReactCommon.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
 export const UpdateUserInfoDocument = gql`
     mutation updateUserInfo($name: String!, $initials: String!, $email: String!, $bio: String!) {
-  updateUserInfo(input: {name: $name, initials: $initials, email: $email, bio: $bio}) {
+  updateUserInfo(
+    input: {name: $name, initials: $initials, email: $email, bio: $bio}
+  ) {
     user {
       id
       email

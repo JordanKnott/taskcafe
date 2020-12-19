@@ -85,6 +85,38 @@ func (q *Queries) CreateTaskAll(ctx context.Context, arg CreateTaskAllParams) (T
 	return i, err
 }
 
+const createTaskComment = `-- name: CreateTaskComment :one
+INSERT INTO task_comment (task_id, message, created_at, created_by)
+  VALUES ($1, $2, $3, $4) RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
+`
+
+type CreateTaskCommentParams struct {
+	TaskID    uuid.UUID `json:"task_id"`
+	Message   string    `json:"message"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy uuid.UUID `json:"created_by"`
+}
+
+func (q *Queries) CreateTaskComment(ctx context.Context, arg CreateTaskCommentParams) (TaskComment, error) {
+	row := q.db.QueryRowContext(ctx, createTaskComment,
+		arg.TaskID,
+		arg.Message,
+		arg.CreatedAt,
+		arg.CreatedBy,
+	)
+	var i TaskComment
+	err := row.Scan(
+		&i.TaskCommentID,
+		&i.TaskID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.Pinned,
+		&i.Message,
+	)
+	return i, err
+}
+
 const deleteTaskByID = `-- name: DeleteTaskByID :exec
 DELETE FROM task WHERE task_id = $1
 `
@@ -92,6 +124,25 @@ DELETE FROM task WHERE task_id = $1
 func (q *Queries) DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteTaskByID, taskID)
 	return err
+}
+
+const deleteTaskCommentByID = `-- name: DeleteTaskCommentByID :one
+DELETE FROM task_comment WHERE task_comment_id = $1 RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
+`
+
+func (q *Queries) DeleteTaskCommentByID(ctx context.Context, taskCommentID uuid.UUID) (TaskComment, error) {
+	row := q.db.QueryRowContext(ctx, deleteTaskCommentByID, taskCommentID)
+	var i TaskComment
+	err := row.Scan(
+		&i.TaskCommentID,
+		&i.TaskID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.Pinned,
+		&i.Message,
+	)
+	return i, err
 }
 
 const deleteTasksByTaskGroupID = `-- name: DeleteTasksByTaskGroupID :execrows
@@ -129,6 +180,41 @@ func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
 			&i.DueDate,
 			&i.Complete,
 			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCommentsForTaskID = `-- name: GetCommentsForTaskID :many
+SELECT task_comment_id, task_id, created_at, updated_at, created_by, pinned, message FROM task_comment WHERE task_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error) {
+	rows, err := q.db.QueryContext(ctx, getCommentsForTaskID, taskID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TaskComment
+	for rows.Next() {
+		var i TaskComment
+		if err := rows.Scan(
+			&i.TaskCommentID,
+			&i.TaskID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.Pinned,
+			&i.Message,
 		); err != nil {
 			return nil, err
 		}
@@ -237,6 +323,31 @@ func (q *Queries) SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const updateTaskComment = `-- name: UpdateTaskComment :one
+UPDATE task_comment SET message = $2, updated_at = $3 WHERE task_comment_id = $1 RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
+`
+
+type UpdateTaskCommentParams struct {
+	TaskCommentID uuid.UUID    `json:"task_comment_id"`
+	Message       string       `json:"message"`
+	UpdatedAt     sql.NullTime `json:"updated_at"`
+}
+
+func (q *Queries) UpdateTaskComment(ctx context.Context, arg UpdateTaskCommentParams) (TaskComment, error) {
+	row := q.db.QueryRowContext(ctx, updateTaskComment, arg.TaskCommentID, arg.Message, arg.UpdatedAt)
+	var i TaskComment
+	err := row.Scan(
+		&i.TaskCommentID,
+		&i.TaskID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy,
+		&i.Pinned,
+		&i.Message,
 	)
 	return i, err
 }

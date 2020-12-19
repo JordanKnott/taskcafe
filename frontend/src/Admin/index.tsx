@@ -182,7 +182,7 @@ const AdminRoute = () => {
       updateApolloCache<UsersQuery>(client, UsersDocument, cache =>
         produce(cache, draftCache => {
           draftCache.invitedUsers = cache.invitedUsers.filter(
-            u => u.id !== response.data.deleteInvitedUserAccount.invitedUser.id,
+            u => u.id !== response.data?.deleteInvitedUserAccount.invitedUser.id,
           );
         }),
       );
@@ -192,7 +192,7 @@ const AdminRoute = () => {
     update: (client, response) => {
       updateApolloCache<UsersQuery>(client, UsersDocument, cache =>
         produce(cache, draftCache => {
-          draftCache.users = cache.users.filter(u => u.id !== response.data.deleteUserAccount.userAccount.id);
+          draftCache.users = cache.users.filter(u => u.id !== response.data?.deleteUserAccount.userAccount.id);
         }),
       );
     },
@@ -203,7 +203,7 @@ const AdminRoute = () => {
         query: UsersDocument,
       });
       const newData = produce(cacheData, (draftState: any) => {
-        draftState.users = [...draftState.users, { ...createData.data.createUserAccount }];
+        draftState.users = [...draftState.users, { ...createData.data?.createUserAccount }];
       });
 
       client.writeQuery({

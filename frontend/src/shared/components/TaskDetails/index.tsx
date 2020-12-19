@@ -12,17 +12,32 @@ import {
   At,
   Smile,
 } from 'shared/icons';
+import { toArray } from 'react-emoji-render';
+import DOMPurify from 'dompurify';
+import TaskAssignee from 'shared/components/TaskAssignee';
+import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+import { usePopup } from 'shared/components/PopupMenu';
+import CommentCreator from 'shared/components/TaskDetails/CommentCreator';
+import { AngleDown } from 'shared/icons/AngleDown';
 import Editor from 'rich-markdown-editor';
 import dark from 'shared/utils/editorTheme';
 import styled from 'styled-components';
-
+import ReactMarkdown from 'react-markdown';
+import { Picker, Emoji } from 'emoji-mart';
+import 'emoji-mart/css/emoji-mart.css';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import dayjs from 'dayjs';
-
+import ActivityMessage from './ActivityMessage';
 import Task from 'shared/icons/Task';
 import {
+  ActivityItemHeader,
+  ActivityItemTimestamp,
+  ActivityItem,
+  ActivityItemCommentAction,
+  ActivityItemCommentActions,
   TaskDetailLabel,
   CommentContainer,
+  ActivityItemCommentContainer,
   MetaDetailContent,
   TaskDetailsAddLabelIcon,
   ActionButton,
@@ -58,18 +73,126 @@ import {
   TaskMember,
   TabBarSection,
   TabBarItem,
-  CommentTextArea,
-  CommentEditorContainer,
-  CommentEditorActions,
-  CommentEditorActionIcon,
-  CommentEditorSaveButton,
-  CommentProfile,
-  CommentInnerWrapper,
   ActivitySection,
   TaskDetailsEditor,
+  ActivityItemHeaderUser,
+  ActivityItemHeaderTitle,
+  ActivityItemHeaderTitleName,
+  ActivityItemComment,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
+import { plugin as em } from './remark';
+
+const parseEmojis = (value: string) => {
+  const emojisArray = toArray(value);
+
+  // toArray outputs React elements for emojis and strings for other
+  const newValue = emojisArray.reduce((previous: any, current: any) => {
+    if (typeof current === 'string') {
+      return previous + current;
+    }
+    return previous + current.props.children;
+  }, '');
+
+  return newValue;
+};
+
+type StreamCommentProps = {
+  comment?: TaskComment | null;
+  onUpdateComment: (message: string) => void;
+  onExtraActions: (commentID: string, $target: React.RefObject<HTMLElement>) => void;
+  onCancelCommentEdit: () => void;
+  editable: boolean;
+};
+const StreamComment: React.FC<StreamCommentProps> = ({
+  comment,
+  onExtraActions,
+  editable,
+  onUpdateComment,
+  onCancelCommentEdit,
+}) => {
+  const $actions = useRef<HTMLDivElement>(null);
+  if (comment) {
+    return (
+      <ActivityItem>
+        <ActivityItemHeaderUser size={32} member={comment.createdBy} />
+        <ActivityItemHeader editable={editable}>
+          <ActivityItemHeaderTitle>
+            <ActivityItemHeaderTitleName>{comment.createdBy.fullName}</ActivityItemHeaderTitleName>
+            <ActivityItemTimestamp margin={8}>
+              {dayjs(comment.createdAt).format('MMM D [at] h:mm A')}
+              {comment.updatedAt && ' (edited)'}
+            </ActivityItemTimestamp>
+          </ActivityItemHeaderTitle>
+          <ActivityItemCommentContainer>
+            <ActivityItemComment editable={editable}>
+              {editable ? (
+                <CommentCreator
+                  message={comment.message}
+                  autoFocus
+                  onCancelEdit={onCancelCommentEdit}
+                  onCreateComment={onUpdateComment}
+                />
+              ) : (
+                <ReactMarkdown escapeHtml={false} plugins={[em]}>
+                  {DOMPurify.sanitize(comment.message, { FORBID_TAGS: ['style', 'img'] })}
+                </ReactMarkdown>
+              )}
+            </ActivityItemComment>
+            <ActivityItemCommentActions>
+              <ActivityItemCommentAction
+                ref={$actions}
+                onClick={() => {
+                  onExtraActions(comment.id, $actions);
+                }}
+              >
+                <AngleDown width={18} height={18} />
+              </ActivityItemCommentAction>
+            </ActivityItemCommentActions>
+          </ActivityItemCommentContainer>
+        </ActivityItemHeader>
+      </ActivityItem>
+    );
+  }
+  return null;
+};
+
+type StreamActivityProps = {
+  activity?: TaskActivity | null;
+};
+const StreamActivity: React.FC<StreamActivityProps> = ({ activity }) => {
+  if (activity) {
+    return (
+      <ActivityItem>
+        <ActivityItemHeaderUser
+          size={32}
+          member={{
+            id: activity.causedBy.id,
+            fullName: activity.causedBy.fullName,
+            profileIcon: activity.causedBy.profileIcon
+              ? activity.causedBy.profileIcon
+              : {
+                  url: null,
+                  initials: activity.causedBy.fullName.charAt(0),
+                  bgColor: '#fff',
+                },
+          }}
+        />
+        <ActivityItemHeader>
+          <ActivityItemHeaderTitle>
+            <ActivityItemHeaderTitleName>{activity.causedBy.fullName}</ActivityItemHeaderTitleName>
+            <ActivityMessage type={activity.type} data={activity.data} />
+          </ActivityItemHeaderTitle>
+          <ActivityItemTimestamp margin={0}>
+            {dayjs(activity.createdAt).format('MMM D [at] h:mm A')}
+          </ActivityItemTimestamp>
+        </ActivityItemHeader>
+      </ActivityItem>
+    );
+  }
+  return null;
+};
 
 const ChecklistContainer = styled.div``;
 
@@ -114,8 +237,13 @@ type TaskDetailsProps = {
   onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenDueDatePopop: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddChecklistPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
+  onCreateComment: (task: Task, message: string) => void;
+  onCommentShowActions: (commentID: string, $targetRef: React.RefObject<HTMLElement>) => void;
   onMemberProfile: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
+  onCancelCommentEdit: () => void;
+  onUpdateComment: (commentID: string, message: string) => void;
   onChangeChecklistName: (checklistID: string, name: string) => void;
+  editableComment?: string | null;
   onDeleteChecklist: ($target: React.RefObject<HTMLElement>, checklistID: string) => void;
   onCloseModal: () => void;
   onChecklistDrop: (checklist: TaskChecklist) => void;
@@ -124,11 +252,15 @@ type TaskDetailsProps = {
 
 const TaskDetails: React.FC<TaskDetailsProps> = ({
   me,
+  onCancelCommentEdit,
   task,
+  editableComment = null,
   onDeleteChecklist,
   onTaskNameChange,
+  onCommentShowActions,
   onOpenAddChecklistPopup,
   onChangeChecklistName,
+  onCreateComment,
   onChecklistDrop,
   onChecklistItemDrop,
   onToggleTaskComplete,
@@ -137,6 +269,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onDeleteItem,
   onDeleteTask,
   onCloseModal,
+  onUpdateComment,
   onOpenAddMemberPopup,
   onOpenAddLabelPopup,
   onOpenDueDatePopop,
@@ -156,11 +289,37 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   });
   const [saveTimeout, setSaveTimeout] = useState<any>(null);
   const [showRaw, setShowRaw] = useState(false);
-  const [showCommentActions, setShowCommentActions] = useState(false);
   const taskDescriptionRef = useRef(task.description ?? '');
   const $noMemberBtn = useRef<HTMLDivElement>(null);
   const $addMemberBtn = useRef<HTMLDivElement>(null);
   const $dueDateBtn = useRef<HTMLDivElement>(null);
+
+  const activityStream: Array<{ id: string; data: { time: string; type: 'comment' | 'activity' } }> = [];
+
+  if (task.activity) {
+    task.activity.forEach(activity => {
+      activityStream.push({
+        id: activity.id,
+        data: {
+          time: activity.createdAt,
+          type: 'activity',
+        },
+      });
+    });
+  }
+
+  if (task.comments) {
+    task.comments.forEach(comment => {
+      activityStream.push({
+        id: comment.id,
+        data: {
+          time: comment.createdAt,
+          type: 'comment',
+        },
+      });
+    });
+  }
+  activityStream.sort((a, b) => (dayjs(a.data.time).isAfter(dayjs(b.data.time)) ? 1 : -1));
 
   const saveDescription = () => {
     onTaskDescriptionChange(task, taskDescriptionRef.current);
@@ -425,46 +584,29 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TabBarSection>
             <TabBarItem>Activity</TabBarItem>
           </TabBarSection>
-          <ActivitySection />
+          <ActivitySection>
+            {activityStream.map(stream =>
+              stream.data.type === 'comment' ? (
+                <StreamComment
+                  onExtraActions={onCommentShowActions}
+                  onCancelCommentEdit={onCancelCommentEdit}
+                  onUpdateComment={message => onUpdateComment(stream.id, message)}
+                  editable={stream.id === editableComment}
+                  comment={task.comments && task.comments.find(comment => comment.id === stream.id)}
+                />
+              ) : (
+                <StreamActivity activity={task.activity && task.activity.find(activity => activity.id === stream.id)} />
+              ),
+            )}
+          </ActivitySection>
         </InnerContentContainer>
         <CommentContainer>
           {me && (
-            <CommentInnerWrapper>
-              <CommentProfile
-                member={me}
-                size={32}
-                onMemberProfile={$target => {
-                  onMemberProfile($target, me.id);
-                }}
-              />
-              <CommentEditorContainer>
-                <CommentTextArea
-                  disabled
-                  placeholder="Write a comment..."
-                  onFocus={() => {
-                    setShowCommentActions(true);
-                  }}
-                  onBlur={() => {
-                    setShowCommentActions(false);
-                  }}
-                />
-                <CommentEditorActions visible={showCommentActions}>
-                  <CommentEditorActionIcon>
-                    <Paperclip width={12} height={12} />
-                  </CommentEditorActionIcon>
-                  <CommentEditorActionIcon>
-                    <At width={12} height={12} />
-                  </CommentEditorActionIcon>
-                  <CommentEditorActionIcon>
-                    <Smile width={12} height={12} />
-                  </CommentEditorActionIcon>
-                  <CommentEditorActionIcon>
-                    <Task width={12} height={12} />
-                  </CommentEditorActionIcon>
-                  <CommentEditorSaveButton>Save</CommentEditorSaveButton>
-                </CommentEditorActions>
-              </CommentEditorContainer>
-            </CommentInnerWrapper>
+            <CommentCreator
+              me={me}
+              onCreateComment={message => onCreateComment(task, message)}
+              onMemberProfile={onMemberProfile}
+            />
           )}
         </CommentContainer>
       </ContentContainer>

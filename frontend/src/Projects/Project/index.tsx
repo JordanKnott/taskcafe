@@ -32,7 +32,6 @@ import {
   FindProjectDocument,
   FindProjectQuery,
 } from 'shared/generated/graphql';
-
 import produce from 'immer';
 import UserContext, { useCurrentUser } from 'App/context';
 import Input from 'shared/components/Input';
@@ -135,7 +134,6 @@ type MemberFilterOptions = {
 };
 
 const fetchMembers = async (client: any, projectID: string, options: MemberFilterOptions, input: string, cb: any) => {
-  console.log(input.trim().length < 3);
   if (input && input.trim().length < 3) {
     return [];
   }
@@ -163,12 +161,10 @@ const fetchMembers = async (client: any, projectID: string, options: MemberFilte
 
   let results: any = [];
   const emails: Array<string> = [];
-  console.log(res.data && res.data.searchMembers);
   if (res.data && res.data.searchMembers) {
     results = [
       ...res.data.searchMembers.map((m: any) => {
         if (m.status === 'INVITED') {
-          console.log(`${m.id} is added`);
           return {
             label: m.id,
             value: {
@@ -180,17 +176,15 @@ const fetchMembers = async (client: any, projectID: string, options: MemberFilte
               },
             },
           };
-        } else {
-          console.log(`${m.user.email} is added`);
-          emails.push(m.user.email);
-          return {
-            label: m.user.fullName,
-            value: { id: m.user.id, type: 0, profileIcon: m.user.profileIcon },
-          };
         }
+
+        emails.push(m.user.email);
+        return {
+          label: m.user.fullName,
+          value: { id: m.user.id, type: 0, profileIcon: m.user.profileIcon },
+        };
       }),
     ];
-    console.log(results);
   }
 
   if (RFC2822_EMAIL.test(input) && !emails.find(e => e === input)) {
@@ -243,7 +237,6 @@ const OptionLabel = styled.span<{ fontSize: number; quiet: boolean }>`
 `;
 
 const UserOption: React.FC<UserOptionProps> = ({ isDisabled, isFocused, innerProps, label, data }) => {
-  console.log(data);
   return !isDisabled ? (
     <OptionWrapper {...innerProps} isFocused={isFocused}>
       <TaskAssignee
@@ -423,14 +416,16 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            const taskGroupIdx = draftCache.findProject.taskGroups.findIndex(
-              tg => tg.tasks.findIndex(t => t.id === resp.data.deleteTask.taskID) !== -1,
-            );
+            if (resp.data) {
+              const taskGroupIdx = draftCache.findProject.taskGroups.findIndex(
+                tg => tg.tasks.findIndex(t => t.id === resp.data?.deleteTask.taskID) !== -1,
+              );
 
-            if (taskGroupIdx !== -1) {
-              draftCache.findProject.taskGroups[taskGroupIdx].tasks = cache.findProject.taskGroups[
-                taskGroupIdx
-              ].tasks.filter(t => t.id !== resp.data.deleteTask.taskID);
+              if (taskGroupIdx !== -1) {
+                draftCache.findProject.taskGroups[taskGroupIdx].tasks = cache.findProject.taskGroups[
+                  taskGroupIdx
+                ].tasks.filter(t => t.id !== resp.data?.deleteTask.taskID);
+              }
             }
           }),
         { projectID },
@@ -450,7 +445,7 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.name = newName.data.updateProjectName.name;
+            draftCache.findProject.name = newName.data?.updateProjectName.name ?? '';
           }),
         { projectID },
       );
@@ -464,14 +459,16 @@ const Project = () => {
         FindProjectDocument,
         cache =>
           produce(cache, draftCache => {
-            draftCache.findProject.members = [
-              ...cache.findProject.members,
-              ...response.data.inviteProjectMembers.members,
-            ];
-            draftCache.findProject.invitedMembers = [
-              ...cache.findProject.invitedMembers,
-              ...response.data.inviteProjectMembers.invitedMembers,
-            ];
+            if (response.data) {
+              draftCache.findProject.members = [
+                ...cache.findProject.members,
+                ...response.data.inviteProjectMembers.members,
+              ];
+              draftCache.findProject.invitedMembers = [
+                ...cache.findProject.invitedMembers,
+                ...response.data.inviteProjectMembers.invitedMembers,
+              ];
+            }
           }),
         { projectID },
       );
@@ -485,7 +482,7 @@ const Project = () => {
         cache =>
           produce(cache, draftCache => {
             draftCache.findProject.invitedMembers = cache.findProject.invitedMembers.filter(
-              m => m.email !== response.data.deleteInvitedProjectMember.invitedMember.email,
+              m => m.email !== response.data?.deleteInvitedProjectMember.invitedMember.email ?? '',
             );
           }),
         { projectID },
@@ -500,7 +497,7 @@ const Project = () => {
         cache =>
           produce(cache, draftCache => {
             draftCache.findProject.members = cache.findProject.members.filter(
-              m => m.id !== response.data.deleteProjectMember.member.id,
+              m => m.id !== response.data?.deleteProjectMember.member.id,
             );
           }),
         { projectID },

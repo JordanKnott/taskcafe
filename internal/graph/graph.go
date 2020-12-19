@@ -255,3 +255,28 @@ func GetActionType(actionType int32) ActionType {
 		panic("Not a valid entity type!")
 	}
 }
+
+type MemberType string
+
+const (
+	MemberTypeInvited MemberType = "INVITED"
+	MemberTypeJoined  MemberType = "JOINED"
+)
+
+type MasterEntry struct {
+	MemberType MemberType
+	ID         uuid.UUID
+}
+
+const (
+	TASK_ADDED_TO_TASK_GROUP int32 = 1
+	TASK_MOVED_TO_TASK_GROUP int32 = 2
+	TASK_MARK_COMPLETE       int32 = 3
+	TASK_MARK_INCOMPLETE     int32 = 4
+	TASK_DUE_DATE_CHANGED    int32 = 5
+	TASK_DUE_DATE_ADDED      int32 = 6
+	TASK_DUE_DATE_REMOVED    int32 = 7
+	TASK_CHECKLIST_CHANGED   int32 = 8
+	TASK_CHECKLIST_ADDED     int32 = 9
+	TASK_CHECKLIST_REMOVED   int32 = 10
+)

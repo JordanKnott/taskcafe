@@ -1,3 +1,10 @@
+type ProjectLabel = {
+  id: string;
+  createdDate: string;
+  name?: string | null;
+  labelColor: LabelColor;
+};
+
 type ProfileIcon = {
   url?: string | null;
   initials?: string | null;
@@ -56,6 +63,39 @@ type TaskBadges = {
   checklist?: ChecklistBadge | null;
 };
 
+type TaskActivityData = {
+  name: string;
+  value: string;
+};
+
+type CausedBy = {
+  id: string;
+  fullName: string;
+  profileIcon?: null | ProfileIcon;
+};
+type TaskActivity = {
+  id: string;
+  type: any;
+  data: Array<TaskActivityData>;
+  causedBy: CausedBy;
+  createdAt: string;
+};
+
+type CreatedBy = {
+  id: string;
+  fullName: string;
+  profileIcon: ProfileIcon;
+};
+
+type TaskComment = {
+  id: string;
+  createdBy: CreatedBy;
+  createdAt: string;
+  updatedAt?: string | null;
+  pinned: boolean;
+  message: string;
+};
+
 type Task = {
   id: string;
   taskGroup: InnerTaskGroup;
@@ -69,6 +109,8 @@ type Task = {
   description?: string | null;
   assigned?: Array<TaskUser>;
   checklists?: Array<TaskChecklist> | null;
+  activity?: Array<TaskActivity> | null;
+  comments?: Array<TaskComment> | null;
 };
 
 type Project = {
@@ -88,11 +130,4 @@ type Team = {
   id: string;
   name: string;
   createdAt: string;
-};
-
-type ProjectLabel = {
-  id: string;
-  createdDate: string;
-  name?: string | null;
-  labelColor: LabelColor;
 };

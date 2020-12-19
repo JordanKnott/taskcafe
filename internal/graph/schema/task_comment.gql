@@ -1,0 +1,37 @@
+extend type Mutation {
+  createTaskComment(input: CreateTaskComment):
+    CreateTaskCommentPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  deleteTaskComment(input: DeleteTaskComment):
+    DeleteTaskCommentPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  updateTaskComment(input: UpdateTaskComment):
+    UpdateTaskCommentPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+}
+
+input CreateTaskComment {
+  taskID: UUID!
+  message: String!
+}
+
+type CreateTaskCommentPayload {
+  taskID: UUID!
+  comment: TaskComment!
+}
+
+input UpdateTaskComment {
+  commentID: UUID!
+  message: String!
+}
+
+type UpdateTaskCommentPayload {
+  taskID: UUID!
+  comment: TaskComment!
+}
+
+input DeleteTaskComment {
+  commentID: UUID!
+}
+
+type DeleteTaskCommentPayload {
+  taskID: UUID!
+  commentID: UUID!
+}

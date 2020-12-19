@@ -23,10 +23,12 @@ type Querier interface {
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateSystemOption(ctx context.Context, arg CreateSystemOptionParams) (SystemOption, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
+	CreateTaskActivity(ctx context.Context, arg CreateTaskActivityParams) (TaskActivity, error)
 	CreateTaskAll(ctx context.Context, arg CreateTaskAllParams) (Task, error)
 	CreateTaskAssigned(ctx context.Context, arg CreateTaskAssignedParams) (TaskAssigned, error)
 	CreateTaskChecklist(ctx context.Context, arg CreateTaskChecklistParams) (TaskChecklist, error)
 	CreateTaskChecklistItem(ctx context.Context, arg CreateTaskChecklistItemParams) (TaskChecklistItem, error)
+	CreateTaskComment(ctx context.Context, arg CreateTaskCommentParams) (TaskComment, error)
 	CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams) (TaskGroup, error)
 	CreateTaskLabelForTask(ctx context.Context, arg CreateTaskLabelForTaskParams) (TaskLabel, error)
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
@@ -47,6 +49,7 @@ type Querier interface {
 	DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error
 	DeleteTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) error
 	DeleteTaskChecklistItem(ctx context.Context, taskChecklistItemID uuid.UUID) error
+	DeleteTaskCommentByID(ctx context.Context, taskCommentID uuid.UUID) (TaskComment, error)
 	DeleteTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTaskLabelByID(ctx context.Context, taskLabelID uuid.UUID) error
 	DeleteTaskLabelForTaskByProjectLabelID(ctx context.Context, arg DeleteTaskLabelForTaskByProjectLabelIDParams) error
@@ -55,6 +58,7 @@ type Querier interface {
 	DeleteTeamMember(ctx context.Context, arg DeleteTeamMemberParams) error
 	DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) error
 	DeleteUserAccountInvitedForEmail(ctx context.Context, email string) error
+	GetActivityForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskActivity, error)
 	GetAllNotificationsForUserID(ctx context.Context, notifierID uuid.UUID) ([]Notification, error)
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)
@@ -65,6 +69,7 @@ type Querier interface {
 	GetAllUserAccounts(ctx context.Context) ([]UserAccount, error)
 	GetAllVisibleProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error)
 	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
+	GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error)
 	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)
 	GetEntityForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetEntityForNotificationIDRow, error)
@@ -74,6 +79,7 @@ type Querier interface {
 	GetInvitedUserByEmail(ctx context.Context, email string) (UserAccountInvited, error)
 	GetLabelColorByID(ctx context.Context, labelColorID uuid.UUID) (LabelColor, error)
 	GetLabelColors(ctx context.Context) ([]LabelColor, error)
+	GetLastMoveForTaskID(ctx context.Context, taskID uuid.UUID) (GetLastMoveForTaskIDRow, error)
 	GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error)
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
@@ -113,6 +119,7 @@ type Querier interface {
 	GetTeamRolesForUserID(ctx context.Context, userID uuid.UUID) ([]GetTeamRolesForUserIDRow, error)
 	GetTeamsForOrganization(ctx context.Context, organizationID uuid.UUID) ([]Team, error)
 	GetTeamsForUserIDWhereAdmin(ctx context.Context, userID uuid.UUID) ([]Team, error)
+	GetTemplateForActivityID(ctx context.Context, taskActivityTypeID int32) (string, error)
 	GetUserAccountByEmail(ctx context.Context, email string) (UserAccount, error)
 	GetUserAccountByID(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	GetUserAccountByUsername(ctx context.Context, username string) (UserAccount, error)
@@ -120,6 +127,7 @@ type Querier interface {
 	HasActiveUser(ctx context.Context) (bool, error)
 	HasAnyUser(ctx context.Context) (bool, error)
 	SetFirstUserActive(ctx context.Context) (UserAccount, error)
+	SetInactiveLastMoveForTaskID(ctx context.Context, taskID uuid.UUID) error
 	SetTaskChecklistItemComplete(ctx context.Context, arg SetTaskChecklistItemCompleteParams) (TaskChecklistItem, error)
 	SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams) (Task, error)
 	SetTaskGroupName(ctx context.Context, arg SetTaskGroupNameParams) (TaskGroup, error)
@@ -134,6 +142,7 @@ type Querier interface {
 	UpdateTaskChecklistItemName(ctx context.Context, arg UpdateTaskChecklistItemNameParams) (TaskChecklistItem, error)
 	UpdateTaskChecklistName(ctx context.Context, arg UpdateTaskChecklistNameParams) (TaskChecklist, error)
 	UpdateTaskChecklistPosition(ctx context.Context, arg UpdateTaskChecklistPositionParams) (TaskChecklist, error)
+	UpdateTaskComment(ctx context.Context, arg UpdateTaskCommentParams) (TaskComment, error)
 	UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescriptionParams) (Task, error)
 	UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDateParams) (Task, error)
 	UpdateTaskGroupLocation(ctx context.Context, arg UpdateTaskGroupLocationParams) (TaskGroup, error)

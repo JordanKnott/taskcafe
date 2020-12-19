@@ -16,10 +16,14 @@ const useOnOutsideClick = (
 
     const handleMouseUp = (event: any) => {
       if (typeof $ignoredElementRefsMemoized !== 'undefined') {
-        const isAnyIgnoredElementAncestorOfTarget = $ignoredElementRefsMemoized.some(
-          ($elementRef: any) =>
-            $elementRef.current.contains($mouseDownTargetRef.current) || $elementRef.current.contains(event.target),
-        );
+        const isAnyIgnoredElementAncestorOfTarget = $ignoredElementRefsMemoized.some(($elementRef: any) => {
+          if ($elementRef && $elementRef.current) {
+            return (
+              $elementRef.current.contains($mouseDownTargetRef.current) || $elementRef.current.contains(event.target)
+            );
+          }
+          return false;
+        });
         if (event.button === 0 && !isAnyIgnoredElementAncestorOfTarget) {
           onOutsideClick();
         }

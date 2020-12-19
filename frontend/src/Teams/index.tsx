@@ -33,7 +33,7 @@ const Wrapper = styled.div`
 `;
 
 type TeamPopupProps = {
-  history: History<History.PoorMansUnknown>;
+  history: History<any>;
   name: string;
   teamID: string;
 };
@@ -44,9 +44,9 @@ export const TeamPopup: React.FC<TeamPopupProps> = ({ history, name, teamID }) =
     update: (client, deleteData) => {
       updateApolloCache<GetProjectsQuery>(client, GetProjectsDocument, cache =>
         produce(cache, draftCache => {
-          draftCache.teams = cache.teams.filter((team: any) => team.id !== deleteData.data.deleteTeam.team.id);
+          draftCache.teams = cache.teams.filter((team: any) => team.id !== deleteData.data?.deleteTeam.team.id);
           draftCache.projects = cache.projects.filter(
-            (project: any) => project.team.id !== deleteData.data.deleteTeam.team.id,
+            (project: any) => project.team.id !== deleteData.data?.deleteTeam.team.id,
           );
         }),
       );

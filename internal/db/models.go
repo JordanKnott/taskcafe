@@ -4,6 +4,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -103,6 +104,22 @@ type Task struct {
 	CompletedAt sql.NullTime   `json:"completed_at"`
 }
 
+type TaskActivity struct {
+	TaskActivityID uuid.UUID       `json:"task_activity_id"`
+	Active         bool            `json:"active"`
+	TaskID         uuid.UUID       `json:"task_id"`
+	CreatedAt      time.Time       `json:"created_at"`
+	CausedBy       uuid.UUID       `json:"caused_by"`
+	ActivityTypeID int32           `json:"activity_type_id"`
+	Data           json.RawMessage `json:"data"`
+}
+
+type TaskActivityType struct {
+	TaskActivityTypeID int32  `json:"task_activity_type_id"`
+	Code               string `json:"code"`
+	Template           string `json:"template"`
+}
+
 type TaskAssigned struct {
 	TaskAssignedID uuid.UUID `json:"task_assigned_id"`
 	TaskID         uuid.UUID `json:"task_id"`
@@ -126,6 +143,16 @@ type TaskChecklistItem struct {
 	Name                string       `json:"name"`
 	Position            float64      `json:"position"`
 	DueDate             sql.NullTime `json:"due_date"`
+}
+
+type TaskComment struct {
+	TaskCommentID uuid.UUID    `json:"task_comment_id"`
+	TaskID        uuid.UUID    `json:"task_id"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     sql.NullTime `json:"updated_at"`
+	CreatedBy     uuid.UUID    `json:"created_by"`
+	Pinned        bool         `json:"pinned"`
+	Message       string       `json:"message"`
 }
 
 type TaskGroup struct {
