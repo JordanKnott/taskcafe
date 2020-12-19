@@ -20,14 +20,14 @@ export const MemberManagerSearch = styled(TextareaAutosize)`
   font-size: 14px;
   font-weight: 400;
 
-  background: ${props => props.theme.colors.bgColor.secondary};
+  background: ${props => props.theme.colors.bg.secondary};
   outline: none;
   color: ${props => props.theme.colors.text.primary};
   border-color: ${props => props.theme.colors.border};
 
   &:focus {
     box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
-    background: ${props => mixin.darken(props.theme.colors.bgColor.secondary, 0.15)};
+    background: ${props => mixin.darken(props.theme.colors.bg.secondary, 0.15)};
   }
 `;
 
