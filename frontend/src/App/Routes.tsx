@@ -15,6 +15,7 @@ import styled from 'styled-components';
 import JwtDecode from 'jwt-decode';
 import { setAccessToken } from 'shared/utils/accessToken';
 import { useCurrentUser } from 'App/context';
+import Outline from 'Outline';
 
 const MainContent = styled.div`
   padding: 0 0 0 0;
@@ -67,6 +68,7 @@ const AuthorizedRoutes = () => {
         <Route exact path="/projects" component={Projects} />
         <Route path="/projects/:projectID" component={Project} />
         <Route path="/teams/:teamID" component={Teams} />
+        <Route path="/outline" component={Outline} />
         <Route path="/profile" component={Profile} />
         <Route path="/admin" component={Admin} />
       </MainContent>
