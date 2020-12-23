@@ -403,9 +403,6 @@ const Details: React.FC<DetailsProps> = ({
   });
   const [updateTaskComment] = useUpdateTaskCommentMutation();
   const [editableComment, setEditableComment] = useState<null | string>(null);
-  if (loading) {
-    return null;
-  }
   if (!data) {
     return null;
   }
