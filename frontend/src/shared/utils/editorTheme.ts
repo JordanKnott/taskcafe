@@ -61,9 +61,9 @@ export const base = {
 export const dark = {
   ...base,
   background: 'transparent',
-  text: `rgba(${theme.colors.text.primary})`,
-  code: `rgba(${theme.colors.text.primary})`,
-  cursor: `rgba(${theme.colors.text.primary})`,
+  text: `${theme.colors.text.primary}`,
+  code: `${theme.colors.text.primary}`,
+  cursor: `${theme.colors.text.primary}`,
   divider: '#4E5C6E',
   placeholder: '#52657A',
 
