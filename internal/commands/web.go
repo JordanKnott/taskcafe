@@ -15,6 +15,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jordanknott/taskcafe/internal/route"
+	"github.com/jordanknott/taskcafe/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -75,10 +76,24 @@ func newWebCmd() *cobra.Command {
 				log.Warn("server.secret is not set, generating a random secret")
 				secret = uuid.New().String()
 			}
-			r, _ := route.NewRouter(db, []byte(secret))
+			r, _ := route.NewRouter(db, utils.EmailConfig{
+				From:               viper.GetString("smtp.from"),
+				Host:               viper.GetString("smtp.host"),
+				Port:               viper.GetInt("smtp.port"),
+				Username:           viper.GetString("smtp.username"),
+				Password:           viper.GetString("smtp.password"),
+				InsecureSkipVerify: viper.GetBool("smtp.skip_verify"),
+			}, []byte(secret))
 			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},
 	}
+
+	viper.SetDefault("smtp.from", "no-reply@example.com")
+	viper.SetDefault("smtp.host", "localhost")
+	viper.SetDefault("smtp.port", 587)
+	viper.SetDefault("smtp.username", "")
+	viper.SetDefault("smtp.password", "")
+	viper.SetDefault("smtp.skip_verify", false)
 
 	cc.Flags().Bool("migrate", false, "if true, auto run's schema migrations before starting the web server")
 

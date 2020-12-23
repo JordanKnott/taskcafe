@@ -26,10 +26,11 @@ import (
 )
 
 // NewHandler returns a new graphql endpoint handler.
-func NewHandler(repo db.Repository) http.Handler {
+func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler {
 	c := Config{
 		Resolvers: &Resolver{
-			Repository: repo,
+			Repository:  repo,
+			EmailConfig: emailConfig,
 		},
 	}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (interface{}, error) {

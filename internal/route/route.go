@@ -16,6 +16,7 @@ import (
 	"github.com/jordanknott/taskcafe/internal/frontend"
 	"github.com/jordanknott/taskcafe/internal/graph"
 	"github.com/jordanknott/taskcafe/internal/logger"
+	"github.com/jordanknott/taskcafe/internal/utils"
 )
 
 // FrontendHandler serves an embed React client through chi
@@ -64,7 +65,7 @@ type TaskcafeHandler struct {
 }
 
 // NewRouter creates a new router for chi
-func NewRouter(dbConnection *sqlx.DB, jwtKey []byte) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, jwtKey []byte) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -94,7 +95,7 @@ func NewRouter(dbConnection *sqlx.DB, jwtKey []byte) (chi.Router, error) {
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
-		mux.Handle("/graphql", graph.NewHandler(*repository))
+		mux.Handle("/graphql", graph.NewHandler(*repository, emailConfig))
 	})
 
 	frontend := FrontendHandler{staticPath: "build", indexPath: "index.html"}

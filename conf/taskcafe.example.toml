@@ -17,8 +17,9 @@ user = 'taskcafe'
 password = 'taskcafe_test'
 
 [smtp]
-username = 'admin@example.com'
-password = 'example'
-server = 'mail.example.com'
-port = 465
-connection_security = 'STARTTLS'
+username = 'taskcafe@example.com'
+password = ''
+from = 'no-reply@taskcafe.com'
+host = 'localhost'
+port = 11500
+skip_verify = false

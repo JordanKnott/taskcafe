@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -16,12 +15,11 @@ import (
 	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
+	"github.com/jordanknott/taskcafe/internal/utils"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"golang.org/x/crypto/bcrypt"
-	gomail "gopkg.in/mail.v2"
 )
 
 func (r *labelColorResolver) ID(ctx context.Context, obj *db.LabelColor) (uuid.UUID, error) {
@@ -193,79 +191,11 @@ func (r *mutationResolver) InviteProjectMembers(ctx context.Context, input Invit
 					if err != nil {
 						return &InviteProjectMembersPayload{Ok: false}, err
 					}
-					// send out invitation
-					// add project invite entry
-					// send out notification?
-					h := hermes.Hermes{
-						// Optional Theme
-						Product: hermes.Product{
-							// Appears in header & footer of e-mails
-							Name: "Taskscafe",
-							Link: "http://localhost:3333/",
-							// Optional product logo
-							Logo: "https://github.com/JordanKnott/taskcafe/raw/master/.github/taskcafe-full.png",
-						},
-					}
-
-					email := hermes.Email{
-						Body: hermes.Body{
-							Name: "Jordan Knott",
-							Intros: []string{
-								"You have been invited to join Taskcafe",
-							},
-							Actions: []hermes.Action{
-								{
-									Instructions: "To get started with Taskcafe, please click here:",
-									Button: hermes.Button{
-										Color:     "#7367F0", // Optional action button color
-										TextColor: "#FFFFFF",
-										Text:      "Register your account",
-										Link:      "http://localhost:3000/register?confirmToken=" + confirmToken.ConfirmTokenID.String(),
-									},
-								},
-							},
-							Outros: []string{
-								"Need help, or have questions? Just reply to this email, we'd love to help.",
-							},
-						},
-					}
-
-					// Generate an HTML email with the provided contents (for modern clients)
-					emailBody, err := h.GenerateHTML(email)
+					invite := utils.EmailInvite{To: *invitedMember.Email, FullName: *invitedMember.Email, ConfirmToken: confirmToken.ConfirmTokenID.String()}
+					err = utils.SendEmailInvite(r.EmailConfig, invite)
 					if err != nil {
-						panic(err) // Tip: Handle error with something else than a panic ;)
-					}
-					emailBodyPlain, err := h.GeneratePlainText(email)
-					if err != nil {
-						panic(err) // Tip: Handle error with something else than a panic ;)
-					}
-
-					m := gomail.NewMessage()
-
-					// Set E-Mail sender
-					m.SetHeader("From", "no-reply@taskcafe.com")
-
-					// Set E-Mail receivers
-					m.SetHeader("To", invitedUser.Email)
-
-					// Set E-Mail subject
-					m.SetHeader("Subject", "You have been invited to Taskcafe")
-
-					// Set E-Mail body. You can set plain text or html with text/html
-					m.SetBody("text/html", emailBody)
-					m.AddAlternative("text/plain", emailBodyPlain)
-
-					// Settings for SMTP server
-					d := gomail.NewDialer("127.0.0.1", 11500, "no-reply@taskcafe.com", "")
-
-					// This is only needed when SSL/TLS certificate is not valid on server.
-					// In production this should be set to false.
-					d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-					// Now send E-Mail
-					if err := d.DialAndSend(m); err != nil {
-						fmt.Println(err)
-						panic(err)
+						logger.New(ctx).WithError(err).Error("issue sending email")
+						return &InviteProjectMembersPayload{Ok: false}, err
 					}
 				} else {
 					return &InviteProjectMembersPayload{Ok: false}, err

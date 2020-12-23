@@ -7,10 +7,12 @@ import (
 	"sync"
 
 	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/jordanknott/taskcafe/internal/utils"
 )
 
 // Resolver handles resolving GraphQL queries & mutations
 type Resolver struct {
-	Repository db.Repository
-	mu         sync.Mutex
+	Repository  db.Repository
+	EmailConfig utils.EmailConfig
+	mu          sync.Mutex
 }
