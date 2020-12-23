@@ -134,6 +134,7 @@ const ProjectFinder = () => {
   }
   if (data) {
     const { projects, teams } = data;
+    const personalProjects = data.projects.filter(p => p.team === null);
     const projectTeams = teams.map(team => {
       return {
         id: team.id,
@@ -143,6 +144,22 @@ const ProjectFinder = () => {
     });
     return (
       <>
+        <TeamContainer>
+          <TeamTitle>Personal</TeamTitle>
+          <TeamProjects>
+            {personalProjects.map((project, idx) => (
+              <TeamProjectContainer key={project.id}>
+                <TeamProjectLink to={`/projects/${project.id}`}>
+                  <TeamProjectBackground color={colors[idx % 5]} />
+                  <TeamProjectAvatar color={colors[idx % 5]} />
+                  <TeamProjectContent>
+                    <TeamProjectTitle>{project.name}</TeamProjectTitle>
+                  </TeamProjectContent>
+                </TeamProjectLink>
+              </TeamProjectContainer>
+            ))}
+          </TeamProjects>
+        </TeamContainer>
         {projectTeams.map(team => (
           <TeamContainer key={team.id}>
             <TeamTitle>{team.name}</TeamTitle>
