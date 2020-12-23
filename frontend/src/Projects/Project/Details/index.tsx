@@ -381,7 +381,11 @@ const Details: React.FC<DetailsProps> = ({
       );
     },
   });
-  const { loading, data, refetch } = useFindTaskQuery({ variables: { taskID }, fetchPolicy: 'cache-and-network' });
+  const { loading, data, refetch } = useFindTaskQuery({
+    variables: { taskID },
+    pollInterval: 3000,
+    fetchPolicy: 'cache-and-network',
+  });
   const [setTaskComplete] = useSetTaskCompleteMutation();
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation({
     onCompleted: () => {

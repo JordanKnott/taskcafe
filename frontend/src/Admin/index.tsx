@@ -174,7 +174,7 @@ const AdminRoute = () => {
   useEffect(() => {
     document.title = 'Admin | Taskcafé';
   }, []);
-  const { loading, data } = useUsersQuery();
+  const { loading, data } = useUsersQuery({ fetchPolicy: 'cache-and-network' });
   const { showPopup, hidePopup } = usePopup();
   const { user } = useCurrentUser();
   const [deleteInvitedUser] = useDeleteInvitedUserAccountMutation({

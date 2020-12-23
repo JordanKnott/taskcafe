@@ -419,7 +419,11 @@ type MembersProps = {
 
 const Members: React.FC<MembersProps> = ({ teamID }) => {
   const { showPopup, hidePopup } = usePopup();
-  const { loading, data } = useGetTeamQuery({ variables: { teamID } });
+  const { loading, data } = useGetTeamQuery({
+    variables: { teamID },
+    fetchPolicy: 'cache-and-network',
+    pollInterval: 3000,
+  });
   const { user, setUserRoles } = useCurrentUser();
   const warning =
     'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';

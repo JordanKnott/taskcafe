@@ -128,7 +128,7 @@ const TeamProjectContainer = styled.div`
 const colors = [theme.colors.primary, theme.colors.secondary];
 
 const ProjectFinder = () => {
-  const { loading, data } = useGetProjectsQuery();
+  const { loading, data } = useGetProjectsQuery({ fetchPolicy: 'cache-and-network' });
   if (loading) {
     return <span>loading</span>;
   }

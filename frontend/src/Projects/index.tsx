@@ -202,7 +202,7 @@ type ShowNewProject = {
 
 const Projects = () => {
   const { showPopup, hidePopup } = usePopup();
-  const { loading, data } = useGetProjectsQuery({ fetchPolicy: 'network-only' });
+  const { loading, data } = useGetProjectsQuery({ pollInterval: 3000, fetchPolicy: 'cache-and-network' });
   useEffect(() => {
     document.title = 'Taskcafé';
   }, []);

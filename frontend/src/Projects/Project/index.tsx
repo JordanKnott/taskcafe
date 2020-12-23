@@ -436,6 +436,7 @@ const Project = () => {
 
   const { loading, data, error } = useFindProjectQuery({
     variables: { projectID },
+    pollInterval: 3000,
   });
 
   const [updateProjectName] = useUpdateProjectNameMutation({
