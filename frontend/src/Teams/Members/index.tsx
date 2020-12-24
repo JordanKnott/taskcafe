@@ -472,9 +472,6 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
       );
     },
   });
-  if (loading) {
-    return <span>loading</span>;
-  }
 
   if (data && user) {
     return (
@@ -562,7 +559,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
     );
   }
 
-  return <div>error</div>;
+  return <div>loading</div>;
 };
 
 export default Members;

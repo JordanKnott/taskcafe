@@ -129,9 +129,6 @@ const colors = [theme.colors.primary, theme.colors.secondary];
 
 const ProjectFinder = () => {
   const { loading, data } = useGetProjectsQuery({ fetchPolicy: 'cache-and-network' });
-  if (loading) {
-    return <span>loading</span>;
-  }
   if (data) {
     const { projects, teams } = data;
     const personalProjects = data.projects.filter(p => p.team === null);
@@ -181,7 +178,7 @@ const ProjectFinder = () => {
       </>
     );
   }
-  return <span>error</span>;
+  return <span>loading</span>;
 };
 type ProjectPopupProps = {
   history: any;

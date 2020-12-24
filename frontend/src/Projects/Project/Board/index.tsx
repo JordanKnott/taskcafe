@@ -459,9 +459,6 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
     }
   };
 
-  if (loading) {
-    return <BoardLoading />;
-  }
   const getTaskStatusFilterLabel = (filter: TaskStatusFilter) => {
     if (filter.status === TaskStatus.COMPLETE) {
       return 'Complete';
@@ -818,7 +815,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
     );
   }
 
-  return <span>Error</span>;
+  return <BoardLoading />;
 };
 
 export default ProjectBoard;

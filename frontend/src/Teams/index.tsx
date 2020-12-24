@@ -94,23 +94,6 @@ const Teams = () => {
   const { user } = useCurrentUser();
   const [currentTab, setCurrentTab] = useState(0);
   const match = useRouteMatch();
-  if (loading) {
-    return (
-      <GlobalTopNavbar
-        menuType={[
-          { name: 'Projects', link: `${match.url}` },
-          { name: 'Members', link: `${match.url}/members` },
-        ]}
-        currentTab={currentTab}
-        onSetTab={tab => {
-          setCurrentTab(tab);
-        }}
-        onSaveProjectName={NOOP}
-        projectID={null}
-        name={null}
-      />
-    );
-  }
   if (data && user) {
     if (!user.isVisible(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID)) {
       return <Redirect to="/" />;
@@ -146,7 +129,21 @@ const Teams = () => {
       </>
     );
   }
-  return <div>Error!</div>;
+  return (
+    <GlobalTopNavbar
+      menuType={[
+        { name: 'Projects', link: `${match.url}` },
+        { name: 'Members', link: `${match.url}/members` },
+      ]}
+      currentTab={currentTab}
+      onSetTab={tab => {
+        setCurrentTab(tab);
+      }}
+      onSaveProjectName={NOOP}
+      projectID={null}
+      name={null}
+    />
+  );
 };
 
 export default Teams;

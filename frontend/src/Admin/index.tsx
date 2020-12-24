@@ -214,9 +214,6 @@ const AdminRoute = () => {
       });
     },
   });
-  if (loading) {
-    return <GlobalTopNavbar projectID={null} onSaveProjectName={NOOP} name={null} />;
-  }
   if (data && user) {
     if (user.roles.org !== 'admin') {
       return <Redirect to="/" />;
@@ -259,7 +256,7 @@ const AdminRoute = () => {
       </>
     );
   }
-  return <span>error</span>;
+  return <GlobalTopNavbar projectID={null} onSaveProjectName={NOOP} name={null} />;
 };
 
 export default AdminRoute;

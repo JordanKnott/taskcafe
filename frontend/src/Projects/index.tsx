@@ -231,9 +231,6 @@ const Projects = () => {
       );
     },
   });
-  if (loading) {
-    return <GlobalTopNavbar onSaveProjectName={NOOP} projectID={null} name={null} />;
-  }
 
   const colors = theme.colors.multiColors;
   if (data && user) {
@@ -395,7 +392,7 @@ const Projects = () => {
       </>
     );
   }
-  return <div>Error!</div>;
+  return <GlobalTopNavbar onSaveProjectName={NOOP} projectID={null} name={null} />;
 };
 
 export default Projects;

@@ -517,14 +517,6 @@ const Project = () => {
       document.title = `${data.findProject.name} | Taskcafé`;
     }
   }, [data]);
-  if (loading) {
-    return (
-      <>
-        <GlobalTopNavbar onSaveProjectName={NOOP} name="" projectID={null} />
-        <BoardLoading />
-      </>
-    );
-  }
   if (error) {
     history.push('/projects');
   }
@@ -637,7 +629,12 @@ const Project = () => {
       </>
     );
   }
-  return <div>Error</div>;
+  return (
+    <>
+      <GlobalTopNavbar onSaveProjectName={NOOP} name="" projectID={null} />
+      <BoardLoading />
+    </>
+  );
 };
 
 export default Project;

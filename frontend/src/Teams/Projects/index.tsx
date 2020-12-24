@@ -160,9 +160,6 @@ const TeamProjects: React.FC<TeamProjectsProps> = ({ teamID }) => {
     fetchPolicy: 'cache-and-network',
     pollInterval: 3000,
   });
-  if (loading) {
-    return <span>loading</span>;
-  }
   if (data) {
     return (
       <ProjectsContainer>
@@ -193,7 +190,7 @@ const TeamProjects: React.FC<TeamProjectsProps> = ({ teamID }) => {
       </ProjectsContainer>
     );
   }
-  return <span>error</span>;
+  return <span>loading</span>;
 };
 
 export default TeamProjects;
