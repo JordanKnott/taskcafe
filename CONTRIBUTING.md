@@ -6,7 +6,9 @@ Thanks for wanting to contribute to Taskcafe!
 
 So you want to contribute to Taskcafe? Great!
 
-If you have noticed a bug or want to add a new feature, please [create an issue](https://github.com/JordanKnott/taskcafe/issues/new/choose) for it before starting any work on a pull request.
+If you have noticed a bug, please [create an issue](https://github.com/JordanKnott/taskcafe/issues/new/choose) for it before starting any work on a pull request.
+
+If there is a [new feature you'd like added](https://github.com/JordanKnott/taskcafe/discussions/new?category=ideas) or [have a question](https://github.com/JordanKnott/taskcafe/discussions/new?category=q-a), please visit the [discussions section](https://github.com/JordanKnott/taskcafe/discussions)
 
 Alternatively you can join the [Taskcafe discord](https://discord.gg/JkQDruh) and ask in the #questions channel.
 
