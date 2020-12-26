@@ -98,10 +98,6 @@ func ValidateAccessToken(accessTokenString string, jwtKey []byte) (AccessTokenCl
 		return jwtKey, nil
 	})
 
-	if err != nil {
-		return *accessClaims, nil
-	}
-
 	if accessToken.Valid {
 		log.WithFields(log.Fields{
 			"token":        accessTokenString,
@@ -111,7 +107,7 @@ func ValidateAccessToken(accessTokenString string, jwtKey []byte) (AccessTokenCl
 	}
 
 	if ve, ok := err.(*jwt.ValidationError); ok {
-		if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+		if ve.Errors&(jwt.ValidationErrorMalformed|jwt.ValidationErrorSignatureInvalid) != 0 {
 			return AccessTokenClaims{}, &ErrMalformedToken{}
 		} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
 			return AccessTokenClaims{}, &ErrExpiredToken{}
