@@ -118,6 +118,11 @@ func (Backend) Schema() error {
 	return sh.Run("gqlgen")
 }
 
+func (Backend) Test() error {
+	fmt.Println("running taskcafe backend unit tests")
+	return sh.RunV("go", "test", "./...")
+}
+
 // Install runs frontend:install
 func Install() {
 	mg.SerialDeps(Frontend.Install)
