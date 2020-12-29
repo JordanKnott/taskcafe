@@ -954,6 +954,7 @@ func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserA
 		Email:        input.Email,
 		Username:     input.Username,
 		CreatedAt:    createdAt,
+		Active:       true,
 		PasswordHash: string(hashedPwd),
 	})
 	return &userAccount, err
