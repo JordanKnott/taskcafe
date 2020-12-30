@@ -8,11 +8,23 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/shurcooL/vfsgen"
 )
+
+const (
+	packageName = "github.com/jordanknott/taskcafe"
+)
+
+var ldflags = "-X $PACKAGE/internal/utils.commitHash=$COMMIT_HASH -X $PACKAGE/internal/utils.buildDate=$BUILD_DATE -X $PACKAGE/internal/utils.version=$VERSION"
+
+func runWith(env map[string]string, cmd string, inArgs ...interface{}) error {
+	s := argsToStrings(inArgs...)
+	return sh.RunWith(env, cmd, s...)
+}
 
 // Aliases is a list of short names for often used commands
 var Aliases = map[string]interface{}{
@@ -85,10 +97,25 @@ func (Backend) GenFrontend() error {
 	return nil
 }
 
+func flagEnv() map[string]string {
+	hash, _ := sh.Output("git", "rev-parse", "--short", "HEAD")
+	fmt.Println("[ignore] fatal: no tag matches")
+	tag, err := sh.Output("git", "describe", "--exact-match", "--tags")
+	if err != nil {
+		tag = "nightly"
+	}
+	return map[string]string{
+		"PACKAGE":     packageName,
+		"COMMIT_HASH": hash,
+		"BUILD_DATE":  time.Now().Format("2006-01-02T15:04:05Z0700"),
+		"VERSION":     tag,
+	}
+}
+
 // Build the Go api service
 func (Backend) Build() error {
 	fmt.Println("compiling binary dist/taskcafe")
-	return sh.Run("go", "build", "-tags", "prod", "-o", "dist/taskcafe", "cmd/taskcafe/main.go")
+	return runWith(flagEnv(), "go", "build", "-ldflags", ldflags, "-tags", "prod", "-o", "dist/taskcafe", "cmd/taskcafe/main.go")
 }
 
 // Schema merges GraphQL schema files into single schema & runs gqlgen
@@ -144,4 +171,24 @@ func (Docker) Up() error {
 // Migrate runs the migration command for the docker-compose network
 func (Docker) Migrate() error {
 	return sh.RunV("docker-compose", "-p", "taskcafe", "-f", "docker-compose.yml", "-f", "docker-compose.migrate.yml", "run", "--rm", "migrate")
+}
+
+func argsToStrings(v ...interface{}) []string {
+	var args []string
+	for _, arg := range v {
+		switch v := arg.(type) {
+		case string:
+			if v != "" {
+				args = append(args, v)
+			}
+		case []string:
+			if v != nil {
+				args = append(args, v...)
+			}
+		default:
+			panic("invalid type")
+		}
+	}
+
+	return args
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jordanknott/taskcafe/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -12,22 +13,19 @@ import (
 const mainDescription = `Taskcafé is an open soure project management
 system written in Golang & React.`
 
-var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
-)
-
-var versionTemplate = fmt.Sprintf(`Version: %s
+func VersionTemplate() string {
+	info := utils.Version()
+	return fmt.Sprintf(`Version: %s
 Commit: %s
-Built: %s`, version, commit, date+"\n")
+Built: %s`, info.Version, info.CommitHash, info.BuildDate+"\n")
+}
 
 var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:     "taskcafe",
 	Long:    mainDescription,
-	Version: version,
+	Version: VersionTemplate(),
 }
 
 var migration http.FileSystem
@@ -86,7 +84,7 @@ func Execute() {
 	viper.SetDefault("queue.broker", "amqp://guest:guest@localhost:5672/")
 	viper.SetDefault("queue.store", "memcache://localhost:11211")
 
-	rootCmd.SetVersionTemplate(versionTemplate)
+	rootCmd.SetVersionTemplate(VersionTemplate())
 	rootCmd.AddCommand(newWebCmd(), newMigrateCmd(), newTokenCmd(), newWorkerCmd(), newResetPasswordCmd())
 	rootCmd.Execute()
 }
