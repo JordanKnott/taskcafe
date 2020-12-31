@@ -1,8 +1,9 @@
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 import TaskAssignee from 'shared/components/TaskAssignee';
+import theme from 'App/ThemeStyles';
 
 export const Container = styled.div`
   display: flex;
@@ -16,7 +17,7 @@ export const LeftSidebar = styled.div`
   background: #222740;
 `;
 
-export const MarkCompleteButton = styled.button<{ invert: boolean }>`
+export const MarkCompleteButton = styled.button<{ invert: boolean; disabled?: boolean }>`
   padding: 4px 8px;
   position: relative;
   border: none;
@@ -62,6 +63,11 @@ export const MarkCompleteButton = styled.button<{ invert: boolean }>`
             color: ${props.theme.colors.success};
           }
         `}
+  ${props =>
+    props.invert &&
+    css`
+      opacity: 0.6;
+    `}
 `;
 
 export const LeftSidebarContent = styled.div`
@@ -89,24 +95,55 @@ export const SidebarTitle = styled.div`
   text-transform: uppercase;
 `;
 
-export const SidebarButton = styled.div`
+export const defaultBaseColor = theme.colors.bg.primary;
+
+export const defaultHighlightColor = mixin.lighten(theme.colors.bg.primary, 0.25);
+
+export const skeletonKeyframes = keyframes`
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+  `;
+
+export const SidebarButton = styled.div<{ loading?: boolean }>`
   font-size: 14px;
   color: ${props => props.theme.colors.text.primary};
   min-height: 32px;
   width: 100%;
-
-  padding: 9px 8px 7px 8px;
-  border-color: transparent;
   border-radius: 6px;
-  border-width: 1px;
-  border-style: solid;
+
+  ${props =>
+    props.loading
+      ? css`
+          background: ${props.theme.colors.bg.primary};
+        `
+      : css`
+          padding: 9px 8px 7px 8px;
+          cursor: pointer;
+          border-color: transparent;
+          border-width: 1px;
+          border-style: solid;
+          &:hover {
+            border-color: #414561;
+          }
+        `};
 
   display: inline-block;
   outline: 0;
-  cursor: pointer;
-  &:hover {
-    border-color: #414561;
-  }
+`;
+
+export const SidebarSkeleton = styled.div`
+  background-image: linear-gradient(90deg, ${defaultBaseColor}, ${defaultHighlightColor}, ${defaultBaseColor});
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  border-radius: 6px;
+  padding: 1px;
+  animation: ${skeletonKeyframes} 1.2s ease-in-out infinite;
+  width: 100%;
+  height: 100%;
 `;
 
 export const SidebarButtonText = styled.span`
@@ -141,18 +178,18 @@ export const HeaderLeft = styled.div`
   justify-content: flex-start;
 `;
 
-export const TaskDetailsTitleWrapper = styled.div`
+export const TaskDetailsTitleWrapper = styled.div<{ loading?: boolean }>`
   width: 100%;
   margin: 8px 0 4px 0;
-  display: inline-block;
+  display: flex;
+  border-radius: 6px;
+  ${props => props.loading && `background: ${props.theme.colors.bg.primary};`}
 `;
 
-export const TaskDetailsTitle = styled(TextareaAutosize)`
+export const TaskDetailsTitle = styled(TextareaAutosize)<{ loading?: boolean }>`
   padding: 9px 8px 7px 8px;
   border-color: transparent;
   border-radius: 6px;
-  border-width: 1px;
-  border-style: solid;
   width: 100%;
   color: #c2c6dc;
   display: inline-block;
@@ -161,13 +198,25 @@ export const TaskDetailsTitle = styled(TextareaAutosize)`
   font-weight: 700;
   background: none;
 
-  &:hover {
-    border-color: #414561;
-  }
+  ${props =>
+    props.loading
+      ? css`
+          background-image: linear-gradient(90deg, ${defaultBaseColor}, ${defaultHighlightColor}, ${defaultBaseColor});
+          background-size: 200px 100%;
+          background-repeat: no-repeat;
+          animation: ${skeletonKeyframes} 1.2s ease-in-out infinite;
+        `
+      : css`
+          &:hover {
+            border-color: #414561;
+            border-width: 1px;
+            border-style: solid;
+          }
 
-  &:focus {
-    border-color: ${props => props.theme.colors.primary};
-  }
+          &:focus {
+            border-color: ${props.theme.colors.primary};
+          }
+        `}
 `;
 
 export const DueDateTitle = styled.div`

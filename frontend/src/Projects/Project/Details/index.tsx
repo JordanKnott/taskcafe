@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Modal from 'shared/components/Modal';
 import TaskDetails from 'shared/components/TaskDetails';
+import TaskDetailsLoading from 'shared/components/TaskDetails/Loading';
 import { Popup, usePopup } from 'shared/components/PopupMenu';
 import MemberManager from 'shared/components/MemberManager';
 import { useRouteMatch, useHistory } from 'react-router';
@@ -407,9 +408,7 @@ const Details: React.FC<DetailsProps> = ({
   });
   const [updateTaskComment] = useUpdateTaskCommentMutation();
   const [editableComment, setEditableComment] = useState<null | string>(null);
-  if (!data) {
-    return null;
-  }
+  const isLoading = true;
   return (
     <>
       <Modal
@@ -418,7 +417,7 @@ const Details: React.FC<DetailsProps> = ({
           history.push(projectURL);
         }}
         renderContent={() => {
-          return (
+          return data ? (
             <TaskDetails
               onCancelCommentEdit={() => setEditableComment(null)}
               onUpdateComment={(commentID, message) => {
@@ -647,6 +646,8 @@ const Details: React.FC<DetailsProps> = ({
                 );
               }}
             />
+          ) : (
+            <TaskDetailsLoading />
           );
         }}
       />
