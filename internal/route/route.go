@@ -60,12 +60,12 @@ func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // TaskcafeHandler contains all the route handlers
 type TaskcafeHandler struct {
-	repo   db.Repository
-	jwtKey []byte
+	repo           db.Repository
+	SecurityConfig utils.SecurityConfig
 }
 
 // NewRouter creates a new router for chi
-func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, jwtKey []byte) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityConfig utils.SecurityConfig) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -81,7 +81,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, jwtKey []by
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	repository := db.NewRepository(dbConnection)
-	taskcafeHandler := TaskcafeHandler{*repository, jwtKey}
+	taskcafeHandler := TaskcafeHandler{*repository, securityConfig}
 
 	var imgServer = http.FileServer(http.Dir("./uploads/"))
 	r.Group(func(mux chi.Router) {
@@ -91,7 +91,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, jwtKey []by
 		mux.Post("/auth/confirm", taskcafeHandler.ConfirmUser)
 		mux.Post("/auth/register", taskcafeHandler.RegisterUser)
 	})
-	auth := AuthenticationMiddleware{jwtKey}
+	auth := AuthenticationMiddleware{securityConfig.Secret}
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)

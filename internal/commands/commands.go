@@ -80,6 +80,7 @@ func Execute() {
 	viper.SetDefault("database.user", "taskcafe")
 	viper.SetDefault("database.password", "taskcafe_test")
 	viper.SetDefault("database.port", "5432")
+	viper.SetDefault("security.token_expiration", "15m")
 
 	viper.SetDefault("queue.broker", "amqp://guest:guest@localhost:5672/")
 	viper.SetDefault("queue.store", "memcache://localhost:11211")

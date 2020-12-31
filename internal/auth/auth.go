@@ -52,12 +52,12 @@ func (r *ErrMalformedToken) Error() string {
 }
 
 // NewAccessToken generates a new JWT access token with the correct claims
-func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string, jwtKey []byte) (string, error) {
+func NewAccessToken(userID string, restrictedMode RestrictedMode, orgRole string, jwtKey []byte, expirationTime time.Duration) (string, error) {
 	role := RoleMember
 	if orgRole == "admin" {
 		role = RoleAdmin
 	}
-	accessExpirationTime := time.Now().Add(5 * time.Second)
+	accessExpirationTime := time.Now().Add(expirationTime)
 	accessClaims := &AccessTokenClaims{
 		UserID:         userID,
 		Restricted:     restrictedMode,

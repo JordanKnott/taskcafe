@@ -143,7 +143,7 @@ func (h *TaskcafeHandler) RefreshTokenHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	log.Info("here 1")
-	accessTokenString, err := auth.NewAccessToken(token.UserID.String(), auth.Unrestricted, user.RoleCode, h.jwtKey)
+	accessTokenString, err := auth.NewAccessToken(token.UserID.String(), auth.Unrestricted, user.RoleCode, h.SecurityConfig.Secret, h.SecurityConfig.AccessTokenExpiration)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -220,7 +220,7 @@ func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	refreshExpiresAt := refreshCreatedAt.AddDate(0, 0, 1)
 	refreshTokenString, err := h.repo.CreateRefreshToken(r.Context(), db.CreateRefreshTokenParams{user.UserID, refreshCreatedAt, refreshExpiresAt})
 
-	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode, h.jwtKey)
+	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode, h.SecurityConfig.Secret, h.SecurityConfig.AccessTokenExpiration)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -283,7 +283,7 @@ func (h *TaskcafeHandler) InstallHandler(w http.ResponseWriter, r *http.Request)
 	refreshTokenString, err := h.repo.CreateRefreshToken(r.Context(), db.CreateRefreshTokenParams{user.UserID, refreshCreatedAt, refreshExpiresAt})
 
 	log.WithField("userID", user.UserID.String()).Info("creating install access token")
-	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode, h.jwtKey)
+	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode, h.SecurityConfig.Secret, h.SecurityConfig.AccessTokenExpiration)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -386,7 +386,7 @@ func (h *TaskcafeHandler) ConfirmUser(w http.ResponseWriter, r *http.Request) {
 	refreshExpiresAt := refreshCreatedAt.AddDate(0, 0, 1)
 	refreshTokenString, err := h.repo.CreateRefreshToken(r.Context(), db.CreateRefreshTokenParams{user.UserID, refreshCreatedAt, refreshExpiresAt})
 
-	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode, h.jwtKey)
+	accessTokenString, err := auth.NewAccessToken(user.UserID.String(), auth.Unrestricted, user.RoleCode, h.SecurityConfig.Secret, h.SecurityConfig.AccessTokenExpiration)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
