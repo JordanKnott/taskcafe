@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const createTask = `-- name: CreateTask :one
@@ -197,6 +198,90 @@ func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
 	return items, nil
 }
 
+const getAssignedTasksDueDateForUserID = `-- name: GetAssignedTasksDueDateForUserID :many
+SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned
+   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+   WHERE user_id = $1
+   ORDER BY task.due_date DESC, task_group.project_id DESC
+`
+
+func (q *Queries) GetAssignedTasksDueDateForUserID(ctx context.Context, userID uuid.UUID) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, getAssignedTasksDueDateForUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Task
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.TaskID,
+			&i.TaskGroupID,
+			&i.CreatedAt,
+			&i.Name,
+			&i.Position,
+			&i.Description,
+			&i.DueDate,
+			&i.Complete,
+			&i.CompletedAt,
+			&i.HasTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAssignedTasksProjectForUserID = `-- name: GetAssignedTasksProjectForUserID :many
+SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned
+   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+   WHERE user_id = $1
+   ORDER BY task_group.project_id DESC, task_assigned.assigned_date DESC
+`
+
+func (q *Queries) GetAssignedTasksProjectForUserID(ctx context.Context, userID uuid.UUID) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, getAssignedTasksProjectForUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Task
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.TaskID,
+			&i.TaskGroupID,
+			&i.CreatedAt,
+			&i.Name,
+			&i.Position,
+			&i.Description,
+			&i.DueDate,
+			&i.Complete,
+			&i.CompletedAt,
+			&i.HasTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCommentsForTaskID = `-- name: GetCommentsForTaskID :many
 SELECT task_comment_id, task_id, created_at, updated_at, created_by, pinned, message FROM task_comment WHERE task_id = $1 ORDER BY created_at
 `
@@ -243,6 +328,79 @@ func (q *Queries) GetProjectIDForTask(ctx context.Context, taskID uuid.UUID) (uu
 	var project_id uuid.UUID
 	err := row.Scan(&project_id)
 	return project_id, err
+}
+
+const getProjectIdMappings = `-- name: GetProjectIdMappings :many
+SELECT project_id, task_id FROM task
+INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE task_id = ANY($1::uuid[])
+`
+
+type GetProjectIdMappingsRow struct {
+	ProjectID uuid.UUID `json:"project_id"`
+	TaskID    uuid.UUID `json:"task_id"`
+}
+
+func (q *Queries) GetProjectIdMappings(ctx context.Context, dollar_1 []uuid.UUID) ([]GetProjectIdMappingsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getProjectIdMappings, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProjectIdMappingsRow
+	for rows.Next() {
+		var i GetProjectIdMappingsRow
+		if err := rows.Scan(&i.ProjectID, &i.TaskID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRecentlyAssignedTaskForUserID = `-- name: GetRecentlyAssignedTaskForUserID :many
+SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned INNER JOIN
+  task ON task.task_id = task_assigned.task_id WHERE user_id = $1 ORDER BY task_assigned.assigned_date DESC
+`
+
+func (q *Queries) GetRecentlyAssignedTaskForUserID(ctx context.Context, userID uuid.UUID) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, getRecentlyAssignedTaskForUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Task
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.TaskID,
+			&i.TaskGroupID,
+			&i.CreatedAt,
+			&i.Name,
+			&i.Position,
+			&i.Description,
+			&i.DueDate,
+			&i.Complete,
+			&i.CompletedAt,
+			&i.HasTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getTaskByID = `-- name: GetTaskByID :one
@@ -334,7 +492,7 @@ func (q *Queries) SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams
 }
 
 const updateTaskComment = `-- name: UpdateTaskComment :one
-UPDATE task_comment SET message = $2, updated_at = COALESCE($3, updated_at) WHERE task_comment_id = $1 RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
+UPDATE task_comment SET message = $2, updated_at = $3 WHERE task_comment_id = $1 RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
 `
 
 type UpdateTaskCommentParams struct {

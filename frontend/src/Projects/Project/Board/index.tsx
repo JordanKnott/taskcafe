@@ -426,6 +426,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               name,
               complete: false,
               completedAt: null,
+              hasTime: false,
               taskGroup: {
                 __typename: 'TaskGroup',
                 id: taskGroup.id,

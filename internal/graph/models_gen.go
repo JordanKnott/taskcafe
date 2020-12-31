@@ -291,6 +291,16 @@ type MemberSearchResult struct {
 	Status     ShareStatus     `json:"status"`
 }
 
+type MyTasks struct {
+	Status MyTasksStatus `json:"status"`
+	Sort   MyTasksSort   `json:"sort"`
+}
+
+type MyTasksPayload struct {
+	Tasks    []db.Task            `json:"tasks"`
+	Projects []ProjectTaskMapping `json:"projects"`
+}
+
 type NewProject struct {
 	TeamID *uuid.UUID `json:"teamID"`
 	Name   string     `json:"name"`
@@ -307,9 +317,10 @@ type NewRefreshToken struct {
 }
 
 type NewTask struct {
-	TaskGroupID uuid.UUID `json:"taskGroupID"`
-	Name        string    `json:"name"`
-	Position    float64   `json:"position"`
+	TaskGroupID uuid.UUID   `json:"taskGroupID"`
+	Name        string      `json:"name"`
+	Position    float64     `json:"position"`
+	Assigned    []uuid.UUID `json:"assigned"`
 }
 
 type NewTaskGroup struct {
@@ -374,6 +385,11 @@ type ProfileIcon struct {
 type ProjectRole struct {
 	ProjectID uuid.UUID `json:"projectID"`
 	RoleCode  RoleCode  `json:"roleCode"`
+}
+
+type ProjectTaskMapping struct {
+	ProjectID uuid.UUID `json:"projectID"`
+	TaskID    uuid.UUID `json:"taskID"`
 }
 
 type ProjectsFilter struct {
@@ -794,6 +810,102 @@ func (e *EntityType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EntityType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MyTasksSort string
+
+const (
+	MyTasksSortNone    MyTasksSort = "NONE"
+	MyTasksSortProject MyTasksSort = "PROJECT"
+	MyTasksSortDueDate MyTasksSort = "DUE_DATE"
+)
+
+var AllMyTasksSort = []MyTasksSort{
+	MyTasksSortNone,
+	MyTasksSortProject,
+	MyTasksSortDueDate,
+}
+
+func (e MyTasksSort) IsValid() bool {
+	switch e {
+	case MyTasksSortNone, MyTasksSortProject, MyTasksSortDueDate:
+		return true
+	}
+	return false
+}
+
+func (e MyTasksSort) String() string {
+	return string(e)
+}
+
+func (e *MyTasksSort) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MyTasksSort(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MyTasksSort", str)
+	}
+	return nil
+}
+
+func (e MyTasksSort) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MyTasksStatus string
+
+const (
+	MyTasksStatusAll               MyTasksStatus = "ALL"
+	MyTasksStatusIncomplete        MyTasksStatus = "INCOMPLETE"
+	MyTasksStatusCompleteAll       MyTasksStatus = "COMPLETE_ALL"
+	MyTasksStatusCompleteToday     MyTasksStatus = "COMPLETE_TODAY"
+	MyTasksStatusCompleteYesterday MyTasksStatus = "COMPLETE_YESTERDAY"
+	MyTasksStatusCompleteOneWeek   MyTasksStatus = "COMPLETE_ONE_WEEK"
+	MyTasksStatusCompleteTwoWeek   MyTasksStatus = "COMPLETE_TWO_WEEK"
+	MyTasksStatusCompleteThreeWeek MyTasksStatus = "COMPLETE_THREE_WEEK"
+)
+
+var AllMyTasksStatus = []MyTasksStatus{
+	MyTasksStatusAll,
+	MyTasksStatusIncomplete,
+	MyTasksStatusCompleteAll,
+	MyTasksStatusCompleteToday,
+	MyTasksStatusCompleteYesterday,
+	MyTasksStatusCompleteOneWeek,
+	MyTasksStatusCompleteTwoWeek,
+	MyTasksStatusCompleteThreeWeek,
+}
+
+func (e MyTasksStatus) IsValid() bool {
+	switch e {
+	case MyTasksStatusAll, MyTasksStatusIncomplete, MyTasksStatusCompleteAll, MyTasksStatusCompleteToday, MyTasksStatusCompleteYesterday, MyTasksStatusCompleteOneWeek, MyTasksStatusCompleteTwoWeek, MyTasksStatusCompleteThreeWeek:
+		return true
+	}
+	return false
+}
+
+func (e MyTasksStatus) String() string {
+	return string(e)
+}
+
+func (e *MyTasksStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MyTasksStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MyTasksStatus", str)
+	}
+	return nil
+}
+
+func (e MyTasksStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

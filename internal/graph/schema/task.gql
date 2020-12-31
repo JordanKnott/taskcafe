@@ -25,6 +25,7 @@ input NewTask {
   taskGroupID: UUID!
   name: String!
   position: Float!
+  assigned: [UUID!]
 }
 
 input AssignTaskInput {

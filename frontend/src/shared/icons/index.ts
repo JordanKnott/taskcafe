@@ -1,7 +1,11 @@
 import Cross from './Cross';
 import Cog from './Cog';
+import Cogs from './Cogs';
 import ArrowDown from './ArrowDown';
+import CheckCircleOutline from './CheckCircleOutline';
+import Briefcase from './Briefcase';
 import ListUnordered from './ListUnordered';
+import ChevronRight from './ChevronRight';
 import Dot from './Dot';
 import CaretDown from './CaretDown';
 import Eye from './Eye';
@@ -102,5 +106,9 @@ export {
   Dot,
   ArrowDown,
   CaretRight,
+  CheckCircleOutline,
+  Briefcase,
   DotCircle,
+  ChevronRight,
+  Cogs,
 };

@@ -261,12 +261,46 @@ type Query {
   projects(input: ProjectsFilter): [Project!]!
   findTeam(input: FindTeam!): Team!
   teams: [Team!]!
+  myTasks(input: MyTasks!): MyTasksPayload!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
   me: MePayload!
 }
 
+
 type Mutation
+
+enum MyTasksStatus {
+  ALL
+  INCOMPLETE
+  COMPLETE_ALL
+  COMPLETE_TODAY
+  COMPLETE_YESTERDAY
+  COMPLETE_ONE_WEEK
+  COMPLETE_TWO_WEEK
+  COMPLETE_THREE_WEEK
+}
+
+enum MyTasksSort {
+  NONE
+  PROJECT
+  DUE_DATE
+}
+
+input MyTasks {
+  status: MyTasksStatus!
+  sort: MyTasksSort!
+}
+
+type ProjectTaskMapping {
+  projectID: UUID!
+  taskID: UUID!
+}
+
+type MyTasksPayload {
+  tasks: [Task!]!
+  projects: [ProjectTaskMapping!]!
+}
 
 type TeamRole {
   teamID: UUID!
@@ -494,6 +528,7 @@ input NewTask {
   taskGroupID: UUID!
   name: String!
   position: Float!
+  assigned: [UUID!]
 }
 
 input AssignTaskInput {
@@ -945,4 +980,3 @@ type DeleteUserAccountPayload {
   ok: Boolean!
   userAccount: UserAccount!
 }
-

@@ -273,6 +273,11 @@ type ComplexityRoot struct {
 		UpdateUserRole                  func(childComplexity int, input UpdateUserRole) int
 	}
 
+	MyTasksPayload struct {
+		Projects func(childComplexity int) int
+		Tasks    func(childComplexity int) int
+	}
+
 	Notification struct {
 		ActionType func(childComplexity int) int
 		Actor      func(childComplexity int) int
@@ -338,6 +343,11 @@ type ComplexityRoot struct {
 		RoleCode  func(childComplexity int) int
 	}
 
+	ProjectTaskMapping struct {
+		ProjectID func(childComplexity int) int
+		TaskID    func(childComplexity int) int
+	}
+
 	Query struct {
 		FindProject   func(childComplexity int, input FindProject) int
 		FindTask      func(childComplexity int, input FindTask) int
@@ -346,6 +356,7 @@ type ComplexityRoot struct {
 		InvitedUsers  func(childComplexity int) int
 		LabelColors   func(childComplexity int) int
 		Me            func(childComplexity int) int
+		MyTasks       func(childComplexity int, input MyTasks) int
 		Notifications func(childComplexity int) int
 		Organizations func(childComplexity int) int
 		Projects      func(childComplexity int, input *ProjectsFilter) int
@@ -622,6 +633,7 @@ type QueryResolver interface {
 	Projects(ctx context.Context, input *ProjectsFilter) ([]db.Project, error)
 	FindTeam(ctx context.Context, input FindTeam) (*db.Team, error)
 	Teams(ctx context.Context) ([]db.Team, error)
+	MyTasks(ctx context.Context, input MyTasks) (*MyTasksPayload, error)
 	LabelColors(ctx context.Context) ([]db.LabelColor, error)
 	TaskGroups(ctx context.Context) ([]db.TaskGroup, error)
 	Me(ctx context.Context) (*MePayload, error)
@@ -1878,6 +1890,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserRole(childComplexity, args["input"].(UpdateUserRole)), true
 
+	case "MyTasksPayload.projects":
+		if e.complexity.MyTasksPayload.Projects == nil {
+			break
+		}
+
+		return e.complexity.MyTasksPayload.Projects(childComplexity), true
+
+	case "MyTasksPayload.tasks":
+		if e.complexity.MyTasksPayload.Tasks == nil {
+			break
+		}
+
+		return e.complexity.MyTasksPayload.Tasks(childComplexity), true
+
 	case "Notification.actionType":
 		if e.complexity.Notification.ActionType == nil {
 			break
@@ -2123,6 +2149,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ProjectRole.RoleCode(childComplexity), true
 
+	case "ProjectTaskMapping.projectID":
+		if e.complexity.ProjectTaskMapping.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.ProjectTaskMapping.ProjectID(childComplexity), true
+
+	case "ProjectTaskMapping.taskID":
+		if e.complexity.ProjectTaskMapping.TaskID == nil {
+			break
+		}
+
+		return e.complexity.ProjectTaskMapping.TaskID(childComplexity), true
+
 	case "Query.findProject":
 		if e.complexity.Query.FindProject == nil {
 			break
@@ -2191,6 +2231,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Me(childComplexity), true
+
+	case "Query.myTasks":
+		if e.complexity.Query.MyTasks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myTasks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyTasks(childComplexity, args["input"].(MyTasks)), true
 
 	case "Query.notifications":
 		if e.complexity.Query.Notifications == nil {
@@ -3229,12 +3281,46 @@ type Query {
   projects(input: ProjectsFilter): [Project!]!
   findTeam(input: FindTeam!): Team!
   teams: [Team!]!
+  myTasks(input: MyTasks!): MyTasksPayload!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
   me: MePayload!
 }
 
+
 type Mutation
+
+enum MyTasksStatus {
+  ALL
+  INCOMPLETE
+  COMPLETE_ALL
+  COMPLETE_TODAY
+  COMPLETE_YESTERDAY
+  COMPLETE_ONE_WEEK
+  COMPLETE_TWO_WEEK
+  COMPLETE_THREE_WEEK
+}
+
+enum MyTasksSort {
+  NONE
+  PROJECT
+  DUE_DATE
+}
+
+input MyTasks {
+  status: MyTasksStatus!
+  sort: MyTasksSort!
+}
+
+type ProjectTaskMapping {
+  projectID: UUID!
+  taskID: UUID!
+}
+
+type MyTasksPayload {
+  tasks: [Task!]!
+  projects: [ProjectTaskMapping!]!
+}
 
 type TeamRole {
   teamID: UUID!
@@ -3462,6 +3548,7 @@ input NewTask {
   taskGroupID: UUID!
   name: String!
   position: Float!
+  assigned: [UUID!]
 }
 
 input AssignTaskInput {
@@ -4798,6 +4885,20 @@ func (ec *executionContext) field_Query_findUser_args(ctx context.Context, rawAr
 	var arg0 FindUser
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNFindUser2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐFindUser(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myTasks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 MyTasks
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNMyTasks2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasks(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -11270,6 +11371,74 @@ func (ec *executionContext) _Mutation_updateUserInfo(ctx context.Context, field 
 	return ec.marshalNUpdateUserInfoPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateUserInfoPayload(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _MyTasksPayload_tasks(ctx context.Context, field graphql.CollectedField, obj *MyTasksPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MyTasksPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tasks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MyTasksPayload_projects(ctx context.Context, field graphql.CollectedField, obj *MyTasksPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MyTasksPayload",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Projects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]ProjectTaskMapping)
+	fc.Result = res
+	return ec.marshalNProjectTaskMapping2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectTaskMappingᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Notification_id(ctx context.Context, field graphql.CollectedField, obj *db.Notification) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12445,6 +12614,74 @@ func (ec *executionContext) _ProjectRole_roleCode(ctx context.Context, field gra
 	return ec.marshalNRoleCode2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleCode(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ProjectTaskMapping_projectID(ctx context.Context, field graphql.CollectedField, obj *ProjectTaskMapping) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectTaskMapping",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProjectTaskMapping_taskID(ctx context.Context, field graphql.CollectedField, obj *ProjectTaskMapping) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectTaskMapping",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaskID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_organizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12816,6 +13053,47 @@ func (ec *executionContext) _Query_teams(ctx context.Context, field graphql.Coll
 	res := resTmp.([]db.Team)
 	fc.Result = res
 	return ec.marshalNTeam2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeamᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_myTasks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_myTasks_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MyTasks(rctx, args["input"].(MyTasks))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*MyTasksPayload)
+	fc.Result = res
+	return ec.marshalNMyTasksPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_labelColors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17902,6 +18180,30 @@ func (ec *executionContext) unmarshalInputMemberSearchFilter(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMyTasks(ctx context.Context, obj interface{}) (MyTasks, error) {
+	var it MyTasks
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalNMyTasksStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sort":
+			var err error
+			it.Sort, err = ec.unmarshalNMyTasksSort2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksSort(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewProject(ctx context.Context, obj interface{}) (NewProject, error) {
 	var it NewProject
 	var asMap = obj.(map[string]interface{})
@@ -17995,6 +18297,12 @@ func (ec *executionContext) unmarshalInputNewTask(ctx context.Context, obj inter
 		case "position":
 			var err error
 			it.Position, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "assigned":
+			var err error
+			it.Assigned, err = ec.unmarshalOUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20086,6 +20394,38 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var myTasksPayloadImplementors = []string{"MyTasksPayload"}
+
+func (ec *executionContext) _MyTasksPayload(ctx context.Context, sel ast.SelectionSet, obj *MyTasksPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, myTasksPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MyTasksPayload")
+		case "tasks":
+			out.Values[i] = ec._MyTasksPayload_tasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projects":
+			out.Values[i] = ec._MyTasksPayload_projects(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var notificationImplementors = []string{"Notification"}
 
 func (ec *executionContext) _Notification(ctx context.Context, sel ast.SelectionSet, obj *db.Notification) graphql.Marshaler {
@@ -20601,6 +20941,38 @@ func (ec *executionContext) _ProjectRole(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var projectTaskMappingImplementors = []string{"ProjectTaskMapping"}
+
+func (ec *executionContext) _ProjectTaskMapping(ctx context.Context, sel ast.SelectionSet, obj *ProjectTaskMapping) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, projectTaskMappingImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProjectTaskMapping")
+		case "projectID":
+			out.Values[i] = ec._ProjectTaskMapping_projectID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "taskID":
+			out.Values[i] = ec._ProjectTaskMapping_taskID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -20737,6 +21109,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_teams(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "myTasks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myTasks(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -23147,6 +23533,42 @@ func (ec *executionContext) marshalNMemberSearchResult2ᚕgithubᚗcomᚋjordank
 	return ret
 }
 
+func (ec *executionContext) unmarshalNMyTasks2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasks(ctx context.Context, v interface{}) (MyTasks, error) {
+	return ec.unmarshalInputMyTasks(ctx, v)
+}
+
+func (ec *executionContext) marshalNMyTasksPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksPayload(ctx context.Context, sel ast.SelectionSet, v MyTasksPayload) graphql.Marshaler {
+	return ec._MyTasksPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMyTasksPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksPayload(ctx context.Context, sel ast.SelectionSet, v *MyTasksPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._MyTasksPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMyTasksSort2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksSort(ctx context.Context, v interface{}) (MyTasksSort, error) {
+	var res MyTasksSort
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNMyTasksSort2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksSort(ctx context.Context, sel ast.SelectionSet, v MyTasksSort) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNMyTasksStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksStatus(ctx context.Context, v interface{}) (MyTasksStatus, error) {
+	var res MyTasksStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNMyTasksStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMyTasksStatus(ctx context.Context, sel ast.SelectionSet, v MyTasksStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNNewProject2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNewProject(ctx context.Context, v interface{}) (NewProject, error) {
 	return ec.unmarshalInputNewProject(ctx, v)
 }
@@ -23461,6 +23883,47 @@ func (ec *executionContext) marshalNProjectRole2ᚕgithubᚗcomᚋjordanknottᚋ
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNProjectRole2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectRole(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNProjectTaskMapping2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectTaskMapping(ctx context.Context, sel ast.SelectionSet, v ProjectTaskMapping) graphql.Marshaler {
+	return ec._ProjectTaskMapping(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProjectTaskMapping2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectTaskMappingᚄ(ctx context.Context, sel ast.SelectionSet, v []ProjectTaskMapping) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProjectTaskMapping2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProjectTaskMapping(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -24873,6 +25336,38 @@ func (ec *executionContext) unmarshalOUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(c
 
 func (ec *executionContext) marshalOUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
 	return MarshalUUID(v)
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]uuid.UUID, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {

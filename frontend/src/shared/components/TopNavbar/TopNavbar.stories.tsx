@@ -43,6 +43,7 @@ export const Default = () => {
         onDashboardClick={action('open dashboard')}
         onRemoveFromBoard={action('remove project')}
         onProfileClick={action('profile click')}
+        onMyTasksClick={action('profile click')}
       />
     </>
   );

@@ -439,6 +439,9 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
         onDashboardClick={() => {
           history.push('/');
         }}
+        onMyTasksClick={() => {
+          history.push('/tasks');
+        }}
         projectMembers={projectMembers}
         projectInvitedMembers={projectInvitedMembers}
         onProfileClick={onProfileClick}

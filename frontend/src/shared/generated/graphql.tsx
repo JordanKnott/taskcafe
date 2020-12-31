@@ -302,6 +302,7 @@ export type Query = {
   invitedUsers: Array<InvitedUserAccount>;
   labelColors: Array<LabelColor>;
   me: MePayload;
+  myTasks: MyTasksPayload;
   notifications: Array<Notification>;
   organizations: Array<Organization>;
   projects: Array<Project>;
@@ -329,6 +330,11 @@ export type QueryFindTeamArgs = {
 
 export type QueryFindUserArgs = {
   input: FindUser;
+};
+
+
+export type QueryMyTasksArgs = {
+  input: MyTasks;
 };
 
 
@@ -682,6 +688,40 @@ export type MutationUpdateUserRoleArgs = {
   input: UpdateUserRole;
 };
 
+export enum MyTasksStatus {
+  All = 'ALL',
+  Incomplete = 'INCOMPLETE',
+  CompleteAll = 'COMPLETE_ALL',
+  CompleteToday = 'COMPLETE_TODAY',
+  CompleteYesterday = 'COMPLETE_YESTERDAY',
+  CompleteOneWeek = 'COMPLETE_ONE_WEEK',
+  CompleteTwoWeek = 'COMPLETE_TWO_WEEK',
+  CompleteThreeWeek = 'COMPLETE_THREE_WEEK'
+}
+
+export enum MyTasksSort {
+  None = 'NONE',
+  Project = 'PROJECT',
+  DueDate = 'DUE_DATE'
+}
+
+export type MyTasks = {
+  status: MyTasksStatus;
+  sort: MyTasksSort;
+};
+
+export type ProjectTaskMapping = {
+  __typename?: 'ProjectTaskMapping';
+  projectID: Scalars['UUID'];
+  taskID: Scalars['UUID'];
+};
+
+export type MyTasksPayload = {
+  __typename?: 'MyTasksPayload';
+  tasks: Array<Task>;
+  projects: Array<ProjectTaskMapping>;
+};
+
 export type TeamRole = {
   __typename?: 'TeamRole';
   teamID: Scalars['UUID'];
@@ -859,6 +899,7 @@ export type NewTask = {
   taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
+  assigned?: Maybe<Array<Scalars['UUID']>>;
 };
 
 export type AssignTaskInput = {
@@ -1529,7 +1570,7 @@ export type FindTaskQuery = (
 
 export type TaskFieldsFragment = (
   { __typename?: 'Task' }
-  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'complete' | 'completedAt' | 'position'>
+  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'hasTime' | 'complete' | 'completedAt' | 'position'>
   & { badges: (
     { __typename?: 'TaskBadges' }
     & { checklist?: Maybe<(
@@ -1601,6 +1642,33 @@ export type MeQuery = (
     )>, projectRoles: Array<(
       { __typename?: 'ProjectRole' }
       & Pick<ProjectRole, 'projectID' | 'roleCode'>
+    )> }
+  ) }
+);
+
+export type MyTasksQueryVariables = Exact<{
+  status: MyTasksStatus;
+  sort: MyTasksSort;
+}>;
+
+
+export type MyTasksQuery = (
+  { __typename?: 'Query' }
+  & { projects: Array<(
+    { __typename?: 'Project' }
+    & Pick<Project, 'id' | 'name'>
+  )>, myTasks: (
+    { __typename?: 'MyTasksPayload' }
+    & { tasks: Array<(
+      { __typename?: 'Task' }
+      & Pick<Task, 'id' | 'name' | 'dueDate' | 'hasTime' | 'complete' | 'completedAt'>
+      & { taskGroup: (
+        { __typename?: 'TaskGroup' }
+        & Pick<TaskGroup, 'id' | 'name'>
+      ) }
+    )>, projects: Array<(
+      { __typename?: 'ProjectTaskMapping' }
+      & Pick<ProjectTaskMapping, 'projectID' | 'taskID'>
     )> }
   ) }
 );
@@ -1712,6 +1780,7 @@ export type CreateTaskMutationVariables = Exact<{
   taskGroupID: Scalars['UUID'];
   name: Scalars['String'];
   position: Scalars['Float'];
+  assigned?: Maybe<Array<Scalars['UUID']>>;
 }>;
 
 
@@ -2559,6 +2628,7 @@ export const TaskFieldsFragmentDoc = gql`
   name
   description
   dueDate
+  hasTime
   complete
   completedAt
   position
@@ -3238,6 +3308,59 @@ export function useMeLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptio
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = ApolloReactCommon.QueryResult<MeQuery, MeQueryVariables>;
+export const MyTasksDocument = gql`
+    query myTasks($status: MyTasksStatus!, $sort: MyTasksSort!) {
+  projects {
+    id
+    name
+  }
+  myTasks(input: {status: $status, sort: $sort}) {
+    tasks {
+      id
+      taskGroup {
+        id
+        name
+      }
+      name
+      dueDate
+      hasTime
+      complete
+      completedAt
+    }
+    projects {
+      projectID
+      taskID
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyTasksQuery__
+ *
+ * To run a query within a React component, call `useMyTasksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyTasksQuery({
+ *   variables: {
+ *      status: // value for 'status'
+ *      sort: // value for 'sort'
+ *   },
+ * });
+ */
+export function useMyTasksQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<MyTasksQuery, MyTasksQueryVariables>) {
+        return ApolloReactHooks.useQuery<MyTasksQuery, MyTasksQueryVariables>(MyTasksDocument, baseOptions);
+      }
+export function useMyTasksLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<MyTasksQuery, MyTasksQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<MyTasksQuery, MyTasksQueryVariables>(MyTasksDocument, baseOptions);
+        }
+export type MyTasksQueryHookResult = ReturnType<typeof useMyTasksQuery>;
+export type MyTasksLazyQueryHookResult = ReturnType<typeof useMyTasksLazyQuery>;
+export type MyTasksQueryResult = ApolloReactCommon.QueryResult<MyTasksQuery, MyTasksQueryVariables>;
 export const DeleteProjectDocument = gql`
     mutation deleteProject($projectID: UUID!) {
   deleteProject(input: {projectID: $projectID}) {
@@ -3440,8 +3563,10 @@ export type UpdateProjectMemberRoleMutationHookResult = ReturnType<typeof useUpd
 export type UpdateProjectMemberRoleMutationResult = ApolloReactCommon.MutationResult<UpdateProjectMemberRoleMutation>;
 export type UpdateProjectMemberRoleMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateProjectMemberRoleMutation, UpdateProjectMemberRoleMutationVariables>;
 export const CreateTaskDocument = gql`
-    mutation createTask($taskGroupID: UUID!, $name: String!, $position: Float!) {
-  createTask(input: {taskGroupID: $taskGroupID, name: $name, position: $position}) {
+    mutation createTask($taskGroupID: UUID!, $name: String!, $position: Float!, $assigned: [UUID!]) {
+  createTask(
+    input: {taskGroupID: $taskGroupID, name: $name, position: $position, assigned: $assigned}
+  ) {
     ...TaskFields
   }
 }
@@ -3464,6 +3589,7 @@ export type CreateTaskMutationFn = ApolloReactCommon.MutationFunction<CreateTask
  *      taskGroupID: // value for 'taskGroupID'
  *      name: // value for 'name'
  *      position: // value for 'position'
+ *      assigned: // value for 'assigned'
  *   },
  * });
  */

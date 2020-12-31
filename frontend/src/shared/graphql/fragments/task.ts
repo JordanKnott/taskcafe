@@ -6,6 +6,7 @@ const TASK_FRAGMENT = gql`
     name
     description
     dueDate
+    hasTime
     complete
     completedAt
     position

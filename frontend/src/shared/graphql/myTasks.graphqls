@@ -1,0 +1,24 @@
+query myTasks($status: MyTasksStatus!, $sort: MyTasksSort!) {
+  projects {
+    id
+    name
+  }
+  myTasks(input: { status: $status, sort: $sort }) {
+    tasks {
+      id
+      taskGroup {
+        id
+        name
+      }
+      name
+      dueDate
+      hasTime
+      complete
+      completedAt
+    }
+    projects {
+      projectID
+      taskID
+    }
+  }
+}

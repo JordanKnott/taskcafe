@@ -84,6 +84,58 @@ export const colourStyles = {
   },
 };
 
+export const editorColourStyles = {
+  ...colourStyles,
+  input: (styles: any) => ({
+    ...styles,
+    color: '#000',
+  }),
+  singleValue: (styles: any) => {
+    return {
+      ...styles,
+      color: '#000',
+    };
+  },
+  menu: (styles: any) => {
+    return {
+      ...styles,
+      backgroundColor: '#fff',
+    };
+  },
+  indicatorsContainer: (styles: any) => {
+    return {
+      ...styles,
+      display: 'none',
+    };
+  },
+  container: (styles: any) => {
+    return {
+      ...styles,
+      display: 'flex',
+      flex: '1 1',
+    };
+  },
+  control: (styles: any, data: any) => {
+    return {
+      ...styles,
+      flex: '1 1',
+      backgroundColor: 'transparent',
+      boxShadow: 'none',
+      borderRadius: '0',
+      minHeight: '35px',
+      border: '0',
+      ':hover': {
+        boxShadow: 'none',
+        borderRadius: '0',
+      },
+      ':active': {
+        boxShadow: 'none',
+        borderRadius: '0',
+      },
+    };
+  },
+};
+
 const InputLabel = styled.span<{ width: string }>`
 width: ${props => props.width};
 padding-left: 0.7rem;

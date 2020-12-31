@@ -4,6 +4,7 @@ import * as H from 'history';
 
 import Dashboard from 'Dashboard';
 import Admin from 'Admin';
+import MyTasks from 'MyTasks';
 import Confirm from 'Confirm';
 import Projects from 'Projects';
 import Project from 'Projects/Project';
@@ -69,6 +70,7 @@ const AuthorizedRoutes = () => {
         <Route path="/teams/:teamID" component={Teams} />
         <Route path="/profile" component={Profile} />
         <Route path="/admin" component={Admin} />
+        <Route path="/tasks" component={MyTasks} />
       </MainContent>
     </Switch>
   );

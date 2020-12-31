@@ -314,6 +314,21 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input NewTask) (*db.T
 		ActivityTypeID: 1,
 	})
 
+	if len(input.Assigned) != 0 {
+		assignedDate := time.Now().UTC()
+		for _, assigned := range input.Assigned {
+			assignedTask, err := r.Repository.CreateTaskAssigned(ctx, db.CreateTaskAssignedParams{TaskID: task.TaskID, UserID: assigned, AssignedDate: assignedDate})
+			logger.New(ctx).WithFields(log.Fields{
+				"assignedUserID": assignedTask.UserID,
+				"taskID":         assignedTask.TaskID,
+				"assignedTaskID": assignedTask.TaskAssignedID,
+			}).Info("assigned task")
+			if err != nil {
+				return &db.Task{}, err
+			}
+		}
+	}
+
 	if err != nil {
 		logger.New(ctx).WithError(err).Error("issue while creating task")
 		return &db.Task{}, err
@@ -1389,6 +1404,38 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 		foundTeams = append(foundTeams, team)
 	}
 	return foundTeams, nil
+}
+
+func (r *queryResolver) MyTasks(ctx context.Context, input MyTasks) (*MyTasksPayload, error) {
+	userID, _ := GetUserID(ctx)
+	projects := []ProjectTaskMapping{}
+	var tasks []db.Task
+	var err error
+	if input.Sort == MyTasksSortNone {
+		tasks, err = r.Repository.GetRecentlyAssignedTaskForUserID(ctx, userID)
+		if err != nil && err != sql.ErrNoRows {
+			return &MyTasksPayload{}, err
+		}
+	} else if input.Sort == MyTasksSortProject {
+		tasks, err = r.Repository.GetAssignedTasksProjectForUserID(ctx, userID)
+		if err != nil && err != sql.ErrNoRows {
+			return &MyTasksPayload{}, err
+		}
+	} else if input.Sort == MyTasksSortDueDate {
+		tasks, err = r.Repository.GetAssignedTasksDueDateForUserID(ctx, userID)
+		if err != nil && err != sql.ErrNoRows {
+			return &MyTasksPayload{}, err
+		}
+	}
+	taskIds := []uuid.UUID{}
+	for _, task := range tasks {
+		taskIds = append(taskIds, task.TaskID)
+	}
+	mappings, err := r.Repository.GetProjectIdMappings(ctx, taskIds)
+	for _, mapping := range mappings {
+		projects = append(projects, ProjectTaskMapping{ProjectID: mapping.ProjectID, TaskID: mapping.TaskID})
+	}
+	return &MyTasksPayload{Tasks: tasks, Projects: projects}, err
 }
 
 func (r *queryResolver) LabelColors(ctx context.Context) ([]db.LabelColor, error) {

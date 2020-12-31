@@ -179,6 +179,7 @@ type NavBarProps = {
   onRemoveFromBoard?: (userID: string) => void;
   onMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
   onInvitedMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, email: string) => void;
+  onMyTasksClick: () => void;
 };
 
 const NavBar: React.FC<NavBarProps> = ({
@@ -201,6 +202,7 @@ const NavBar: React.FC<NavBarProps> = ({
   onProfileClick,
   onNotificationClick,
   onDashboardClick,
+  onMyTasksClick,
   user,
   projectMembers,
   onOpenSettings,
@@ -306,7 +308,7 @@ const NavBar: React.FC<NavBarProps> = ({
           <IconContainer onClick={() => onDashboardClick()}>
             <HomeDashboard width={20} height={20} />
           </IconContainer>
-          <IconContainer disabled onClick={NOOP}>
+          <IconContainer onClick={() => onMyTasksClick()}>
             <CheckCircle width={20} height={20} />
           </IconContainer>
           <IconContainer disabled onClick={NOOP}>

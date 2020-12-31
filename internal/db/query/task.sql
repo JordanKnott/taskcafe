@@ -56,3 +56,26 @@ DELETE FROM task_comment WHERE task_comment_id = $1 RETURNING *;
 
 -- name: UpdateTaskComment :one
 UPDATE task_comment SET message = $2, updated_at = $3 WHERE task_comment_id = $1 RETURNING *;
+
+-- name: GetRecentlyAssignedTaskForUserID :many
+SELECT task.* FROM task_assigned INNER JOIN
+  task ON task.task_id = task_assigned.task_id WHERE user_id = $1 ORDER BY task_assigned.assigned_date DESC;
+
+-- name: GetAssignedTasksProjectForUserID :many
+SELECT task.* FROM task_assigned
+   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+   WHERE user_id = $1
+   ORDER BY task_group.project_id DESC, task_assigned.assigned_date DESC;
+
+-- name: GetProjectIdMappings :many
+SELECT project_id, task_id FROM task
+INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE task_id = ANY($1::uuid[]);
+
+-- name: GetAssignedTasksDueDateForUserID :many
+SELECT task.* FROM task_assigned
+   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+   WHERE user_id = $1
+   ORDER BY task.due_date DESC, task_group.project_id DESC;
