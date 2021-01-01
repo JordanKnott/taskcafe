@@ -175,6 +175,7 @@ type Task {
   position: Float!
   description: String
   dueDate: Time
+  hasTime: Boolean!
   complete: Boolean!
   completedAt: Time
   assigned: [Member!]!

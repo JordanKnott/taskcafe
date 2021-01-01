@@ -341,7 +341,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               }}
             >
               {task.dueDate ? (
-                <SidebarButtonText>{dayjs(task.dueDate).format('MMM D [at] h:mm A')}</SidebarButtonText>
+                <SidebarButtonText>
+                  {dayjs(task.dueDate).format(task.hasTime ? 'MMM D [at] h:mm A' : 'MMMM D')}
+                </SidebarButtonText>
               ) : (
                 <SidebarButtonText>No due date</SidebarButtonText>
               )}

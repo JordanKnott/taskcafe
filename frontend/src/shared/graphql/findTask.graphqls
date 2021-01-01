@@ -6,6 +6,7 @@ query findTask($taskID: UUID!) {
     dueDate
     position
     complete
+    hasTime
     taskGroup {
       id
       name

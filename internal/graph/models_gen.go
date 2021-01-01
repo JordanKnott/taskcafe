@@ -519,6 +519,7 @@ type UpdateTaskDescriptionInput struct {
 
 type UpdateTaskDueDate struct {
 	TaskID  uuid.UUID  `json:"taskID"`
+	HasTime bool       `json:"hasTime"`
 	DueDate *time.Time `json:"dueDate"`
 }
 

@@ -793,12 +793,12 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                   <DueDateManager
                     task={task}
                     onRemoveDueDate={t => {
-                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: null } });
-                      hidePopup();
+                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: null, hasTime: false } });
+                      // hidePopup();
                     }}
-                    onDueDateChange={(t, newDueDate) => {
-                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate } });
-                      hidePopup();
+                    onDueDateChange={(t, newDueDate, hasTime) => {
+                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate, hasTime } });
+                      // hidePopup();
                     }}
                     onCancel={NOOP}
                   />

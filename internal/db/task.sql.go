@@ -13,7 +13,7 @@ import (
 
 const createTask = `-- name: CreateTask :one
 INSERT INTO task (task_group_id, created_at, name, position)
-  VALUES($1, $2, $3, $4) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+  VALUES($1, $2, $3, $4) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type CreateTaskParams struct {
@@ -41,13 +41,14 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const createTaskAll = `-- name: CreateTaskAll :one
 INSERT INTO task (task_group_id, created_at, name, position, description, complete, due_date)
-  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type CreateTaskAllParams struct {
@@ -81,6 +82,7 @@ func (q *Queries) CreateTaskAll(ctx context.Context, arg CreateTaskAllParams) (T
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
@@ -158,7 +160,7 @@ func (q *Queries) DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid
 }
 
 const getAllTasks = `-- name: GetAllTasks :many
-SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at FROM task
+SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time FROM task
 `
 
 func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
@@ -180,6 +182,7 @@ func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
 			&i.DueDate,
 			&i.Complete,
 			&i.CompletedAt,
+			&i.HasTime,
 		); err != nil {
 			return nil, err
 		}
@@ -243,7 +246,7 @@ func (q *Queries) GetProjectIDForTask(ctx context.Context, taskID uuid.UUID) (uu
 }
 
 const getTaskByID = `-- name: GetTaskByID :one
-SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at FROM task WHERE task_id = $1
+SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time FROM task WHERE task_id = $1
 `
 
 func (q *Queries) GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, error) {
@@ -259,12 +262,13 @@ func (q *Queries) GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, erro
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const getTasksForTaskGroupID = `-- name: GetTasksForTaskGroupID :many
-SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at FROM task WHERE task_group_id = $1
+SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time FROM task WHERE task_group_id = $1
 `
 
 func (q *Queries) GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error) {
@@ -286,6 +290,7 @@ func (q *Queries) GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.U
 			&i.DueDate,
 			&i.Complete,
 			&i.CompletedAt,
+			&i.HasTime,
 		); err != nil {
 			return nil, err
 		}
@@ -301,7 +306,7 @@ func (q *Queries) GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.U
 }
 
 const setTaskComplete = `-- name: SetTaskComplete :one
-UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type SetTaskCompleteParams struct {
@@ -323,12 +328,13 @@ func (q *Queries) SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const updateTaskComment = `-- name: UpdateTaskComment :one
-UPDATE task_comment SET message = $2, updated_at = $3 WHERE task_comment_id = $1 RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
+UPDATE task_comment SET message = $2, updated_at = COALESCE($3, updated_at) WHERE task_comment_id = $1 RETURNING task_comment_id, task_id, created_at, updated_at, created_by, pinned, message
 `
 
 type UpdateTaskCommentParams struct {
@@ -353,7 +359,7 @@ func (q *Queries) UpdateTaskComment(ctx context.Context, arg UpdateTaskCommentPa
 }
 
 const updateTaskDescription = `-- name: UpdateTaskDescription :one
-UPDATE task SET description = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+UPDATE task SET description = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type UpdateTaskDescriptionParams struct {
@@ -374,21 +380,23 @@ func (q *Queries) UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescr
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const updateTaskDueDate = `-- name: UpdateTaskDueDate :one
-UPDATE task SET due_date = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+UPDATE task SET due_date = $2, has_time = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type UpdateTaskDueDateParams struct {
 	TaskID  uuid.UUID    `json:"task_id"`
 	DueDate sql.NullTime `json:"due_date"`
+	HasTime bool         `json:"has_time"`
 }
 
 func (q *Queries) UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDateParams) (Task, error) {
-	row := q.db.QueryRowContext(ctx, updateTaskDueDate, arg.TaskID, arg.DueDate)
+	row := q.db.QueryRowContext(ctx, updateTaskDueDate, arg.TaskID, arg.DueDate, arg.HasTime)
 	var i Task
 	err := row.Scan(
 		&i.TaskID,
@@ -400,12 +408,13 @@ func (q *Queries) UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDatePa
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const updateTaskLocation = `-- name: UpdateTaskLocation :one
-UPDATE task SET task_group_id = $2, position = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+UPDATE task SET task_group_id = $2, position = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type UpdateTaskLocationParams struct {
@@ -427,12 +436,13 @@ func (q *Queries) UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocation
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const updateTaskName = `-- name: UpdateTaskName :one
-UPDATE task SET name = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+UPDATE task SET name = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type UpdateTaskNameParams struct {
@@ -453,12 +463,13 @@ func (q *Queries) UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) 
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }
 
 const updateTaskPosition = `-- name: UpdateTaskPosition :one
-UPDATE task SET position = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at
+UPDATE task SET position = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
 `
 
 type UpdateTaskPositionParams struct {
@@ -479,6 +490,7 @@ func (q *Queries) UpdateTaskPosition(ctx context.Context, arg UpdateTaskPosition
 		&i.DueDate,
 		&i.Complete,
 		&i.CompletedAt,
+		&i.HasTime,
 	)
 	return i, err
 }

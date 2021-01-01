@@ -102,6 +102,7 @@ type Task struct {
 	DueDate     sql.NullTime   `json:"due_date"`
 	Complete    bool           `json:"complete"`
 	CompletedAt sql.NullTime   `json:"completed_at"`
+	HasTime     bool           `json:"has_time"`
 }
 
 type TaskActivity struct {

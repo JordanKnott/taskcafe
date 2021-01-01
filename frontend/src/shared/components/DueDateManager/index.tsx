@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from 'react';
+import React, { useState, useEffect, forwardRef, useRef, useCallback } from 'react';
 import dayjs from 'dayjs';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker';
@@ -8,11 +8,27 @@ import { getYear, getMonth } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import NOOP from 'shared/utils/noop';
 
-import { Wrapper, ActionWrapper, RemoveDueDate, DueDateInput, DueDatePickerWrapper, ConfirmAddDueDate } from './Styles';
+import {
+  Wrapper,
+  RemoveDueDate,
+  DueDateInput,
+  DueDatePickerWrapper,
+  ConfirmAddDueDate,
+  DateRangeInputs,
+  AddDateRange,
+  ActionIcon,
+  ActionsWrapper,
+  ClearButton,
+  ActionsSeparator,
+  ActionClock,
+  ActionLabel,
+} from './Styles';
+import { Clock, Cross } from 'shared/icons';
+import Select from 'react-select/src/Select';
 
 type DueDateManagerProps = {
   task: Task;
-  onDueDateChange: (task: Task, newDueDate: Date) => void;
+  onDueDateChange: (task: Task, newDueDate: Date, hasTime: boolean) => void;
   onRemoveDueDate: (task: Task) => void;
   onCancel: () => void;
 };
@@ -52,14 +68,20 @@ const HeaderSelect = styled.select`
   text-decoration: underline;
   font-size: 14px;
   text-align: center;
-  padding: 4px 6px;
   background: none;
   outline: none;
   border: none;
   border-radius: 3px;
   appearance: none;
+  width: 100%;
+  display: inline-block;
 
-  &:hover {
+  & option {
+    color: #c2c6dc;
+    background: ${props => props.theme.colors.bg.primary};
+  }
+
+  & option:hover {
     background: ${props => props.theme.colors.bg.secondary};
     border: 1px solid ${props => props.theme.colors.primary};
     outline: none !important;
@@ -110,15 +132,34 @@ const HeaderActions = styled.div`
 `;
 
 const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate, onCancel }) => {
-  const now = dayjs();
+  const currentDueDate = task.dueDate ? dayjs(task.dueDate).toDate() : null;
   const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
-  const [startDate, setStartDate] = useState(new Date());
+
+  const [startDate, setStartDate] = useState<Date | null>(currentDueDate);
+  const [endDate, setEndDate] = useState<Date | null>(currentDueDate);
+  const [hasTime, enableTime] = useState(task.hasTime ?? false);
+  const firstRun = useRef<boolean>(true);
+
+  const debouncedFunctionRef = useRef((newDate: Date | null, nowHasTime: boolean) => {
+    if (!firstRun.current) {
+      if (newDate) {
+        onDueDateChange(task, newDate, nowHasTime);
+      } else {
+        onRemoveDueDate(task);
+        enableTime(false);
+      }
+    } else {
+      firstRun.current = false;
+    }
+  });
+  const debouncedChange = useCallback(
+    _.debounce((newDate, nowHasTime) => debouncedFunctionRef.current(newDate, nowHasTime), 500),
+    [],
+  );
 
   useEffect(() => {
-    const newDate = dayjs(startDate).format('YYYY-MM-DD');
-    setValue('endDate', newDate);
-  }, [startDate]);
-
+    debouncedChange(startDate, hasTime);
+  }, [startDate, hasTime]);
   const years = _.range(2010, getYear(new Date()) + 10, 1);
   const months = [
     'January',
@@ -134,19 +175,21 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     'November',
     'December',
   ];
-  const saveDueDate = (data: any) => {
-    const newDate = dayjs(`${data.endDate} ${dayjs(data.endTime).format('h:mm A')}`, 'YYYY-MM-DD h:mm A');
-    if (newDate.isValid()) {
-      onDueDateChange(task, newDate.toDate());
-    }
+
+  const onChange = (dates: any) => {
+    const [start, end] = dates;
+    setStartDate(start);
+    setEndDate(end);
   };
-  const CustomTimeInput = forwardRef(({ value, onClick }: any, $ref: any) => {
+  const [isRange, setIsRange] = useState(false);
+
+  const CustomTimeInput = forwardRef(({ value, onClick, onChange, onBlur, onFocus }: any, $ref: any) => {
     return (
       <DueDateInput
         id="endTime"
         value={value}
         name="endTime"
-        ref={$ref}
+        onChange={onChange}
         width="100%"
         variant="alternate"
         label="Time"
@@ -154,114 +197,119 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
       />
     );
   });
+
   return (
     <Wrapper>
-      <Form onSubmit={handleSubmit(saveDueDate)}>
-        <FormField>
-          <DueDateInput
-            id="endDate"
-            name="endDate"
-            width="100%"
-            variant="alternate"
-            label="Date"
-            defaultValue={now.format('YYYY-MM-DD')}
-            ref={register({
-              required: 'End date is required.',
-            })}
-          />
-        </FormField>
-        <FormField>
-          <Controller
-            control={control}
-            defaultValue={now.toDate()}
-            name="endTime"
-            render={({ onChange, onBlur, value }) => (
-              <DatePicker
-                onChange={onChange}
-                selected={value}
-                onBlur={onBlur}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="h:mm aa"
-                customInput={<CustomTimeInput />}
-              />
-            )}
-          />
-        </FormField>
-        <DueDatePickerWrapper>
+      <DateRangeInputs>
+        <DatePicker
+          selected={startDate}
+          onChange={date => setStartDate(date)}
+          popperClassName="picker-hidden"
+          dateFormat="yyyy-MM-dd"
+          disabledKeyboardNavigation
+          isClearable
+          placeholderText="Select due date"
+        />
+        {isRange ? (
           <DatePicker
-            useWeekdaysShort
-            renderCustomHeader={({
-              date,
-              changeYear,
-              changeMonth,
-              decreaseMonth,
-              increaseMonth,
-              prevMonthButtonDisabled,
-              nextMonthButtonDisabled,
-            }) => (
-              <HeaderActions>
-                <HeaderButton onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
-                  Prev
-                </HeaderButton>
-                <HeaderSelectLabel>
-                  {months[date.getMonth()]}
-                  <HeaderSelect
-                    value={getYear(date)}
-                    onChange={({ target: { value } }) => changeYear(parseInt(value, 10))}
-                  >
-                    {years.map(option => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </HeaderSelect>
-                </HeaderSelectLabel>
-                <HeaderSelectLabel>
-                  {date.getFullYear()}
-                  <HeaderSelect
-                    value={months[getMonth(date)]}
-                    onChange={({ target: { value } }) => changeMonth(months.indexOf(value))}
-                  >
-                    {months.map(option => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </HeaderSelect>
-                </HeaderSelectLabel>
-
-                <HeaderButton onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
-                  Next
-                </HeaderButton>
-              </HeaderActions>
-            )}
             selected={startDate}
-            inline
-            onChange={date => {
-              if (date) {
-                setStartDate(date);
-              }
-            }}
+            isClearable
+            onChange={date => setStartDate(date)}
+            popperClassName="picker-hidden"
+            dateFormat="yyyy-MM-dd"
+            placeholderText="Select from date"
           />
-        </DueDatePickerWrapper>
-        <ActionWrapper>
-          <ConfirmAddDueDate type="submit" onClick={NOOP}>
-            Save
-          </ConfirmAddDueDate>
-          <RemoveDueDate
-            variant="outline"
-            color="danger"
+        ) : (
+          <AddDateRange>Add date range</AddDateRange>
+        )}
+      </DateRangeInputs>
+      <DatePicker
+        selected={startDate}
+        onChange={date => setStartDate(date)}
+        startDate={startDate}
+        useWeekdaysShort
+        renderCustomHeader={({
+          date,
+          changeYear,
+          changeMonth,
+          decreaseMonth,
+          increaseMonth,
+          prevMonthButtonDisabled,
+          nextMonthButtonDisabled,
+        }) => (
+          <HeaderActions>
+            <HeaderButton onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
+              Prev
+            </HeaderButton>
+            <HeaderSelectLabel>
+              {months[date.getMonth()]}
+              <HeaderSelect
+                value={months[getMonth(date)]}
+                onChange={({ target: { value } }) => changeMonth(months.indexOf(value))}
+              >
+                {months.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </HeaderSelect>
+            </HeaderSelectLabel>
+            <HeaderSelectLabel>
+              {date.getFullYear()}
+              <HeaderSelect value={getYear(date)} onChange={({ target: { value } }) => changeYear(parseInt(value, 10))}>
+                {years.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </HeaderSelect>
+            </HeaderSelectLabel>
+
+            <HeaderButton onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
+              Next
+            </HeaderButton>
+          </HeaderActions>
+        )}
+        inline
+      />
+      <ActionsSeparator />
+      {hasTime && (
+        <ActionsWrapper>
+          <ActionClock width={16} height={16} />
+          <ActionLabel>Due Time</ActionLabel>
+          <DatePicker
+            selected={startDate}
+            onChange={date => {
+              setStartDate(date);
+            }}
+            showTimeSelect
+            showTimeSelectOnly
+            timeIntervals={15}
+            timeCaption="Time"
+            dateFormat="h:mm aa"
+          />
+          <ActionIcon onClick={() => enableTime(false)}>
+            <Cross width={16} height={16} />
+          </ActionIcon>
+        </ActionsWrapper>
+      )}
+      <ActionsWrapper>
+        {!hasTime && (
+          <ActionIcon
             onClick={() => {
-              onRemoveDueDate(task);
+              if (startDate === null) {
+                const today = new Date();
+                today.setHours(12, 30, 0);
+                setStartDate(today);
+              }
+              enableTime(true);
             }}
           >
-            Remove
-          </RemoveDueDate>
-        </ActionWrapper>
-      </Form>
+            <Clock width={16} height={16} />
+          </ActionIcon>
+        )}
+        <ClearButton onClick={() => setStartDate(null)}>{hasTime ? 'Clear all' : 'Clear'}</ClearButton>
+      </ActionsWrapper>
     </Wrapper>
   );
 };

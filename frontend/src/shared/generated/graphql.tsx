@@ -215,6 +215,7 @@ export type Task = {
   position: Scalars['Float'];
   description?: Maybe<Scalars['String']>;
   dueDate?: Maybe<Scalars['Time']>;
+  hasTime: Scalars['Boolean'];
   complete: Scalars['Boolean'];
   completedAt?: Maybe<Scalars['Time']>;
   assigned: Array<Member>;
@@ -883,6 +884,7 @@ export type UpdateTaskLocationPayload = {
 
 export type UpdateTaskDueDate = {
   taskID: Scalars['UUID'];
+  hasTime: Scalars['Boolean'];
   dueDate?: Maybe<Scalars['Time']>;
 };
 
@@ -1451,7 +1453,7 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position' | 'complete'>
+    & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position' | 'complete' | 'hasTime'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name'>
@@ -2314,6 +2316,7 @@ export type UpdateTaskDescriptionMutation = (
 export type UpdateTaskDueDateMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   dueDate?: Maybe<Scalars['Time']>;
+  hasTime: Scalars['Boolean'];
 }>;
 
 
@@ -2321,7 +2324,7 @@ export type UpdateTaskDueDateMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskDueDate: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'dueDate'>
+    & Pick<Task, 'id' | 'dueDate' | 'hasTime'>
   ) }
 );
 
@@ -3017,6 +3020,7 @@ export const FindTaskDocument = gql`
     dueDate
     position
     complete
+    hasTime
     taskGroup {
       id
       name
@@ -4692,10 +4696,13 @@ export type UpdateTaskDescriptionMutationHookResult = ReturnType<typeof useUpdat
 export type UpdateTaskDescriptionMutationResult = ApolloReactCommon.MutationResult<UpdateTaskDescriptionMutation>;
 export type UpdateTaskDescriptionMutationOptions = ApolloReactCommon.BaseMutationOptions<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>;
 export const UpdateTaskDueDateDocument = gql`
-    mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time) {
-  updateTaskDueDate(input: {taskID: $taskID, dueDate: $dueDate}) {
+    mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time, $hasTime: Boolean!) {
+  updateTaskDueDate(
+    input: {taskID: $taskID, dueDate: $dueDate, hasTime: $hasTime}
+  ) {
     id
     dueDate
+    hasTime
   }
 }
     `;
@@ -4716,6 +4723,7 @@ export type UpdateTaskDueDateMutationFn = ApolloReactCommon.MutationFunction<Upd
  *   variables: {
  *      taskID: // value for 'taskID'
  *      dueDate: // value for 'dueDate'
+ *      hasTime: // value for 'hasTime'
  *   },
  * });
  */

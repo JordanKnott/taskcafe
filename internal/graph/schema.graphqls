@@ -175,6 +175,7 @@ type Task {
   position: Float!
   description: String
   dueDate: Time
+  hasTime: Boolean!
   complete: Boolean!
   completedAt: Time
   assigned: [Member!]!
@@ -517,6 +518,7 @@ type UpdateTaskLocationPayload {
 
 input UpdateTaskDueDate  {
   taskID: UUID!
+  hasTime: Boolean!
   dueDate: Time
 }
 
@@ -943,3 +945,4 @@ type DeleteUserAccountPayload {
   ok: Boolean!
   userAccount: UserAccount!
 }
+

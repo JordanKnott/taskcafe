@@ -49,6 +49,7 @@ type UpdateTaskLocationPayload {
 
 input UpdateTaskDueDate  {
   taskID: UUID!
+  hasTime: Boolean!
   dueDate: Time
 }
 

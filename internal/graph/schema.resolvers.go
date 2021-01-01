@@ -423,28 +423,35 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 		activityType = TASK_DUE_DATE_CHANGED
 		data["PrevDueDate"] = prevTask.DueDate.Time.String()
 		data["CurDueDate"] = input.DueDate.String()
-	} else {
+	} else if input.DueDate != nil {
 		data["DueDate"] = input.DueDate.String()
 	}
 	var dueDate sql.NullTime
+	log.WithField("dueDate", input.DueDate).Info("before ptr!")
 	if input.DueDate == nil {
 		dueDate = sql.NullTime{Valid: false, Time: time.Now()}
 	} else {
 		dueDate = sql.NullTime{Valid: true, Time: *input.DueDate}
 	}
-	task, err := r.Repository.UpdateTaskDueDate(ctx, db.UpdateTaskDueDateParams{
-		TaskID:  input.TaskID,
-		DueDate: dueDate,
-	})
-	createdAt := time.Now().UTC()
-	d, err := json.Marshal(data)
-	_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
-		TaskID:         task.TaskID,
-		Data:           d,
-		CausedBy:       userID,
-		CreatedAt:      createdAt,
-		ActivityTypeID: activityType,
-	})
+	var task db.Task
+	if !(input.DueDate == nil && !prevTask.DueDate.Valid) {
+		task, err = r.Repository.UpdateTaskDueDate(ctx, db.UpdateTaskDueDateParams{
+			TaskID:  input.TaskID,
+			DueDate: dueDate,
+			HasTime: input.HasTime,
+		})
+		createdAt := time.Now().UTC()
+		d, _ := json.Marshal(data)
+		_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+			TaskID:         task.TaskID,
+			Data:           d,
+			CausedBy:       userID,
+			CreatedAt:      createdAt,
+			ActivityTypeID: activityType,
+		})
+	} else {
+		task, err = r.Repository.GetTaskByID(ctx, input.TaskID)
+	}
 
 	return &task, err
 }

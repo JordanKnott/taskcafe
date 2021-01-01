@@ -102,6 +102,7 @@ type Task = {
   name: string;
   badges?: TaskBadges;
   position: number;
+  hasTime?: boolean;
   dueDate?: string;
   complete?: boolean;
   completedAt?: string | null;
