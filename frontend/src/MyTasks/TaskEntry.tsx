@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled, { css } from 'styled-components/macro';
 import dayjs from 'dayjs';
 import { CheckCircleOutline, CheckCircle, Cross, Briefcase, ChevronRight } from 'shared/icons';
@@ -303,6 +303,9 @@ const TaskEntry: React.FC<TaskEntryProps> = ({
   const leftRow = window.innerWidth - RIGHT_ROW_WIDTH;
   const [focused, setFocused] = useState(autoFocus);
   const [name, setName] = useState(initialName);
+  useEffect(() => {
+    setName(initialName);
+  }, [initialName]);
   const $projects = useRef<HTMLDivElement>(null);
   const $dueDate = useRef<HTMLDivElement>(null);
   const $nameInput = useRef<HTMLTextAreaElement>(null);
@@ -332,10 +335,9 @@ const TaskEntry: React.FC<TaskEntryProps> = ({
             }}
             onChange={e => setName(e.currentTarget.value)}
             wrap="off"
+            value={name}
             rows={1}
-          >
-            {name}
-          </TaskNameInput>
+          />
         </TaskName>
         <TaskDetailsArea onClick={() => onTaskDetails()}>
           <TaskDetailsButton>
