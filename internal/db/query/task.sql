@@ -59,14 +59,25 @@ UPDATE task_comment SET message = $2, updated_at = $3 WHERE task_comment_id = $1
 
 -- name: GetRecentlyAssignedTaskForUserID :many
 SELECT task.* FROM task_assigned INNER JOIN
-  task ON task.task_id = task_assigned.task_id WHERE user_id = $1 ORDER BY task_assigned.assigned_date DESC;
+  task ON task.task_id = task_assigned.task_id WHERE user_id = $1
+  AND $4::boolean = true OR (
+    $4::boolean = false AND complete = $2 AND (
+      $2 = false OR ($2 = true AND completed_at > $3)
+    )
+  )
+  ORDER BY task_assigned.assigned_date DESC;
 
 -- name: GetAssignedTasksProjectForUserID :many
 SELECT task.* FROM task_assigned
-   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task ON task.task_id = task_assigned.task_id
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
-   WHERE user_id = $1
-   ORDER BY task_group.project_id DESC, task_assigned.assigned_date DESC;
+  WHERE user_id = $1
+  AND $4::boolean = true OR (
+    $4::boolean = false AND complete = $2 AND (
+      $2 = false OR ($2 = true AND completed_at > $3)
+    )
+  )
+  ORDER BY task_group.project_id DESC, task_assigned.assigned_date DESC;
 
 -- name: GetProjectIdMappings :many
 SELECT project_id, task_id FROM task
@@ -75,7 +86,12 @@ INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
 
 -- name: GetAssignedTasksDueDateForUserID :many
 SELECT task.* FROM task_assigned
-   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task ON task.task_id = task_assigned.task_id
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
-   WHERE user_id = $1
-   ORDER BY task.due_date DESC, task_group.project_id DESC;
+  WHERE user_id = $1
+  AND $4::boolean = true OR (
+    $4::boolean = false AND complete = $2 AND (
+      $2 = false OR ($2 = true AND completed_at > $3)
+    )
+  )
+  ORDER BY task.due_date DESC, task_group.project_id DESC;

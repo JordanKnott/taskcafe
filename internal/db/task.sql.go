@@ -200,14 +200,31 @@ func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
 
 const getAssignedTasksDueDateForUserID = `-- name: GetAssignedTasksDueDateForUserID :many
 SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned
-   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task ON task.task_id = task_assigned.task_id
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
-   WHERE user_id = $1
-   ORDER BY task.due_date DESC, task_group.project_id DESC
+  WHERE user_id = $1
+  AND $4::boolean = true OR (
+    $4::boolean = false AND complete = $2 AND (
+      $2 = false OR ($2 = true AND completed_at > $3)
+    )
+  )
+  ORDER BY task.due_date DESC, task_group.project_id DESC
 `
 
-func (q *Queries) GetAssignedTasksDueDateForUserID(ctx context.Context, userID uuid.UUID) ([]Task, error) {
-	rows, err := q.db.QueryContext(ctx, getAssignedTasksDueDateForUserID, userID)
+type GetAssignedTasksDueDateForUserIDParams struct {
+	UserID      uuid.UUID    `json:"user_id"`
+	Complete    bool         `json:"complete"`
+	CompletedAt sql.NullTime `json:"completed_at"`
+	Column4     bool         `json:"column_4"`
+}
+
+func (q *Queries) GetAssignedTasksDueDateForUserID(ctx context.Context, arg GetAssignedTasksDueDateForUserIDParams) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, getAssignedTasksDueDateForUserID,
+		arg.UserID,
+		arg.Complete,
+		arg.CompletedAt,
+		arg.Column4,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -242,14 +259,31 @@ func (q *Queries) GetAssignedTasksDueDateForUserID(ctx context.Context, userID u
 
 const getAssignedTasksProjectForUserID = `-- name: GetAssignedTasksProjectForUserID :many
 SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned
-   INNER JOIN task ON task.task_id = task_assigned.task_id
+  INNER JOIN task ON task.task_id = task_assigned.task_id
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
-   WHERE user_id = $1
-   ORDER BY task_group.project_id DESC, task_assigned.assigned_date DESC
+  WHERE user_id = $1
+  AND $4::boolean = true OR (
+    $4::boolean = false AND complete = $2 AND (
+      $2 = false OR ($2 = true AND completed_at > $3)
+    )
+  )
+  ORDER BY task_group.project_id DESC, task_assigned.assigned_date DESC
 `
 
-func (q *Queries) GetAssignedTasksProjectForUserID(ctx context.Context, userID uuid.UUID) ([]Task, error) {
-	rows, err := q.db.QueryContext(ctx, getAssignedTasksProjectForUserID, userID)
+type GetAssignedTasksProjectForUserIDParams struct {
+	UserID      uuid.UUID    `json:"user_id"`
+	Complete    bool         `json:"complete"`
+	CompletedAt sql.NullTime `json:"completed_at"`
+	Column4     bool         `json:"column_4"`
+}
+
+func (q *Queries) GetAssignedTasksProjectForUserID(ctx context.Context, arg GetAssignedTasksProjectForUserIDParams) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, getAssignedTasksProjectForUserID,
+		arg.UserID,
+		arg.Complete,
+		arg.CompletedAt,
+		arg.Column4,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -366,11 +400,29 @@ func (q *Queries) GetProjectIdMappings(ctx context.Context, dollar_1 []uuid.UUID
 
 const getRecentlyAssignedTaskForUserID = `-- name: GetRecentlyAssignedTaskForUserID :many
 SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned INNER JOIN
-  task ON task.task_id = task_assigned.task_id WHERE user_id = $1 ORDER BY task_assigned.assigned_date DESC
+  task ON task.task_id = task_assigned.task_id WHERE user_id = $1
+  AND $4::boolean = true OR (
+    $4::boolean = false AND complete = $2 AND (
+      $2 = false OR ($2 = true AND completed_at > $3)
+    )
+  )
+  ORDER BY task_assigned.assigned_date DESC
 `
 
-func (q *Queries) GetRecentlyAssignedTaskForUserID(ctx context.Context, userID uuid.UUID) ([]Task, error) {
-	rows, err := q.db.QueryContext(ctx, getRecentlyAssignedTaskForUserID, userID)
+type GetRecentlyAssignedTaskForUserIDParams struct {
+	UserID      uuid.UUID    `json:"user_id"`
+	Complete    bool         `json:"complete"`
+	CompletedAt sql.NullTime `json:"completed_at"`
+	Column4     bool         `json:"column_4"`
+}
+
+func (q *Queries) GetRecentlyAssignedTaskForUserID(ctx context.Context, arg GetRecentlyAssignedTaskForUserIDParams) ([]Task, error) {
+	rows, err := q.db.QueryContext(ctx, getRecentlyAssignedTaskForUserID,
+		arg.UserID,
+		arg.Complete,
+		arg.CompletedAt,
+		arg.Column4,
+	)
 	if err != nil {
 		return nil, err
 	}

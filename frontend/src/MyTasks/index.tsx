@@ -19,7 +19,7 @@ import { usePopup, Popup } from 'shared/components/PopupMenu';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
 import NOOP from 'shared/utils/noop';
-import { Sort, Cogs, CaretDown, CheckCircle, CaretRight } from 'shared/icons';
+import { Sort, Cogs, CaretDown, CheckCircle, CaretRight, CheckCircleOutline } from 'shared/icons';
 import Select from 'react-select';
 import { editorColourStyles } from 'shared/components/Select';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
@@ -27,11 +27,35 @@ import DueDateManager from 'shared/components/DueDateManager';
 import dayjs from 'dayjs';
 import useStickyState from 'shared/hooks/useStickyState';
 import MyTasksSortPopup from './MyTasksSort';
+import MyTasksStatusPopup from './MyTasksStatus';
 import TaskEntry from './TaskEntry';
 
 type TaskRouteProps = {
   taskID: string;
 };
+
+function prettyStatus(status: MyTasksStatus) {
+  switch (status) {
+    case MyTasksStatus.All:
+      return 'All tasks';
+    case MyTasksStatus.Incomplete:
+      return 'Incomplete tasks';
+    case MyTasksStatus.CompleteAll:
+      return 'All completed tasks';
+    case MyTasksStatus.CompleteToday:
+      return 'Completed tasks: today';
+    case MyTasksStatus.CompleteYesterday:
+      return 'Completed tasks: yesterday';
+    case MyTasksStatus.CompleteOneWeek:
+      return 'Completed tasks: 1 week';
+    case MyTasksStatus.CompleteTwoWeek:
+      return 'Completed tasks: 2 weeks';
+    case MyTasksStatus.CompleteThreeWeek:
+      return 'Completed tasks: 3 weeks';
+    default:
+      return 'unknown tasks';
+  }
+}
 
 function prettySort(sort: MyTasksSort) {
   if (sort === MyTasksSort.None) {
@@ -492,7 +516,10 @@ const Projects = () => {
     { sort: MyTasksSort.None, status: MyTasksStatus.All },
     'my_tasks_filter',
   );
-  const { data } = useMyTasksQuery({ variables: { sort: filters.sort, status: filters.status } });
+  const { data } = useMyTasksQuery({
+    variables: { sort: filters.sort, status: filters.status },
+    fetchPolicy: 'cache-and-network',
+  });
   const [dateEditor, setDateEditor] = useState<DateEditorState>({ open: false, pos: null, task: null });
   const onEditDueDate = (task: Task, $target: React.RefObject<HTMLElement>) => {
     if ($target && $target.current && data) {
@@ -524,7 +551,7 @@ const Projects = () => {
       });
     }
   };
-  const { showPopup } = usePopup();
+  const { showPopup, hidePopup } = usePopup();
   const [updateTaskDueDate] = useUpdateTaskDueDateMutation();
   const $editorContents = useRef<HTMLDivElement>(null);
   const $dateContents = useRef<HTMLDivElement>(null);
@@ -653,9 +680,23 @@ const Projects = () => {
         <ProjectBar>
           <ProjectActions />
           <ProjectActions>
-            <ProjectAction disabled>
-              <CheckCircle width={13} height={13} />
-              <ProjectActionText>All Tasks</ProjectActionText>
+            <ProjectAction
+              onClick={$target => {
+                showPopup(
+                  $target,
+                  <MyTasksStatusPopup
+                    status={filters.status}
+                    onChangeStatus={status => {
+                      setFilters(prev => ({ ...prev, status }));
+                      hidePopup();
+                    }}
+                  />,
+                  { width: 185 },
+                );
+              }}
+            >
+              <CheckCircleOutline width={13} height={13} />
+              <ProjectActionText>{prettyStatus(filters.status)}</ProjectActionText>
             </ProjectAction>
             <ProjectAction
               onClick={$target => {
@@ -663,8 +704,12 @@ const Projects = () => {
                   $target,
                   <MyTasksSortPopup
                     sort={filters.sort}
-                    onChangeSort={sort => setFilters(prev => ({ ...prev, sort }))}
+                    onChangeSort={sort => {
+                      setFilters(prev => ({ ...prev, sort }));
+                      hidePopup();
+                    }}
                   />,
+                  { width: 185 },
                 );
               }}
             >

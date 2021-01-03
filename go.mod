@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.11.0
 	github.com/google/uuid v1.1.1
+	github.com/jinzhu/now v1.1.1
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
 	github.com/lithammer/fuzzysearch v1.1.0

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/now"
 	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
@@ -1411,18 +1412,60 @@ func (r *queryResolver) MyTasks(ctx context.Context, input MyTasks) (*MyTasksPay
 	projects := []ProjectTaskMapping{}
 	var tasks []db.Task
 	var err error
+	showAll := false
+	if input.Status == MyTasksStatusAll {
+		showAll = true
+	}
+	complete := false
+	completedAt := sql.NullTime{Valid: false, Time: time.Time{}}
+	switch input.Status {
+	case MyTasksStatusCompleteAll:
+		complete = true
+		completedAt = sql.NullTime{Valid: true, Time: time.Time{}}
+	case MyTasksStatusCompleteToday:
+		complete = true
+		completedAt = sql.NullTime{Valid: true, Time: now.BeginningOfDay()}
+	case MyTasksStatusCompleteYesterday:
+		complete = true
+		completedAt = sql.NullTime{Valid: true, Time: now.With(time.Now().AddDate(0, 0, -1)).BeginningOfDay()}
+	case MyTasksStatusCompleteOneWeek:
+		complete = true
+		completedAt = sql.NullTime{Valid: true, Time: now.With(time.Now().AddDate(0, 0, -7)).BeginningOfDay()}
+	case MyTasksStatusCompleteTwoWeek:
+		complete = true
+		completedAt = sql.NullTime{Valid: true, Time: now.With(time.Now().AddDate(0, 0, -14)).BeginningOfDay()}
+	case MyTasksStatusCompleteThreeWeek:
+		complete = true
+		completedAt = sql.NullTime{Valid: true, Time: now.With(time.Now().AddDate(0, 0, -21)).BeginningOfDay()}
+	}
+
 	if input.Sort == MyTasksSortNone {
-		tasks, err = r.Repository.GetRecentlyAssignedTaskForUserID(ctx, userID)
+		tasks, err = r.Repository.GetRecentlyAssignedTaskForUserID(ctx, db.GetRecentlyAssignedTaskForUserIDParams{
+			UserID:      userID,
+			Complete:    complete,
+			CompletedAt: completedAt,
+			Column4:     showAll,
+		})
 		if err != nil && err != sql.ErrNoRows {
 			return &MyTasksPayload{}, err
 		}
 	} else if input.Sort == MyTasksSortProject {
-		tasks, err = r.Repository.GetAssignedTasksProjectForUserID(ctx, userID)
+		tasks, err = r.Repository.GetAssignedTasksProjectForUserID(ctx, db.GetAssignedTasksProjectForUserIDParams{
+			UserID:      userID,
+			Complete:    complete,
+			CompletedAt: completedAt,
+			Column4:     showAll,
+		})
 		if err != nil && err != sql.ErrNoRows {
 			return &MyTasksPayload{}, err
 		}
 	} else if input.Sort == MyTasksSortDueDate {
-		tasks, err = r.Repository.GetAssignedTasksDueDateForUserID(ctx, userID)
+		tasks, err = r.Repository.GetAssignedTasksDueDateForUserID(ctx, db.GetAssignedTasksDueDateForUserIDParams{
+			UserID:      userID,
+			Complete:    complete,
+			CompletedAt: completedAt,
+			Column4:     showAll,
+		})
 		if err != nil && err != sql.ErrNoRows {
 			return &MyTasksPayload{}, err
 		}
