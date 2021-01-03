@@ -71,7 +71,7 @@ export const ActionExtraMenuItem = styled.li`
   align-items: center;
   font-size: 14px;
   &:hover {
-    background: rgb(${props => props.theme.colors.primary});
+    background: ${props => props.theme.colors.primary};
   }
 `;
 const ActionExtraMenuSeparator = styled.li`
