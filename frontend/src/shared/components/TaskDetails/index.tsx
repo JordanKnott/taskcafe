@@ -27,7 +27,6 @@ import { Picker, Emoji } from 'emoji-mart';
 import 'emoji-mart/css/emoji-mart.css';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import dayjs from 'dayjs';
-import ActivityMessage from './ActivityMessage';
 import Task from 'shared/icons/Task';
 import {
   ActivityItemHeader,
@@ -83,6 +82,7 @@ import {
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
 import { plugin as em } from './remark';
+import ActivityMessage from './ActivityMessage';
 
 const parseEmojis = (value: string) => {
   const emojisArray = toArray(value);
@@ -293,6 +293,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const $noMemberBtn = useRef<HTMLDivElement>(null);
   const $addMemberBtn = useRef<HTMLDivElement>(null);
   const $dueDateBtn = useRef<HTMLDivElement>(null);
+  const $detailsTitle = useRef<HTMLTextAreaElement>(null);
 
   const activityStream: Array<{ id: string; data: { time: string; type: 'comment' | 'activity' } }> = [];
 
@@ -440,6 +441,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <TaskDetailsTitleWrapper>
             <TaskDetailsTitle
               value={taskName}
+              ref={$detailsTitle}
+              onKeyDown={e => {
+                if (e.keyCode === 13) {
+                  e.preventDefault();
+                  if ($detailsTitle && $detailsTitle.current) {
+                    $detailsTitle.current.blur();
+                  }
+                }
+              }}
               onChange={e => {
                 setTaskName(e.currentTarget.value);
               }}
