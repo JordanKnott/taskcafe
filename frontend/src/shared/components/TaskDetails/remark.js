@@ -44,9 +44,16 @@ function plugin(options) {
     visit(tree, 'paragraph', function(node) {
       console.log(tree);
       // node.value = node.value.replace(RE_EMOJI, getEmoji);
-      node.type = 'html';
-      node.tagName = 'div';
-      node.value = node.children[0].value.replace(RE_EMOJI, getEmoji);
+      // jnode.type = 'html';
+      // jnode.tagName = 'div';
+      // jnode.value = '';
+      for (let nodeIdx = 0; nodeIdx < node.children.length; nodeIdx++) {
+        if (node.children[nodeIdx].type === 'text') {
+          node.children[nodeIdx].type = 'html';
+          node.children[nodeIdx].tagName = 'div';
+          node.children[nodeIdx].value = node.children[nodeIdx].value.replace(RE_EMOJI, getEmoji);
+        }
+      }
 
       if (emoticonEnable) {
         // node.value = node.value.replace(RE_SHORT, getEmojiByShortCode);

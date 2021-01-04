@@ -653,7 +653,7 @@ export const ActivityItemComment = styled.div<{ editable: boolean }>`
   ${props => props.editable && 'width: 100%;'}
 
   & span {
-    display: flex;
+    display: inline-flex;
     align-items: center;
   }
   & ul {
