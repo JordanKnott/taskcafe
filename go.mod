@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/99designs/gqlgen v0.11.3
 	github.com/RichardKnop/machinery v1.9.1
+	github.com/brianvoe/gofakeit/v5 v5.11.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.11.0
@@ -14,6 +15,7 @@ require (
 	github.com/lib/pq v1.3.0
 	github.com/lithammer/fuzzysearch v1.1.0
 	github.com/magefile/mage v1.11.0
+	github.com/manifoldco/promptui v0.8.0
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/pkg/errors v0.9.1
