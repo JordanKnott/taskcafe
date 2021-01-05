@@ -87,6 +87,12 @@ export const HeaderTitle = styled.span`
 
 export const Content = styled.div`
   max-height: 632px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  &::-webkit-scrollbar-track-piece {
+    background: ${props => props.theme.colors.bg.primary};
+    border-radius: 20px;
+  }
 `;
 
 export const LabelSearch = styled(ControlledInput)`

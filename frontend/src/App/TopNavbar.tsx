@@ -1,6 +1,5 @@
 import React from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
-import styled from 'styled-components/macro';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
 import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
@@ -9,177 +8,16 @@ import {
   RoleCode,
   useTopNavbarQuery,
   useDeleteProjectMutation,
-  useGetProjectsQuery,
   GetProjectsDocument,
 } from 'shared/generated/graphql';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
-import { History } from 'history';
 import produce from 'immer';
-import { Link } from 'react-router-dom';
 import MiniProfile from 'shared/components/MiniProfile';
 import cache from 'App/cache';
-import NOOP from 'shared/utils/noop';
 import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
 import theme from './ThemeStyles';
+import ProjectFinder from './ProjectFinder';
 
-const TeamContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin: 0 8px;
-`;
-
-const TeamTitle = styled.h3`
-  font-size: 14px;
-  font-weight: 700;
-`;
-
-const TeamProjects = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-top: 8px;
-  margin-bottom: 4px;
-`;
-
-const TeamProjectLink = styled(Link)`
-  display: flex;
-  font-weight: 700;
-  height: 36px;
-  overflow: hidden;
-  padding: 0;
-  position: relative;
-  text-decoration: none;
-  user-select: none;
-`;
-
-const TeamProjectBackground = styled.div<{ color: string }>`
-  background-image: url(null);
-  background-color: ${props => props.color};
-
-  background-size: cover;
-  background-position: 50%;
-  position: absolute;
-  width: 100%;
-  height: 36px;
-  opacity: 1;
-  border-radius: 3px;
-  &:before {
-    background: ${props => props.theme.colors.bg.secondary};
-    bottom: 0;
-    content: '';
-    left: 0;
-    opacity: 0.88;
-    position: absolute;
-    right: 0;
-    top: 0;
-  }
-`;
-
-const TeamProjectAvatar = styled.div<{ color: string }>`
-  background-image: url(null);
-  background-color: ${props => props.color};
-
-  display: inline-block;
-  flex: 0 0 auto;
-  background-size: cover;
-  border-radius: 3px 0 0 3px;
-  height: 36px;
-  width: 36px;
-  position: relative;
-  opacity: 0.7;
-`;
-
-const TeamProjectContent = styled.div`
-  display: flex;
-  position: relative;
-  flex: 1;
-  width: 100%;
-  padding: 9px 0 9px 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const TeamProjectTitle = styled.div`
-  font-weight: 700;
-  display: block;
-  padding-right: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const TeamProjectContainer = styled.div`
-  box-sizing: border-box;
-  border-radius: 3px;
-  position: relative;
-  margin: 0 4px 4px 0;
-  min-width: 0;
-  &:hover ${TeamProjectTitle} {
-    color: ${props => props.theme.colors.text.secondary};
-  }
-  &:hover ${TeamProjectAvatar} {
-    opacity: 1;
-  }
-  &:hover ${TeamProjectBackground}:before {
-    opacity: 0.78;
-  }
-`;
-
-const colors = [theme.colors.primary, theme.colors.secondary];
-
-const ProjectFinder = () => {
-  const { loading, data } = useGetProjectsQuery({ fetchPolicy: 'cache-and-network' });
-  if (data) {
-    const { projects, teams } = data;
-    const personalProjects = data.projects.filter(p => p.team === null);
-    const projectTeams = teams.map(team => {
-      return {
-        id: team.id,
-        name: team.name,
-        projects: projects.filter(project => project.team && project.team.id === team.id),
-      };
-    });
-    return (
-      <>
-        <TeamContainer>
-          <TeamTitle>Personal</TeamTitle>
-          <TeamProjects>
-            {personalProjects.map((project, idx) => (
-              <TeamProjectContainer key={project.id}>
-                <TeamProjectLink to={`/projects/${project.id}`}>
-                  <TeamProjectBackground color={colors[idx % 5]} />
-                  <TeamProjectAvatar color={colors[idx % 5]} />
-                  <TeamProjectContent>
-                    <TeamProjectTitle>{project.name}</TeamProjectTitle>
-                  </TeamProjectContent>
-                </TeamProjectLink>
-              </TeamProjectContainer>
-            ))}
-          </TeamProjects>
-        </TeamContainer>
-        {projectTeams.map(team => (
-          <TeamContainer key={team.id}>
-            <TeamTitle>{team.name}</TeamTitle>
-            <TeamProjects>
-              {team.projects.map((project, idx) => (
-                <TeamProjectContainer key={project.id}>
-                  <TeamProjectLink to={`/projects/${project.id}`}>
-                    <TeamProjectBackground color={colors[idx % 5]} />
-                    <TeamProjectAvatar color={colors[idx % 5]} />
-                    <TeamProjectContent>
-                      <TeamProjectTitle>{project.name}</TeamProjectTitle>
-                    </TeamProjectContent>
-                  </TeamProjectLink>
-                </TeamProjectContainer>
-              ))}
-            </TeamProjects>
-          </TeamContainer>
-        ))}
-      </>
-    );
-  }
-  return <span>loading</span>;
-};
 type ProjectPopupProps = {
   history: any;
   name: string;
