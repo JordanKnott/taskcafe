@@ -7,6 +7,7 @@ import theme from './ThemeStyles';
 import ControlledInput from 'shared/components/ControlledInput';
 import { CaretDown, CaretRight } from 'shared/icons';
 import useStickyState from 'shared/hooks/useStickyState';
+import { usePopup } from 'shared/components/PopupMenu';
 
 const colors = [theme.colors.primary, theme.colors.secondary];
 
@@ -161,6 +162,7 @@ const ProjectFinder = () => {
   const { loading, data } = useGetProjectsQuery({ fetchPolicy: 'cache-and-network' });
   const [search, setSearch] = useState('');
   const [minified, setMinified] = useStickyState<Array<string>>([], 'project_finder_minified');
+  const { hidePopup } = usePopup();
   if (data) {
     const { teams } = data;
     const projects = data.projects.filter(p => {
@@ -209,7 +211,7 @@ const ProjectFinder = () => {
                 <TeamProjects>
                   {team.projects.map((project, idx) => (
                     <TeamProjectContainer key={project.id}>
-                      <TeamProjectLink to={`/projects/${project.id}`}>
+                      <TeamProjectLink onClick={e => hidePopup()} to={`/projects/${project.id}`}>
                         <TeamProjectBackground idx={idx} />
                         <TeamProjectAvatar idx={idx} />
                         <TeamProjectContent>
