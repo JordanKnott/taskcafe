@@ -126,7 +126,7 @@ func newSeedCmd() *cobra.Command {
 								Name:        taskName,
 								TaskGroupID: taskGroup.TaskGroupID,
 								CreatedAt:   now,
-								Position:    float64(65535 * (taskGroupIdx + 1)),
+								Position:    float64(65535 * (taskIdx + 1)),
 							})
 							if err != nil {
 								return err
