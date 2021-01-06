@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import { useGetProjectsQuery } from 'shared/generated/graphql';
 import { Link } from 'react-router-dom';
@@ -185,6 +185,7 @@ const ProjectFinder = () => {
     return (
       <>
         <Search
+          autoFocus
           variant="alternate"
           value={search}
           onChange={e => setSearch(e.currentTarget.value)}
