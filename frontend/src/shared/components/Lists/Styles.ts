@@ -4,8 +4,6 @@ export const Container = styled.div`
   flex: 1;
   user-select: none;
   white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
 
   ::-webkit-scrollbar {
     height: 10px;

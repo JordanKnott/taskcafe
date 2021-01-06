@@ -391,16 +391,16 @@ const SimpleLists: React.FC<SimpleProps> = ({
                       </Draggable>
                     );
                   })}
-                <AddList
-                  onSave={listName => {
-                    onCreateTaskGroup(listName);
-                  }}
-                />
                 {provided.placeholder}
               </Container>
             )}
           </Droppable>
         </DragDropContext>
+        <AddList
+          onSave={listName => {
+            onCreateTaskGroup(listName);
+          }}
+        />
       </BoardWrapper>
     </BoardContainer>
   );
