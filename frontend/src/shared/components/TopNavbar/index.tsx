@@ -7,6 +7,7 @@ import { RoleCode } from 'shared/generated/graphql';
 import NOOP from 'shared/utils/noop';
 import { useHistory } from 'react-router';
 import {
+  ProjectInfo,
   NavbarLink,
   TaskcafeLogo,
   TaskcafeTitle,
@@ -14,6 +15,7 @@ import {
   LogoContainer,
   NavSeparator,
   IconContainerWrapper,
+  ProjectSwitch,
   ProjectNameWrapper,
   ProjectNameSpan,
   ProjectNameTextarea,
@@ -33,6 +35,7 @@ import {
   ProfileNameSecondary,
   ProjectMember,
   ProjectMembers,
+  ProjectSwitchInner,
 } from './Styles';
 
 type IconContainerProps = {
@@ -220,43 +223,50 @@ const NavBar: React.FC<NavBarProps> = ({
   };
   const history = useHistory();
   const { showPopup } = usePopup();
+  const $finder = useRef<HTMLDivElement>(null);
   return (
     <NavbarWrapper>
       <NavbarHeader>
         <ProjectActions>
-          <ProjectMeta>
+          <ProjectSwitch ref={$finder} onClick={e => onOpenProjectFinder($finder)}>
+            <ProjectSwitchInner>
+              <TaskcafeLogo innerColor="#9f46e4" outerColor="#000" width={32} height={32} />
+            </ProjectSwitchInner>
+          </ProjectSwitch>
+          <ProjectInfo>
+            <ProjectMeta>
+              {name && (
+                <ProjectHeading
+                  onFavorite={onFavorite}
+                  onOpenSettings={onOpenSettings}
+                  name={name}
+                  canEditProjectName={canEditProjectName}
+                  onSaveProjectName={onSaveName}
+                />
+              )}
+            </ProjectMeta>
             {name && (
-              <ProjectHeading
-                onFavorite={onFavorite}
-                onOpenSettings={onOpenSettings}
-                name={name}
-                canEditProjectName={canEditProjectName}
-                onSaveProjectName={onSaveName}
-              />
+              <ProjectTabs>
+                {menuType &&
+                  menuType.map((menu, idx) => {
+                    return (
+                      <ProjectTab
+                        key={menu.name}
+                        to={menu.link}
+                        exact
+                        onClick={() => {
+                          // TODO
+                        }}
+                      >
+                        {menu.name}
+                      </ProjectTab>
+                    );
+                  })}
+              </ProjectTabs>
             )}
-          </ProjectMeta>
-          {name && (
-            <ProjectTabs>
-              {menuType &&
-                menuType.map((menu, idx) => {
-                  return (
-                    <ProjectTab
-                      key={menu.name}
-                      to={menu.link}
-                      exact
-                      onClick={() => {
-                        // TODO
-                      }}
-                    >
-                      {menu.name}
-                    </ProjectTab>
-                  );
-                })}
-            </ProjectTabs>
-          )}
+          </ProjectInfo>
         </ProjectActions>
         <LogoContainer to="/">
-          <TaskcafeLogo width={32} height={32} />
           <TaskcafeTitle>Taskcafé</TaskcafeTitle>
         </LogoContainer>
         <GlobalActions>

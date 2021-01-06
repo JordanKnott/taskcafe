@@ -41,12 +41,51 @@ export const BreadcrumpSeparator = styled.span`
   font-size: 18px;
   margin: 0px 10px;
 `;
+export const ProjectInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
+export const ProjectSwitchInner = styled.div`
+  border-radius: 12px;
+  height: 48px;
+  width: 48px;
+  box-shadow: inset 0 -2px rgba(0, 0, 0, 0.05);
+  align-items: center;
+  background: #cbd4db;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  justify-content: center;
+
+  background-color: ${props => props.theme.colors.primary};
+`;
+
+export const ProjectSwitch = styled.div`
+  align-self: center;
+  position: relative;
+  margin-right: 16px;
+  cursor: pointer;
+  &::after {
+    border-radius: 12px;
+    bottom: 0;
+    content: '';
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  &:hover::after {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+`;
 
 export const ProjectActions = styled.div`
   flex: 1;
   align-items: flex-start;
   display: flex;
-  flex-direction: column;
   min-width: 1px;
 `;
 
