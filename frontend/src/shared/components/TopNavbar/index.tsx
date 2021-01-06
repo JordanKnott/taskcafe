@@ -13,6 +13,8 @@ import {
   LogoContainer,
   NavSeparator,
   IconContainerWrapper,
+  ProjectNameWrapper,
+  ProjectNameSpan,
   ProjectNameTextarea,
   InviteButton,
   GlobalActions,
@@ -73,7 +75,7 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
 }) => {
   const [isEditProjectName, setEditProjectName] = useState(false);
   const [projectName, setProjectName] = useState(initialProjectName);
-  const $projectName = useRef<HTMLTextAreaElement>(null);
+  const $projectName = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (isEditProjectName && $projectName && $projectName.current) {
       $projectName.current.focus();
@@ -84,7 +86,7 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
     setProjectName(initialProjectName);
   }, [initialProjectName]);
 
-  const onProjectNameChange = (event: React.FormEvent<HTMLTextAreaElement>): void => {
+  const onProjectNameChange = (event: React.FormEvent<HTMLInputElement>): void => {
     setProjectName(event.currentTarget.value);
   };
   const onProjectNameBlur = () => {
@@ -106,14 +108,17 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
   return (
     <>
       {isEditProjectName ? (
-        <ProjectNameTextarea
-          ref={$projectName}
-          onChange={onProjectNameChange}
-          onKeyDown={onProjectNameKeyDown}
-          onBlur={onProjectNameBlur}
-          spellCheck={false}
-          value={projectName}
-        />
+        <ProjectNameWrapper>
+          <ProjectNameSpan>{projectName}</ProjectNameSpan>
+          <ProjectNameTextarea
+            ref={$projectName}
+            onChange={onProjectNameChange}
+            onKeyDown={onProjectNameKeyDown}
+            onBlur={onProjectNameBlur}
+            spellCheck={false}
+            value={projectName}
+          />
+        </ProjectNameWrapper>
       ) : (
         <ProjectName
           onClick={() => {

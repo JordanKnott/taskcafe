@@ -1,11 +1,9 @@
 import styled, { css } from 'styled-components';
-import TextareaAutosize from 'react-autosize-textarea';
 import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 import { Taskcafe } from 'shared/icons';
 import { NavLink, Link } from 'react-router-dom';
 import TaskAssignee from 'shared/components/TaskAssignee';
-import { useRef } from 'react';
 
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
@@ -163,7 +161,20 @@ export const ProjectName = styled.h1`
   padding: 3px 10px 3px 8px;
   margin: -4px 0;
 `;
-export const ProjectNameTextarea = styled(TextareaAutosize)`
+
+export const ProjectNameWrapper = styled.div`
+  position: relative;
+`;
+export const ProjectNameSpan = styled.div`
+  padding: 3px 10px 3px 8px;
+  font-weight: 600;
+  font-size: 20px;
+`;
+export const ProjectNameTextarea = styled.input`
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: 0;
   border: none;
   resize: none;
   overflow: hidden;
@@ -171,7 +182,7 @@ export const ProjectNameTextarea = styled(TextareaAutosize)`
   background: transparent;
   border-radius: 3px;
   box-shadow: none;
-  margin: -4px 0;
+  margin: 0;
 
   letter-spacing: normal;
   word-spacing: normal;
