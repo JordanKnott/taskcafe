@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import useOnEscapeKeyDown from 'shared/hooks/onEscapeKeyDown';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
@@ -25,6 +25,11 @@ const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
   const $cardRef = useRef<HTMLDivElement>(null);
   useOnOutsideClick($cardRef, true, onClose, null);
   useOnEscapeKeyDown(isOpen, onClose);
+  useEffect(() => {
+    if ($cardRef.current) {
+      $cardRef.current.scrollIntoView();
+    }
+  });
   return (
     <CardComposerWrapper isOpen={isOpen} ref={$cardRef}>
       <Card
