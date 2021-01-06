@@ -22,6 +22,7 @@ import {
   ListCardOperation,
   CardTitle,
   CardMembers,
+  CardTitleText,
 } from './Styles';
 
 type DueDate = {
@@ -210,7 +211,7 @@ const Card = React.forwardRef(
             ) : (
               <CardTitle>
                 {complete && <CompleteIcon width={16} height={16} />}
-                {`${title}${position ? ` - ${position}` : ''}`}
+                <CardTitleText>{`${title}${position ? ` - ${position}` : ''}`}</CardTitleText>
               </CardTitle>
             )}
             <ListCardBadges>

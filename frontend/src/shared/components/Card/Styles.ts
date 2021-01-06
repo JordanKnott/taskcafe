@@ -227,18 +227,19 @@ export const ListCardOperation = styled.span`
   }
 `;
 
-export const CardTitle = styled.span`
+export const CardTitle = styled.div`
   clear: both;
   margin: 0 0 4px;
   overflow: hidden;
   text-decoration: none;
+  color: ${props => props.theme.colors.text.primary};
+  display: block;
+  align-items: center;
+`;
+export const CardTitleText = styled.span`
   word-wrap: break-word;
   line-height: 18px;
   font-size: 14px;
-  color: ${props => props.theme.colors.text.primary};
-
-  display: flex;
-  align-items: center;
 `;
 
 export const CardMembers = styled.div`
@@ -251,6 +252,7 @@ export const CompleteIcon = styled(CheckCircle)`
   fill: ${props => props.theme.colors.success};
   margin-right: 4px;
   flex-shrink: 0;
+  margin-bottom: -2px;
 `;
 
 export const EditorContent = styled.div`
