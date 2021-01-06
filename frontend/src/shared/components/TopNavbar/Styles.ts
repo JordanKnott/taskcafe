@@ -65,6 +65,11 @@ export const ProfileNameWrapper = styled.div`
   line-height: 1.25;
 `;
 
+export const NavbarLink = styled(Link)`
+  margin-right: 20px;
+  cursor: pointer;
+`;
+
 export const IconContainerWrapper = styled.div<{ disabled?: boolean }>`
   margin-right: 20px;
   cursor: pointer;

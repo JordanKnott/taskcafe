@@ -7,6 +7,7 @@ import { RoleCode } from 'shared/generated/graphql';
 import NOOP from 'shared/utils/noop';
 import { useHistory } from 'react-router';
 import {
+  NavbarLink,
   TaskcafeLogo,
   TaskcafeTitle,
   ProjectFinder,
@@ -310,12 +311,12 @@ const NavBar: React.FC<NavBarProps> = ({
           <ProjectFinder onClick={onOpenProjectFinder} variant="gradient">
             Projects
           </ProjectFinder>
-          <IconContainer onClick={() => onDashboardClick()}>
+          <NavbarLink to="">
             <HomeDashboard width={20} height={20} />
-          </IconContainer>
-          <IconContainer onClick={() => onMyTasksClick()}>
+          </NavbarLink>
+          <NavbarLink to="/tasks">
             <CheckCircle width={20} height={20} />
-          </IconContainer>
+          </NavbarLink>
           <IconContainer disabled onClick={NOOP}>
             <ListUnordered width={20} height={20} />
           </IconContainer>
