@@ -38,8 +38,10 @@ const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
         taskGroupID=""
         editable
         onEditCard={(_taskGroupID, _taskID, name) => {
-          onCreateCard(name);
-          setCardName('');
+          if (cardName.trim() !== '') {
+            onCreateCard(name.trim());
+            setCardName('');
+          }
         }}
         onCardTitleChange={name => {
           setCardName(name);
@@ -50,8 +52,10 @@ const CardComposer = ({ isOpen, onCreateCard, onClose }: Props) => {
           <AddCardButton
             variant="relief"
             onClick={() => {
-              onCreateCard(cardName);
-              setCardName('');
+              if (cardName.trim() !== '') {
+                onCreateCard(cardName.trim());
+                setCardName('');
+              }
             }}
           >
             Add Card
