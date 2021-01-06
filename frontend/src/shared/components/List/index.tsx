@@ -56,7 +56,11 @@ const List = React.forwardRef(
     };
     const onBlur = () => {
       setEditingTitle(false);
-      onSaveName(listName);
+      if (listName.trim() === '') {
+        setListName(name);
+      } else {
+        onSaveName(listName);
+      }
     };
     const onEscape = () => {
       if ($listNameRef && $listNameRef.current) {
