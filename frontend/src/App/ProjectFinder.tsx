@@ -159,7 +159,7 @@ const Minify = styled.div`
 `;
 
 const ProjectFinder = () => {
-  const { loading, data } = useGetProjectsQuery({ fetchPolicy: 'cache-and-network' });
+  const { data } = useGetProjectsQuery({ fetchPolicy: 'cache-and-network' });
   const [search, setSearch] = useState('');
   const [minified, setMinified] = useStickyState<Array<string>>([], 'project_finder_minified');
   const { hidePopup } = usePopup();
