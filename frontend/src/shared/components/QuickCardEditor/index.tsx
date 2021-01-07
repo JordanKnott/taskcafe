@@ -106,7 +106,7 @@ const QuickCardEditor = ({
             ref={$dueDate}
             onClick={e => {
               e.stopPropagation();
-              onOpenDueDatePopup($labelsRef, task);
+              onOpenDueDatePopup($dueDate, task);
             }}
           >
             Edit Due Date
