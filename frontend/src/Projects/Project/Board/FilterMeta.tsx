@@ -159,6 +159,7 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
             width="100%"
             onChange={e => handleNameChange(e.currentTarget.value)}
             value={nameFilter}
+            autoFocus
             variant="alternate"
             placeholder="Task name..."
           />
