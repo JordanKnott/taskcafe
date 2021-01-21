@@ -43,7 +43,7 @@
     "graphql": "^15.0.0",
     "graphql-tag": "^2.10.3",
     "history": "^4.10.1",
-    "immer": "^6.0.3",
+    "immer": "^8.0.1",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.20",
     "node-emoji": "^1.10.0",
