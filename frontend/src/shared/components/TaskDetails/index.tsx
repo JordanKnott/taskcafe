@@ -294,7 +294,6 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const $addMemberBtn = useRef<HTMLDivElement>(null);
   const $dueDateBtn = useRef<HTMLDivElement>(null);
   const $detailsTitle = useRef<HTMLTextAreaElement>(null);
-  const $addLabel = useRef<HTMLDivElement>(null);
 
   const activityStream: Array<{ id: string; data: { time: string; type: 'comment' | 'activity' } }> = [];
 
@@ -475,7 +474,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                     />
                   );
                 })}
-                <TaskDetailsAddLabelIcon ref={$addLabel} onClick={() => onOpenAddLabelPopup(task, $addLabel)}>
+                <TaskDetailsAddLabelIcon>
                   <Plus width={12} height={12} />
                 </TaskDetailsAddLabelIcon>
               </MetaDetailContent>
