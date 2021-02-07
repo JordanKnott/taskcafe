@@ -2,12 +2,10 @@ import _ from 'lodash';
 
 export function getCorrectNode(data: OutlineData, node: OutlineNode | null, depth: number) {
   if (node) {
-    console.log(depth, node);
     if (depth === node.depth) {
       return node;
     }
     const parent = node.ancestors[depth];
-    console.log('parent', parent);
     if (parent) {
       const parentNode = data.relationships.get(parent);
       if (parentNode) {
@@ -43,7 +41,6 @@ export function getNodeAbove(node: OutlineNode, startingParent: RelationshipChil
             position: parentNode.position,
             children: parentNode.children,
           };
-          console.log('node above', nodeAbove);
         }
         hasChildren = false;
         continue;
@@ -65,7 +62,6 @@ export function getNodeAbove(node: OutlineNode, startingParent: RelationshipChil
       }
     }
   }
-  console.log('final node above', nodeAbove);
   return nodeAbove;
 }
 
@@ -115,7 +111,6 @@ export function getTargetDepth(mouseX: number, handleLeft: number, availableDept
   let curDepth = availableDepths.max - 1;
   for (let x = availableDepths.min; x < availableDepths.max; x++) {
     const breakpoint = handleLeft - x * 35;
-    // console.log(`mouseX=${mouseX} breakpoint=${breakpoint} x=${x} curDepth=${curDepth}`);
     if (mouseX > breakpoint) {
       return curDepth;
     }
@@ -137,10 +132,6 @@ export function findNextDraggable(pos: { x: number; y: number }, outline: Outlin
     const target = dimensions ? getDimensions(dimensions.entry) : null;
     const children = dimensions ? getDimensions(dimensions.children) : null;
     if (target) {
-      console.log(
-        `[${id}] ${pos.y} <= ${target.bottom} = ${pos.y <= target.bottom} / ${pos.y} >= ${target.top} = ${pos.y >=
-          target.top}`,
-      );
       if (pos.y <= target.bottom && pos.y >= target.top) {
         const middlePoint = target.top + target.height / 2;
         const position: ImpactPosition = pos.y > middlePoint ? 'after' : 'before';
@@ -152,10 +143,6 @@ export function findNextDraggable(pos: { x: number; y: number }, outline: Outlin
       }
     }
     if (children) {
-      console.log(
-        `[${id}] ${pos.y} <= ${children.bottom} = ${pos.y <= children.bottom} / ${pos.y} >= ${children.top} = ${pos.y >=
-          children.top}`,
-      );
       if (pos.y <= children.bottom && pos.y >= children.top) {
         const position: ImpactPosition = 'after';
         return { found: false, node, position };
@@ -207,7 +194,7 @@ export function findNodeDepth(published: Map<string, string>, id: string) {
         throw new Error('node depth breaker was thrown');
       }
     } else {
-      throw new Error('unable to find nextID');
+      return null;
     }
   }
   return { depth, ancestors };
@@ -358,4 +345,65 @@ export function getLastChildInBranch(outline: OutlineData, lastParentNode: Outli
     return { id: finalID, depth };
   }
   return null;
+}
+
+export function getCaretPosition(editableDiv: any) {
+  /*
+  let caretPos = 0;
+  let sel: any = null;
+  let range: any = null;
+  if (window.getSelection) {
+    sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      range = sel.getRangeAt(0);
+      if (range.commonAncestorContainer.parentNode === editableDiv.current) {
+        caretPos = range.endOffset;
+      }
+    }
+  }
+  */
+  return editableDiv.selectionEnd;
+}
+
+export function createRange(node: any, chars: any, range: any) {
+  if (!range) {
+    range = document.createRange();
+    range.selectNode(node);
+    range.setStart(node, 0);
+  }
+
+  if (chars.count === 0) {
+    range.setEnd(node, chars.count);
+  } else if (node && chars.count > 0) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent.length < chars.count) {
+        chars.count -= node.textContent.length;
+      } else {
+        range.setEnd(node, chars.count);
+        chars.count = 0;
+      }
+    } else {
+      for (var lp = 0; lp < node.childNodes.length; lp++) {
+        range = createRange(node.childNodes[lp], chars, range);
+
+        if (chars.count === 0) {
+          break;
+        }
+      }
+    }
+  }
+
+  return range;
+}
+
+export function setCurrentCursorPosition(element: any, chars: any) {
+  if (chars >= 0) {
+    const selection = window.getSelection();
+    const range = createRange(element, { count: chars }, false);
+    if (range && selection) {
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  }
 }

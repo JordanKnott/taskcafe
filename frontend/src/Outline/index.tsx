@@ -21,6 +21,9 @@ import {
   EntryContent,
   RootWrapper,
   EntryHandle,
+  PageNameContent,
+  PageNameText,
+  PageName,
 } from './Styles';
 import {
   transformToTree,
@@ -33,14 +36,49 @@ import {
   getNodeOver,
   getCorrectNode,
   findCommonParent,
+  getNodeAbove,
+  findNodeAbove,
 } from './utils';
 import NOOP from 'shared/utils/noop';
+
+enum CommandType {
+  MOVE,
+  MERGE,
+  CHANGE_TEXT,
+  DELETE,
+  CREATE,
+}
+
+type MoveData = {
+  prev: { position: number; parent: string | null };
+  next: { position: number; parent: string | null };
+};
+
+type ChangeTextData = {
+  node: {
+    id: string;
+    parentID: string;
+    position: number;
+  };
+  caret: number;
+  prev: string;
+  next: string;
+};
+
+type DeleteData = {
+  node: {
+    id: string;
+    parentID: string;
+    position: number;
+    text: string;
+  };
+};
 
 type OutlineCommand = {
   nodes: Array<{
     id: string;
-    prev: { position: number; parent: string | null };
-    next: { position: number; parent: string | null };
+    type: CommandType;
+    data: MoveData | DeleteData | ChangeTextData;
   }>;
 };
 
@@ -49,19 +87,49 @@ type ItemCollapsed = {
   collapsed: boolean;
 };
 
+function generateItems(c: number) {
+  const items: Array<ItemElement> = [];
+  for (let i = 0; i < c; i++) {
+    items.push({
+      collapsed: false,
+      focus: null,
+      id: `entry-gen-${i}`,
+      text: `entry-gen-${i}`,
+      parent: 'root',
+      position: 4096 * (6 + i),
+    });
+  }
+  return items;
+}
+
 const listItems: Array<ItemElement> = [
-  { id: 'root', position: 4096, parent: null, collapsed: false },
-  { id: 'entry-1', position: 4096, parent: 'root', collapsed: false },
-  { id: 'entry-1_3', position: 4096 * 3, parent: 'entry-1', collapsed: false },
-  { id: 'entry-1_3_1', position: 4096, parent: 'entry-1_3', collapsed: false },
-  { id: 'entry-1_3_2', position: 4096 * 2, parent: 'entry-1_3', collapsed: false },
-  { id: 'entry-1_3_3', position: 4096 * 3, parent: 'entry-1_3', collapsed: false },
-  { id: 'entry-1_3_3_1', position: 4096 * 1, parent: 'entry-1_3_3', collapsed: false },
-  { id: 'entry-1_3_3_1_1', position: 4096 * 1, parent: 'entry-1_3_3_1', collapsed: false },
-  { id: 'entry-2', position: 4096 * 2, parent: 'root', collapsed: false },
-  { id: 'entry-3', position: 4096 * 3, parent: 'root', collapsed: false },
-  { id: 'entry-4', position: 4096 * 4, parent: 'root', collapsed: false },
-  { id: 'entry-5', position: 4096 * 5, parent: 'root', collapsed: false },
+  { id: 'root', text: '', position: 4096, parent: null, collapsed: false, focus: null },
+  { id: 'entry-1', text: 'entry-1', position: 4096, parent: 'root', collapsed: false, focus: null },
+  { id: 'entry-1-3', text: 'entry-1-3', position: 4096 * 3, parent: 'entry-1', collapsed: false, focus: null },
+  { id: 'entry-1-3-1', text: 'entry-1-3-1', position: 4096, parent: 'entry-1-3', collapsed: false, focus: null },
+  { id: 'entry-1-3-2', text: 'entry-1-3-2', position: 4096 * 2, parent: 'entry-1-3', collapsed: false, focus: null },
+  { id: 'entry-1-3-3', text: 'entry-1-3-3', position: 4096 * 3, parent: 'entry-1-3', collapsed: false, focus: null },
+  {
+    id: 'entry-1-3-3-1',
+    text: '*Hello!* I am `doing super` well ~how~ are **you**?',
+    position: 4096 * 1,
+    parent: 'entry-1-3-3',
+    collapsed: false,
+    focus: null,
+  },
+  {
+    id: 'entry-1-3-3-1-1',
+    text: 'entry-1-3-3-1-1',
+    position: 4096 * 1,
+    parent: 'entry-1-3-3-1',
+    collapsed: false,
+    focus: null,
+  },
+  { id: 'entry-2', text: 'entry-2', position: 4096 * 2, parent: 'root', collapsed: false, focus: null },
+  { id: 'entry-3', text: 'entry-3', position: 4096 * 3, parent: 'root', collapsed: false, focus: null },
+  { id: 'entry-4', text: 'entry-4', position: 4096 * 4, parent: 'root', collapsed: false, focus: null },
+  { id: 'entry-5', text: 'entry-5', position: 4096 * 5, parent: 'root', collapsed: false, focus: null },
+  ...generateItems(100),
 ];
 
 const Outline: React.FC = () => {
@@ -133,7 +201,11 @@ const Outline: React.FC = () => {
       }
       const parent = curParent ?? 'root';
       outline.current.published.set(id, parent ?? 'root');
-      const { depth, ancestors } = findNodeDepth(outline.current.published, id);
+      const foundDepth = findNodeDepth(outline.current.published, id);
+      if (foundDepth === null) {
+        continue;
+      }
+      const { depth, ancestors } = foundDepth;
       const collapsedParent = ancestors.slice(0, -1).find(a => collapsedMap.get(a));
       if (collapsedParent) {
         continue;
@@ -184,9 +256,29 @@ const Outline: React.FC = () => {
           produce(prevItems, draftItems => {
             currentCommand.nodes.forEach(node => {
               const idx = prevItems.findIndex(c => c.id === node.id);
-              if (idx !== -1) {
-                draftItems[idx].parent = node.prev.parent;
-                draftItems[idx].position = node.prev.position;
+              if (node.type === CommandType.MOVE) {
+                if (idx === -1) return;
+                const data = node.data as MoveData;
+                draftItems[idx].parent = data.prev.parent;
+                draftItems[idx].position = data.prev.position;
+              } else if (node.type === CommandType.CHANGE_TEXT) {
+                if (idx === -1) return;
+                const data = node.data as ChangeTextData;
+                draftItems[idx] = produce(prevItems[idx], draftItem => {
+                  draftItem.text = data.prev;
+                  draftItem.focus = { caret: data.caret };
+                });
+              } else if (node.type === CommandType.DELETE) {
+                const data = node.data as DeleteData;
+                draftItems.push({
+                  id: data.node.id,
+                  position: data.node.position,
+                  parent: data.node.parentID,
+                  text: '',
+                  focus: { caret: null },
+                  children: [],
+                  collapsed: false,
+                });
               }
             });
             outlineHistory.current.current--;
@@ -201,8 +293,11 @@ const Outline: React.FC = () => {
             currentCommand.nodes.forEach(node => {
               const idx = prevItems.findIndex(c => c.id === node.id);
               if (idx !== -1) {
-                draftItems[idx].parent = node.next.parent;
-                draftItems[idx].position = node.next.position;
+                if (node.type === CommandType.MOVE) {
+                  const data = node.data as MoveData;
+                  draftItems[idx].parent = data.next.parent;
+                  draftItems[idx].position = data.next.position;
+                }
               }
             });
             outlineHistory.current.current++;
@@ -308,6 +403,8 @@ const Outline: React.FC = () => {
     };
   }, []);
 
+  const $page = useRef<HTMLDivElement>(null);
+  const $pageName = useRef<HTMLDivElement>(null);
   if (!root) {
     return null;
   }
@@ -331,13 +428,9 @@ const Outline: React.FC = () => {
                   listPosition = lastChild.position * 2.0;
                 }
               } else {
-                console.log(zone.above);
-                console.log(zone.below);
                 const correctNode = getCorrectNode(outline.current, zone.above ? zone.above.node : null, depth);
-                console.log(correctNode);
                 const listAbove = validateDepth(correctNode, depth);
                 const listBelow = validateDepth(zone.below ? zone.below.node : null, depth);
-                console.log(listAbove, listBelow);
                 if (listAbove && listBelow) {
                   listPosition = (listAbove.position + listBelow.position) / 2.0;
                 } else if (listAbove && !listBelow) {
@@ -378,10 +471,192 @@ const Outline: React.FC = () => {
         }}
       >
         <>
-          <PageContainer>
+          <PageContainer ref={$page}>
             <PageContent>
               <RootWrapper ref={$content}>
+                <PageName>
+                  <PageNameContent ref={$pageName}>
+                    <PageNameText>entry-1-3-1</PageNameText>
+                  </PageNameContent>
+                </PageName>
                 <Entry
+                  onDepthChange={(id, parentID, position, depth, depthDelta) => {
+                    if (depthDelta === -1) {
+                      const parentRelation = outline.current.relationships.get(parentID);
+                      if (parentRelation) {
+                        const nodeIdx = parentRelation.children
+                          .sort((a, b) => a.position - b.position)
+                          .findIndex(c => c.id === id);
+                        if (parentRelation.children.length !== 0) {
+                          const grandparent = outline.current.published.get(parentID);
+                          if (grandparent) {
+                            const grandparentNode = outline.current.relationships.get(grandparent);
+                            if (grandparentNode) {
+                              const parents = grandparentNode.children.sort((a, b) => a.position - b.position);
+                              const parentIdx = parents.findIndex(c => c.id === parentID);
+                              if (parentIdx === -1) return;
+                              let position = parents[parentIdx].position * 2;
+                              const nextParent = parents[parentIdx + 1];
+                              if (nextParent) {
+                                position = (parents[parentIdx].position + nextParent.position) / 2.0;
+                              }
+                              setItems(prevItems =>
+                                produce(prevItems, draftItems => {
+                                  const idx = prevItems.findIndex(c => c.id === id);
+                                  draftItems[idx] = produce(prevItems[idx], draftItem => {
+                                    draftItem.parent = grandparent;
+                                    draftItem.position = position;
+                                    draftItem.focus = { caret: 0 };
+                                  });
+                                }),
+                              );
+                            }
+                          }
+                        }
+                      }
+                    } else {
+                      const parent = outline.current.relationships.get(parentID);
+                      if (parent) {
+                        const nodeIdx = parent.children
+                          .sort((a, b) => a.position - b.position)
+                          .findIndex(c => c.id === id);
+                        const aboveNode = parent.children[nodeIdx - 1];
+                        if (aboveNode) {
+                          const aboveNodeRelations = outline.current.relationships.get(aboveNode.id);
+                          let position = 65535;
+                          if (aboveNodeRelations) {
+                            const children = aboveNodeRelations.children.sort((a, b) => a.position - b.position);
+                            if (children.length !== 0) {
+                              position = children[children.length - 1].position * 2;
+                            }
+                          }
+                          setItems(prevItems =>
+                            produce(prevItems, draftItems => {
+                              const idx = prevItems.findIndex(c => c.id === id);
+                              draftItems[idx] = produce(prevItems[idx], draftItem => {
+                                draftItem.parent = aboveNode.id;
+                                draftItem.position = position;
+                                draftItem.focus = { caret: 0 };
+                              });
+                            }),
+                          );
+                        }
+                      }
+                    }
+                  }}
+                  onTextChange={(id, prev, next, caret) => {
+                    outlineHistory.current.current += 1;
+                    const data: ChangeTextData = {
+                      node: {
+                        id,
+                        position: 0,
+                        parentID: '',
+                      },
+                      caret,
+                      prev,
+                      next,
+                    };
+                    const command: OutlineCommand = {
+                      nodes: [
+                        {
+                          id,
+                          type: CommandType.CHANGE_TEXT,
+                          data,
+                        },
+                      ],
+                    };
+                    outlineHistory.current.commands[outlineHistory.current.current] = command;
+                    if (outlineHistory.current.commands[outlineHistory.current.current + 1]) {
+                      outlineHistory.current.commands.splice(outlineHistory.current.current + 1);
+                    }
+                    setItems(prevItems =>
+                      produce(prevItems, draftItems => {
+                        const idx = prevItems.findIndex(c => c.id === id);
+                        if (idx !== -1) {
+                          draftItems[idx] = produce(prevItems[idx], draftItem => {
+                            draftItem.text = next;
+                          });
+                        }
+                      }),
+                    );
+                  }}
+                  text=""
+                  autoFocus={null}
+                  onDeleteEntry={(depth, id, text, caretPos) => {
+                    const nodeDepth = outline.current.nodes.get(depth);
+                    if (nodeDepth) {
+                      const node = nodeDepth.get(id);
+                      if (node) {
+                        const nodeAbove = findNodeAbove(outline.current, depth, node);
+                        setItems(prevItems => {
+                          return produce(prevItems, draftItems => {
+                            draftItems = prevItems.filter(c => c.id !== id);
+                            const idx = prevItems.findIndex(c => c.id === nodeAbove?.id);
+                            if (idx !== -1) {
+                              draftItems[idx] = produce(prevItems[idx], draftItem => {
+                                draftItem.focus = { caret: draftItem.text.length };
+                                const cType = CommandType.DELETE;
+                                const data: DeleteData = {
+                                  node: {
+                                    id,
+                                    position: node.position,
+                                    parentID: node.parent,
+                                    text: '',
+                                  },
+                                };
+                                if (text !== '') {
+                                  draftItem.text += text;
+                                }
+
+                                const command: OutlineCommand = {
+                                  nodes: [
+                                    {
+                                      id,
+                                      type: cType,
+                                      data,
+                                    },
+                                  ],
+                                };
+                                outlineHistory.current.current += 1;
+                                outlineHistory.current.commands[outlineHistory.current.current] = command;
+                                if (outlineHistory.current.commands[outlineHistory.current.current + 1]) {
+                                  outlineHistory.current.commands.splice(outlineHistory.current.current + 1);
+                                }
+                              });
+                            }
+                            return draftItems;
+                          });
+                        });
+                      }
+                    }
+                  }}
+                  onCreateEntry={(parent, position) => {
+                    setItems(prevItems =>
+                      produce(prevItems, draftItems => {
+                        draftItems.push({
+                          id: '' + Math.random(),
+                          collapsed: false,
+                          position,
+                          text: '',
+                          focus: {
+                            caret: null,
+                          },
+                          parent,
+                          children: [],
+                        });
+                      }),
+                    );
+                  }}
+                  onNodeFocused={id => {
+                    setItems(prevItems =>
+                      produce(prevItems, draftItems => {
+                        const idx = draftItems.findIndex(c => c.id === id);
+                        draftItems[idx] = produce(draftItems[idx], draftItem => {
+                          draftItem.focus = null;
+                        });
+                      }),
+                    );
+                  }}
                   onStartSelect={({ id, depth }) => {
                     setSelection(null);
                     setSelecting({ isSelecting: true, node: { id, depth } });
@@ -407,6 +682,7 @@ const Outline: React.FC = () => {
                     setImpact(null);
                     setDragging({ show: false, draggedNodes: null, initialPos: { x: 0, y: 0 } });
                   }}
+                  onHandleClick={id => {}}
                   onStartDrag={e => {
                     if (e.id !== 'root') {
                       if (selectRef.current.hasSelection && selection && selection.nodes.find(c => c.id === e.id)) {
@@ -430,6 +706,7 @@ const Outline: React.FC = () => {
             <Dragger
               container={$content}
               initialPos={dragging.initialPos}
+              pageRef={$page}
               draggedNodes={{ nodes: dragging.draggedNodes, first: selection ? selection.first : null }}
               isDragging={dragging.show}
               onDragEnd={() => {
@@ -464,13 +741,16 @@ const Outline: React.FC = () => {
                               const curDragging = itemsPrev.findIndex(i => i.id === n);
                               command.nodes.push({
                                 id: n,
-                                prev: {
-                                  parent: draftItems[curDragging].parent,
-                                  position: draftItems[curDragging].position,
-                                },
-                                next: {
-                                  parent: parentID,
-                                  position: listPosition,
+                                type: CommandType.MOVE,
+                                data: {
+                                  prev: {
+                                    parent: draftItems[curDragging].parent,
+                                    position: draftItems[curDragging].position,
+                                  },
+                                  next: {
+                                    parent: parentID,
+                                    position: listPosition,
+                                  },
                                 },
                               });
                               draftItems[curDragging].parent = parentID;

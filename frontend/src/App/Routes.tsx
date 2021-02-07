@@ -36,7 +36,10 @@ const AuthorizedRoutes = () => {
   const [loading, setLoading] = useState(true);
   const { setUser } = useCurrentUser();
   useEffect(() => {
+    const abortController = new AbortController();
+
     fetch('/auth/refresh_token', {
+      signal: abortController.signal,
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
@@ -60,6 +63,9 @@ const AuthorizedRoutes = () => {
       }
       setLoading(false);
     });
+    return () => {
+      abortController.abort();
+    };
   }, []);
   return loading ? null : (
     <Switch>

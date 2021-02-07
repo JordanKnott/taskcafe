@@ -206,10 +206,14 @@ type ImpactAction = {
 type ItemElement = {
   id: string;
   parent: null | string;
+  text: string;
+  focus: null | { caret: number | null };
+  zooming?: { x: number; y: number };
   position: number;
   collapsed: boolean;
   children?: Array<ItemElement>;
 };
+
 type NodeDimensions = {
   entry: React.RefObject<HTMLElement>;
   children: React.RefObject<HTMLElement> | null;
