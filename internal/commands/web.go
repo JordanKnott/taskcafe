@@ -70,7 +70,6 @@ func newWebCmd() *cobra.Command {
 				}
 			}
 
-			log.WithFields(log.Fields{"url": viper.GetString("server.hostname")}).Info("starting server")
 			secret := viper.GetString("server.secret")
 			if strings.TrimSpace(secret) == "" {
 				log.Warn("server.secret is not set, generating a random secret")
@@ -85,6 +84,7 @@ func newWebCmd() *cobra.Command {
 				Password:           viper.GetString("smtp.password"),
 				InsecureSkipVerify: viper.GetBool("smtp.skip_verify"),
 			}, security)
+			log.WithFields(log.Fields{"url": viper.GetString("server.hostname")}).Info("starting server")
 			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},
 	}
