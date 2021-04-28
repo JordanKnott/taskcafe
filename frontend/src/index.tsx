@@ -20,15 +20,13 @@ import App from './App';
 
 // https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
 
-dayjs.extend(isSameOrAfter);
+enableMapSet();
 
+dayjs.extend(isSameOrAfter);
 dayjs.extend(weekday);
 dayjs.extend(isBetween);
 dayjs.extend(customParseFormat);
-enableMapSet();
-
 dayjs.extend(updateLocale);
-
 dayjs.updateLocale('en', {
   week: {
     dow: 1, // First day of week is Monday
