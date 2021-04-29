@@ -1,6 +1,6 @@
 import visit from 'unist-util-visit';
 import emoji from 'node-emoji';
-import emoticon from 'emoticon';
+import { emoticon } from 'emoticon';
 import { Emoji } from 'emoji-mart';
 import React from 'react';
 

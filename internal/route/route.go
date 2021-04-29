@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
@@ -80,6 +81,17 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityCon
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	r.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Cookie", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
 	repository := db.NewRepository(dbConnection)
 	taskcafeHandler := TaskcafeHandler{*repository, securityConfig}
 
@@ -91,7 +103,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityCon
 		mux.Post("/auth/confirm", taskcafeHandler.ConfirmUser)
 		mux.Post("/auth/register", taskcafeHandler.RegisterUser)
 	})
-	auth := AuthenticationMiddleware{securityConfig.Secret}
+	auth := AuthenticationMiddleware{*repository}
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)

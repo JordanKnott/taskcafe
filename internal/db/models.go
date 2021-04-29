@@ -10,6 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type AuthToken struct {
+	TokenID   uuid.UUID `json:"token_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 type LabelColor struct {
 	LabelColorID uuid.UUID `json:"label_color_id"`
 	ColorHex     string    `json:"color_hex"`
@@ -72,13 +79,6 @@ type ProjectMemberInvited struct {
 	ProjectMemberInvitedID uuid.UUID `json:"project_member_invited_id"`
 	ProjectID              uuid.UUID `json:"project_id"`
 	UserAccountInvitedID   uuid.UUID `json:"user_account_invited_id"`
-}
-
-type RefreshToken struct {
-	TokenID   uuid.UUID `json:"token_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
 }
 
 type Role struct {

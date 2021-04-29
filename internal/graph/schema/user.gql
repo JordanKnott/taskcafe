@@ -1,5 +1,4 @@
 extend type Mutation {
-  createRefreshToken(input: NewRefreshToken!): RefreshToken!
   createUserAccount(input: NewUserAccount!):
     UserAccount! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
   deleteUserAccount(input: DeleteUserAccount!):
@@ -70,10 +69,6 @@ input UpdateUserRole {
 
 type UpdateUserRolePayload {
   user: UserAccount!
-}
-
-input NewRefreshToken {
-  userID: UUID!
 }
 
 input NewUserAccount {

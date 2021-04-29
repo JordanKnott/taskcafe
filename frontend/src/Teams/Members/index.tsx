@@ -3,7 +3,7 @@ import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
 import Button from 'shared/components/Button';
-import { useCurrentUser, PermissionLevel, PermissionObjectType } from 'App/context';
+import { useCurrentUser } from 'App/context';
 import Select from 'shared/components/Select';
 import {
   useGetTeamQuery,
@@ -424,7 +424,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
     fetchPolicy: 'cache-and-network',
     pollInterval: 3000,
   });
-  const { user, setUserRoles } = useCurrentUser();
+  const { user } = useCurrentUser();
   const warning =
     'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
   const [createTeamMember] = useCreateTeamMemberMutation({
@@ -446,17 +446,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
       );
     },
   });
-  const [updateTeamMemberRole] = useUpdateTeamMemberRoleMutation({
-    onCompleted: r => {
-      if (user) {
-        setUserRoles(
-          produce(user.roles, draftRoles => {
-            draftRoles.teams.set(r.updateTeamMemberRole.teamID, r.updateTeamMemberRole.member.role.code);
-          }),
-        );
-      }
-    },
-  });
+  const [updateTeamMemberRole] = useUpdateTeamMemberRoleMutation();
   const [deleteTeamMember] = useDeleteTeamMemberMutation({
     update: (client, response) => {
       updateApolloCache<GetTeamQuery>(
@@ -491,7 +481,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
             </ListDesc>
             <ListActions>
               <FilterSearch width="250px" variant="alternate" placeholder="Filter by name" />
-              {user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, data.findTeam.id) && (
+              {true && ( // TODO: add permission check
                 <InviteMemberButton
                   onClick={$target => {
                     showPopup(
@@ -528,11 +518,12 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
                       showPopup(
                         $target,
                         <TeamRoleManagerPopup
-                          currentUserID={user.id ?? ''}
+                          currentUserID={user ?? ''}
                           subject={member}
                           members={data.findTeam.members}
                           warning={member.role && member.role.code === 'owner' ? warning : null}
-                          canChangeRole={user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID)}
+                          // canChangeRole={user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID)} TODO: add permission check
+                          canChangeRole={true}
                           onChangeRole={roleCode => {
                             updateTeamMemberRole({ variables: { userID: member.id, teamID, roleCode } });
                           }}

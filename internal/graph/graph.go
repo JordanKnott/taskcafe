@@ -17,7 +17,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/google/uuid"
-	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	"github.com/jordanknott/taskcafe/internal/utils"
@@ -34,15 +33,18 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 		},
 	}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (interface{}, error) {
-		role, ok := GetUserRole(ctx)
-		if !ok {
-			return nil, errors.New("user ID is missing")
-		}
-		if role == "admin" {
-			return next(ctx)
-		} else if level == ActionLevelOrg {
-			return nil, errors.New("must be an org admin")
-		}
+		/*
+			TODO: add permission check
+			role, ok := GetUserRole(ctx)
+			if !ok {
+				return nil, errors.New("user ID is missing")
+			}
+			if role == "admin" {
+				return next(ctx)
+			} else if level == ActionLevelOrg {
+				return nil, errors.New("must be an org admin")
+			}
+		*/
 
 		var subjectID uuid.UUID
 		in := graphql.GetFieldContext(ctx).Args["input"]
@@ -76,7 +78,7 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 			// TODO: add config setting to disable personal projects
 			return next(ctx)
 		}
-		subjectID, ok = subjectField.Interface().(uuid.UUID)
+		subjectID, ok := subjectField.Interface().(uuid.UUID)
 		if !ok {
 			logger.New(ctx).Error("error while casting subject UUID")
 			return nil, errors.New("error while casting subject uuid")
@@ -190,23 +192,10 @@ func GetUserID(ctx context.Context) (uuid.UUID, bool) {
 	return userID, ok
 }
 
-// GetUserRole retrieves the user role out of a context
-func GetUserRole(ctx context.Context) (auth.Role, bool) {
-	role, ok := ctx.Value(utils.OrgRoleKey).(auth.Role)
-	return role, ok
-}
-
 // GetUser retrieves both the user id & user role out of a context
-func GetUser(ctx context.Context) (uuid.UUID, auth.Role, bool) {
+func GetUser(ctx context.Context) (uuid.UUID, bool) {
 	userID, userOK := GetUserID(ctx)
-	role, roleOK := GetUserRole(ctx)
-	return userID, role, userOK && roleOK
-}
-
-// GetRestrictedMode retrieves the restricted mode code out of a context
-func GetRestrictedMode(ctx context.Context) (auth.RestrictedMode, bool) {
-	restricted, ok := ctx.Value(utils.RestrictedModeKey).(auth.RestrictedMode)
-	return restricted, ok
+	return userID, userOK
 }
 
 // GetProjectRoles retrieves the team & project role for the given project ID

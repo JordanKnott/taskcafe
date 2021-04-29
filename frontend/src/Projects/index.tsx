@@ -12,7 +12,7 @@ import {
 
 import { Link } from 'react-router-dom';
 import NewProject from 'shared/components/NewProject';
-import { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
+import { useCurrentUser } from 'App/context';
 import Button from 'shared/components/Button';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { useForm } from 'react-hook-form';
@@ -268,7 +268,7 @@ const Projects = () => {
         <GlobalTopNavbar onSaveProjectName={NOOP} projectID={null} name={null} />
         <Wrapper>
           <ProjectsContainer>
-            {user.roles.org === 'admin' && (
+            {true && ( // TODO: add permision check
               <AddTeamButton
                 variant="outline"
                 onClick={$target => {
@@ -330,7 +330,7 @@ const Projects = () => {
                 <div key={team.id}>
                   <ProjectSectionTitleWrapper>
                     <ProjectSectionTitle>{team.name}</ProjectSectionTitle>
-                    {user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, team.id) && (
+                    {true && ( // TODO: add permision check
                       <SectionActions>
                         <SectionActionLink to={`/teams/${team.id}`}>
                           <SectionAction variant="outline">Projects</SectionAction>
@@ -355,7 +355,7 @@ const Projects = () => {
                         </ProjectTile>
                       </ProjectListItem>
                     ))}
-                    {user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, team.id) && (
+                    {true && ( // TODO: add permision check
                       <ProjectListItem>
                         <ProjectAddTile
                           onClick={() => {

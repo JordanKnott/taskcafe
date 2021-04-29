@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useHistory } from 'react-router';
-import JwtDecode from 'jwt-decode';
-import { setAccessToken } from 'shared/utils/accessToken';
 import Login from 'shared/components/Login';
 import UserContext from 'App/context';
 import { Container, LoginWrapper } from './Styles';
@@ -30,42 +28,23 @@ const Auth = () => {
         setComplete(true);
       } else {
         const response = await x.json();
-        const { accessToken } = response;
-        const claims: JWTToken = JwtDecode(accessToken);
-        const currentUser = {
-          id: claims.userId,
-          roles: { org: claims.orgRole, teams: new Map<string, string>(), projects: new Map<string, string>() },
-        };
-        setUser(currentUser);
-        setComplete(true);
-        setAccessToken(accessToken);
-
+        const { userID } = response;
+        setUser(userID);
         history.push('/');
       }
     });
   };
 
   useEffect(() => {
-    fetch('/auth/refresh_token', {
+    fetch('/auth/validate', {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
-      const { status } = x;
-      if (status === 200) {
-        const response: RefreshTokenResponse = await x.json();
-        const { accessToken, setup } = response;
-        if (setup) {
-          history.replace(`/register?confirmToken=${setup.confirmToken}`);
-        } else {
-          const claims: JWTToken = JwtDecode(accessToken);
-          const currentUser = {
-            id: claims.userId,
-            roles: { org: claims.orgRole, teams: new Map<string, string>(), projects: new Map<string, string>() },
-          };
-          setUser(currentUser);
-          setAccessToken(accessToken);
-          history.replace('/projects');
-        }
+      const response = await x.json();
+      const { valid, userID } = response;
+      if (valid) {
+        setUser(userID);
+        history.replace('/projects');
       }
     });
   }, []);

@@ -543,7 +543,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                     onChangeTaskMetaFilter={filter => {
                       setTaskMetaFilters(filter);
                     }}
-                    userID={user?.id}
+                    userID={user ?? ''}
                     labels={labelsRef}
                     members={membersRef}
                   />,

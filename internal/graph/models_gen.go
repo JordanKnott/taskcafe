@@ -255,6 +255,7 @@ type LogoutUser struct {
 
 type MePayload struct {
 	User         *db.UserAccount `json:"user"`
+	Organization *RoleCode       `json:"organization"`
 	TeamRoles    []TeamRole      `json:"teamRoles"`
 	ProjectRoles []ProjectRole   `json:"projectRoles"`
 }
@@ -310,10 +311,6 @@ type NewProjectLabel struct {
 	ProjectID    uuid.UUID `json:"projectID"`
 	LabelColorID uuid.UUID `json:"labelColorID"`
 	Name         *string   `json:"name"`
-}
-
-type NewRefreshToken struct {
-	UserID uuid.UUID `json:"userID"`
 }
 
 type NewTask struct {
@@ -382,6 +379,12 @@ type ProfileIcon struct {
 	BgColor  *string `json:"bgColor"`
 }
 
+type ProjectPermission struct {
+	Team    RoleCode `json:"team"`
+	Project RoleCode `json:"project"`
+	Org     RoleCode `json:"org"`
+}
+
 type ProjectRole struct {
 	ProjectID uuid.UUID `json:"projectID"`
 	RoleCode  RoleCode  `json:"roleCode"`
@@ -433,6 +436,11 @@ type TaskBadges struct {
 type TaskPositionUpdate struct {
 	TaskID   uuid.UUID `json:"taskID"`
 	Position float64   `json:"position"`
+}
+
+type TeamPermission struct {
+	Team RoleCode `json:"team"`
+	Org  RoleCode `json:"org"`
 }
 
 type TeamRole struct {

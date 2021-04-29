@@ -13,7 +13,7 @@ import { usePopup, Popup } from 'shared/components/PopupMenu';
 import { History } from 'history';
 import produce from 'immer';
 import { TeamSettings, DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
-import { PermissionObjectType, PermissionLevel, useCurrentUser } from 'App/context';
+import { useCurrentUser } from 'App/context';
 import NOOP from 'shared/utils/noop';
 import Members from './Members';
 import Projects from './Projects';
@@ -95,9 +95,12 @@ const Teams = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const match = useRouteMatch();
   if (data && user) {
+    /*
+TODO: re-add permission check
     if (!user.isVisible(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID)) {
       return <Redirect to="/" />;
     }
+     */
     return (
       <>
         <GlobalTopNavbar

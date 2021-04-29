@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CreateAuthToken(ctx context.Context, arg CreateAuthTokenParams) (AuthToken, error)
 	CreateConfirmToken(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	CreateInvitedProjectMember(ctx context.Context, arg CreateInvitedProjectMemberParams) (ProjectMemberInvited, error)
 	CreateInvitedUser(ctx context.Context, email string) (UserAccountInvited, error)
@@ -20,7 +21,6 @@ type Querier interface {
 	CreatePersonalProjectLink(ctx context.Context, arg CreatePersonalProjectLinkParams) (PersonalProject, error)
 	CreateProjectLabel(ctx context.Context, arg CreateProjectLabelParams) (ProjectLabel, error)
 	CreateProjectMember(ctx context.Context, arg CreateProjectMemberParams) (ProjectMember, error)
-	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateSystemOption(ctx context.Context, arg CreateSystemOptionParams) (SystemOption, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateTaskActivity(ctx context.Context, arg CreateTaskActivityParams) (TaskActivity, error)
@@ -35,6 +35,8 @@ type Querier interface {
 	CreateTeamMember(ctx context.Context, arg CreateTeamMemberParams) (TeamMember, error)
 	CreateTeamProject(ctx context.Context, arg CreateTeamProjectParams) (Project, error)
 	CreateUserAccount(ctx context.Context, arg CreateUserAccountParams) (UserAccount, error)
+	DeleteAuthTokenByID(ctx context.Context, tokenID uuid.UUID) error
+	DeleteAuthTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteConfirmTokenForEmail(ctx context.Context, email string) error
 	DeleteExpiredTokens(ctx context.Context) error
 	DeleteInvitedProjectMemberByID(ctx context.Context, projectMemberInvitedID uuid.UUID) error
@@ -43,8 +45,6 @@ type Querier interface {
 	DeleteProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) error
 	DeleteProjectMember(ctx context.Context, arg DeleteProjectMemberParams) error
 	DeleteProjectMemberInvitedForEmail(ctx context.Context, email string) error
-	DeleteRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) error
-	DeleteRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteTaskAssignedByID(ctx context.Context, arg DeleteTaskAssignedByIDParams) (TaskAssigned, error)
 	DeleteTaskByID(ctx context.Context, taskID uuid.UUID) error
 	DeleteTaskChecklistByID(ctx context.Context, taskChecklistID uuid.UUID) error
@@ -71,6 +71,7 @@ type Querier interface {
 	GetAssignedMembersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskAssigned, error)
 	GetAssignedTasksDueDateForUserID(ctx context.Context, arg GetAssignedTasksDueDateForUserIDParams) ([]Task, error)
 	GetAssignedTasksProjectForUserID(ctx context.Context, arg GetAssignedTasksProjectForUserIDParams) ([]Task, error)
+	GetAuthTokenByID(ctx context.Context, tokenID uuid.UUID) (AuthToken, error)
 	GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error)
 	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)
@@ -100,7 +101,6 @@ type Querier interface {
 	GetProjectRolesForUserID(ctx context.Context, userID uuid.UUID) ([]GetProjectRolesForUserIDRow, error)
 	GetProjectsForInvitedMember(ctx context.Context, email string) ([]uuid.UUID, error)
 	GetRecentlyAssignedTaskForUserID(ctx context.Context, arg GetRecentlyAssignedTaskForUserIDParams) ([]Task, error)
-	GetRefreshTokenByID(ctx context.Context, tokenID uuid.UUID) (RefreshToken, error)
 	GetRoleForProjectMemberByUserID(ctx context.Context, arg GetRoleForProjectMemberByUserIDParams) (Role, error)
 	GetRoleForTeamMember(ctx context.Context, arg GetRoleForTeamMemberParams) (Role, error)
 	GetRoleForUserID(ctx context.Context, userID uuid.UUID) (GetRoleForUserIDRow, error)

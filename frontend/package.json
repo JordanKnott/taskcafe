@@ -39,7 +39,7 @@
     "dayjs": "^1.9.1",
     "dompurify": "^2.2.6",
     "emoji-mart": "^3.0.0",
-    "emoticon": "^3.2.0",
+    "emoticon": "^4.0.0",
     "graphql": "^15.0.0",
     "graphql-tag": "^2.10.3",
     "history": "^4.10.1",

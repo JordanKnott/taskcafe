@@ -13,8 +13,6 @@ import Login from 'Auth';
 import Register from 'Register';
 import Profile from 'Profile';
 import styled from 'styled-components';
-import JwtDecode from 'jwt-decode';
-import { setAccessToken } from 'shared/utils/accessToken';
 import { useCurrentUser } from 'App/context';
 
 const MainContent = styled.div`
@@ -26,9 +24,9 @@ const MainContent = styled.div`
   flex-grow: 1;
 `;
 
-type RefreshTokenResponse = {
-  accessToken: string;
-  setup?: null | { confirmToken: string };
+type ValidateTokenResponse = {
+  valid: boolean;
+  userID: string;
 };
 
 const AuthorizedRoutes = () => {
@@ -36,27 +34,17 @@ const AuthorizedRoutes = () => {
   const [loading, setLoading] = useState(true);
   const { setUser } = useCurrentUser();
   useEffect(() => {
-    fetch('/auth/refresh_token', {
+    fetch('/auth/validate', {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
       const { status } = x;
-      if (status === 400) {
-        history.replace('/login');
+      const response: ValidateTokenResponse = await x.json();
+      const { valid, userID } = response;
+      if (!valid) {
+        history.replace(`/login`);
       } else {
-        const response: RefreshTokenResponse = await x.json();
-        const { accessToken, setup } = response;
-        if (setup) {
-          history.replace(`/register?confirmToken=${setup.confirmToken}`);
-        } else {
-          const claims: JWTToken = JwtDecode(accessToken);
-          const currentUser = {
-            id: claims.userId,
-            roles: { org: claims.orgRole, teams: new Map<string, string>(), projects: new Map<string, string>() },
-          };
-          setUser(currentUser);
-          setAccessToken(accessToken);
-        }
+        setUser(userID);
       }
       setLoading(false);
     });

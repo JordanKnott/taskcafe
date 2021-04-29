@@ -5,8 +5,6 @@ import { useHistory, useLocation } from 'react-router';
 import * as QueryString from 'query-string';
 import { toast } from 'react-toastify';
 import { Container, LoginWrapper } from './Styles';
-import JwtDecode from 'jwt-decode';
-import { setAccessToken } from 'shared/utils/accessToken';
 import { useCurrentUser } from 'App/context';
 
 const UsersConfirm = () => {
@@ -31,18 +29,8 @@ const UsersConfirm = () => {
                 const { status } = x;
                 if (status === 200) {
                   const response = await x.json();
-                  const { accessToken } = response;
-                  const claims: JWTToken = JwtDecode(accessToken);
-                  const currentUser = {
-                    id: claims.userId,
-                    roles: {
-                      org: claims.orgRole,
-                      teams: new Map<string, string>(),
-                      projects: new Map<string, string>(),
-                    },
-                  };
-                  setUser(currentUser);
-                  setAccessToken(accessToken);
+                  const { userID } = response;
+                  setUser(userID);
                   history.push('/');
                 } else {
                   setFailed();

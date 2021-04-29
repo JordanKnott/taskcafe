@@ -90,6 +90,7 @@ type ProjectRole {
 
 type MePayload {
   user: UserAccount!
+  organization: RoleCode
   teamRoles: [TeamRole!]!
   projectRoles: [ProjectRole!]!
 }

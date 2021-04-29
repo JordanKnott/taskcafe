@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import jwtDecode from 'jwt-decode';
 import { createBrowserHistory } from 'history';
 import { Router } from 'react-router';
 import { PopupProvider } from 'shared/components/PopupMenu';
 import { ToastContainer } from 'react-toastify';
-import { setAccessToken } from 'shared/utils/accessToken';
 import styled, { ThemeProvider } from 'styled-components';
 import NormalizeStyles from './NormalizeStyles';
 import BaseStyles from './BaseStyles';
 import theme from './ThemeStyles';
 import Routes from './Routes';
-import { UserContext, CurrentUserRaw, CurrentUserRoles, PermissionLevel, PermissionObjectType } from './context';
+import { UserContext } from './context';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -48,19 +46,11 @@ const StyledContainer = styled(ToastContainer).attrs({
 const history = createBrowserHistory();
 
 const App = () => {
-  const [user, setUser] = useState<CurrentUserRaw | null>(null);
-  const setUserRoles = (roles: CurrentUserRoles) => {
-    if (user) {
-      setUser({
-        ...user,
-        roles,
-      });
-    }
-  };
+  const [user, setUser] = useState<string | null>(null);
 
   return (
     <>
-      <UserContext.Provider value={{ user, setUser, setUserRoles }}>
+      <UserContext.Provider value={{ user, setUser }}>
         <ThemeProvider theme={theme}>
           <NormalizeStyles />
           <BaseStyles />

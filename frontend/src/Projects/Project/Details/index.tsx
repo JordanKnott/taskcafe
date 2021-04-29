@@ -541,7 +541,7 @@ const Details: React.FC<DetailsProps> = ({
                         bio="None"
                         onRemoveFromTask={() => {
                           if (user) {
-                            unassignTask({ variables: { taskID: data.findTask.id, userID: user.id } });
+                            unassignTask({ variables: { taskID: data.findTask.id, userID: user ?? '' } });
                           }
                         }}
                       />

@@ -50,13 +50,6 @@ type Member {
   member: MemberList!
 }
 
-type RefreshToken {
-  id: ID!
-  userId: UUID!
-  expiresAt: Time!
-  createdAt: Time!
-}
-
 type Role {
   code: String!
   name: String!
@@ -97,6 +90,7 @@ type Team {
   id: ID!
   createdAt: Time!
   name: String!
+  permission: TeamPermission!
   members: [Member!]!
 }
 
@@ -104,6 +98,17 @@ type Team {
 type InvitedMember {
   email: String!
   invitedOn: Time!
+}
+
+type TeamPermission {
+  team: RoleCode!
+  org: RoleCode!
+}
+
+type ProjectPermission {
+  team: RoleCode!
+  project: RoleCode!
+  org: RoleCode!
 }
 
 type Project {
@@ -114,6 +119,7 @@ type Project {
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   invitedMembers: [InvitedMember!]!
+  permission: ProjectPermission!
   labels: [ProjectLabel!]!
 }
 

@@ -86,6 +86,6 @@ func Execute() {
 	viper.SetDefault("queue.store", "memcache://localhost:11211")
 
 	rootCmd.SetVersionTemplate(VersionTemplate())
-	rootCmd.AddCommand(newWebCmd(), newMigrateCmd(), newTokenCmd(), newWorkerCmd(), newResetPasswordCmd(), newSeedCmd())
+	rootCmd.AddCommand(newWebCmd(), newMigrateCmd(), newWorkerCmd(), newResetPasswordCmd(), newSeedCmd())
 	rootCmd.Execute()
 }

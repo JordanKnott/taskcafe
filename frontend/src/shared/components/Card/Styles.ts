@@ -10,6 +10,7 @@ export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
   z-index: ${props => props.zIndex};
   position: relative;
 `;
+
 export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'normal' }>`
   ${props =>
     props.color === 'success' &&
@@ -18,6 +19,7 @@ export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'no
       stroke: ${props.theme.colors.success};
     `}
 `;
+
 export const ClockIcon = styled(Clock)<{ color: string }>`
   fill: ${props => props.color};
 `;
@@ -26,7 +28,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   overflow: hidden;
   overflow-wrap: break-word;
   resize: none;
-  height: 90px;
+  height: 54px;
   width: 100%;
 
   background: none;

@@ -13,7 +13,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/now"
-	"github.com/jordanknott/taskcafe/internal/auth"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	"github.com/jordanknott/taskcafe/internal/utils"
@@ -864,11 +863,12 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, input DeleteTeam) (*D
 }
 
 func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*db.Team, error) {
-	_, role, ok := GetUser(ctx)
+	_, ok := GetUser(ctx)
 	if !ok {
 		return &db.Team{}, nil
 	}
-	if role == auth.RoleAdmin {
+	// if role == auth.RoleAdmin { // TODO: add permision check
+	if true {
 		createdAt := time.Now().UTC()
 		team, err := r.Repository.CreateTeam(ctx, db.CreateTeamParams{OrganizationID: input.OrganizationID, CreatedAt: createdAt, Name: input.Name})
 		return &team, err
@@ -944,20 +944,13 @@ func (r *mutationResolver) DeleteTeamMember(ctx context.Context, input DeleteTea
 	return &DeleteTeamMemberPayload{TeamID: input.TeamID, UserID: input.UserID}, err
 }
 
-func (r *mutationResolver) CreateRefreshToken(ctx context.Context, input NewRefreshToken) (*db.RefreshToken, error) {
-	userID := uuid.MustParse("0183d9ab-d0ed-4c9b-a3df-77a0cdd93dca")
-	refreshCreatedAt := time.Now().UTC()
-	refreshExpiresAt := refreshCreatedAt.AddDate(0, 0, 1)
-	refreshToken, err := r.Repository.CreateRefreshToken(ctx, db.CreateRefreshTokenParams{userID, refreshCreatedAt, refreshExpiresAt})
-	return &refreshToken, err
-}
-
 func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserAccount) (*db.UserAccount, error) {
-	_, role, ok := GetUser(ctx)
+	_, ok := GetUser(ctx)
 	if !ok {
 		return &db.UserAccount{}, nil
 	}
-	if role != auth.RoleAdmin {
+	// if role != auth.RoleAdmin { TODO: add permsion check
+	if true {
 		return &db.UserAccount{}, &gqlerror.Error{
 			Message: "Must be an organization admin",
 			Extensions: map[string]interface{}{
@@ -984,11 +977,12 @@ func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserA
 }
 
 func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error) {
-	_, role, ok := GetUser(ctx)
+	_, ok := GetUser(ctx)
 	if !ok {
 		return &DeleteUserAccountPayload{Ok: false}, nil
 	}
-	if role != auth.RoleAdmin {
+	// if role != auth.RoleAdmin { TODO: add permision check
+	if true {
 		return &DeleteUserAccountPayload{Ok: false}, &gqlerror.Error{
 			Message: "User not found",
 			Extensions: map[string]interface{}{
@@ -1030,7 +1024,7 @@ func (r *mutationResolver) DeleteInvitedUserAccount(ctx context.Context, input D
 }
 
 func (r *mutationResolver) LogoutUser(ctx context.Context, input LogoutUser) (bool, error) {
-	err := r.Repository.DeleteRefreshTokenByUserID(ctx, input.UserID)
+	err := r.Repository.DeleteAuthTokenByUserID(ctx, input.UserID)
 	return true, err
 }
 
@@ -1059,11 +1053,12 @@ func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input UpdateU
 }
 
 func (r *mutationResolver) UpdateUserRole(ctx context.Context, input UpdateUserRole) (*UpdateUserRolePayload, error) {
-	_, role, ok := GetUser(ctx)
+	_, ok := GetUser(ctx)
 	if !ok {
 		return &UpdateUserRolePayload{}, nil
 	}
-	if role != auth.RoleAdmin {
+	// if role != auth.RoleAdmin { TODO: add permision check
+	if true {
 		return &UpdateUserRolePayload{}, &gqlerror.Error{
 			Message: "User not found",
 			Extensions: map[string]interface{}{
@@ -1211,6 +1206,10 @@ func (r *projectResolver) InvitedMembers(ctx context.Context, obj *db.Project) (
 	return invited, err
 }
 
+func (r *projectResolver) Permission(ctx context.Context, obj *db.Project) (*ProjectPermission, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *projectResolver) Labels(ctx context.Context, obj *db.Project) ([]db.ProjectLabel, error) {
 	labels, err := r.Repository.GetProjectLabelsForProject(ctx, obj.ProjectID)
 	return labels, err
@@ -1296,7 +1295,7 @@ func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*db.Task,
 }
 
 func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]db.Project, error) {
-	userID, orgRole, ok := GetUser(ctx)
+	userID, ok := GetUser(ctx)
 	if !ok {
 		logger.New(ctx).Info("user id was not found from middleware")
 		return []db.Project{}, nil
@@ -1309,11 +1308,14 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 
 	var teams []db.Team
 	var err error
+	/* TODO: add permsion check
 	if orgRole == "admin" {
 		teams, err = r.Repository.GetAllTeams(ctx)
 	} else {
 		teams, err = r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
 	}
+	*/
+	teams, err = r.Repository.GetAllTeams(ctx)
 
 	projects := make(map[string]db.Project)
 	for _, team := range teams {
@@ -1359,15 +1361,18 @@ func (r *queryResolver) FindTeam(ctx context.Context, input FindTeam) (*db.Team,
 }
 
 func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
-	userID, orgRole, ok := GetUser(ctx)
+	userID, ok := GetUser(ctx)
 	if !ok {
 		logger.New(ctx).Error("userID or org role does not exist")
 		return []db.Team{}, errors.New("internal error")
 	}
-	if orgRole == "admin" {
 
-		return r.Repository.GetAllTeams(ctx)
-	}
+	/*
+		TODO: add permision check
+		if orgRole == "admin" {
+			return r.Repository.GetAllTeams(ctx)
+		}
+	*/
 
 	teams := make(map[string]db.Team)
 	adminTeams, err := r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
@@ -1594,10 +1599,6 @@ func (r *queryResolver) SearchMembers(ctx context.Context, input MemberSearchFil
 		}
 	}
 	return results, nil
-}
-
-func (r *refreshTokenResolver) ID(ctx context.Context, obj *db.RefreshToken) (uuid.UUID, error) {
-	return obj.TokenID, nil
 }
 
 func (r *taskResolver) ID(ctx context.Context, obj *db.Task) (uuid.UUID, error) {
@@ -1848,6 +1849,10 @@ func (r *teamResolver) ID(ctx context.Context, obj *db.Team) (uuid.UUID, error) 
 	return obj.TeamID, nil
 }
 
+func (r *teamResolver) Permission(ctx context.Context, obj *db.Team) (*TeamPermission, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *teamResolver) Members(ctx context.Context, obj *db.Team) ([]Member, error) {
 	members := []Member{}
 
@@ -1966,9 +1971,6 @@ func (r *Resolver) ProjectLabel() ProjectLabelResolver { return &projectLabelRes
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// RefreshToken returns RefreshTokenResolver implementation.
-func (r *Resolver) RefreshToken() RefreshTokenResolver { return &refreshTokenResolver{r} }
-
 // Task returns TaskResolver implementation.
 func (r *Resolver) Task() TaskResolver { return &taskResolver{r} }
 
@@ -2005,7 +2007,6 @@ type organizationResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type projectLabelResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type refreshTokenResolver struct{ *Resolver }
 type taskResolver struct{ *Resolver }
 type taskActivityResolver struct{ *Resolver }
 type taskChecklistResolver struct{ *Resolver }

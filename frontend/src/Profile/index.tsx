@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components/macro';
 import GlobalTopNavbar from 'App/TopNavbar';
-import { getAccessToken } from 'shared/utils/accessToken';
 import Settings from 'shared/components/Settings';
 import {
   useMeQuery,
@@ -49,12 +48,9 @@ const Projects = () => {
           if (e.target.files) {
             const fileData = new FormData();
             fileData.append('file', e.target.files[0]);
-            const accessToken = getAccessToken();
             axios
               .post('/users/me/avatar', fileData, {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
+                withCredentials: true,
               })
               .then(res => {
                 if ($fileUpload && $fileUpload.current) {
@@ -75,7 +71,7 @@ const Projects = () => {
             }
           }}
           onResetPassword={(password, done) => {
-            updateUserPassword({ variables: { userID: user.id, password } });
+            updateUserPassword({ variables: { userID: user, password } });
             toast('Password was changed!');
             done();
           }}

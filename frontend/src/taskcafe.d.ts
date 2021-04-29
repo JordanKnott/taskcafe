@@ -59,11 +59,6 @@ type User = TaskUser & {
   owned: RelatedList;
 };
 
-type RefreshTokenResponse = {
-  accessToken: string;
-  setup?: null | { confirmToken: string };
-};
-
 type LoginFormData = {
   username: string;
   password: string;

@@ -49,6 +49,7 @@ export const NameEditor: React.FC<NameEditorProps> = ({ onSave: handleSave, onCa
       <ListNameEditorWrapper>
         <ListNameEditor
           ref={$editorRef}
+          height={40}
           onKeyDown={onKeyDown}
           value={listName}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setListName(e.currentTarget.value)}

@@ -3,13 +3,8 @@ import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
 import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
-import { PermissionLevel, PermissionObjectType, useCurrentUser } from 'App/context';
-import {
-  RoleCode,
-  useTopNavbarQuery,
-  useDeleteProjectMutation,
-  GetProjectsDocument,
-} from 'shared/generated/graphql';
+import { useCurrentUser } from 'App/context';
+import { RoleCode, useTopNavbarQuery, useDeleteProjectMutation, GetProjectsDocument } from 'shared/generated/graphql';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
@@ -107,23 +102,10 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveInvitedFromBoard,
   onRemoveFromBoard,
 }) => {
-  const { user, setUserRoles, setUser } = useCurrentUser();
+  const { user, setUser } = useCurrentUser();
   const { loading, data } = useTopNavbarQuery({
-    onCompleted: response => {
-      if (user && user.roles) {
-        setUserRoles({
-          org: user.roles.org,
-          teams: response.me.teamRoles.reduce((map, obj) => {
-            map.set(obj.teamID, obj.roleCode);
-            return map;
-          }, new Map<string, string>()),
-          projects: response.me.projectRoles.reduce((map, obj) => {
-            map.set(obj.projectID, obj.roleCode);
-            return map;
-          }, new Map<string, string>()),
-        });
-      }
-    },
+    // TODO: maybe remove?
+    onCompleted: response => {},
   });
   const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
@@ -147,7 +129,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       <Popup title={null} tab={0}>
         <ProfileMenu
           onLogout={onLogout}
-          showAdminConsole={user ? user.roles.org === 'admin' : false}
+          showAdminConsole={true} // TODO: add permision check
           onAdminConsole={() => {
             history.push('/admin');
             hidePopup();
@@ -189,7 +171,9 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   if (!user) {
     return null;
   }
-  const userIsTeamOrProjectAdmin = user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID);
+  // TODO: readd permision check
+  // const userIsTeamOrProjectAdmin = user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID);
+  const userIsTeamOrProjectAdmin = true;
   const onInvitedMemberProfile = ($targetRef: React.RefObject<HTMLElement>, email: string) => {
     const member = projectInvitedMembers ? projectInvitedMembers.find(u => u.email === email) : null;
     if (member) {
