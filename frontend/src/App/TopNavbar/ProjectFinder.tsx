@@ -1,15 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components/macro';
 import { useGetProjectsQuery } from 'shared/generated/graphql';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from 'shared/components/LoadingSpinner';
-import theme from './ThemeStyles';
 import ControlledInput from 'shared/components/ControlledInput';
 import { CaretDown, CaretRight } from 'shared/icons';
 import useStickyState from 'shared/hooks/useStickyState';
 import { usePopup } from 'shared/components/PopupMenu';
-
-const colors = [theme.colors.primary, theme.colors.secondary];
 
 const TeamContainer = styled.div`
   display: flex;
@@ -27,6 +24,7 @@ const TeamTitleText = styled.span`
   font-size: 14px;
   font-weight: 700;
 `;
+
 const TeamProjects = styled.div`
   display: flex;
   flex-direction: column;

@@ -1,71 +1,15 @@
 import React from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
-import ProjectSettings, { DeleteConfirm, DELETE_INFO } from 'shared/components/ProjectSettings';
 import { useHistory } from 'react-router';
 import { useCurrentUser } from 'App/context';
-import { RoleCode, useTopNavbarQuery, useDeleteProjectMutation, GetProjectsDocument } from 'shared/generated/graphql';
+import { RoleCode, useTopNavbarQuery } from 'shared/generated/graphql';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
-import produce from 'immer';
 import MiniProfile from 'shared/components/MiniProfile';
 import cache from 'App/cache';
 import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
-import theme from './ThemeStyles';
+import theme from 'App/ThemeStyles';
 import ProjectFinder from './ProjectFinder';
-
-type ProjectPopupProps = {
-  history: any;
-  name: string;
-  projectID: string;
-};
-
-export const ProjectPopup: React.FC<ProjectPopupProps> = ({ history, name, projectID }) => {
-  const { hidePopup, setTab } = usePopup();
-  const [deleteProject] = useDeleteProjectMutation({
-    update: (client, deleteData) => {
-      const cacheData: any = client.readQuery({
-        query: GetProjectsDocument,
-      });
-
-      const newData = produce(cacheData, (draftState: any) => {
-        draftState.projects = draftState.projects.filter(
-          (project: any) => project.id !== deleteData.data?.deleteProject.project.id,
-        );
-      });
-
-      client.writeQuery({
-        query: GetProjectsDocument,
-        data: {
-          ...newData,
-        },
-      });
-    },
-  });
-  return (
-    <>
-      <Popup title={null} tab={0}>
-        <ProjectSettings
-          onDeleteProject={() => {
-            setTab(1, { width: 300 });
-          }}
-        />
-      </Popup>
-      <Popup title={`Delete the "${name}" project?`} tab={1}>
-        <DeleteConfirm
-          description={DELETE_INFO.DELETE_PROJECTS.description}
-          deletedItems={DELETE_INFO.DELETE_PROJECTS.deletedItems}
-          onConfirmDelete={() => {
-            if (projectID) {
-              deleteProject({ variables: { projectID } });
-              hidePopup();
-              history.push('/projects');
-            }
-          }}
-        />
-      </Popup>
-    </>
-  );
-};
 
 type GlobalTopNavbarProps = {
   nameOnly?: boolean;
@@ -103,10 +47,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveFromBoard,
 }) => {
   const { user, setUser } = useCurrentUser();
-  const { loading, data } = useTopNavbarQuery({
-    // TODO: maybe remove?
-    onCompleted: response => {},
-  });
+  const { data } = useTopNavbarQuery();
   const { showPopup, hidePopup } = usePopup();
   const history = useHistory();
   const onLogout = () => {
@@ -129,7 +70,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       <Popup title={null} tab={0}>
         <ProfileMenu
           onLogout={onLogout}
-          showAdminConsole={true} // TODO: add permision check
+          showAdminConsole // TODO: add permision check
           onAdminConsole={() => {
             history.push('/admin');
             hidePopup();

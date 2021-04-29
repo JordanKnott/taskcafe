@@ -1,16 +1,13 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 import Confirm from 'shared/components/Confirm';
 import { useHistory, useLocation } from 'react-router';
 import * as QueryString from 'query-string';
-import { toast } from 'react-toastify';
-import { Container, LoginWrapper } from './Styles';
 import { useCurrentUser } from 'App/context';
+import { Container, LoginWrapper } from './Styles';
 
 const UsersConfirm = () => {
   const history = useHistory();
   const location = useLocation();
-  const [registered, setRegistered] = useState(false);
   const params = QueryString.parse(location.search);
   const { setUser } = useCurrentUser();
   return (
