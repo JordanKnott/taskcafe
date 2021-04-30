@@ -1,7 +1,8 @@
 // LOC830
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import updateApolloCache from 'shared/utils/cache';
-import GlobalTopNavbar, { ProjectPopup } from 'App/TopNavbar';
+import GlobalTopNavbar from 'App/TopNavbar';
+import ProjectPopup from 'App/TopNavbar/ProjectPopup';
 import styled from 'styled-components/macro';
 import AsyncSelect from 'react-select/async';
 import { usePopup, Popup } from 'shared/components/PopupMenu';

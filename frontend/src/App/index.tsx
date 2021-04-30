@@ -11,6 +11,7 @@ import ToastedContainer from './Toast';
 import { UserContext } from './context';
 
 import 'react-toastify/dist/ReactToastify.css';
+import './fonts.css';
 
 const history = createBrowserHistory();
 

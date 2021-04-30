@@ -17,7 +17,7 @@ const colors = {
 
 export const base = {
   ...colors,
-  fontFamily: "'Droid Sans', sans-serif",
+  fontFamily: "'Open Sans', sans-serif",
   fontFamilyMono: "'SFMono-Regular',Consolas,'Liberation Mono', Menlo, Courier,monospace",
   fontWeight: 400,
   zIndex: 10000,

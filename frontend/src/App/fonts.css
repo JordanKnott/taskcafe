@@ -1,0 +1,6 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url(../shared/fonts/OpenSans-Regular.ttf) format('truetype');
+  /* other formats include: 'woff2', 'truetype, 'opentype',
+                            'embedded-opentype', and 'svg' */
+}
