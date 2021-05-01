@@ -83,6 +83,7 @@ import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
 import { plugin as em } from './remark';
 import ActivityMessage from './ActivityMessage';
+import { useCurrentUser } from 'App/context';
 
 const parseEmojis = (value: string) => {
   const emojisArray = toArray(value);
@@ -277,6 +278,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onToggleChecklistItem,
   onMemberProfile,
 }) => {
+  const { user } = useCurrentUser();
   const [taskName, setTaskName] = useState(task.name);
   const [editTaskDescription, setEditTaskDescription] = useState(() => {
     if (task.description) {
@@ -338,7 +340,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <SidebarButton
               ref={$dueDateBtn}
               onClick={() => {
-                onOpenDueDatePopop(task, $dueDateBtn);
+                if (user) {
+                  onOpenDueDatePopop(task, $dueDateBtn);
+                }
               }}
             >
               {task.dueDate ? (
@@ -360,14 +364,18 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                     member={m}
                     size={32}
                     onMemberProfile={$target => {
-                      onMemberProfile($target, m.id);
+                      if (user) {
+                        onMemberProfile($target, m.id);
+                      }
                     }}
                   />
                 ))}
                 <AssignUserIcon
                   ref={$addMemberBtn}
                   onClick={() => {
-                    onOpenAddMemberPopup(task, $addMemberBtn);
+                    if (user) {
+                      onOpenAddMemberPopup(task, $addMemberBtn);
+                    }
                   }}
                 >
                   <Plus width={16} height={16} />
@@ -377,7 +385,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               <AssignUsersButton
                 ref={$noMemberBtn}
                 onClick={() => {
-                  onOpenAddMemberPopup(task, $noMemberBtn);
+                  if (user) {
+                    onOpenAddMemberPopup(task, $noMemberBtn);
+                  }
                 }}
               >
                 <AssignUserIcon>
@@ -387,26 +397,28 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               </AssignUsersButton>
             )}
           </AssignedUsersSection>
-          <ExtraActionsSection>
-            <DueDateTitle>ACTIONS</DueDateTitle>
-            <ActionButton
-              onClick={$target => {
-                onOpenAddLabelPopup(task, $target);
-              }}
-              icon={<Tags width={12} height={12} />}
-            >
-              Labels
-            </ActionButton>
-            <ActionButton
-              onClick={$target => {
-                onOpenAddChecklistPopup(task, $target);
-              }}
-              icon={<CheckSquareOutline width={12} height={12} />}
-            >
-              Checklist
-            </ActionButton>
-            <ActionButton>Cover</ActionButton>
-          </ExtraActionsSection>
+          {user && (
+            <ExtraActionsSection>
+              <DueDateTitle>ACTIONS</DueDateTitle>
+              <ActionButton
+                onClick={$target => {
+                  onOpenAddLabelPopup(task, $target);
+                }}
+                icon={<Tags width={12} height={12} />}
+              >
+                Labels
+              </ActionButton>
+              <ActionButton
+                onClick={$target => {
+                  onOpenAddChecklistPopup(task, $target);
+                }}
+                icon={<CheckSquareOutline width={12} height={12} />}
+              >
+                Checklist
+              </ActionButton>
+              <ActionButton>Cover</ActionButton>
+            </ExtraActionsSection>
+          )}
         </LeftSidebarContent>
       </LeftSidebar>
       <ContentContainer>
@@ -414,34 +426,40 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <HeaderInnerContainer>
             <HeaderLeft>
               <MarkCompleteButton
+                disabled={user === null}
                 invert={task.complete ?? false}
                 onClick={() => {
-                  onToggleTaskComplete(task);
+                  if (user) {
+                    onToggleTaskComplete(task);
+                  }
                 }}
               >
                 <Checkmark width={8} height={8} />
                 <span>{task.complete ? 'Completed' : 'Mark complete'}</span>
               </MarkCompleteButton>
             </HeaderLeft>
-            <HeaderRight>
-              <HeaderActionIcon>
-                <Paperclip width={16} height={16} />
-              </HeaderActionIcon>
-              <HeaderActionIcon>
-                <Clone width={16} height={16} />
-              </HeaderActionIcon>
-              <HeaderActionIcon>
-                <Share width={16} height={16} />
-              </HeaderActionIcon>
-              <HeaderActionIcon onClick={() => onDeleteTask(task)}>
-                <Trash width={16} height={16} />
-              </HeaderActionIcon>
-            </HeaderRight>
+            {user && (
+              <HeaderRight>
+                <HeaderActionIcon>
+                  <Paperclip width={16} height={16} />
+                </HeaderActionIcon>
+                <HeaderActionIcon>
+                  <Clone width={16} height={16} />
+                </HeaderActionIcon>
+                <HeaderActionIcon>
+                  <Share width={16} height={16} />
+                </HeaderActionIcon>
+                <HeaderActionIcon onClick={() => onDeleteTask(task)}>
+                  <Trash width={16} height={16} />
+                </HeaderActionIcon>
+              </HeaderRight>
+            )}
           </HeaderInnerContainer>
           <TaskDetailsTitleWrapper>
             <TaskDetailsTitle
               value={taskName}
               ref={$detailsTitle}
+              disabled={user === null}
               onKeyDown={e => {
                 if (e.keyCode === 13) {
                   e.preventDefault();
@@ -496,7 +514,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 <Editor
                   defaultValue={task.description ?? ''}
                   theme={dark}
-                  readOnly={!editTaskDescription}
+                  readOnly={user === null || !editTaskDescription}
                   autoFocus
                   onChange={value => {
                     setSaveTimeout(() => {
@@ -612,15 +630,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             )}
           </ActivitySection>
         </InnerContentContainer>
-        <CommentContainer>
-          {me && (
+        {me && (
+          <CommentContainer>
             <CommentCreator
               me={me}
               onCreateComment={message => onCreateComment(task, message)}
               onMemberProfile={onMemberProfile}
             />
-          )}
-        </CommentContainer>
+          </CommentContainer>
+        )}
       </ContentContainer>
     </Container>
   );

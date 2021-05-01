@@ -119,6 +119,7 @@ type Project {
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   invitedMembers: [InvitedMember!]!
+  publicOn: Time
   permission: ProjectPermission!
   labels: [ProjectLabel!]!
 }

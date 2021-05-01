@@ -297,6 +297,16 @@ export const ProjectFinder = styled(Button)`
   padding: 6px 12px;
 `;
 
+export const SignUp = styled(Button)`
+  margin-right: 8px;
+  padding: 6px 12px;
+`;
+
+export const SignIn = styled(Button)`
+  margin-right: 20px;
+  padding: 6px 12px;
+`;
+
 export const NavSeparator = styled.div`
   width: 1px;
   background: ${props => props.theme.colors.border};

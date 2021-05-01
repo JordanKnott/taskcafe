@@ -77,3 +77,9 @@ SELECT p.team_id, COALESCE(tm.role_code, '') AS team_role, COALESCE(pm.role_code
 
 -- name: CreatePersonalProjectLink :one
 INSERT INTO personal_project (project_id, user_id) VALUES ($1, $2) RETURNING *;
+
+-- name: SetPublicOn :one
+UPDATE project SET public_on = $2 WHERE project_id = $1 RETURNING *;
+
+-- name: GetPublicOn :one
+SELECT public_on FROM project WHERE project_id = $1;

@@ -151,6 +151,7 @@ interface SimpleProps {
   onCardMemberClick: OnCardMemberClick;
   onCardLabelClick: () => void;
   cardLabelVariant: CardLabelVariant;
+  isPublic?: boolean;
   taskStatusFilter?: TaskStatusFilter;
   taskMetaFilters?: TaskMetaFilters;
   taskSorting?: TaskSorting;
@@ -188,6 +189,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
   onExtraMenuOpen,
   onCardMemberClick,
   taskStatusFilter = initTaskStatusFilter,
+  isPublic = false,
   taskMetaFilters = initTaskMetaFilters,
   taskSorting = initTaskSorting,
 }) => {
@@ -300,6 +302,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                 onOpenComposer={id => setCurrentComposer(id)}
                                 isComposerOpen={currentComposer === taskGroup.id}
                                 onSaveName={name => onChangeTaskGroupName(taskGroup.id, name)}
+                                isPublic={isPublic}
                                 ref={columnDragProvided.innerRef}
                                 wrapperProps={columnDragProvided.draggableProps}
                                 headerProps={columnDragProvided.dragHandleProps}
@@ -328,6 +331,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                               <Card
                                                 toggleDirection={toggleDirection}
                                                 toggleLabels={toggleLabels}
+                                                isPublic={isPublic}
                                                 labelVariant={cardLabelVariant}
                                                 wrapperProps={{
                                                   ...taskProvided.draggableProps,
@@ -396,11 +400,13 @@ const SimpleLists: React.FC<SimpleProps> = ({
             )}
           </Droppable>
         </DragDropContext>
-        <AddList
-          onSave={listName => {
-            onCreateTaskGroup(listName);
-          }}
-        />
+        {!isPublic && (
+          <AddList
+            onSave={listName => {
+              onCreateTaskGroup(listName);
+            }}
+          />
+        )}
       </BoardWrapper>
     </BoardContainer>
   );

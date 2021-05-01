@@ -1,5 +1,6 @@
 import React from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
+import LoggedOutNavbar from 'shared/components/TopNavbar/LoggedOut';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
 import { useHistory } from 'react-router';
 import { useCurrentUser } from 'App/context';
@@ -10,6 +11,8 @@ import cache from 'App/cache';
 import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
 import theme from 'App/ThemeStyles';
 import ProjectFinder from './ProjectFinder';
+
+// TODO: Move to context based navbar?
 
 type GlobalTopNavbarProps = {
   nameOnly?: boolean;
@@ -30,7 +33,7 @@ type GlobalTopNavbarProps = {
   onRemoveInvitedFromBoard?: (email: string) => void;
 };
 
-const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
+const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
   currentTab,
   onSetTab,
   menuType,
@@ -46,9 +49,9 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveInvitedFromBoard,
   onRemoveFromBoard,
 }) => {
-  const { user, setUser } = useCurrentUser();
   const { data } = useTopNavbarQuery();
   const { showPopup, hidePopup } = usePopup();
+  const { setUser } = useCurrentUser();
   const history = useHistory();
   const onLogout = () => {
     fetch('/auth/logout', {
@@ -109,9 +112,6 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
     }
   };
 
-  if (!user) {
-    return null;
-  }
   // TODO: readd permision check
   // const userIsTeamOrProjectAdmin = user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID);
   const userIsTeamOrProjectAdmin = true;
@@ -174,6 +174,8 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
     }
   };
 
+  const user = data ? data.me?.user : null;
+
   return (
     <>
       <TopNavbar
@@ -188,7 +190,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
           );
         }}
         currentTab={currentTab}
-        user={data ? data.me.user : null}
+        user={user ?? null}
         canEditProjectName={userIsTeamOrProjectAdmin}
         canInviteUser={userIsTeamOrProjectAdmin}
         onMemberProfile={onMemberProfile}
@@ -213,6 +215,47 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       />
     </>
   );
+};
+
+const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
+  currentTab,
+  onSetTab,
+  menuType,
+  teamID,
+  onChangeProjectOwner,
+  onChangeRole,
+  name,
+  popupContent,
+  projectMembers,
+  projectInvitedMembers,
+  onInviteUser,
+  onSaveProjectName,
+  onRemoveInvitedFromBoard,
+  onRemoveFromBoard,
+}) => {
+  const { user } = useCurrentUser();
+  if (user) {
+    return (
+      <LoggedInNavbar
+        currentTab={currentTab}
+        projectID={null}
+        onSetTab={onSetTab}
+        menuType={menuType}
+        teamID={teamID}
+        onChangeRole={onChangeRole}
+        onChangeProjectOwner={onChangeProjectOwner}
+        name={name}
+        popupContent={popupContent}
+        projectMembers={projectMembers}
+        projectInvitedMembers={projectInvitedMembers}
+        onInviteUser={onInviteUser}
+        onSaveProjectName={onSaveProjectName}
+        onRemoveInvitedFromBoard={onRemoveInvitedFromBoard}
+        onRemoveFromBoard={onRemoveFromBoard}
+      />
+    );
+  }
+  return <LoggedOutNavbar name={name} menuType={menuType} />;
 };
 
 export default GlobalTopNavbar;

@@ -5,13 +5,14 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 const createPersonalProject = `-- name: CreatePersonalProject :one
-INSERT INTO project(team_id, created_at, name) VALUES (null, $1, $2) RETURNING project_id, team_id, created_at, name
+INSERT INTO project(team_id, created_at, name) VALUES (null, $1, $2) RETURNING project_id, team_id, created_at, name, public_on
 `
 
 type CreatePersonalProjectParams struct {
@@ -27,6 +28,7 @@ func (q *Queries) CreatePersonalProject(ctx context.Context, arg CreatePersonalP
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
+		&i.PublicOn,
 	)
 	return i, err
 }
@@ -78,7 +80,7 @@ func (q *Queries) CreateProjectMember(ctx context.Context, arg CreateProjectMemb
 }
 
 const createTeamProject = `-- name: CreateTeamProject :one
-INSERT INTO project(team_id, created_at, name) VALUES ($1, $2, $3) RETURNING project_id, team_id, created_at, name
+INSERT INTO project(team_id, created_at, name) VALUES ($1, $2, $3) RETURNING project_id, team_id, created_at, name, public_on
 `
 
 type CreateTeamProjectParams struct {
@@ -95,6 +97,7 @@ func (q *Queries) CreateTeamProject(ctx context.Context, arg CreateTeamProjectPa
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
+		&i.PublicOn,
 	)
 	return i, err
 }
@@ -132,7 +135,7 @@ func (q *Queries) DeleteProjectMember(ctx context.Context, arg DeleteProjectMemb
 }
 
 const getAllProjectsForTeam = `-- name: GetAllProjectsForTeam :many
-SELECT project_id, team_id, created_at, name FROM project WHERE team_id = $1
+SELECT project_id, team_id, created_at, name, public_on FROM project WHERE team_id = $1
 `
 
 func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error) {
@@ -149,6 +152,7 @@ func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) (
 			&i.TeamID,
 			&i.CreatedAt,
 			&i.Name,
+			&i.PublicOn,
 		); err != nil {
 			return nil, err
 		}
@@ -164,7 +168,7 @@ func (q *Queries) GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) (
 }
 
 const getAllTeamProjects = `-- name: GetAllTeamProjects :many
-SELECT project_id, team_id, created_at, name FROM project WHERE team_id IS NOT null
+SELECT project_id, team_id, created_at, name, public_on FROM project WHERE team_id IS NOT null
 `
 
 func (q *Queries) GetAllTeamProjects(ctx context.Context) ([]Project, error) {
@@ -181,6 +185,7 @@ func (q *Queries) GetAllTeamProjects(ctx context.Context) ([]Project, error) {
 			&i.TeamID,
 			&i.CreatedAt,
 			&i.Name,
+			&i.PublicOn,
 		); err != nil {
 			return nil, err
 		}
@@ -196,7 +201,7 @@ func (q *Queries) GetAllTeamProjects(ctx context.Context) ([]Project, error) {
 }
 
 const getAllVisibleProjectsForUserID = `-- name: GetAllVisibleProjectsForUserID :many
-SELECT project.project_id, project.team_id, project.created_at, project.name FROM project LEFT JOIN
+SELECT project.project_id, project.team_id, project.created_at, project.name, project.public_on FROM project LEFT JOIN
  project_member ON project_member.project_id = project.project_id WHERE project_member.user_id = $1
 `
 
@@ -214,6 +219,7 @@ func (q *Queries) GetAllVisibleProjectsForUserID(ctx context.Context, userID uui
 			&i.TeamID,
 			&i.CreatedAt,
 			&i.Name,
+			&i.PublicOn,
 		); err != nil {
 			return nil, err
 		}
@@ -292,7 +298,7 @@ func (q *Queries) GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.
 }
 
 const getPersonalProjectsForUserID = `-- name: GetPersonalProjectsForUserID :many
-SELECT project.project_id, project.team_id, project.created_at, project.name FROM project
+SELECT project.project_id, project.team_id, project.created_at, project.name, project.public_on FROM project
   LEFT JOIN personal_project ON personal_project.project_id = project.project_id
   WHERE personal_project.user_id = $1
 `
@@ -311,6 +317,7 @@ func (q *Queries) GetPersonalProjectsForUserID(ctx context.Context, userID uuid.
 			&i.TeamID,
 			&i.CreatedAt,
 			&i.Name,
+			&i.PublicOn,
 		); err != nil {
 			return nil, err
 		}
@@ -326,7 +333,7 @@ func (q *Queries) GetPersonalProjectsForUserID(ctx context.Context, userID uuid.
 }
 
 const getProjectByID = `-- name: GetProjectByID :one
-SELECT project_id, team_id, created_at, name FROM project WHERE project_id = $1
+SELECT project_id, team_id, created_at, name, public_on FROM project WHERE project_id = $1
 `
 
 func (q *Queries) GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error) {
@@ -337,6 +344,7 @@ func (q *Queries) GetProjectByID(ctx context.Context, projectID uuid.UUID) (Proj
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
+		&i.PublicOn,
 	)
 	return i, err
 }
@@ -426,6 +434,17 @@ func (q *Queries) GetProjectRolesForUserID(ctx context.Context, userID uuid.UUID
 	return items, nil
 }
 
+const getPublicOn = `-- name: GetPublicOn :one
+SELECT public_on FROM project WHERE project_id = $1
+`
+
+func (q *Queries) GetPublicOn(ctx context.Context, projectID uuid.UUID) (sql.NullTime, error) {
+	row := q.db.QueryRowContext(ctx, getPublicOn, projectID)
+	var public_on sql.NullTime
+	err := row.Scan(&public_on)
+	return public_on, err
+}
+
 const getRoleForProjectMemberByUserID = `-- name: GetRoleForProjectMemberByUserID :one
 SELECT code, role.name FROM project_member INNER JOIN role ON role.code = project_member.role_code
 WHERE user_id = $1 AND project_id = $2
@@ -469,6 +488,28 @@ func (q *Queries) GetUserRolesForProject(ctx context.Context, arg GetUserRolesFo
 	return i, err
 }
 
+const setPublicOn = `-- name: SetPublicOn :one
+UPDATE project SET public_on = $2 WHERE project_id = $1 RETURNING project_id, team_id, created_at, name, public_on
+`
+
+type SetPublicOnParams struct {
+	ProjectID uuid.UUID    `json:"project_id"`
+	PublicOn  sql.NullTime `json:"public_on"`
+}
+
+func (q *Queries) SetPublicOn(ctx context.Context, arg SetPublicOnParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, setPublicOn, arg.ProjectID, arg.PublicOn)
+	var i Project
+	err := row.Scan(
+		&i.ProjectID,
+		&i.TeamID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.PublicOn,
+	)
+	return i, err
+}
+
 const updateProjectMemberRole = `-- name: UpdateProjectMemberRole :one
 UPDATE project_member SET role_code = $3 WHERE project_id = $1 AND user_id = $2
   RETURNING project_member_id, project_id, user_id, added_at, role_code
@@ -494,7 +535,7 @@ func (q *Queries) UpdateProjectMemberRole(ctx context.Context, arg UpdateProject
 }
 
 const updateProjectNameByID = `-- name: UpdateProjectNameByID :one
-UPDATE project SET name = $2 WHERE project_id = $1 RETURNING project_id, team_id, created_at, name
+UPDATE project SET name = $2 WHERE project_id = $1 RETURNING project_id, team_id, created_at, name, public_on
 `
 
 type UpdateProjectNameByIDParams struct {
@@ -510,6 +551,7 @@ func (q *Queries) UpdateProjectNameByID(ctx context.Context, arg UpdateProjectNa
 		&i.TeamID,
 		&i.CreatedAt,
 		&i.Name,
+		&i.PublicOn,
 	)
 	return i, err
 }

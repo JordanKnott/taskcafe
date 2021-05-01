@@ -198,6 +198,7 @@ type ProjectBoardProps = {
 };
 
 export const BoardLoading = () => {
+  const { user } = useCurrentUser();
   return (
     <>
       <ProjectBar>
@@ -215,20 +216,22 @@ export const BoardLoading = () => {
             <ProjectActionText>Filter</ProjectActionText>
           </ProjectAction>
         </ProjectActions>
-        <ProjectActions>
-          <ProjectAction>
-            <Tags width={13} height={13} />
-            <ProjectActionText>Labels</ProjectActionText>
-          </ProjectAction>
-          <ProjectAction disabled>
-            <ToggleOn width={13} height={13} />
-            <ProjectActionText>Fields</ProjectActionText>
-          </ProjectAction>
-          <ProjectAction disabled>
-            <Bolt width={13} height={13} />
-            <ProjectActionText>Rules</ProjectActionText>
-          </ProjectAction>
-        </ProjectActions>
+        {user && (
+          <ProjectActions>
+            <ProjectAction>
+              <Tags width={13} height={13} />
+              <ProjectActionText>Labels</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction disabled>
+              <ToggleOn width={13} height={13} />
+              <ProjectActionText>Fields</ProjectActionText>
+            </ProjectAction>
+            <ProjectAction disabled>
+              <Bolt width={13} height={13} />
+              <ProjectActionText>Rules</ProjectActionText>
+            </ProjectAction>
+          </ProjectActions>
+        )}
       </ProjectBar>
       <EmptyBoard />
     </>
@@ -469,7 +472,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
     }
     return 'All Tasks';
   };
-  if (data && user) {
+  if (data) {
     labelsRef.current = data.findProject.labels;
     membersRef.current = data.findProject.members;
     const onQuickEditorOpen = ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => {
@@ -570,34 +573,37 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               );
             })}
           </ProjectActions>
-          <ProjectActions>
-            <ProjectAction
-              onClick={$labelsRef => {
-                showPopup(
-                  $labelsRef,
-                  <LabelManagerEditor
-                    taskLabels={null}
-                    labelColors={data.labelColors}
-                    labels={labelsRef}
-                    projectID={projectID ?? ''}
-                  />,
-                );
-              }}
-            >
-              <Tags width={13} height={13} />
-              <ProjectActionText>Labels</ProjectActionText>
-            </ProjectAction>
-            <ProjectAction disabled>
-              <ToggleOn width={13} height={13} />
-              <ProjectActionText>Fields</ProjectActionText>
-            </ProjectAction>
-            <ProjectAction disabled>
-              <Bolt width={13} height={13} />
-              <ProjectActionText>Rules</ProjectActionText>
-            </ProjectAction>
-          </ProjectActions>
+          {user && (
+            <ProjectActions>
+              <ProjectAction
+                onClick={$labelsRef => {
+                  showPopup(
+                    $labelsRef,
+                    <LabelManagerEditor
+                      taskLabels={null}
+                      labelColors={data.labelColors}
+                      labels={labelsRef}
+                      projectID={projectID ?? ''}
+                    />,
+                  );
+                }}
+              >
+                <Tags width={13} height={13} />
+                <ProjectActionText>Labels</ProjectActionText>
+              </ProjectAction>
+              <ProjectAction disabled>
+                <ToggleOn width={13} height={13} />
+                <ProjectActionText>Fields</ProjectActionText>
+              </ProjectAction>
+              <ProjectAction disabled>
+                <Bolt width={13} height={13} />
+                <ProjectActionText>Rules</ProjectActionText>
+              </ProjectAction>
+            </ProjectActions>
+          )}
         </ProjectBar>
         <SimpleLists
+          isPublic={user === null}
           onTaskClick={task => {
             history.push(`${match.url}/c/${task.id}`);
           }}

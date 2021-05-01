@@ -424,7 +424,7 @@ const Details: React.FC<DetailsProps> = ({
                 updateTaskComment({ variables: { commentID, message } });
               }}
               editableComment={editableComment}
-              me={data.me.user}
+              me={data.me ? data.me.user : null}
               onCommentShowActions={(commentID, $targetRef) => {
                 showPopup(
                   $targetRef,

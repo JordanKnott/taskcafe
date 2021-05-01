@@ -5,6 +5,7 @@ const FIND_PROJECT_QUERY = gql`
 query findProject($projectID: UUID!) {
   findProject(input: { projectID: $projectID }) {
     name
+    publicOn
     team {
       id
     }

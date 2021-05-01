@@ -108,7 +108,7 @@ export const skeletonKeyframes = keyframes`
   }
   `;
 
-export const SidebarButton = styled.div<{ loading?: boolean }>`
+export const SidebarButton = styled.div<{ $loading?: boolean }>`
   font-size: 14px;
   color: ${props => props.theme.colors.text.primary};
   min-height: 32px;
@@ -116,7 +116,7 @@ export const SidebarButton = styled.div<{ loading?: boolean }>`
   border-radius: 6px;
 
   ${props =>
-    props.loading
+    props.$loading
       ? css`
           background: ${props.theme.colors.bg.primary};
         `
@@ -178,15 +178,15 @@ export const HeaderLeft = styled.div`
   justify-content: flex-start;
 `;
 
-export const TaskDetailsTitleWrapper = styled.div<{ loading?: boolean }>`
+export const TaskDetailsTitleWrapper = styled.div<{ $loading?: boolean }>`
   width: 100%;
   margin: 8px 0 4px 0;
   display: flex;
   border-radius: 6px;
-  ${props => props.loading && `background: ${props.theme.colors.bg.primary};`}
+  ${props => props.$loading && `background: ${props.theme.colors.bg.primary};`}
 `;
 
-export const TaskDetailsTitle = styled(TextareaAutosize)<{ loading?: boolean }>`
+export const TaskDetailsTitle = styled(TextareaAutosize)<{ $loading?: boolean }>`
   padding: 9px 8px 7px 8px;
   border-color: transparent;
   border-radius: 6px;
@@ -198,8 +198,11 @@ export const TaskDetailsTitle = styled(TextareaAutosize)<{ loading?: boolean }>`
   font-weight: 700;
   background: none;
 
+  &:disabled {
+    opacity: 1;
+  }
   ${props =>
-    props.loading
+    props.$loading
       ? css`
           background-image: linear-gradient(90deg, ${defaultBaseColor}, ${defaultHighlightColor}, ${defaultBaseColor});
           background-size: 200px 100%;
@@ -207,7 +210,7 @@ export const TaskDetailsTitle = styled(TextareaAutosize)<{ loading?: boolean }>`
           animation: ${skeletonKeyframes} 1.2s ease-in-out infinite;
         `
       : css`
-          &:hover {
+          &:not(:disabled):hover {
             border-color: #414561;
             border-width: 1px;
             border-style: solid;
@@ -534,7 +537,7 @@ export const CommentProfile = styled(TaskAssignee)`
   align-items: normal;
 `;
 
-export const CommentTextArea = styled(TextareaAutosize)<{ showCommentActions: boolean }>`
+export const CommentTextArea = styled(TextareaAutosize)<{ $showCommentActions: boolean }>`
   width: 100%;
   line-height: 28px;
   padding: 4px 6px;
@@ -546,7 +549,7 @@ export const CommentTextArea = styled(TextareaAutosize)<{ showCommentActions: bo
   min-height: 36px;
   max-height: 36px;
   ${props =>
-    props.showCommentActions
+    props.$showCommentActions
       ? css`
           min-height: 80px;
           max-height: none;

@@ -24,6 +24,7 @@ type Props = {
   onOpenComposer: (id: string) => void;
   wrapperProps?: any;
   headerProps?: any;
+  isPublic: boolean;
   index?: number;
   onExtraMenuOpen: (taskGroupID: string, $targetRef: React.RefObject<HTMLElement>) => void;
 };
@@ -37,6 +38,7 @@ const List = React.forwardRef(
       isComposerOpen,
       onOpenComposer,
       children,
+      isPublic,
       wrapperProps,
       headerProps,
       onExtraMenuOpen,
@@ -86,38 +88,36 @@ const List = React.forwardRef(
       <Container ref={$wrapperRef} {...wrapperProps}>
         <Wrapper>
           <Header {...headerProps} isEditing={isEditingTitle}>
-            <HeaderEditTarget onClick={onClick} isHidden={isEditingTitle} />
+            {!isPublic && <HeaderEditTarget onClick={onClick} isHidden={isEditingTitle} />}
             <HeaderName
               ref={$listNameRef}
+              disabled={isPublic}
               onBlur={onBlur}
               onChange={onChange}
               onKeyDown={onKeyDown}
               spellCheck={false}
               value={listName}
             />
-            <ListExtraMenuButtonWrapper ref={$extraActionsRef} onClick={handleExtraMenuOpen}>
-              <Ellipsis size={16} color="#c2c6dc" />
-            </ListExtraMenuButtonWrapper>
+            {!isPublic && (
+              <ListExtraMenuButtonWrapper ref={$extraActionsRef} onClick={handleExtraMenuOpen}>
+                <Ellipsis size={16} color="#c2c6dc" />
+              </ListExtraMenuButtonWrapper>
+            )}
           </Header>
           {children && children}
-          <AddCardContainer hidden={isComposerOpen}>
-            <AddCardButton onClick={() => onOpenComposer(id)}>
-              <Plus width={12} height={12} />
-              <AddCardButtonText>Add another card</AddCardButtonText>
-            </AddCardButton>
-          </AddCardContainer>
+          {!isPublic && (
+            <AddCardContainer hidden={isComposerOpen}>
+              <AddCardButton onClick={() => onOpenComposer(id)}>
+                <Plus width={12} height={12} />
+                <AddCardButtonText>Add another card</AddCardButtonText>
+              </AddCardButton>
+            </AddCardContainer>
+          )}
         </Wrapper>
       </Container>
     );
   },
 );
-
-List.defaultProps = {
-  children: null,
-  isComposerOpen: false,
-  wrapperProps: {},
-  headerProps: {},
-};
 
 List.displayName = 'List';
 export default List;

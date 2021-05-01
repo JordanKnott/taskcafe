@@ -46,6 +46,12 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 			}
 		*/
 
+		userID, ok := GetUserID(ctx)
+		if !ok {
+			return nil, errors.New("user must be logged in")
+		}
+		log.Info("has role")
+
 		var subjectID uuid.UUID
 		in := graphql.GetFieldContext(ctx).Args["input"]
 		val := reflect.ValueOf(in) // could be any underlying type
@@ -78,7 +84,7 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 			// TODO: add config setting to disable personal projects
 			return next(ctx)
 		}
-		subjectID, ok := subjectField.Interface().(uuid.UUID)
+		subjectID, ok = subjectField.Interface().(uuid.UUID)
 		if !ok {
 			logger.New(ctx).Error("error while casting subject UUID")
 			return nil, errors.New("error while casting subject uuid")
@@ -130,10 +136,6 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 				},
 			}
 		} else if level == ActionLevelTeam {
-			userID, ok := GetUserID(ctx)
-			if !ok {
-				return nil, errors.New("user id is missing")
-			}
 			role, err := repo.GetTeamRoleForUserID(ctx, db.GetTeamRoleForUserIDParams{UserID: userID, TeamID: subjectID})
 			if err != nil {
 				logger.New(ctx).WithError(err).Error("error while getting team roles for user ID")
@@ -270,3 +272,23 @@ const (
 	TASK_CHECKLIST_ADDED     int32 = 9
 	TASK_CHECKLIST_REMOVED   int32 = 10
 )
+
+func NotAuthorized() error {
+	return &gqlerror.Error{
+		Message: "Not authorized",
+		Extensions: map[string]interface{}{
+			"code": "UNAUTHENTICATED",
+		},
+	}
+}
+
+func IsProjectPublic(ctx context.Context, repo db.Repository, projectID uuid.UUID) (bool, error) {
+	publicOn, err := repo.GetPublicOn(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+	if !publicOn.Valid {
+		return false, nil
+	}
+	return true, nil
+}

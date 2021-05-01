@@ -58,12 +58,14 @@ type Props = {
   onCardTitleChange?: (name: string) => void;
   labelVariant?: CardLabelVariant;
   toggleLabels?: boolean;
+  isPublic?: boolean;
   toggleDirection?: 'shrink' | 'expand';
 };
 
 const Card = React.forwardRef(
   (
     {
+      isPublic = false,
       wrapperProps,
       onContextMenu,
       taskID,
@@ -120,9 +122,11 @@ const Card = React.forwardRef(
       }
     };
     const onTaskContext = (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onOpenComposer();
+      if (!isPublic) {
+        e.preventDefault();
+        e.stopPropagation();
+        onOpenComposer();
+      }
     };
     const onOperationClick = (e: React.MouseEvent<HTMLOrSVGElement>) => {
       e.preventDefault();
@@ -145,7 +149,7 @@ const Card = React.forwardRef(
         {...wrapperProps}
       >
         <ListCardInnerContainer ref={$innerCardRef}>
-          {isActive && !editable && (
+          {!isPublic && isActive && !editable && (
             <ListCardOperation
               onClick={e => {
                 e.stopPropagation();

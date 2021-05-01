@@ -163,10 +163,6 @@ const Project = () => {
     }
   }, [data]);
 
-  if (error) {
-    history.push('/projects');
-  }
-
   if (data) {
     labelsRef.current = data.findProject.labels;
 
@@ -204,7 +200,14 @@ const Project = () => {
               />,
             );
           }}
-          popupContent={<ProjectPopup history={history} name={data.findProject.name} projectID={projectID} />}
+          popupContent={
+            <ProjectPopup // eslint-disable-line
+              history={history}
+              publicOn={data.findProject.publicOn}
+              name={data.findProject.name}
+              projectID={projectID}
+            />
+          }
           menuType={[{ name: 'Board', link: location.pathname }]}
           currentTab={0}
           projectMembers={data.findProject.members}

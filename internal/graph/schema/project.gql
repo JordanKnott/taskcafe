@@ -4,6 +4,16 @@ extend type Mutation {
     DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectName(input: UpdateProjectName):
     Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  toggleProjectVisibility(input: ToggleProjectVisibility!): ToggleProjectVisibilityPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input ToggleProjectVisibility {
+  projectID: UUID!
+  isPublic: Boolean!
+}
+
+type ToggleProjectVisibilityPayload {
+  project: Project!
 }
 
 input NewProject {

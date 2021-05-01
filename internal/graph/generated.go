@@ -57,7 +57,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	HasRole func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (res interface{}, err error)
+	HasRole      func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (res interface{}, err error)
+	RequiresUser func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -248,6 +249,7 @@ type ComplexityRoot struct {
 		SetTaskChecklistItemComplete    func(childComplexity int, input SetTaskChecklistItemComplete) int
 		SetTaskComplete                 func(childComplexity int, input SetTaskComplete) int
 		SortTaskGroup                   func(childComplexity int, input SortTaskGroup) int
+		ToggleProjectVisibility         func(childComplexity int, input ToggleProjectVisibility) int
 		ToggleTaskLabel                 func(childComplexity int, input ToggleTaskLabelInput) int
 		UnassignTask                    func(childComplexity int, input *UnassignTaskInput) int
 		UpdateProjectLabel              func(childComplexity int, input UpdateProjectLabel) int
@@ -327,6 +329,7 @@ type ComplexityRoot struct {
 		Members        func(childComplexity int) int
 		Name           func(childComplexity int) int
 		Permission     func(childComplexity int) int
+		PublicOn       func(childComplexity int) int
 		TaskGroups     func(childComplexity int) int
 		Team           func(childComplexity int) int
 	}
@@ -476,6 +479,10 @@ type ComplexityRoot struct {
 		TeamID   func(childComplexity int) int
 	}
 
+	ToggleProjectVisibilityPayload struct {
+		Project func(childComplexity int) int
+	}
+
 	ToggleTaskLabelPayload struct {
 		Active func(childComplexity int) int
 		Task   func(childComplexity int) int
@@ -547,6 +554,7 @@ type MutationResolver interface {
 	CreateProject(ctx context.Context, input NewProject) (*db.Project, error)
 	DeleteProject(ctx context.Context, input DeleteProject) (*DeleteProjectPayload, error)
 	UpdateProjectName(ctx context.Context, input *UpdateProjectName) (*db.Project, error)
+	ToggleProjectVisibility(ctx context.Context, input ToggleProjectVisibility) (*ToggleProjectVisibilityPayload, error)
 	CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*db.ProjectLabel, error)
 	DeleteProjectLabel(ctx context.Context, input DeleteProjectLabel) (*db.ProjectLabel, error)
 	UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*db.ProjectLabel, error)
@@ -619,6 +627,7 @@ type ProjectResolver interface {
 	TaskGroups(ctx context.Context, obj *db.Project) ([]db.TaskGroup, error)
 	Members(ctx context.Context, obj *db.Project) ([]Member, error)
 	InvitedMembers(ctx context.Context, obj *db.Project) ([]InvitedMember, error)
+	PublicOn(ctx context.Context, obj *db.Project) (*time.Time, error)
 	Permission(ctx context.Context, obj *db.Project) (*ProjectPermission, error)
 	Labels(ctx context.Context, obj *db.Project) ([]db.ProjectLabel, error)
 }
@@ -1624,6 +1633,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SortTaskGroup(childComplexity, args["input"].(SortTaskGroup)), true
 
+	case "Mutation.toggleProjectVisibility":
+		if e.complexity.Mutation.ToggleProjectVisibility == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_toggleProjectVisibility_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ToggleProjectVisibility(childComplexity, args["input"].(ToggleProjectVisibility)), true
+
 	case "Mutation.toggleTaskLabel":
 		if e.complexity.Mutation.ToggleTaskLabel == nil {
 			break
@@ -2097,6 +2118,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Permission(childComplexity), true
+
+	case "Project.publicOn":
+		if e.complexity.Project.PublicOn == nil {
+			break
+		}
+
+		return e.complexity.Project.PublicOn(childComplexity), true
 
 	case "Project.taskGroups":
 		if e.complexity.Project.TaskGroups == nil {
@@ -2763,6 +2791,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TeamRole.TeamID(childComplexity), true
 
+	case "ToggleProjectVisibilityPayload.project":
+		if e.complexity.ToggleProjectVisibilityPayload.Project == nil {
+			break
+		}
+
+		return e.complexity.ToggleProjectVisibilityPayload.Project(childComplexity), true
+
 	case "ToggleTaskLabelPayload.active":
 		if e.complexity.ToggleTaskLabelPayload.Active == nil {
 			break
@@ -3158,6 +3193,7 @@ type Project {
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   invitedMembers: [InvitedMember!]!
+  publicOn: Time
   permission: ProjectPermission!
   labels: [ProjectLabel!]!
 }
@@ -3294,6 +3330,7 @@ enum ObjectType {
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
+directive @requiresUser on FIELD_DEFINITION
 
 type Query {
   organizations: [Organization!]!
@@ -3301,7 +3338,7 @@ type Query {
   invitedUsers: [InvitedUserAccount!]!
   findUser(input: FindUser!): UserAccount!
   findProject(input: FindProject!):
-    Project! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+    Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
   findTeam(input: FindTeam!): Team!
@@ -3309,7 +3346,7 @@ type Query {
   myTasks(input: MyTasks!): MyTasksPayload!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
-  me: MePayload!
+  me: MePayload
 }
 
 
@@ -3427,6 +3464,16 @@ extend type Mutation {
     DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectName(input: UpdateProjectName):
     Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  toggleProjectVisibility(input: ToggleProjectVisibility!): ToggleProjectVisibilityPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input ToggleProjectVisibility {
+  projectID: UUID!
+  isPublic: Boolean!
+}
+
+type ToggleProjectVisibilityPayload {
+  project: Project!
 }
 
 input NewProject {
@@ -4550,6 +4597,21 @@ func (ec *executionContext) field_Mutation_sortTaskGroup_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNSortTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐSortTaskGroup(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_toggleProjectVisibility_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ToggleProjectVisibility
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNToggleProjectVisibility2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibility(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7742,6 +7804,80 @@ func (ec *executionContext) _Mutation_updateProjectName(ctx context.Context, fie
 	res := resTmp.(*db.Project)
 	fc.Result = res
 	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_toggleProjectVisibility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_toggleProjectVisibility_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ToggleProjectVisibility(rctx, args["input"].(ToggleProjectVisibility))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*ToggleProjectVisibilityPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.ToggleProjectVisibilityPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ToggleProjectVisibilityPayload)
+	fc.Result = res
+	return ec.marshalNToggleProjectVisibilityPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibilityPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createProjectLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12601,6 +12737,38 @@ func (ec *executionContext) _Project_invitedMembers(ctx context.Context, field g
 	return ec.marshalNInvitedMember2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐInvitedMemberᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Project_publicOn(ctx context.Context, field graphql.CollectedField, obj *db.Project) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Project().PublicOn(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Project_permission(ctx context.Context, field graphql.CollectedField, obj *db.Project) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13224,40 +13392,8 @@ func (ec *executionContext) _Query_findProject(ctx context.Context, field graphq
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().FindProject(rctx, args["input"].(FindProject))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Project); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Project`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindProject(rctx, args["input"].(FindProject))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13572,14 +13708,11 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*MePayload)
 	fc.Result = res
-	return ec.marshalNMePayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMePayload(ctx, field.Selections, res)
+	return ec.marshalOMePayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMePayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_notifications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15883,6 +16016,41 @@ func (ec *executionContext) _TeamRole_roleCode(ctx context.Context, field graphq
 	res := resTmp.(RoleCode)
 	fc.Result = res
 	return ec.marshalNRoleCode2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleCode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ToggleProjectVisibilityPayload_project(ctx context.Context, field graphql.CollectedField, obj *ToggleProjectVisibilityPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ToggleProjectVisibilityPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Project, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ToggleTaskLabelPayload_active(ctx context.Context, field graphql.CollectedField, obj *ToggleTaskLabelPayload) (ret graphql.Marshaler) {
@@ -19238,6 +19406,34 @@ func (ec *executionContext) unmarshalInputTaskPositionUpdate(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputToggleProjectVisibility(ctx context.Context, obj interface{}) (ToggleProjectVisibility, error) {
+	var it ToggleProjectVisibility
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "projectID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+			it.ProjectID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isPublic":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isPublic"))
+			it.IsPublic, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputToggleTaskLabelInput(ctx context.Context, obj interface{}) (ToggleTaskLabelInput, error) {
 	var it ToggleTaskLabelInput
 	var asMap = obj.(map[string]interface{})
@@ -20841,6 +21037,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "toggleProjectVisibility":
+			out.Values[i] = ec._Mutation_toggleProjectVisibility(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createProjectLabel":
 			out.Values[i] = ec._Mutation_createProjectLabel(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -21541,6 +21742,17 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 				}
 				return res
 			})
+		case "publicOn":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_publicOn(ctx, field, obj)
+				return res
+			})
 		case "permission":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -21939,9 +22151,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_me(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "notifications":
@@ -22846,6 +23055,33 @@ func (ec *executionContext) _TeamRole(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "roleCode":
 			out.Values[i] = ec._TeamRole_roleCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var toggleProjectVisibilityPayloadImplementors = []string{"ToggleProjectVisibilityPayload"}
+
+func (ec *executionContext) _ToggleProjectVisibilityPayload(ctx context.Context, sel ast.SelectionSet, obj *ToggleProjectVisibilityPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, toggleProjectVisibilityPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ToggleProjectVisibilityPayload")
+		case "project":
+			out.Values[i] = ec._ToggleProjectVisibilityPayload_project(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -24186,20 +24422,6 @@ func (ec *executionContext) unmarshalNLogoutUser2githubᚗcomᚋjordanknottᚋta
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMePayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMePayload(ctx context.Context, sel ast.SelectionSet, v MePayload) graphql.Marshaler {
-	return ec._MePayload(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNMePayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMePayload(ctx context.Context, sel ast.SelectionSet, v *MePayload) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._MePayload(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNMember2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMember(ctx context.Context, sel ast.SelectionSet, v Member) graphql.Marshaler {
 	return ec._Member(ctx, sel, &v)
 }
@@ -25468,6 +25690,25 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
+func (ec *executionContext) unmarshalNToggleProjectVisibility2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibility(ctx context.Context, v interface{}) (ToggleProjectVisibility, error) {
+	res, err := ec.unmarshalInputToggleProjectVisibility(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNToggleProjectVisibilityPayload2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibilityPayload(ctx context.Context, sel ast.SelectionSet, v ToggleProjectVisibilityPayload) graphql.Marshaler {
+	return ec._ToggleProjectVisibilityPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNToggleProjectVisibilityPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibilityPayload(ctx context.Context, sel ast.SelectionSet, v *ToggleProjectVisibilityPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ToggleProjectVisibilityPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNToggleTaskLabelInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleTaskLabelInput(ctx context.Context, v interface{}) (ToggleTaskLabelInput, error) {
 	res, err := ec.unmarshalInputToggleTaskLabelInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -26079,6 +26320,13 @@ func (ec *executionContext) unmarshalODeleteTaskComment2ᚖgithubᚗcomᚋjordan
 	}
 	res, err := ec.unmarshalInputDeleteTaskComment(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMePayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐMePayload(ctx context.Context, sel ast.SelectionSet, v *MePayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MePayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOProfileIcon2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐProfileIcon(ctx context.Context, sel ast.SelectionSet, v *ProfileIcon) graphql.Marshaler {

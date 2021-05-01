@@ -69,7 +69,7 @@ const CommentCreator: React.FC<CommentCreatorProps> = ({
       )}
       <CommentEditorContainer>
         <CommentTextArea
-          showCommentActions={showCommentActions}
+          $showCommentActions={showCommentActions}
           placeholder="Write a comment..."
           ref={$comment}
           disabled={disabled}

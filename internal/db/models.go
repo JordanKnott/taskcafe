@@ -53,10 +53,11 @@ type PersonalProject struct {
 }
 
 type Project struct {
-	ProjectID uuid.UUID `json:"project_id"`
-	TeamID    uuid.UUID `json:"team_id"`
-	CreatedAt time.Time `json:"created_at"`
-	Name      string    `json:"name"`
+	ProjectID uuid.UUID    `json:"project_id"`
+	TeamID    uuid.UUID    `json:"team_id"`
+	CreatedAt time.Time    `json:"created_at"`
+	Name      string       `json:"name"`
+	PublicOn  sql.NullTime `json:"public_on"`
 }
 
 type ProjectLabel struct {

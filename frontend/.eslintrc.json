@@ -30,6 +30,7 @@
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }],
+    "react/require-default-props": "off",
     "no-case-declarations": "off",
     "no-plusplus": "off",
     "react/prop-types": 0,

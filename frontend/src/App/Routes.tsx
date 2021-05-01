@@ -41,9 +41,7 @@ const AuthorizedRoutes = () => {
       const { status } = x;
       const response: ValidateTokenResponse = await x.json();
       const { valid, userID } = response;
-      if (!valid) {
-        history.replace(`/login`);
-      } else {
+      if (valid) {
         setUser(userID);
       }
       setLoading(false);

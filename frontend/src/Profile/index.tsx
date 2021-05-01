@@ -62,7 +62,7 @@ const Projects = () => {
         }}
       />
       <GlobalTopNavbar projectID={null} onSaveProjectName={NOOP} name={null} />
-      {!loading && data && (
+      {!loading && data && data.me && (
         <Settings
           profile={data.me.user}
           onProfileAvatarChange={() => {

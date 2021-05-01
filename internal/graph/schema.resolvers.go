@@ -84,6 +84,15 @@ func (r *mutationResolver) UpdateProjectName(ctx context.Context, input *UpdateP
 	return &project, nil
 }
 
+func (r *mutationResolver) ToggleProjectVisibility(ctx context.Context, input ToggleProjectVisibility) (*ToggleProjectVisibilityPayload, error) {
+	if input.IsPublic {
+		project, err := r.Repository.SetPublicOn(ctx, db.SetPublicOnParams{ProjectID: input.ProjectID, PublicOn: sql.NullTime{Valid: true, Time: time.Now().UTC()}})
+		return &ToggleProjectVisibilityPayload{Project: &project}, err
+	}
+	project, err := r.Repository.SetPublicOn(ctx, db.SetPublicOnParams{ProjectID: input.ProjectID, PublicOn: sql.NullTime{Valid: false, Time: time.Time{}}})
+	return &ToggleProjectVisibilityPayload{Project: &project}, err
+}
+
 func (r *mutationResolver) CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*db.ProjectLabel, error) {
 	createdAt := time.Now().UTC()
 
@@ -1206,6 +1215,13 @@ func (r *projectResolver) InvitedMembers(ctx context.Context, obj *db.Project) (
 	return invited, err
 }
 
+func (r *projectResolver) PublicOn(ctx context.Context, obj *db.Project) (*time.Time, error) {
+	if obj.PublicOn.Valid {
+		return &obj.PublicOn.Time, nil
+	}
+	return nil, nil
+}
+
 func (r *projectResolver) Permission(ctx context.Context, obj *db.Project) (*ProjectPermission, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -1277,12 +1293,19 @@ func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserA
 
 func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db.Project, error) {
 	logger.New(ctx).Info("finding project user")
+	_, isLoggedIn := GetUser(ctx)
+	if !isLoggedIn {
+		isPublic, _ := IsProjectPublic(ctx, r.Repository, input.ProjectID)
+		if !isPublic {
+			return &db.Project{}, NotAuthorized()
+		}
+	}
 	project, err := r.Repository.GetProjectByID(ctx, input.ProjectID)
 	if err == sql.ErrNoRows {
 		return &db.Project{}, &gqlerror.Error{
 			Message: "Project not found",
 			Extensions: map[string]interface{}{
-				"code": "11-404",
+				"code": "NOT_FOUND",
 			},
 		}
 	}
@@ -1497,7 +1520,7 @@ func (r *queryResolver) TaskGroups(ctx context.Context) ([]db.TaskGroup, error) 
 func (r *queryResolver) Me(ctx context.Context) (*MePayload, error) {
 	userID, ok := GetUserID(ctx)
 	if !ok {
-		return &MePayload{}, fmt.Errorf("internal server error")
+		return nil, nil
 	}
 	user, err := r.Repository.GetUserAccountByID(ctx, userID)
 	if err == sql.ErrNoRows {

@@ -448,6 +448,15 @@ type TeamRole struct {
 	RoleCode RoleCode  `json:"roleCode"`
 }
 
+type ToggleProjectVisibility struct {
+	ProjectID uuid.UUID `json:"projectID"`
+	IsPublic  bool      `json:"isPublic"`
+}
+
+type ToggleProjectVisibilityPayload struct {
+	Project *db.Project `json:"project"`
+}
+
 type ToggleTaskLabelInput struct {
 	TaskID         uuid.UUID `json:"taskID"`
 	ProjectLabelID uuid.UUID `json:"projectLabelID"`

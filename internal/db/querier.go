@@ -4,6 +4,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -100,6 +101,7 @@ type Querier interface {
 	GetProjectMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]ProjectMember, error)
 	GetProjectRolesForUserID(ctx context.Context, userID uuid.UUID) ([]GetProjectRolesForUserIDRow, error)
 	GetProjectsForInvitedMember(ctx context.Context, email string) ([]uuid.UUID, error)
+	GetPublicOn(ctx context.Context, projectID uuid.UUID) (sql.NullTime, error)
 	GetRecentlyAssignedTaskForUserID(ctx context.Context, arg GetRecentlyAssignedTaskForUserIDParams) ([]Task, error)
 	GetRoleForProjectMemberByUserID(ctx context.Context, arg GetRoleForProjectMemberByUserIDParams) (Role, error)
 	GetRoleForTeamMember(ctx context.Context, arg GetRoleForTeamMemberParams) (Role, error)
@@ -132,6 +134,7 @@ type Querier interface {
 	HasAnyUser(ctx context.Context) (bool, error)
 	SetFirstUserActive(ctx context.Context) (UserAccount, error)
 	SetInactiveLastMoveForTaskID(ctx context.Context, taskID uuid.UUID) error
+	SetPublicOn(ctx context.Context, arg SetPublicOnParams) (Project, error)
 	SetTaskChecklistItemComplete(ctx context.Context, arg SetTaskChecklistItemCompleteParams) (TaskChecklistItem, error)
 	SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams) (Task, error)
 	SetTaskGroupName(ctx context.Context, arg SetTaskGroupNameParams) (TaskGroup, error)

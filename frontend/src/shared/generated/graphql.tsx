@@ -18,15 +18,180 @@ export type Scalars = {
 };
 
 
-export enum ActionLevel {
-  Org = 'ORG',
-  Team = 'TEAM',
-  Project = 'PROJECT'
+
+
+
+
+export enum RoleCode {
+  Owner = 'owner',
+  Admin = 'admin',
+  Member = 'member',
+  Observer = 'observer'
 }
 
-export enum ActionType {
-  TaskMemberAdded = 'TASK_MEMBER_ADDED'
-}
+export type ProjectLabel = {
+  __typename?: 'ProjectLabel';
+  id: Scalars['ID'];
+  createdDate: Scalars['Time'];
+  labelColor: LabelColor;
+  name?: Maybe<Scalars['String']>;
+};
+
+export type LabelColor = {
+  __typename?: 'LabelColor';
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+  colorHex: Scalars['String'];
+};
+
+export type TaskLabel = {
+  __typename?: 'TaskLabel';
+  id: Scalars['ID'];
+  projectLabel: ProjectLabel;
+  assignedDate: Scalars['Time'];
+};
+
+export type ProfileIcon = {
+  __typename?: 'ProfileIcon';
+  url?: Maybe<Scalars['String']>;
+  initials?: Maybe<Scalars['String']>;
+  bgColor?: Maybe<Scalars['String']>;
+};
+
+export type OwnersList = {
+  __typename?: 'OwnersList';
+  projects: Array<Scalars['UUID']>;
+  teams: Array<Scalars['UUID']>;
+};
+
+export type Member = {
+  __typename?: 'Member';
+  id: Scalars['ID'];
+  role: Role;
+  fullName: Scalars['String'];
+  username: Scalars['String'];
+  profileIcon: ProfileIcon;
+  owned: OwnedList;
+  member: MemberList;
+};
+
+export type Role = {
+  __typename?: 'Role';
+  code: Scalars['String'];
+  name: Scalars['String'];
+};
+
+export type OwnedList = {
+  __typename?: 'OwnedList';
+  teams: Array<Team>;
+  projects: Array<Project>;
+};
+
+export type MemberList = {
+  __typename?: 'MemberList';
+  teams: Array<Team>;
+  projects: Array<Project>;
+};
+
+export type UserAccount = {
+  __typename?: 'UserAccount';
+  id: Scalars['ID'];
+  email: Scalars['String'];
+  createdAt: Scalars['Time'];
+  fullName: Scalars['String'];
+  initials: Scalars['String'];
+  bio: Scalars['String'];
+  role: Role;
+  username: Scalars['String'];
+  profileIcon: ProfileIcon;
+  owned: OwnedList;
+  member: MemberList;
+};
+
+export type InvitedUserAccount = {
+  __typename?: 'InvitedUserAccount';
+  id: Scalars['ID'];
+  email: Scalars['String'];
+  invitedOn: Scalars['Time'];
+  member: MemberList;
+};
+
+export type Team = {
+  __typename?: 'Team';
+  id: Scalars['ID'];
+  createdAt: Scalars['Time'];
+  name: Scalars['String'];
+  permission: TeamPermission;
+  members: Array<Member>;
+};
+
+export type InvitedMember = {
+  __typename?: 'InvitedMember';
+  email: Scalars['String'];
+  invitedOn: Scalars['Time'];
+};
+
+export type TeamPermission = {
+  __typename?: 'TeamPermission';
+  team: RoleCode;
+  org: RoleCode;
+};
+
+export type ProjectPermission = {
+  __typename?: 'ProjectPermission';
+  team: RoleCode;
+  project: RoleCode;
+  org: RoleCode;
+};
+
+export type Project = {
+  __typename?: 'Project';
+  id: Scalars['ID'];
+  createdAt: Scalars['Time'];
+  name: Scalars['String'];
+  team?: Maybe<Team>;
+  taskGroups: Array<TaskGroup>;
+  members: Array<Member>;
+  invitedMembers: Array<InvitedMember>;
+  publicOn?: Maybe<Scalars['Time']>;
+  permission: ProjectPermission;
+  labels: Array<ProjectLabel>;
+};
+
+export type TaskGroup = {
+  __typename?: 'TaskGroup';
+  id: Scalars['ID'];
+  projectID: Scalars['String'];
+  createdAt: Scalars['Time'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+  tasks: Array<Task>;
+};
+
+export type ChecklistBadge = {
+  __typename?: 'ChecklistBadge';
+  complete: Scalars['Int'];
+  total: Scalars['Int'];
+};
+
+export type TaskBadges = {
+  __typename?: 'TaskBadges';
+  checklist?: Maybe<ChecklistBadge>;
+};
+
+export type CausedBy = {
+  __typename?: 'CausedBy';
+  id: Scalars['ID'];
+  fullName: Scalars['String'];
+  profileIcon?: Maybe<ProfileIcon>;
+};
+
+export type TaskActivityData = {
+  __typename?: 'TaskActivityData';
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
 
 export enum ActivityType {
   TaskAdded = 'TASK_ADDED',
@@ -41,65 +206,33 @@ export enum ActivityType {
   TaskChecklistRemoved = 'TASK_CHECKLIST_REMOVED'
 }
 
-export enum ActorType {
-  User = 'USER'
-}
-
-export type AddTaskLabelInput = {
-  taskID: Scalars['UUID'];
-  projectLabelID: Scalars['UUID'];
-};
-
-export type AssignTaskInput = {
-  taskID: Scalars['UUID'];
-  userID: Scalars['UUID'];
-};
-
-export type CausedBy = {
-  __typename?: 'CausedBy';
+export type TaskActivity = {
+  __typename?: 'TaskActivity';
   id: Scalars['ID'];
-  fullName: Scalars['String'];
-  profileIcon?: Maybe<ProfileIcon>;
+  type: ActivityType;
+  data: Array<TaskActivityData>;
+  causedBy: CausedBy;
+  createdAt: Scalars['Time'];
 };
 
-export type ChecklistBadge = {
-  __typename?: 'ChecklistBadge';
-  complete: Scalars['Int'];
-  total: Scalars['Int'];
-};
-
-export type CreateTaskChecklist = {
-  taskID: Scalars['UUID'];
+export type Task = {
+  __typename?: 'Task';
+  id: Scalars['ID'];
+  taskGroup: TaskGroup;
+  createdAt: Scalars['Time'];
   name: Scalars['String'];
   position: Scalars['Float'];
-};
-
-export type CreateTaskChecklistItem = {
-  taskChecklistID: Scalars['UUID'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
-};
-
-export type CreateTaskComment = {
-  taskID: Scalars['UUID'];
-  message: Scalars['String'];
-};
-
-export type CreateTaskCommentPayload = {
-  __typename?: 'CreateTaskCommentPayload';
-  taskID: Scalars['UUID'];
-  comment: TaskComment;
-};
-
-export type CreateTeamMember = {
-  userID: Scalars['UUID'];
-  teamID: Scalars['UUID'];
-};
-
-export type CreateTeamMemberPayload = {
-  __typename?: 'CreateTeamMemberPayload';
-  team: Team;
-  teamMember: Member;
+  description?: Maybe<Scalars['String']>;
+  dueDate?: Maybe<Scalars['Time']>;
+  hasTime: Scalars['Boolean'];
+  complete: Scalars['Boolean'];
+  completedAt?: Maybe<Scalars['Time']>;
+  assigned: Array<Member>;
+  labels: Array<TaskLabel>;
+  checklists: Array<TaskChecklist>;
+  badges: TaskBadges;
+  activity: Array<TaskActivity>;
+  comments: Array<TaskComment>;
 };
 
 export type CreatedBy = {
@@ -109,257 +242,118 @@ export type CreatedBy = {
   profileIcon: ProfileIcon;
 };
 
-export type DeleteInvitedProjectMember = {
-  projectID: Scalars['UUID'];
-  email: Scalars['String'];
+export type TaskComment = {
+  __typename?: 'TaskComment';
+  id: Scalars['ID'];
+  createdAt: Scalars['Time'];
+  updatedAt?: Maybe<Scalars['Time']>;
+  message: Scalars['String'];
+  createdBy: CreatedBy;
+  pinned: Scalars['Boolean'];
 };
 
-export type DeleteInvitedProjectMemberPayload = {
-  __typename?: 'DeleteInvitedProjectMemberPayload';
-  invitedMember: InvitedMember;
+export type Organization = {
+  __typename?: 'Organization';
+  id: Scalars['ID'];
+  name: Scalars['String'];
 };
 
-export type DeleteInvitedUserAccount = {
-  invitedUserID: Scalars['UUID'];
-};
-
-export type DeleteInvitedUserAccountPayload = {
-  __typename?: 'DeleteInvitedUserAccountPayload';
-  invitedUser: InvitedUserAccount;
-};
-
-export type DeleteProject = {
-  projectID: Scalars['UUID'];
-};
-
-export type DeleteProjectLabel = {
-  projectLabelID: Scalars['UUID'];
-};
-
-export type DeleteProjectMember = {
-  projectID: Scalars['UUID'];
-  userID: Scalars['UUID'];
-};
-
-export type DeleteProjectMemberPayload = {
-  __typename?: 'DeleteProjectMemberPayload';
-  ok: Scalars['Boolean'];
-  member: Member;
-  projectID: Scalars['UUID'];
-};
-
-export type DeleteProjectPayload = {
-  __typename?: 'DeleteProjectPayload';
-  ok: Scalars['Boolean'];
-  project: Project;
-};
-
-export type DeleteTaskChecklist = {
+export type TaskChecklistItem = {
+  __typename?: 'TaskChecklistItem';
+  id: Scalars['ID'];
+  name: Scalars['String'];
   taskChecklistID: Scalars['UUID'];
+  complete: Scalars['Boolean'];
+  position: Scalars['Float'];
+  dueDate: Scalars['Time'];
 };
 
-export type DeleteTaskChecklistItem = {
-  taskChecklistItemID: Scalars['UUID'];
-};
-
-export type DeleteTaskChecklistItemPayload = {
-  __typename?: 'DeleteTaskChecklistItemPayload';
-  ok: Scalars['Boolean'];
-  taskChecklistItem: TaskChecklistItem;
-};
-
-export type DeleteTaskChecklistPayload = {
-  __typename?: 'DeleteTaskChecklistPayload';
-  ok: Scalars['Boolean'];
-  taskChecklist: TaskChecklist;
-};
-
-export type DeleteTaskComment = {
-  commentID: Scalars['UUID'];
-};
-
-export type DeleteTaskCommentPayload = {
-  __typename?: 'DeleteTaskCommentPayload';
-  taskID: Scalars['UUID'];
-  commentID: Scalars['UUID'];
-};
-
-export type DeleteTaskGroupInput = {
-  taskGroupID: Scalars['UUID'];
-};
-
-export type DeleteTaskGroupPayload = {
-  __typename?: 'DeleteTaskGroupPayload';
-  ok: Scalars['Boolean'];
-  affectedRows: Scalars['Int'];
-  taskGroup: TaskGroup;
-};
-
-export type DeleteTaskGroupTasks = {
-  taskGroupID: Scalars['UUID'];
-};
-
-export type DeleteTaskGroupTasksPayload = {
-  __typename?: 'DeleteTaskGroupTasksPayload';
-  taskGroupID: Scalars['UUID'];
-  tasks: Array<Scalars['UUID']>;
-};
-
-export type DeleteTaskInput = {
-  taskID: Scalars['UUID'];
-};
-
-export type DeleteTaskPayload = {
-  __typename?: 'DeleteTaskPayload';
-  taskID: Scalars['UUID'];
-};
-
-export type DeleteTeam = {
-  teamID: Scalars['UUID'];
-};
-
-export type DeleteTeamMember = {
-  teamID: Scalars['UUID'];
-  userID: Scalars['UUID'];
-  newOwnerID?: Maybe<Scalars['UUID']>;
-};
-
-export type DeleteTeamMemberPayload = {
-  __typename?: 'DeleteTeamMemberPayload';
-  teamID: Scalars['UUID'];
-  userID: Scalars['UUID'];
-  affectedProjects: Array<Project>;
-};
-
-export type DeleteTeamPayload = {
-  __typename?: 'DeleteTeamPayload';
-  ok: Scalars['Boolean'];
-  team: Team;
-  projects: Array<Project>;
-};
-
-export type DeleteUserAccount = {
-  userID: Scalars['UUID'];
-  newOwnerID?: Maybe<Scalars['UUID']>;
-};
-
-export type DeleteUserAccountPayload = {
-  __typename?: 'DeleteUserAccountPayload';
-  ok: Scalars['Boolean'];
-  userAccount: UserAccount;
-};
-
-export type DuplicateTaskGroup = {
-  projectID: Scalars['UUID'];
-  taskGroupID: Scalars['UUID'];
+export type TaskChecklist = {
+  __typename?: 'TaskChecklist';
+  id: Scalars['ID'];
   name: Scalars['String'];
   position: Scalars['Float'];
+  items: Array<TaskChecklistItem>;
 };
 
-export type DuplicateTaskGroupPayload = {
-  __typename?: 'DuplicateTaskGroupPayload';
-  taskGroup: TaskGroup;
-};
-
-export enum EntityType {
-  Task = 'TASK'
+export enum ShareStatus {
+  Invited = 'INVITED',
+  Joined = 'JOINED'
 }
 
-export type FindProject = {
-  projectID: Scalars['UUID'];
-};
+export enum RoleLevel {
+  Admin = 'ADMIN',
+  Member = 'MEMBER'
+}
 
-export type FindTask = {
-  taskID: Scalars['UUID'];
-};
+export enum ActionLevel {
+  Org = 'ORG',
+  Team = 'TEAM',
+  Project = 'PROJECT'
+}
 
-export type FindTeam = {
-  teamID: Scalars['UUID'];
-};
+export enum ObjectType {
+  Org = 'ORG',
+  Team = 'TEAM',
+  Project = 'PROJECT',
+  Task = 'TASK',
+  TaskGroup = 'TASK_GROUP',
+  TaskChecklist = 'TASK_CHECKLIST',
+  TaskChecklistItem = 'TASK_CHECKLIST_ITEM'
+}
 
-export type FindUser = {
-  userID: Scalars['UUID'];
-};
-
-export type InviteProjectMembers = {
-  projectID: Scalars['UUID'];
-  members: Array<MemberInvite>;
-};
-
-export type InviteProjectMembersPayload = {
-  __typename?: 'InviteProjectMembersPayload';
-  ok: Scalars['Boolean'];
-  projectID: Scalars['UUID'];
-  members: Array<Member>;
-  invitedMembers: Array<InvitedMember>;
-};
-
-export type InvitedMember = {
-  __typename?: 'InvitedMember';
-  email: Scalars['String'];
-  invitedOn: Scalars['Time'];
-};
-
-export type InvitedUserAccount = {
-  __typename?: 'InvitedUserAccount';
-  id: Scalars['ID'];
-  email: Scalars['String'];
-  invitedOn: Scalars['Time'];
-  member: MemberList;
-};
-
-export type LabelColor = {
-  __typename?: 'LabelColor';
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
-  colorHex: Scalars['String'];
-};
-
-export type LogoutUser = {
-  userID: Scalars['UUID'];
-};
-
-export type MePayload = {
-  __typename?: 'MePayload';
-  user: UserAccount;
-  teamRoles: Array<TeamRole>;
-  projectRoles: Array<ProjectRole>;
-};
-
-export type Member = {
-  __typename?: 'Member';
-  id: Scalars['ID'];
-  role: Role;
-  fullName: Scalars['String'];
-  username: Scalars['String'];
-  profileIcon: ProfileIcon;
-  owned: OwnedList;
-  member: MemberList;
-};
-
-export type MemberInvite = {
-  userID?: Maybe<Scalars['UUID']>;
-  email?: Maybe<Scalars['String']>;
-};
-
-export type MemberList = {
-  __typename?: 'MemberList';
-  teams: Array<Team>;
+export type Query = {
+  __typename?: 'Query';
+  findProject: Project;
+  findTask: Task;
+  findTeam: Team;
+  findUser: UserAccount;
+  invitedUsers: Array<InvitedUserAccount>;
+  labelColors: Array<LabelColor>;
+  me?: Maybe<MePayload>;
+  myTasks: MyTasksPayload;
+  notifications: Array<Notification>;
+  organizations: Array<Organization>;
   projects: Array<Project>;
+  searchMembers: Array<MemberSearchResult>;
+  taskGroups: Array<TaskGroup>;
+  teams: Array<Team>;
+  users: Array<UserAccount>;
 };
 
-export type MemberSearchFilter = {
-  searchFilter: Scalars['String'];
-  projectID?: Maybe<Scalars['UUID']>;
+
+export type QueryFindProjectArgs = {
+  input: FindProject;
 };
 
-export type MemberSearchResult = {
-  __typename?: 'MemberSearchResult';
-  similarity: Scalars['Int'];
-  id: Scalars['String'];
-  user?: Maybe<UserAccount>;
-  status: ShareStatus;
+
+export type QueryFindTaskArgs = {
+  input: FindTask;
+};
+
+
+export type QueryFindTeamArgs = {
+  input: FindTeam;
+};
+
+
+export type QueryFindUserArgs = {
+  input: FindUser;
+};
+
+
+export type QueryMyTasksArgs = {
+  input: MyTasks;
+};
+
+
+export type QueryProjectsArgs = {
+  input?: Maybe<ProjectsFilter>;
+};
+
+
+export type QuerySearchMembersArgs = {
+  input: MemberSearchFilter;
 };
 
 export type Mutation = {
@@ -369,7 +363,6 @@ export type Mutation = {
   clearProfileAvatar: UserAccount;
   createProject: Project;
   createProjectLabel: ProjectLabel;
-  createRefreshToken: RefreshToken;
   createTask: Task;
   createTaskChecklist: TaskChecklist;
   createTaskChecklistItem: TaskChecklistItem;
@@ -399,6 +392,7 @@ export type Mutation = {
   setTaskChecklistItemComplete: TaskChecklistItem;
   setTaskComplete: Task;
   sortTaskGroup: SortTaskGroupPayload;
+  toggleProjectVisibility: ToggleProjectVisibilityPayload;
   toggleTaskLabel: ToggleTaskLabelPayload;
   unassignTask: Task;
   updateProjectLabel: ProjectLabel;
@@ -441,11 +435,6 @@ export type MutationCreateProjectArgs = {
 
 export type MutationCreateProjectLabelArgs = {
   input: NewProjectLabel;
-};
-
-
-export type MutationCreateRefreshTokenArgs = {
-  input: NewRefreshToken;
 };
 
 
@@ -594,6 +583,11 @@ export type MutationSortTaskGroupArgs = {
 };
 
 
+export type MutationToggleProjectVisibilityArgs = {
+  input: ToggleProjectVisibility;
+};
+
+
 export type MutationToggleTaskLabelArgs = {
   input: ToggleTaskLabelInput;
 };
@@ -703,23 +697,6 @@ export type MutationUpdateUserRoleArgs = {
   input: UpdateUserRole;
 };
 
-export type MyTasks = {
-  status: MyTasksStatus;
-  sort: MyTasksSort;
-};
-
-export type MyTasksPayload = {
-  __typename?: 'MyTasksPayload';
-  tasks: Array<Task>;
-  projects: Array<ProjectTaskMapping>;
-};
-
-export enum MyTasksSort {
-  None = 'NONE',
-  Project = 'PROJECT',
-  DueDate = 'DUE_DATE'
-}
-
 export enum MyTasksStatus {
   All = 'ALL',
   Incomplete = 'INCOMPLETE',
@@ -731,68 +708,80 @@ export enum MyTasksStatus {
   CompleteThreeWeek = 'COMPLETE_THREE_WEEK'
 }
 
-export type NewProject = {
-  teamID?: Maybe<Scalars['UUID']>;
-  name: Scalars['String'];
+export enum MyTasksSort {
+  None = 'NONE',
+  Project = 'PROJECT',
+  DueDate = 'DUE_DATE'
+}
+
+export type MyTasks = {
+  status: MyTasksStatus;
+  sort: MyTasksSort;
 };
 
-export type NewProjectLabel = {
+export type ProjectTaskMapping = {
+  __typename?: 'ProjectTaskMapping';
   projectID: Scalars['UUID'];
-  labelColorID: Scalars['UUID'];
-  name?: Maybe<Scalars['String']>;
+  taskID: Scalars['UUID'];
 };
 
-export type NewRefreshToken = {
+export type MyTasksPayload = {
+  __typename?: 'MyTasksPayload';
+  tasks: Array<Task>;
+  projects: Array<ProjectTaskMapping>;
+};
+
+export type TeamRole = {
+  __typename?: 'TeamRole';
+  teamID: Scalars['UUID'];
+  roleCode: RoleCode;
+};
+
+export type ProjectRole = {
+  __typename?: 'ProjectRole';
+  projectID: Scalars['UUID'];
+  roleCode: RoleCode;
+};
+
+export type MePayload = {
+  __typename?: 'MePayload';
+  user: UserAccount;
+  organization?: Maybe<RoleCode>;
+  teamRoles: Array<TeamRole>;
+  projectRoles: Array<ProjectRole>;
+};
+
+export type ProjectsFilter = {
+  teamID?: Maybe<Scalars['UUID']>;
+};
+
+export type FindUser = {
   userID: Scalars['UUID'];
 };
 
-export type NewTask = {
-  taskGroupID: Scalars['UUID'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
-  assigned?: Maybe<Array<Scalars['UUID']>>;
-};
-
-export type NewTaskGroup = {
+export type FindProject = {
   projectID: Scalars['UUID'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
 };
 
-export type NewTaskGroupLocation = {
-  taskGroupID: Scalars['UUID'];
-  position: Scalars['Float'];
-};
-
-export type NewTaskLocation = {
+export type FindTask = {
   taskID: Scalars['UUID'];
-  taskGroupID: Scalars['UUID'];
-  position: Scalars['Float'];
 };
 
-export type NewTeam = {
-  name: Scalars['String'];
-  organizationID: Scalars['UUID'];
+export type FindTeam = {
+  teamID: Scalars['UUID'];
 };
 
-export type NewUserAccount = {
-  username: Scalars['String'];
-  email: Scalars['String'];
-  fullName: Scalars['String'];
-  initials: Scalars['String'];
-  password: Scalars['String'];
-  roleCode: Scalars['String'];
-};
+export enum EntityType {
+  Task = 'TASK'
+}
 
-export type Notification = {
-  __typename?: 'Notification';
-  id: Scalars['ID'];
-  entity: NotificationEntity;
-  actionType: ActionType;
-  actor: NotificationActor;
-  read: Scalars['Boolean'];
-  createdAt: Scalars['Time'];
-};
+export enum ActorType {
+  User = 'USER'
+}
+
+export enum ActionType {
+  TaskMemberAdded = 'TASK_MEMBER_ADDED'
+}
 
 export type NotificationActor = {
   __typename?: 'NotificationActor';
@@ -808,308 +797,59 @@ export type NotificationEntity = {
   name: Scalars['String'];
 };
 
-export enum ObjectType {
-  Org = 'ORG',
-  Team = 'TEAM',
-  Project = 'PROJECT',
-  Task = 'TASK',
-  TaskGroup = 'TASK_GROUP',
-  TaskChecklist = 'TASK_CHECKLIST',
-  TaskChecklistItem = 'TASK_CHECKLIST_ITEM'
-}
-
-export type Organization = {
-  __typename?: 'Organization';
+export type Notification = {
+  __typename?: 'Notification';
   id: Scalars['ID'];
-  name: Scalars['String'];
-};
-
-export type OwnedList = {
-  __typename?: 'OwnedList';
-  teams: Array<Team>;
-  projects: Array<Project>;
-};
-
-export type OwnersList = {
-  __typename?: 'OwnersList';
-  projects: Array<Scalars['UUID']>;
-  teams: Array<Scalars['UUID']>;
-};
-
-export type ProfileIcon = {
-  __typename?: 'ProfileIcon';
-  url?: Maybe<Scalars['String']>;
-  initials?: Maybe<Scalars['String']>;
-  bgColor?: Maybe<Scalars['String']>;
-};
-
-export type Project = {
-  __typename?: 'Project';
-  id: Scalars['ID'];
+  entity: NotificationEntity;
+  actionType: ActionType;
+  actor: NotificationActor;
+  read: Scalars['Boolean'];
   createdAt: Scalars['Time'];
-  name: Scalars['String'];
-  team?: Maybe<Team>;
-  taskGroups: Array<TaskGroup>;
-  members: Array<Member>;
-  invitedMembers: Array<InvitedMember>;
-  labels: Array<ProjectLabel>;
 };
 
-export type ProjectLabel = {
-  __typename?: 'ProjectLabel';
-  id: Scalars['ID'];
-  createdDate: Scalars['Time'];
-  labelColor: LabelColor;
+export type ToggleProjectVisibility = {
+  projectID: Scalars['UUID'];
+  isPublic: Scalars['Boolean'];
+};
+
+export type ToggleProjectVisibilityPayload = {
+  __typename?: 'ToggleProjectVisibilityPayload';
+  project: Project;
+};
+
+export type NewProject = {
+  teamID?: Maybe<Scalars['UUID']>;
+  name: Scalars['String'];
+};
+
+export type UpdateProjectName = {
+  projectID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
+export type DeleteProject = {
+  projectID: Scalars['UUID'];
+};
+
+export type DeleteProjectPayload = {
+  __typename?: 'DeleteProjectPayload';
+  ok: Scalars['Boolean'];
+  project: Project;
+};
+
+export type NewProjectLabel = {
+  projectID: Scalars['UUID'];
+  labelColorID: Scalars['UUID'];
   name?: Maybe<Scalars['String']>;
 };
 
-export type ProjectRole = {
-  __typename?: 'ProjectRole';
-  projectID: Scalars['UUID'];
-  roleCode: RoleCode;
-};
-
-export type ProjectTaskMapping = {
-  __typename?: 'ProjectTaskMapping';
-  projectID: Scalars['UUID'];
-  taskID: Scalars['UUID'];
-};
-
-export type ProjectsFilter = {
-  teamID?: Maybe<Scalars['UUID']>;
-};
-
-export type Query = {
-  __typename?: 'Query';
-  findProject: Project;
-  findTask: Task;
-  findTeam: Team;
-  findUser: UserAccount;
-  invitedUsers: Array<InvitedUserAccount>;
-  labelColors: Array<LabelColor>;
-  me: MePayload;
-  myTasks: MyTasksPayload;
-  notifications: Array<Notification>;
-  organizations: Array<Organization>;
-  projects: Array<Project>;
-  searchMembers: Array<MemberSearchResult>;
-  taskGroups: Array<TaskGroup>;
-  teams: Array<Team>;
-  users: Array<UserAccount>;
-};
-
-
-export type QueryFindProjectArgs = {
-  input: FindProject;
-};
-
-
-export type QueryFindTaskArgs = {
-  input: FindTask;
-};
-
-
-export type QueryFindTeamArgs = {
-  input: FindTeam;
-};
-
-
-export type QueryFindUserArgs = {
-  input: FindUser;
-};
-
-
-export type QueryMyTasksArgs = {
-  input: MyTasks;
-};
-
-
-export type QueryProjectsArgs = {
-  input?: Maybe<ProjectsFilter>;
-};
-
-
-export type QuerySearchMembersArgs = {
-  input: MemberSearchFilter;
-};
-
-export type RefreshToken = {
-  __typename?: 'RefreshToken';
-  id: Scalars['ID'];
-  userId: Scalars['UUID'];
-  expiresAt: Scalars['Time'];
-  createdAt: Scalars['Time'];
-};
-
-export type RemoveTaskLabelInput = {
-  taskID: Scalars['UUID'];
-  taskLabelID: Scalars['UUID'];
-};
-
-export type Role = {
-  __typename?: 'Role';
-  code: Scalars['String'];
-  name: Scalars['String'];
-};
-
-export enum RoleCode {
-  Owner = 'owner',
-  Admin = 'admin',
-  Member = 'member',
-  Observer = 'observer'
-}
-
-export enum RoleLevel {
-  Admin = 'ADMIN',
-  Member = 'MEMBER'
-}
-
-export type SetTaskChecklistItemComplete = {
-  taskChecklistItemID: Scalars['UUID'];
-  complete: Scalars['Boolean'];
-};
-
-export type SetTaskComplete = {
-  taskID: Scalars['UUID'];
-  complete: Scalars['Boolean'];
-};
-
-export enum ShareStatus {
-  Invited = 'INVITED',
-  Joined = 'JOINED'
-}
-
-export type SortTaskGroup = {
-  taskGroupID: Scalars['UUID'];
-  tasks: Array<TaskPositionUpdate>;
-};
-
-export type SortTaskGroupPayload = {
-  __typename?: 'SortTaskGroupPayload';
-  taskGroupID: Scalars['UUID'];
-  tasks: Array<Task>;
-};
-
-export type Task = {
-  __typename?: 'Task';
-  id: Scalars['ID'];
-  taskGroup: TaskGroup;
-  createdAt: Scalars['Time'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
-  description?: Maybe<Scalars['String']>;
-  dueDate?: Maybe<Scalars['Time']>;
-  hasTime: Scalars['Boolean'];
-  complete: Scalars['Boolean'];
-  completedAt?: Maybe<Scalars['Time']>;
-  assigned: Array<Member>;
-  labels: Array<TaskLabel>;
-  checklists: Array<TaskChecklist>;
-  badges: TaskBadges;
-  activity: Array<TaskActivity>;
-  comments: Array<TaskComment>;
-};
-
-export type TaskActivity = {
-  __typename?: 'TaskActivity';
-  id: Scalars['ID'];
-  type: ActivityType;
-  data: Array<TaskActivityData>;
-  causedBy: CausedBy;
-  createdAt: Scalars['Time'];
-};
-
-export type TaskActivityData = {
-  __typename?: 'TaskActivityData';
-  name: Scalars['String'];
-  value: Scalars['String'];
-};
-
-export type TaskBadges = {
-  __typename?: 'TaskBadges';
-  checklist?: Maybe<ChecklistBadge>;
-};
-
-export type TaskChecklist = {
-  __typename?: 'TaskChecklist';
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
-  items: Array<TaskChecklistItem>;
-};
-
-export type TaskChecklistItem = {
-  __typename?: 'TaskChecklistItem';
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  taskChecklistID: Scalars['UUID'];
-  complete: Scalars['Boolean'];
-  position: Scalars['Float'];
-  dueDate: Scalars['Time'];
-};
-
-export type TaskComment = {
-  __typename?: 'TaskComment';
-  id: Scalars['ID'];
-  createdAt: Scalars['Time'];
-  updatedAt?: Maybe<Scalars['Time']>;
-  message: Scalars['String'];
-  createdBy: CreatedBy;
-  pinned: Scalars['Boolean'];
-};
-
-export type TaskGroup = {
-  __typename?: 'TaskGroup';
-  id: Scalars['ID'];
-  projectID: Scalars['String'];
-  createdAt: Scalars['Time'];
-  name: Scalars['String'];
-  position: Scalars['Float'];
-  tasks: Array<Task>;
-};
-
-export type TaskLabel = {
-  __typename?: 'TaskLabel';
-  id: Scalars['ID'];
-  projectLabel: ProjectLabel;
-  assignedDate: Scalars['Time'];
-};
-
-export type TaskPositionUpdate = {
-  taskID: Scalars['UUID'];
-  position: Scalars['Float'];
-};
-
-export type Team = {
-  __typename?: 'Team';
-  id: Scalars['ID'];
-  createdAt: Scalars['Time'];
-  name: Scalars['String'];
-  members: Array<Member>;
-};
-
-export type TeamRole = {
-  __typename?: 'TeamRole';
-  teamID: Scalars['UUID'];
-  roleCode: RoleCode;
-};
-
-
-export type ToggleTaskLabelInput = {
-  taskID: Scalars['UUID'];
+export type DeleteProjectLabel = {
   projectLabelID: Scalars['UUID'];
 };
 
-export type ToggleTaskLabelPayload = {
-  __typename?: 'ToggleTaskLabelPayload';
-  active: Scalars['Boolean'];
-  task: Task;
-};
-
-
-export type UnassignTaskInput = {
-  taskID: Scalars['UUID'];
-  userID: Scalars['UUID'];
+export type UpdateProjectLabelName = {
+  projectLabelID: Scalars['UUID'];
+  name: Scalars['String'];
 };
 
 export type UpdateProjectLabel = {
@@ -1123,9 +863,44 @@ export type UpdateProjectLabelColor = {
   labelColorID: Scalars['UUID'];
 };
 
-export type UpdateProjectLabelName = {
-  projectLabelID: Scalars['UUID'];
-  name: Scalars['String'];
+export type DeleteInvitedProjectMember = {
+  projectID: Scalars['UUID'];
+  email: Scalars['String'];
+};
+
+export type DeleteInvitedProjectMemberPayload = {
+  __typename?: 'DeleteInvitedProjectMemberPayload';
+  invitedMember: InvitedMember;
+};
+
+export type MemberInvite = {
+  userID?: Maybe<Scalars['UUID']>;
+  email?: Maybe<Scalars['String']>;
+};
+
+export type InviteProjectMembers = {
+  projectID: Scalars['UUID'];
+  members: Array<MemberInvite>;
+};
+
+export type InviteProjectMembersPayload = {
+  __typename?: 'InviteProjectMembersPayload';
+  ok: Scalars['Boolean'];
+  projectID: Scalars['UUID'];
+  members: Array<Member>;
+  invitedMembers: Array<InvitedMember>;
+};
+
+export type DeleteProjectMember = {
+  projectID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
+export type DeleteProjectMemberPayload = {
+  __typename?: 'DeleteProjectMemberPayload';
+  ok: Scalars['Boolean'];
+  member: Member;
+  projectID: Scalars['UUID'];
 };
 
 export type UpdateProjectMemberRole = {
@@ -1140,8 +915,62 @@ export type UpdateProjectMemberRolePayload = {
   member: Member;
 };
 
-export type UpdateProjectName = {
-  projectID: Scalars['UUID'];
+export type NewTask = {
+  taskGroupID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+  assigned?: Maybe<Array<Scalars['UUID']>>;
+};
+
+export type AssignTaskInput = {
+  taskID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
+export type UnassignTaskInput = {
+  taskID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+};
+
+export type UpdateTaskDescriptionInput = {
+  taskID: Scalars['UUID'];
+  description: Scalars['String'];
+};
+
+export type UpdateTaskLocationPayload = {
+  __typename?: 'UpdateTaskLocationPayload';
+  previousTaskGroupID: Scalars['UUID'];
+  task: Task;
+};
+
+export type UpdateTaskDueDate = {
+  taskID: Scalars['UUID'];
+  hasTime: Scalars['Boolean'];
+  dueDate?: Maybe<Scalars['Time']>;
+};
+
+export type SetTaskComplete = {
+  taskID: Scalars['UUID'];
+  complete: Scalars['Boolean'];
+};
+
+export type NewTaskLocation = {
+  taskID: Scalars['UUID'];
+  taskGroupID: Scalars['UUID'];
+  position: Scalars['Float'];
+};
+
+export type DeleteTaskInput = {
+  taskID: Scalars['UUID'];
+};
+
+export type DeleteTaskPayload = {
+  __typename?: 'DeleteTaskPayload';
+  taskID: Scalars['UUID'];
+};
+
+export type UpdateTaskName = {
+  taskID: Scalars['UUID'];
   name: Scalars['String'];
 };
 
@@ -1158,11 +987,6 @@ export type UpdateTaskChecklistItemLocationPayload = {
   checklistItem: TaskChecklistItem;
 };
 
-export type UpdateTaskChecklistItemName = {
-  taskChecklistItemID: Scalars['UUID'];
-  name: Scalars['String'];
-};
-
 export type UpdateTaskChecklistLocation = {
   taskChecklistID: Scalars['UUID'];
   position: Scalars['Float'];
@@ -1173,9 +997,62 @@ export type UpdateTaskChecklistLocationPayload = {
   checklist: TaskChecklist;
 };
 
+export type CreateTaskChecklist = {
+  taskID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+};
+
+export type DeleteTaskChecklistItemPayload = {
+  __typename?: 'DeleteTaskChecklistItemPayload';
+  ok: Scalars['Boolean'];
+  taskChecklistItem: TaskChecklistItem;
+};
+
+export type CreateTaskChecklistItem = {
+  taskChecklistID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+};
+
+export type SetTaskChecklistItemComplete = {
+  taskChecklistItemID: Scalars['UUID'];
+  complete: Scalars['Boolean'];
+};
+
+export type DeleteTaskChecklistItem = {
+  taskChecklistItemID: Scalars['UUID'];
+};
+
+export type UpdateTaskChecklistItemName = {
+  taskChecklistItemID: Scalars['UUID'];
+  name: Scalars['String'];
+};
+
 export type UpdateTaskChecklistName = {
   taskChecklistID: Scalars['UUID'];
   name: Scalars['String'];
+};
+
+export type DeleteTaskChecklist = {
+  taskChecklistID: Scalars['UUID'];
+};
+
+export type DeleteTaskChecklistPayload = {
+  __typename?: 'DeleteTaskChecklistPayload';
+  ok: Scalars['Boolean'];
+  taskChecklist: TaskChecklist;
+};
+
+export type CreateTaskComment = {
+  taskID: Scalars['UUID'];
+  message: Scalars['String'];
+};
+
+export type CreateTaskCommentPayload = {
+  __typename?: 'CreateTaskCommentPayload';
+  taskID: Scalars['UUID'];
+  comment: TaskComment;
 };
 
 export type UpdateTaskComment = {
@@ -1189,15 +1066,57 @@ export type UpdateTaskCommentPayload = {
   comment: TaskComment;
 };
 
-export type UpdateTaskDescriptionInput = {
-  taskID: Scalars['UUID'];
-  description: Scalars['String'];
+export type DeleteTaskComment = {
+  commentID: Scalars['UUID'];
 };
 
-export type UpdateTaskDueDate = {
+export type DeleteTaskCommentPayload = {
+  __typename?: 'DeleteTaskCommentPayload';
   taskID: Scalars['UUID'];
-  hasTime: Scalars['Boolean'];
-  dueDate?: Maybe<Scalars['Time']>;
+  commentID: Scalars['UUID'];
+};
+
+export type DeleteTaskGroupTasks = {
+  taskGroupID: Scalars['UUID'];
+};
+
+export type DeleteTaskGroupTasksPayload = {
+  __typename?: 'DeleteTaskGroupTasksPayload';
+  taskGroupID: Scalars['UUID'];
+  tasks: Array<Scalars['UUID']>;
+};
+
+export type TaskPositionUpdate = {
+  taskID: Scalars['UUID'];
+  position: Scalars['Float'];
+};
+
+export type SortTaskGroupPayload = {
+  __typename?: 'SortTaskGroupPayload';
+  taskGroupID: Scalars['UUID'];
+  tasks: Array<Task>;
+};
+
+export type SortTaskGroup = {
+  taskGroupID: Scalars['UUID'];
+  tasks: Array<TaskPositionUpdate>;
+};
+
+export type DuplicateTaskGroup = {
+  projectID: Scalars['UUID'];
+  taskGroupID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+};
+
+export type DuplicateTaskGroupPayload = {
+  __typename?: 'DuplicateTaskGroupPayload';
+  taskGroup: TaskGroup;
+};
+
+export type NewTaskGroupLocation = {
+  taskGroupID: Scalars['UUID'];
+  position: Scalars['Float'];
 };
 
 export type UpdateTaskGroupName = {
@@ -1205,15 +1124,82 @@ export type UpdateTaskGroupName = {
   name: Scalars['String'];
 };
 
-export type UpdateTaskLocationPayload = {
-  __typename?: 'UpdateTaskLocationPayload';
-  previousTaskGroupID: Scalars['UUID'];
+export type DeleteTaskGroupInput = {
+  taskGroupID: Scalars['UUID'];
+};
+
+export type DeleteTaskGroupPayload = {
+  __typename?: 'DeleteTaskGroupPayload';
+  ok: Scalars['Boolean'];
+  affectedRows: Scalars['Int'];
+  taskGroup: TaskGroup;
+};
+
+export type NewTaskGroup = {
+  projectID: Scalars['UUID'];
+  name: Scalars['String'];
+  position: Scalars['Float'];
+};
+
+export type AddTaskLabelInput = {
+  taskID: Scalars['UUID'];
+  projectLabelID: Scalars['UUID'];
+};
+
+export type RemoveTaskLabelInput = {
+  taskID: Scalars['UUID'];
+  taskLabelID: Scalars['UUID'];
+};
+
+export type ToggleTaskLabelInput = {
+  taskID: Scalars['UUID'];
+  projectLabelID: Scalars['UUID'];
+};
+
+export type ToggleTaskLabelPayload = {
+  __typename?: 'ToggleTaskLabelPayload';
+  active: Scalars['Boolean'];
   task: Task;
 };
 
-export type UpdateTaskName = {
-  taskID: Scalars['UUID'];
+export type NewTeam = {
   name: Scalars['String'];
+  organizationID: Scalars['UUID'];
+};
+
+export type DeleteTeam = {
+  teamID: Scalars['UUID'];
+};
+
+export type DeleteTeamPayload = {
+  __typename?: 'DeleteTeamPayload';
+  ok: Scalars['Boolean'];
+  team: Team;
+  projects: Array<Project>;
+};
+
+export type DeleteTeamMember = {
+  teamID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+  newOwnerID?: Maybe<Scalars['UUID']>;
+};
+
+export type DeleteTeamMemberPayload = {
+  __typename?: 'DeleteTeamMemberPayload';
+  teamID: Scalars['UUID'];
+  userID: Scalars['UUID'];
+  affectedProjects: Array<Project>;
+};
+
+export type CreateTeamMember = {
+  userID: Scalars['UUID'];
+  teamID: Scalars['UUID'];
+};
+
+export type CreateTeamMemberPayload = {
+  __typename?: 'CreateTeamMemberPayload';
+  team: Team;
+  teamMember: Member;
 };
 
 export type UpdateTeamMemberRole = {
@@ -1229,16 +1215,38 @@ export type UpdateTeamMemberRolePayload = {
   member: Member;
 };
 
-export type UpdateUserInfo = {
-  name: Scalars['String'];
-  initials: Scalars['String'];
-  email: Scalars['String'];
-  bio: Scalars['String'];
+export type DeleteInvitedUserAccount = {
+  invitedUserID: Scalars['UUID'];
+};
+
+export type DeleteInvitedUserAccountPayload = {
+  __typename?: 'DeleteInvitedUserAccountPayload';
+  invitedUser: InvitedUserAccount;
+};
+
+export type MemberSearchFilter = {
+  searchFilter: Scalars['String'];
+  projectID?: Maybe<Scalars['UUID']>;
+};
+
+export type MemberSearchResult = {
+  __typename?: 'MemberSearchResult';
+  similarity: Scalars['Int'];
+  id: Scalars['String'];
+  user?: Maybe<UserAccount>;
+  status: ShareStatus;
 };
 
 export type UpdateUserInfoPayload = {
   __typename?: 'UpdateUserInfoPayload';
   user: UserAccount;
+};
+
+export type UpdateUserInfo = {
+  name: Scalars['String'];
+  initials: Scalars['String'];
+  email: Scalars['String'];
+  bio: Scalars['String'];
 };
 
 export type UpdateUserPassword = {
@@ -1262,20 +1270,28 @@ export type UpdateUserRolePayload = {
   user: UserAccount;
 };
 
-
-export type UserAccount = {
-  __typename?: 'UserAccount';
-  id: Scalars['ID'];
+export type NewUserAccount = {
+  username: Scalars['String'];
   email: Scalars['String'];
-  createdAt: Scalars['Time'];
   fullName: Scalars['String'];
   initials: Scalars['String'];
-  bio: Scalars['String'];
-  role: Role;
-  username: Scalars['String'];
-  profileIcon: ProfileIcon;
-  owned: OwnedList;
-  member: MemberList;
+  password: Scalars['String'];
+  roleCode: Scalars['String'];
+};
+
+export type LogoutUser = {
+  userID: Scalars['UUID'];
+};
+
+export type DeleteUserAccount = {
+  userID: Scalars['UUID'];
+  newOwnerID?: Maybe<Scalars['UUID']>;
+};
+
+export type DeleteUserAccountPayload = {
+  __typename?: 'DeleteUserAccountPayload';
+  ok: Scalars['Boolean'];
+  userAccount: UserAccount;
 };
 
 export type AssignTaskMutationVariables = Exact<{
@@ -1419,7 +1435,7 @@ export type FindProjectQuery = (
   { __typename?: 'Query' }
   & { findProject: (
     { __typename?: 'Project' }
-    & Pick<Project, 'name'>
+    & Pick<Project, 'name' | 'publicOn'>
     & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id'>
@@ -1555,7 +1571,7 @@ export type FindTaskQuery = (
         & Pick<ProfileIcon, 'url' | 'initials' | 'bgColor'>
       ) }
     )> }
-  ), me: (
+  ), me?: Maybe<(
     { __typename?: 'MePayload' }
     & { user: (
       { __typename?: 'UserAccount' }
@@ -1565,7 +1581,7 @@ export type FindTaskQuery = (
         & Pick<ProfileIcon, 'initials' | 'bgColor' | 'url'>
       ) }
     ) }
-  ) }
+  )> }
 );
 
 export type TaskFieldsFragment = (
@@ -1627,7 +1643,7 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = (
   { __typename?: 'Query' }
-  & { me: (
+  & { me?: Maybe<(
     { __typename?: 'MePayload' }
     & { user: (
       { __typename?: 'UserAccount' }
@@ -1643,7 +1659,7 @@ export type MeQuery = (
       { __typename?: 'ProjectRole' }
       & Pick<ProjectRole, 'projectID' | 'roleCode'>
     )> }
-  ) }
+  )> }
 );
 
 export type MyTasksQueryVariables = Exact<{
@@ -2253,6 +2269,23 @@ export type UpdateTeamMemberRoleMutation = (
   ) }
 );
 
+export type ToggleProjectVisibilityMutationVariables = Exact<{
+  projectID: Scalars['UUID'];
+  isPublic: Scalars['Boolean'];
+}>;
+
+
+export type ToggleProjectVisibilityMutation = (
+  { __typename?: 'Mutation' }
+  & { toggleProjectVisibility: (
+    { __typename?: 'ToggleProjectVisibilityPayload' }
+    & { project: (
+      { __typename?: 'Project' }
+      & Pick<Project, 'id' | 'publicOn'>
+    ) }
+  ) }
+);
+
 export type ToggleTaskLabelMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   projectLabelID: Scalars['UUID'];
@@ -2298,7 +2331,7 @@ export type TopNavbarQuery = (
       { __typename?: 'NotificationActor' }
       & Pick<NotificationActor, 'id' | 'type' | 'name'>
     ) }
-  )>, me: (
+  )>, me?: Maybe<(
     { __typename?: 'MePayload' }
     & { user: (
       { __typename?: 'UserAccount' }
@@ -2314,7 +2347,7 @@ export type TopNavbarQuery = (
       { __typename?: 'ProjectRole' }
       & Pick<ProjectRole, 'projectID' | 'roleCode'>
     )> }
-  ) }
+  )> }
 );
 
 export type UnassignTaskMutationVariables = Exact<{
@@ -2979,6 +3012,7 @@ export const FindProjectDocument = gql`
     query findProject($projectID: UUID!) {
   findProject(input: {projectID: $projectID}) {
     name
+    publicOn
     team {
       id
     }
@@ -4605,6 +4639,43 @@ export function useUpdateTeamMemberRoleMutation(baseOptions?: Apollo.MutationHoo
 export type UpdateTeamMemberRoleMutationHookResult = ReturnType<typeof useUpdateTeamMemberRoleMutation>;
 export type UpdateTeamMemberRoleMutationResult = Apollo.MutationResult<UpdateTeamMemberRoleMutation>;
 export type UpdateTeamMemberRoleMutationOptions = Apollo.BaseMutationOptions<UpdateTeamMemberRoleMutation, UpdateTeamMemberRoleMutationVariables>;
+export const ToggleProjectVisibilityDocument = gql`
+    mutation toggleProjectVisibility($projectID: UUID!, $isPublic: Boolean!) {
+  toggleProjectVisibility(input: {projectID: $projectID, isPublic: $isPublic}) {
+    project {
+      id
+      publicOn
+    }
+  }
+}
+    `;
+export type ToggleProjectVisibilityMutationFn = Apollo.MutationFunction<ToggleProjectVisibilityMutation, ToggleProjectVisibilityMutationVariables>;
+
+/**
+ * __useToggleProjectVisibilityMutation__
+ *
+ * To run a mutation, you first call `useToggleProjectVisibilityMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useToggleProjectVisibilityMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [toggleProjectVisibilityMutation, { data, loading, error }] = useToggleProjectVisibilityMutation({
+ *   variables: {
+ *      projectID: // value for 'projectID'
+ *      isPublic: // value for 'isPublic'
+ *   },
+ * });
+ */
+export function useToggleProjectVisibilityMutation(baseOptions?: Apollo.MutationHookOptions<ToggleProjectVisibilityMutation, ToggleProjectVisibilityMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ToggleProjectVisibilityMutation, ToggleProjectVisibilityMutationVariables>(ToggleProjectVisibilityDocument, options);
+      }
+export type ToggleProjectVisibilityMutationHookResult = ReturnType<typeof useToggleProjectVisibilityMutation>;
+export type ToggleProjectVisibilityMutationResult = Apollo.MutationResult<ToggleProjectVisibilityMutation>;
+export type ToggleProjectVisibilityMutationOptions = Apollo.BaseMutationOptions<ToggleProjectVisibilityMutation, ToggleProjectVisibilityMutationVariables>;
 export const ToggleTaskLabelDocument = gql`
     mutation toggleTaskLabel($taskID: UUID!, $projectLabelID: UUID!) {
   toggleTaskLabel(input: {taskID: $taskID, projectLabelID: $projectLabelID}) {

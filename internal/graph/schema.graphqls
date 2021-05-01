@@ -119,6 +119,7 @@ type Project {
   taskGroups: [TaskGroup!]!
   members: [Member!]!
   invitedMembers: [InvitedMember!]!
+  publicOn: Time
   permission: ProjectPermission!
   labels: [ProjectLabel!]!
 }
@@ -255,6 +256,7 @@ enum ObjectType {
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
+directive @requiresUser on FIELD_DEFINITION
 
 type Query {
   organizations: [Organization!]!
@@ -262,7 +264,7 @@ type Query {
   invitedUsers: [InvitedUserAccount!]!
   findUser(input: FindUser!): UserAccount!
   findProject(input: FindProject!):
-    Project! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+    Project!
   findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
   findTeam(input: FindTeam!): Team!
@@ -270,7 +272,7 @@ type Query {
   myTasks(input: MyTasks!): MyTasksPayload!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
-  me: MePayload!
+  me: MePayload
 }
 
 
@@ -388,6 +390,16 @@ extend type Mutation {
     DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
   updateProjectName(input: UpdateProjectName):
     Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  toggleProjectVisibility(input: ToggleProjectVisibility!): ToggleProjectVisibilityPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input ToggleProjectVisibility {
+  projectID: UUID!
+  isPublic: Boolean!
+}
+
+type ToggleProjectVisibilityPayload {
+  project: Project!
 }
 
 input NewProject {
@@ -982,3 +994,4 @@ type DeleteUserAccountPayload {
   ok: Boolean!
   userAccount: UserAccount!
 }
+

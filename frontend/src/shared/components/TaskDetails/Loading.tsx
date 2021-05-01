@@ -80,40 +80,44 @@ import {
   ActivityItemHeaderTitleName,
   ActivityItemComment,
 } from './Styles';
+import { useCurrentUser } from 'App/context';
 
 type TaskDetailsProps = {};
 
 const TaskDetailsLoading: React.FC<TaskDetailsProps> = () => {
+  const { user } = useCurrentUser();
   return (
     <Container>
       <LeftSidebar>
         <LeftSidebarContent>
           <LeftSidebarSection>
             <SidebarTitle>TASK GROUP</SidebarTitle>
-            <SidebarButton loading>
+            <SidebarButton $loading>
               <SidebarSkeleton />
             </SidebarButton>
             <DueDateTitle>DUE DATE</DueDateTitle>
-            <SidebarButton loading>
+            <SidebarButton $loading>
               <SidebarSkeleton />
             </SidebarButton>
           </LeftSidebarSection>
           <AssignedUsersSection>
             <DueDateTitle>MEMBERS</DueDateTitle>
-            <SidebarButton loading>
+            <SidebarButton $loading>
               <SidebarSkeleton />
             </SidebarButton>
           </AssignedUsersSection>
-          <ExtraActionsSection>
-            <DueDateTitle>ACTIONS</DueDateTitle>
-            <ActionButton disabled icon={<Tags width={12} height={12} />}>
-              Labels
-            </ActionButton>
-            <ActionButton disabled icon={<CheckSquareOutline width={12} height={12} />}>
-              Checklist
-            </ActionButton>
-            <ActionButton disabled>Cover</ActionButton>
-          </ExtraActionsSection>
+          {user && (
+            <ExtraActionsSection>
+              <DueDateTitle>ACTIONS</DueDateTitle>
+              <ActionButton disabled icon={<Tags width={12} height={12} />}>
+                Labels
+              </ActionButton>
+              <ActionButton disabled icon={<CheckSquareOutline width={12} height={12} />}>
+                Checklist
+              </ActionButton>
+              <ActionButton disabled>Cover</ActionButton>
+            </ExtraActionsSection>
+          )}
         </LeftSidebarContent>
       </LeftSidebar>
       <ContentContainer>
@@ -125,23 +129,25 @@ const TaskDetailsLoading: React.FC<TaskDetailsProps> = () => {
                 <span>Mark complete</span>
               </MarkCompleteButton>
             </HeaderLeft>
-            <HeaderRight>
-              <HeaderActionIcon>
-                <Paperclip width={16} height={16} />
-              </HeaderActionIcon>
-              <HeaderActionIcon>
-                <Clone width={16} height={16} />
-              </HeaderActionIcon>
-              <HeaderActionIcon>
-                <Share width={16} height={16} />
-              </HeaderActionIcon>
-              <HeaderActionIcon>
-                <Trash width={16} height={16} />
-              </HeaderActionIcon>
-            </HeaderRight>
+            {user && (
+              <HeaderRight>
+                <HeaderActionIcon>
+                  <Paperclip width={16} height={16} />
+                </HeaderActionIcon>
+                <HeaderActionIcon>
+                  <Clone width={16} height={16} />
+                </HeaderActionIcon>
+                <HeaderActionIcon>
+                  <Share width={16} height={16} />
+                </HeaderActionIcon>
+                <HeaderActionIcon>
+                  <Trash width={16} height={16} />
+                </HeaderActionIcon>
+              </HeaderRight>
+            )}
           </HeaderInnerContainer>
-          <TaskDetailsTitleWrapper loading>
-            <TaskDetailsTitle value="" disabled loading />
+          <TaskDetailsTitleWrapper $loading>
+            <TaskDetailsTitle value="" disabled $loading />
           </TaskDetailsTitleWrapper>
         </HeaderContainer>
         <InnerContentContainer>
@@ -151,9 +157,11 @@ const TaskDetailsLoading: React.FC<TaskDetailsProps> = () => {
           </TabBarSection>
           <ActivitySection />
         </InnerContentContainer>
-        <CommentContainer>
-          <CommentCreator disabled onCreateComment={() => null} onMemberProfile={() => null} />
-        </CommentContainer>
+        {user && (
+          <CommentContainer>
+            <CommentCreator disabled onCreateComment={() => null} onMemberProfile={() => null} />
+          </CommentContainer>
+        )}
       </ContentContainer>
     </Container>
   );
