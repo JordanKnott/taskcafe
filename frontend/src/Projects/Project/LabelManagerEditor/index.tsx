@@ -8,11 +8,13 @@ import {
   FindProjectDocument,
   useCreateProjectLabelMutation,
   FindProjectQuery,
+  useToggleTaskLabelMutation,
 } from 'shared/generated/graphql';
 import LabelManager from 'shared/components/PopupMenu/LabelManager';
 import LabelEditor from 'shared/components/PopupMenu/LabelEditor';
 
 type LabelManagerEditorProps = {
+  taskID?: string;
   labels: React.RefObject<Array<ProjectLabel>>;
   taskLabels: null | React.RefObject<Array<TaskLabel>>;
   projectID: string;
@@ -21,6 +23,7 @@ type LabelManagerEditorProps = {
 };
 
 const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
+  taskID,
   labels: labelsRef,
   projectID,
   labelColors,
@@ -29,7 +32,13 @@ const LabelManagerEditor: React.FC<LabelManagerEditorProps> = ({
 }) => {
   const [currentLabel, setCurrentLabel] = useState('');
   const { setTab, hidePopup } = usePopup();
+  const [toggleTaskLabel] = useToggleTaskLabelMutation();
   const [createProjectLabel] = useCreateProjectLabelMutation({
+    onCompleted: data => {
+      if (taskID) {
+        toggleTaskLabel({ variables: { taskID, projectLabelID: data.createProjectLabel.id } });
+      }
+    },
     update: (client, newLabelData) => {
       updateApolloCache<FindProjectQuery>(
         client,

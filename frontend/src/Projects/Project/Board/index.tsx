@@ -767,6 +767,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                   onLabelToggle={labelID => {
                     toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
                   }}
+                  taskID={task.id}
                   labelColors={data.labelColors}
                   labels={labelsRef}
                   taskLabels={taskLabelsRef}

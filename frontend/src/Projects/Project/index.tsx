@@ -267,6 +267,7 @@ const Project = () => {
                     onLabelToggle={labelID => {
                       toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
                     }}
+                    taskID={task.id}
                     labelColors={data.labelColors}
                     labels={labelsRef}
                     taskLabels={taskLabelsRef}
