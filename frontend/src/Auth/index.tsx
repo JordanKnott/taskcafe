@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import Login from 'shared/components/Login';
 import UserContext from 'App/context';
 import { Container, LoginWrapper } from './Styles';
@@ -7,6 +7,7 @@ import { Container, LoginWrapper } from './Styles';
 const Auth = () => {
   const [invalidLoginAttempt, setInvalidLoginAttempt] = useState(0);
   const history = useHistory();
+  const location = useLocation<{ redirect: string } | undefined>();
   const { setUser } = useContext(UserContext);
   const login = (
     data: LoginFormData,
@@ -30,7 +31,11 @@ const Auth = () => {
         const response = await x.json();
         const { userID } = response;
         setUser(userID);
-        history.push('/');
+        if (location.state && location.state.redirect) {
+          history.push(location.state.redirect);
+        } else {
+          history.push('/');
+        }
       }
     });
   };

@@ -2,7 +2,7 @@ import React from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import LoggedOutNavbar from 'shared/components/TopNavbar/LoggedOut';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
-import { useHistory } from 'react-router';
+import { useHistory, useRouteMatch } from 'react-router';
 import { useCurrentUser } from 'App/context';
 import { RoleCode, useTopNavbarQuery } from 'shared/generated/graphql';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
@@ -234,6 +234,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveFromBoard,
 }) => {
   const { user } = useCurrentUser();
+  const match = useRouteMatch();
   if (user) {
     return (
       <LoggedInNavbar
@@ -255,7 +256,7 @@ const GlobalTopNavbar: React.FC<GlobalTopNavbarProps> = ({
       />
     );
   }
-  return <LoggedOutNavbar name={name} menuType={menuType} />;
+  return <LoggedOutNavbar match={match.url} name={name} menuType={menuType} />;
 };
 
 export default GlobalTopNavbar;

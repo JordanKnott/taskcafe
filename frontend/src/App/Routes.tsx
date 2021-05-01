@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Switch, Route, useHistory } from 'react-router-dom';
+import { Switch, Route, useHistory, useLocation, Redirect } from 'react-router-dom';
 import * as H from 'history';
 
 import Dashboard from 'Dashboard';
@@ -29,8 +29,27 @@ type ValidateTokenResponse = {
   userID: string;
 };
 
-const AuthorizedRoutes = () => {
-  const history = useHistory();
+const UserRequiredRoute: React.FC<any> = ({ children }) => {
+  const { user } = useCurrentUser();
+  const location = useLocation();
+  if (user) {
+    return children;
+  }
+  return (
+    <Redirect
+      to={{
+        pathname: '/login',
+        state: { redirect: location.pathname },
+      }}
+    />
+  );
+};
+
+type RoutesProps = {
+  history: H.History;
+};
+
+const Routes: React.FC<RoutesProps> = () => {
   const [loading, setLoading] = useState(true);
   const { setUser } = useCurrentUser();
   useEffect(() => {
@@ -38,7 +57,6 @@ const AuthorizedRoutes = () => {
       method: 'POST',
       credentials: 'include',
     }).then(async x => {
-      const { status } = x;
       const response: ValidateTokenResponse = await x.json();
       const { valid, userID } = response;
       if (valid) {
@@ -47,32 +65,28 @@ const AuthorizedRoutes = () => {
       setLoading(false);
     });
   }, []);
-  return loading ? null : (
+  if (loading) return null;
+  return (
     <Switch>
-      <MainContent>
-        <Route exact path="/" component={Dashboard} />
-        <Route exact path="/projects" component={Projects} />
-        <Route path="/projects/:projectID" component={Project} />
-        <Route path="/teams/:teamID" component={Teams} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/admin" component={Admin} />
-        <Route path="/tasks" component={MyTasks} />
-      </MainContent>
+      <Route exact path="/login" component={Login} />
+      <Route exact path="/register" component={Register} />
+      <Route exact path="/confirm" component={Confirm} />
+      <Switch>
+        <MainContent>
+          <Route path="/projects/:projectID" component={Project} />
+
+          <UserRequiredRoute>
+            <Route exact path="/" component={Dashboard} />
+            <Route exact path="/projects" component={Projects} />
+            <Route path="/teams/:teamID" component={Teams} />
+            <Route path="/profile" component={Profile} />
+            <Route path="/admin" component={Admin} />
+            <Route path="/tasks" component={MyTasks} />
+          </UserRequiredRoute>
+        </MainContent>
+      </Switch>
     </Switch>
   );
 };
-
-type RoutesProps = {
-  history: H.History;
-};
-
-const Routes: React.FC<RoutesProps> = () => (
-  <Switch>
-    <Route exact path="/login" component={Login} />
-    <Route exact path="/register" component={Register} />
-    <Route exact path="/confirm" component={Confirm} />
-    <AuthorizedRoutes />
-  </Switch>
-);
 
 export default Routes;

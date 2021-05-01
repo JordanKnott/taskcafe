@@ -33,24 +33,19 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 		},
 	}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (interface{}, error) {
-		/*
-			TODO: add permission check
-			role, ok := GetUserRole(ctx)
-			if !ok {
-				return nil, errors.New("user ID is missing")
-			}
-			if role == "admin" {
-				return next(ctx)
-			} else if level == ActionLevelOrg {
-				return nil, errors.New("must be an org admin")
-			}
-		*/
-
-		userID, ok := GetUserID(ctx)
+		userID, ok := GetUser(ctx)
 		if !ok {
 			return nil, errors.New("user must be logged in")
 		}
-		log.Info("has role")
+		user, err := repo.GetUserAccountByID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		if user.RoleCode == "admin" {
+			return next(ctx)
+		} else if level == ActionLevelOrg {
+			return nil, errors.New("must be an org admin")
+		}
 
 		var subjectID uuid.UUID
 		in := graphql.GetFieldContext(ctx).Args["input"]
@@ -90,7 +85,6 @@ func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler 
 			return nil, errors.New("error while casting subject uuid")
 		}
 
-		var err error
 		if level == ActionLevelProject {
 			logger.New(ctx).WithFields(log.Fields{"subjectID": subjectID}).Info("fetching subject ID by typeArg")
 			if typeArg == ObjectTypeTask {

@@ -12,9 +12,10 @@ export type MenuItem = {
 type NavBarProps = {
   menuType?: Array<MenuItem> | null;
   name: string | null;
+  match: string;
 };
 
-const NavBar: React.FC<NavBarProps> = ({ menuType, name }) => {
+const NavBar: React.FC<NavBarProps> = ({ menuType, name, match }) => {
   return (
     <S.NavbarWrapper>
       <S.NavbarHeader>
@@ -51,7 +52,12 @@ const NavBar: React.FC<NavBarProps> = ({ menuType, name }) => {
           <S.TaskcafeTitle>Taskcafé</S.TaskcafeTitle>
         </S.LogoContainer>
         <S.GlobalActions>
-          <Link to="/login">
+          <Link
+            to={{
+              pathname: '/login',
+              state: { redirect: match },
+            }}
+          >
             <S.SignIn>Sign In</S.SignIn>
           </Link>
         </S.GlobalActions>
