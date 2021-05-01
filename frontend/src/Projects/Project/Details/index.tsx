@@ -36,6 +36,7 @@ import Input from 'shared/components/Input';
 import { useForm } from 'react-hook-form';
 import updateApolloCache from 'shared/utils/cache';
 import NOOP from 'shared/utils/noop';
+import polling from 'shared/utils/polling';
 
 export const ActionsList = styled.ul`
   margin: 0;
@@ -384,7 +385,7 @@ const Details: React.FC<DetailsProps> = ({
   });
   const { loading, data, refetch } = useFindTaskQuery({
     variables: { taskID },
-    pollInterval: 3000,
+    pollInterval: polling.TASK_DETAILS,
     fetchPolicy: 'cache-and-network',
   });
   const [setTaskComplete] = useSetTaskCompleteMutation();

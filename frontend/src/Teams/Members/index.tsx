@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Input from 'shared/components/Input';
 import updateApolloCache from 'shared/utils/cache';
 import produce from 'immer';
+import polling from 'shared/utils/polling';
 import Button from 'shared/components/Button';
 import { useCurrentUser } from 'App/context';
 import Select from 'shared/components/Select';
@@ -422,7 +423,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
   const { loading, data } = useGetTeamQuery({
     variables: { teamID },
     fetchPolicy: 'cache-and-network',
-    pollInterval: 3000,
+    pollInterval: polling.MEMBERS,
   });
   const { user } = useCurrentUser();
   const warning =

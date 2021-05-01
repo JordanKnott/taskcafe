@@ -22,6 +22,7 @@ import produce from 'immer';
 import NOOP from 'shared/utils/noop';
 import theme from 'App/ThemeStyles';
 import { mixin } from '../shared/utils/styles';
+import polling from 'shared/utils/polling';
 
 type CreateTeamData = { teamName: string };
 
@@ -203,7 +204,7 @@ type ShowNewProject = {
 
 const Projects = () => {
   const { showPopup, hidePopup } = usePopup();
-  const { loading, data } = useGetProjectsQuery({ pollInterval: 3000, fetchPolicy: 'cache-and-network' });
+  const { loading, data } = useGetProjectsQuery({ pollInterval: polling.PROJECTS, fetchPolicy: 'cache-and-network' });
   useEffect(() => {
     document.title = 'Taskcafé';
   }, []);

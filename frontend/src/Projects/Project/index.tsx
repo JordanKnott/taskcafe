@@ -35,6 +35,7 @@ import Board, { BoardLoading } from './Board';
 import Details from './Details';
 import LabelManagerEditor from './LabelManagerEditor';
 import UserManagementPopup from './UserManagementPopup';
+import polling from 'shared/utils/polling';
 
 type TaskRouteProps = {
   taskID: string;
@@ -60,7 +61,7 @@ const Project = () => {
   const [updateTaskName] = useUpdateTaskNameMutation();
   const { data, error } = useFindProjectQuery({
     variables: { projectID },
-    pollInterval: 3000,
+    pollInterval: polling.PROJECT,
   });
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
     onCompleted: newTaskLabel => {
