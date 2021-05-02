@@ -35,7 +35,7 @@ const UsersRegister = () => {
                   },
                 }),
               })
-                .then(async x => {
+                .then(async (x) => {
                   const response = await x.json();
                   const { setup } = response;
                   console.log(response);

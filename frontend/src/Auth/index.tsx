@@ -9,6 +9,7 @@ const Auth = () => {
   const history = useHistory();
   const location = useLocation<{ redirect: string } | undefined>();
   const { setUser } = useContext(UserContext);
+  console.log('auth');
   const login = (
     data: LoginFormData,
     setComplete: (val: boolean) => void,
@@ -21,7 +22,7 @@ const Auth = () => {
         username: data.username,
         password: data.password,
       }),
-    }).then(async x => {
+    }).then(async (x) => {
       if (x.status === 401) {
         setInvalidLoginAttempt(invalidLoginAttempt + 1);
         setError('username', { type: 'error', message: 'Invalid username' });
@@ -44,7 +45,7 @@ const Auth = () => {
     fetch('/auth/validate', {
       method: 'POST',
       credentials: 'include',
-    }).then(async x => {
+    }).then(async (x) => {
       const response = await x.json();
       const { valid, userID } = response;
       if (valid) {

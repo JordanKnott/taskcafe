@@ -26,7 +26,12 @@ const INITIALS_PATTERN = /[a-zA-Z]{2,3}/i;
 
 const Register = ({ onSubmit, registered = false }: RegisterProps) => {
   const [isComplete, setComplete] = useState(true);
-  const { register, handleSubmit, errors, setError } = useForm<RegisterFormData>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<RegisterFormData>();
   const loginSubmit = (data: RegisterFormData) => {
     setComplete(false);
     onSubmit(data, setComplete, setError);
@@ -55,12 +60,7 @@ const Register = ({ onSubmit, registered = false }: RegisterProps) => {
                 <Form onSubmit={handleSubmit(loginSubmit)}>
                   <FormLabel htmlFor="fullname">
                     Full name
-                    <FormTextInput
-                      type="text"
-                      id="fullname"
-                      name="fullname"
-                      ref={register({ required: 'Full name is required' })}
-                    />
+                    <FormTextInput type="text" {...register('fullname', { required: 'Full name is required' })} />
                     <FormIcon>
                       <User width={20} height={20} />
                     </FormIcon>
@@ -68,12 +68,7 @@ const Register = ({ onSubmit, registered = false }: RegisterProps) => {
                   {errors.username && <FormError>{errors.username.message}</FormError>}
                   <FormLabel htmlFor="username">
                     Username
-                    <FormTextInput
-                      type="text"
-                      id="username"
-                      name="username"
-                      ref={register({ required: 'Username is required' })}
-                    />
+                    <FormTextInput type="text" {...register('username', { required: 'Username is required' })} />
                     <FormIcon>
                       <User width={20} height={20} />
                     </FormIcon>
@@ -83,9 +78,7 @@ const Register = ({ onSubmit, registered = false }: RegisterProps) => {
                     Email
                     <FormTextInput
                       type="text"
-                      id="email"
-                      name="email"
-                      ref={register({
+                      {...register('email', {
                         required: 'Email is required',
                         pattern: { value: EMAIL_PATTERN, message: 'Must be a valid email' },
                       })}
@@ -99,9 +92,7 @@ const Register = ({ onSubmit, registered = false }: RegisterProps) => {
                     Initials
                     <FormTextInput
                       type="text"
-                      id="initials"
-                      name="initials"
-                      ref={register({
+                      {...register('initials', {
                         required: 'Initials is required',
                         pattern: {
                           value: INITIALS_PATTERN,
@@ -116,12 +107,7 @@ const Register = ({ onSubmit, registered = false }: RegisterProps) => {
                   {errors.initials && <FormError>{errors.initials.message}</FormError>}
                   <FormLabel htmlFor="password">
                     Password
-                    <FormTextInput
-                      type="password"
-                      id="password"
-                      name="password"
-                      ref={register({ required: 'Password is required' })}
-                    />
+                    <FormTextInput type="password" {...register('password', { required: 'Password is required' })} />
                     <FormIcon>
                       <Lock width={20} height={20} />
                     </FormIcon>
@@ -131,9 +117,7 @@ const Register = ({ onSubmit, registered = false }: RegisterProps) => {
                     Password (Confirm)
                     <FormTextInput
                       type="password"
-                      id="password_confirm"
-                      name="password_confirm"
-                      ref={register({ required: 'Password (confirm) is required' })}
+                      {...register('password_confirm', { required: 'Password (confirm) is required' })}
                     />
                     <FormIcon>
                       <Lock width={20} height={20} />

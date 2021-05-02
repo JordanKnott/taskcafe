@@ -1,14 +1,15 @@
 import theme from 'App/ThemeStyles';
 
 const colors = {
-  almostBlack: '#181A1B',
-  lightBlack: '#2F3336',
-  almostWhite: '#E6E6E6',
+  almostBlack: 'rgb(38, 44, 73)',
+  lightBlack: 'rgb(16, 22, 58)',
+  bgPrimary: 'rgb(16, 22, 58)',
+  almostWhite: 'rgb(194, 198, 220)',
   white: '#FFF',
-  white10: 'rgba(255, 255, 255, 0.1)',
+  white10: 'rgb(194, 198, 220)',
   black: '#000',
   black10: 'rgba(0, 0, 0, 0.1)',
-  primary: '#1AB6FF',
+  primary: 'rgb(115, 103, 240)',
   greyLight: '#F4F7FA',
   grey: '#E8EBED',
   greyMid: '#C5CCD3',
@@ -17,15 +18,16 @@ const colors = {
 
 export const base = {
   ...colors,
-  fontFamily: "'Open Sans', sans-serif",
+  fontFamily: 'Open Sans',
   fontFamilyMono: "'SFMono-Regular',Consolas,'Liberation Mono', Menlo, Courier,monospace",
   fontWeight: 400,
-  zIndex: 10000,
+  zIndex: 1000000,
   link: colors.primary,
   placeholder: '#B1BECC',
-  textSecondary: '#4E5C6E',
+  textSecondary: '#fff',
   textLight: colors.white,
   textHighlight: '#b3e7ff',
+  textHighlightForeground: colors.white,
   selected: colors.primary,
   codeComment: '#6a737d',
   codePunctuation: '#5e6687',
@@ -43,13 +45,13 @@ export const base = {
   codeInserted: '#202746',
   codeImportant: '#c94922',
 
-  blockToolbarBackground: colors.white,
-  blockToolbarTrigger: colors.greyMid,
+  blockToolbarBackground: colors.bgPrimary,
+  blockToolbarTrigger: colors.white,
   blockToolbarTriggerIcon: colors.white,
-  blockToolbarItem: colors.almostBlack,
-  blockToolbarText: colors.almostBlack,
-  blockToolbarHoverBackground: colors.greyLight,
-  blockToolbarDivider: colors.greyMid,
+  blockToolbarItem: colors.white,
+  blockToolbarText: colors.white,
+  blockToolbarHoverBackground: colors.primary,
+  blockToolbarDivider: colors.almostWhite,
 
   noticeInfoBackground: '#F5BE31',
   noticeInfoText: colors.almostBlack,
@@ -58,18 +60,20 @@ export const base = {
   noticeWarningBackground: '#FF5C80',
   noticeWarningText: colors.white,
 };
+
 export const dark = {
   ...base,
-  background: 'transparent',
-  text: `${theme.colors.text.primary}`,
-  code: `${theme.colors.text.primary}`,
-  cursor: `${theme.colors.text.primary}`,
+  background: colors.almostBlack,
+  text: colors.almostWhite,
+  code: colors.almostWhite,
+  cursor: colors.white,
   divider: '#4E5C6E',
   placeholder: '#52657A',
 
-  toolbarBackground: colors.white,
-  toolbarInput: colors.black10,
-  toolbarItem: colors.lightBlack,
+  toolbarBackground: colors.bgPrimary,
+  toolbarHoverBackground: colors.primary,
+  toolbarInput: colors.almostWhite,
+  toolbarItem: colors.white,
 
   tableDivider: colors.lightBlack,
   tableSelected: colors.primary,
@@ -81,6 +85,9 @@ export const dark = {
   codeString: '#3d8fd1',
   horizontalRule: colors.lightBlack,
   imageErrorBackground: 'rgba(0, 0, 0, 0.5)',
+
+  scrollbarBackground: colors.black,
+  scrollbarThumb: colors.lightBlack,
 };
 
 export default dark;

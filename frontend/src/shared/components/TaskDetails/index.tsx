@@ -136,7 +136,7 @@ const StreamComment: React.FC<StreamCommentProps> = ({
                   onCreateComment={onUpdateComment}
                 />
               ) : (
-                <ReactMarkdown escapeHtml={false} plugins={[em]}>
+                <ReactMarkdown skipHtml plugins={[em]}>
                   {DOMPurify.sanitize(comment.message, { FORBID_TAGS: ['style', 'img'] })}
                 </ReactMarkdown>
               )}
@@ -300,7 +300,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const activityStream: Array<{ id: string; data: { time: string; type: 'comment' | 'activity' } }> = [];
 
   if (task.activity) {
-    task.activity.forEach(activity => {
+    task.activity.forEach((activity) => {
       activityStream.push({
         id: activity.id,
         data: {
@@ -312,7 +312,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   }
 
   if (task.comments) {
-    task.comments.forEach(comment => {
+    task.comments.forEach((comment) => {
       activityStream.push({
         id: comment.id,
         data: {
@@ -358,12 +358,12 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <DueDateTitle>MEMBERS</DueDateTitle>
             {task.assigned && task.assigned.length !== 0 ? (
               <MemberList>
-                {task.assigned.map(m => (
+                {task.assigned.map((m) => (
                   <TaskMember
                     key={m.id}
                     member={m}
                     size={32}
-                    onMemberProfile={$target => {
+                    onMemberProfile={($target) => {
                       if (user) {
                         onMemberProfile($target, m.id);
                       }
@@ -401,7 +401,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <ExtraActionsSection>
               <DueDateTitle>ACTIONS</DueDateTitle>
               <ActionButton
-                onClick={$target => {
+                onClick={($target) => {
                   onOpenAddLabelPopup(task, $target);
                 }}
                 icon={<Tags width={12} height={12} />}
@@ -409,7 +409,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 Labels
               </ActionButton>
               <ActionButton
-                onClick={$target => {
+                onClick={($target) => {
                   onOpenAddChecklistPopup(task, $target);
                 }}
                 icon={<CheckSquareOutline width={12} height={12} />}
@@ -460,7 +460,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               value={taskName}
               ref={$detailsTitle}
               disabled={user === null}
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.keyCode === 13) {
                   e.preventDefault();
                   if ($detailsTitle && $detailsTitle.current) {
@@ -468,7 +468,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                   }
                 }
               }}
-              onChange={e => {
+              onChange={(e) => {
                 setTaskName(e.currentTarget.value);
               }}
               onBlur={() => {
@@ -481,12 +481,12 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <Labels>
             {task.labels.length !== 0 && (
               <MetaDetailContent>
-                {task.labels.map(label => {
+                {task.labels.map((label) => {
                   return (
                     <TaskLabelItem
                       key={label.projectLabel.id}
                       label={label}
-                      onClick={$target => {
+                      onClick={($target) => {
                         onOpenAddLabelPopup(task, $target);
                       }}
                     />
@@ -505,7 +505,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               <TaskDetailsEditor value={taskDescriptionRef.current} />
             ) : (
               <EditorContainer
-                onClick={e => {
+                onClick={(e) => {
                   if (!editTaskDescription) {
                     setEditTaskDescription(true);
                   }
@@ -513,10 +513,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               >
                 <Editor
                   defaultValue={task.description ?? ''}
-                  theme={dark}
                   readOnly={user === null || !editTaskDescription}
                   autoFocus
-                  onChange={value => {
+                  theme={dark}
+                  onChange={(value) => {
                     setSaveTimeout(() => {
                       clearTimeout(saveTimeout);
                       return setTimeout(saveDescription, 2000);
@@ -531,9 +531,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <ViewRawButton onClick={() => setShowRaw(!showRaw)}>{showRaw ? 'Show editor' : 'Show raw'}</ViewRawButton>
           </DescriptionContainer>
           <ChecklistSection>
-            <DragDropContext onDragEnd={result => onDragEnd(result, task, onChecklistDrop, onChecklistItemDrop)}>
+            <DragDropContext onDragEnd={(result) => onDragEnd(result, task, onChecklistDrop, onChecklistItemDrop)}>
               <Droppable direction="vertical" type="checklist" droppableId="root">
-                {dropProvided => (
+                {(dropProvided) => (
                   <ChecklistContainer {...dropProvided.droppableProps} ref={dropProvided.innerRef}>
                     {task.checklists &&
                       task.checklists
@@ -541,7 +541,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                         .sort((a, b) => a.position - b.position)
                         .map((checklist, idx) => (
                           <Draggable key={checklist.id} draggableId={checklist.id} index={idx}>
-                            {provided => (
+                            {(provided) => (
                               <Checklist
                                 ref={provided.innerRef}
                                 wrapperProps={provided.draggableProps}
@@ -551,10 +551,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                                 checklistID={checklist.id}
                                 items={checklist.items}
                                 onDeleteChecklist={onDeleteChecklist}
-                                onChangeName={newName => onChangeChecklistName(checklist.id, newName)}
+                                onChangeName={(newName) => onChangeChecklistName(checklist.id, newName)}
                                 onToggleItem={onToggleChecklistItem}
                                 onDeleteItem={onDeleteItem}
-                                onAddItem={n => {
+                                onAddItem={(n) => {
                                   if (task.checklists) {
                                     let position = 65535;
                                     const [lastItem] = checklist.items
@@ -569,7 +569,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                                 onChangeItemName={onChangeItemName}
                               >
                                 <Droppable direction="vertical" type="checklistItem" droppableId={checklist.id}>
-                                  {checklistDrop => (
+                                  {(checklistDrop) => (
                                     <>
                                       <ChecklistItems ref={checklistDrop.innerRef} {...checklistDrop.droppableProps}>
                                         {checklist.items
@@ -577,7 +577,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                                           .sort((a, b) => a.position - b.position)
                                           .map((item, itemIdx) => (
                                             <Draggable key={item.id} draggableId={item.id} index={itemIdx}>
-                                              {itemDrop => (
+                                              {(itemDrop) => (
                                                 <ChecklistItem
                                                   key={item.id}
                                                   itemID={item.id}
@@ -615,17 +615,19 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <TabBarItem>Activity</TabBarItem>
           </TabBarSection>
           <ActivitySection>
-            {activityStream.map(stream =>
+            {activityStream.map((stream) =>
               stream.data.type === 'comment' ? (
                 <StreamComment
                   onExtraActions={onCommentShowActions}
                   onCancelCommentEdit={onCancelCommentEdit}
-                  onUpdateComment={message => onUpdateComment(stream.id, message)}
+                  onUpdateComment={(message) => onUpdateComment(stream.id, message)}
                   editable={stream.id === editableComment}
-                  comment={task.comments && task.comments.find(comment => comment.id === stream.id)}
+                  comment={task.comments && task.comments.find((comment) => comment.id === stream.id)}
                 />
               ) : (
-                <StreamActivity activity={task.activity && task.activity.find(activity => activity.id === stream.id)} />
+                <StreamActivity
+                  activity={task.activity && task.activity.find((activity) => activity.id === stream.id)}
+                />
               ),
             )}
           </ActivitySection>
@@ -634,7 +636,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <CommentContainer>
             <CommentCreator
               me={me}
-              onCreateComment={message => onCreateComment(task, message)}
+              onCreateComment={(message) => onCreateComment(task, message)}
               onMemberProfile={onMemberProfile}
             />
           </CommentContainer>

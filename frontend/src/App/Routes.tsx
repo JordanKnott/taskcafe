@@ -32,6 +32,7 @@ type ValidateTokenResponse = {
 const UserRequiredRoute: React.FC<any> = ({ children }) => {
   const { user } = useCurrentUser();
   const location = useLocation();
+  console.log('user required', user);
   if (user) {
     return children;
   }
@@ -45,18 +46,14 @@ const UserRequiredRoute: React.FC<any> = ({ children }) => {
   );
 };
 
-type RoutesProps = {
-  history: H.History;
-};
-
-const Routes: React.FC<RoutesProps> = () => {
+const Routes: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { setUser } = useCurrentUser();
   useEffect(() => {
     fetch('/auth/validate', {
       method: 'POST',
       credentials: 'include',
-    }).then(async x => {
+    }).then(async (x) => {
       const response: ValidateTokenResponse = await x.json();
       const { valid, userID } = response;
       if (valid) {
@@ -65,6 +62,7 @@ const Routes: React.FC<RoutesProps> = () => {
       setLoading(false);
     });
   }, []);
+  console.log('loading', loading);
   if (loading) return null;
   return (
     <Switch>

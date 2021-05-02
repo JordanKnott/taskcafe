@@ -16,7 +16,7 @@ const InputWrapper = styled.div<{ width: string }>`
 `;
 
 const InputLabel = styled.span<{ width: string }>`
-  width: ${props => props.width};
+  width: ${(props) => props.width};
   padding: 0.7rem !important;
   color: #c2c6dc;
   left: 0;
@@ -40,13 +40,13 @@ const InputInput = styled.input<{
   focusBg: string;
   borderColor: string;
 }>`
-  width: ${props => props.width};
+  width: ${(props) => props.width};
   font-size: 14px;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  border-color: ${props => props.borderColor};
+  border-color: ${(props) => props.borderColor};
   background: #262c49;
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.15);
-  ${props => (props.hasIcon ? 'padding: 0.7rem 1rem 0.7rem 3rem;' : 'padding: 0.7rem;')}
+  ${(props) => (props.hasIcon ? 'padding: 0.7rem 1rem 0.7rem 3rem;' : 'padding: 0.7rem;')}
   line-height: 16px;
   color: #c2c6dc;
   position: relative;
@@ -55,13 +55,13 @@ const InputInput = styled.input<{
   &:focus {
     box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(115, 103, 240);
-    background: ${props => props.focusBg};
+    background: ${(props) => props.focusBg};
   }
   &:focus ~ ${InputLabel} {
-    color: ${props => props.theme.colors.primary};
+    color: ${(props) => props.theme.colors.primary};
     transform: translate(-3px, -90%);
   }
-  ${props =>
+  ${(props) =>
     props.hasValue &&
     css`
       & ~ ${InputLabel} {
@@ -94,11 +94,13 @@ type ControlledInputProps = {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   value?: string;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 };
 
 const ControlledInput = ({
   width = 'auto',
   variant = 'normal',
+  disabled = false,
   type = 'text',
   autocomplete,
   autoFocus = false,
@@ -126,8 +128,9 @@ const ControlledInput = ({
   return (
     <InputWrapper className={className} width={width}>
       <InputInput
+        disabled={disabled}
         hasValue={hasValue}
-        onChange={e => {
+        onChange={(e) => {
           if (onChange) {
             setHasValue(e.currentTarget.value !== '' || floatingLabel);
             onChange(e);

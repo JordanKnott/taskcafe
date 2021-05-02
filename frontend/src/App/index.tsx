@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createBrowserHistory } from 'history';
-import { Router } from 'react-router';
+import { BrowserRouter } from 'react-router-dom';
 import { PopupProvider } from 'shared/components/PopupMenu';
 import styled, { ThemeProvider } from 'styled-components';
 import NormalizeStyles from './NormalizeStyles';
@@ -13,8 +12,6 @@ import { UserContext } from './context';
 import 'react-toastify/dist/ReactToastify.css';
 import './fonts.css';
 
-const history = createBrowserHistory();
-
 const App = () => {
   const [user, setUser] = useState<string | null>(null);
 
@@ -24,11 +21,11 @@ const App = () => {
         <ThemeProvider theme={theme}>
           <NormalizeStyles />
           <BaseStyles />
-          <Router history={history}>
+          <BrowserRouter>
             <PopupProvider>
-              <Routes history={history} />
+              <Routes />
             </PopupProvider>
-          </Router>
+          </BrowserRouter>
           <ToastedContainer
             position="bottom-right"
             autoClose={5000}

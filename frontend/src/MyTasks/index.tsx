@@ -29,6 +29,7 @@ import useStickyState from 'shared/hooks/useStickyState';
 import MyTasksSortPopup from './MyTasksSort';
 import MyTasksStatusPopup from './MyTasksStatus';
 import TaskEntry from './TaskEntry';
+import { StaticContext } from 'react-router';
 
 type TaskRouteProps = {
   taskID: string;
@@ -61,11 +62,7 @@ function prettySort(sort: MyTasksSort) {
   if (sort === MyTasksSort.None) {
     return 'Sort';
   }
-  return `Sort: ${sort.charAt(0) +
-    sort
-      .slice(1)
-      .toLowerCase()
-      .replace(/_/gi, ' ')}`;
+  return `Sort: ${sort.charAt(0) + sort.slice(1).toLowerCase().replace(/_/gi, ' ')}`;
 }
 
 type Group = {
@@ -75,7 +72,7 @@ type Group = {
 };
 const DueDateEditorLabel = styled.div`
   align-items: center;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
 
   font-size: 11px;
   padding: 0 8px;
@@ -107,16 +104,16 @@ const ProjectActionWrapper = styled.div<{ disabled?: boolean }>`
   display: flex;
   align-items: center;
   font-size: 15px;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
 
   &:not(:last-of-type) {
     margin-right: 16px;
   }
 
   &:hover {
-    color: ${props => props.theme.colors.text.secondary};
+    color: ${(props) => props.theme.colors.text.secondary};
   }
-  ${props =>
+  ${(props) =>
     props.disabled &&
     css`
       opacity: 0.5;
@@ -150,7 +147,7 @@ const ProjectAction: React.FC<ProjectActionProps> = ({ onClick, disabled = false
 
 const EditorPositioner = styled.div<{ top: number; left: number }>`
   position: absolute;
-  top: ${p => p.top}px;
+  top: ${(p) => p.top}px;
   justify-content: flex-end;
   margin-left: -100vw;
   z-index: 10000;
@@ -160,7 +157,7 @@ const EditorPositioner = styled.div<{ top: number; left: number }>`
   height: 0;
   position: fixed;
   width: 100vw;
-  left: ${p => p.left}px;
+  left: ${(p) => p.left}px;
 `;
 
 const EditorPositionerContents = styled.div`
@@ -168,15 +165,15 @@ const EditorPositionerContents = styled.div`
 `;
 
 const EditorContainer = styled.div<{ width: number }>`
-  border: 1px solid ${props => props.theme.colors.primary};
-  background: ${props => props.theme.colors.bg.secondary};
+  border: 1px solid ${(props) => props.theme.colors.primary};
+  background: ${(props) => props.theme.colors.bg.secondary};
   position: relative;
-  width: ${p => p.width}px;
+  width: ${(p) => p.width}px;
 `;
 
 const EditorCell = styled.div<{ width: number }>`
   display: flex;
-  width: ${p => p.width}px;
+  width: ${(p) => p.width}px;
 `;
 
 // TABLE
@@ -224,7 +221,7 @@ const TaskGroupItems = styled.div`
 `;
 
 const ProjectPill = styled.div`
-  background-color: ${props => props.theme.colors.bg.primary};
+  background-color: ${(props) => props.theme.colors.bg.primary};
   text-overflow: ellipsis;
   border-radius: 10px;
   box-sizing: border-box;
@@ -250,7 +247,7 @@ const ProjectPillName = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
 `;
 
 const ProjectPillColor = styled.svg`
@@ -299,7 +296,7 @@ const OptionTitle = styled.div`
   white-space: nowrap;
 `;
 const OptionSubTitle = styled.div`
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   font-size: 11px;
   margin-left: 8px;
   min-width: 50px;
@@ -319,7 +316,7 @@ const Option = ({ innerProps, data }: any) => {
 };
 
 const TaskGroupHeaderContents = styled.div<{ width: number }>`
-  width: ${p => p.width}px;
+  width: ${(p) => p.width}px;
   left: 0;
   position: absolute;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -356,13 +353,13 @@ const TaskGroupMinify = styled.div`
   transition-property: background, border, box-shadow, fill;
   cursor: pointer;
   svg {
-    fill: ${props => props.theme.colors.text.primary};
+    fill: ${(props) => props.theme.colors.text.primary};
     transition-duration: 0.2s;
     transition-property: background, border, box-shadow, fill;
   }
 
   &:hover svg {
-    fill: ${props => props.theme.colors.text.secondary};
+    fill: ${(props) => props.theme.colors.text.secondary};
   }
 `;
 const TaskGroupName = styled.div`
@@ -371,7 +368,7 @@ const TaskGroupName = styled.div`
   display: flex;
   height: 50px;
   min-width: 1px;
-  color: ${props => props.theme.colors.text.secondary};
+  color: ${(props) => props.theme.colors.text.secondary};
   font-weight: 400;
 `;
 
@@ -393,7 +390,7 @@ const Row = styled.div`
 `;
 
 const RowHeaderLeft = styled.div<{ width: number }>`
-  width: ${p => p.width}px;
+  width: ${(p) => p.width}px;
 
   align-items: stretch;
   display: flex;
@@ -405,7 +402,7 @@ const RowHeaderLeft = styled.div<{ width: number }>`
 `;
 const RowHeaderLeftInner = styled.div`
   align-items: stretch;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   display: flex;
   flex: 1 0 auto;
   font-size: 12px;
@@ -429,7 +426,7 @@ const RowHeaderLeftNameText = styled.div`
 `;
 
 const RowHeaderRight = styled.div<{ left: number }>`
-  left: ${p => p.left}px;
+  left: ${(p) => p.left}px;
   right: 0px;
   height: 37px;
   position: absolute;
@@ -461,7 +458,7 @@ const RowHeaderRightContainer = styled.div`
 `;
 
 const ItemWrapper = styled.div<{ width: number }>`
-  width: ${p => p.width}px;
+  width: ${(p) => p.width}px;
   align-items: center;
   border: 1px solid #414561;
   border-bottom: 0;
@@ -474,11 +471,11 @@ const ItemWrapper = styled.div<{ width: number }>`
   margin-right: -1px;
   padding: 0 8px;
   position: relative;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   border-bottom: 1px solid #414561;
   &:hover {
-    background: ${props => props.theme.colors.primary};
-    color: ${props => props.theme.colors.text.secondary};
+    background: ${(props) => props.theme.colors.primary};
+    color: ${(props) => props.theme.colors.text.secondary};
   }
 `;
 const ItemsContainer = styled.div`
@@ -566,13 +563,13 @@ const Projects = () => {
             onDueDateChange={(task, dueDate, hasTime) => {
               if (dateEditor.task) {
                 updateTaskDueDate({ variables: { taskID: dateEditor.task.id, dueDate, hasTime } });
-                setDateEditor(prev => ({ ...prev, task: { ...task, dueDate: dueDate.toISOString(), hasTime } }));
+                setDateEditor((prev) => ({ ...prev, task: { ...task, dueDate: dueDate.toISOString(), hasTime } }));
               }
             }}
-            onRemoveDueDate={task => {
+            onRemoveDueDate={(task) => {
               if (dateEditor.task) {
                 updateTaskDueDate({ variables: { taskID: dateEditor.task.id, dueDate: null, hasTime: false } });
-                setDateEditor(prev => ({ ...prev, task: { ...task, hasTime: false } }));
+                setDateEditor((prev) => ({ ...prev, task: { ...task, hasTime: false } }));
               }
             }}
           />
@@ -587,8 +584,8 @@ const Projects = () => {
       updateApolloCache<MyTasksQuery>(
         client,
         MyTasksDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             if (newTaskData.data) {
               draftCache.myTasks.tasks.unshift(newTaskData.data.createTask);
             }
@@ -618,7 +615,7 @@ const Projects = () => {
       groups.push({
         id: 'recently-assigned',
         name: 'Recently Assigned',
-        tasks: data.myTasks.tasks.map(task => ({
+        tasks: data.myTasks.tasks.map((task) => ({
           ...task,
           labels: [],
           position: 0,
@@ -628,27 +625,27 @@ const Projects = () => {
       let { tasks } = data.myTasks;
       if (filters.sort === MyTasksSort.DueDate) {
         const group: Group = { id: 'due_date', name: null, tasks: [] };
-        data.myTasks.tasks.forEach(task => {
+        data.myTasks.tasks.forEach((task) => {
           if (task.dueDate) {
             group.tasks.push({ ...task, labels: [], position: 0 });
           }
         });
         groups.push(group);
-        tasks = tasks.filter(t => t.dueDate === null);
+        tasks = tasks.filter((t) => t.dueDate === null);
       }
       const projects = new Map<string, Array<Task>>();
-      data.myTasks.projects.forEach(p => {
+      data.myTasks.projects.forEach((p) => {
         if (!projects.has(p.projectID)) {
           projects.set(p.projectID, []);
         }
         const prev = projects.get(p.projectID);
-        const task = tasks.find(t => t.id === p.taskID);
+        const task = tasks.find((t) => t.id === p.taskID);
         if (prev && task) {
           projects.set(p.projectID, [...prev, { ...task, labels: [], position: 0 }]);
         }
       });
       for (const [id, pTasks] of projects) {
-        const project = data.projects.find(c => c.id === id);
+        const project = data.projects.find((c) => c.id === id);
         if (pTasks.length === 0) continue;
         if (project) {
           groups.push({
@@ -681,13 +678,13 @@ const Projects = () => {
           <ProjectActions />
           <ProjectActions>
             <ProjectAction
-              onClick={$target => {
+              onClick={($target) => {
                 showPopup(
                   $target,
                   <MyTasksStatusPopup
                     status={filters.status}
-                    onChangeStatus={status => {
-                      setFilters(prev => ({ ...prev, status }));
+                    onChangeStatus={(status) => {
+                      setFilters((prev) => ({ ...prev, status }));
                       hidePopup();
                     }}
                   />,
@@ -699,13 +696,13 @@ const Projects = () => {
               <ProjectActionText>{prettyStatus(filters.status)}</ProjectActionText>
             </ProjectAction>
             <ProjectAction
-              onClick={$target => {
+              onClick={($target) => {
                 showPopup(
                   $target,
                   <MyTasksSortPopup
                     sort={filters.sort}
-                    onChangeSort={sort => {
-                      setFilters(prev => ({ ...prev, sort }));
+                    onChangeSort={(sort) => {
+                      setFilters((prev) => ({ ...prev, sort }));
                       hidePopup();
                     }}
                   />,
@@ -752,8 +749,8 @@ const Projects = () => {
           <VerticalScoller>
             <VerticalScollerInner>
               <TableContents>
-                {groups.map(group => {
-                  const isMinified = minified.find(m => m === group.id) ?? false;
+                {groups.map((group) => {
+                  const isMinified = minified.find((m) => m === group.id) ?? false;
                   return (
                     <TaskGroupContainer key={group.id}>
                       {group.name && (
@@ -761,9 +758,9 @@ const Projects = () => {
                           <TaskGroupHeaderContents width={leftRow}>
                             <TaskGroupMinify
                               onClick={() => {
-                                setMinified(prev => {
+                                setMinified((prev) => {
                                   if (isMinified) {
-                                    return prev.filter(c => c !== group.id);
+                                    return prev.filter((c) => c !== group.id);
                                   }
                                   return [...prev, group.id];
                                 });
@@ -781,14 +778,14 @@ const Projects = () => {
                       )}
                       <TaskGroupItems>
                         {!isMinified &&
-                          group.tasks.map(task => {
-                            const projectID = data.myTasks.projects.find(t => t.taskID === task.id)?.projectID;
-                            const projectName = data.projects.find(p => p.id === projectID)?.name;
+                          group.tasks.map((task) => {
+                            const projectID = data.myTasks.projects.find((t) => t.taskID === task.id)?.projectID;
+                            const projectName = data.projects.find((p) => p.id === projectID)?.name;
                             return (
                               <TaskEntry
                                 key={task.id}
                                 complete={task.complete ?? false}
-                                onToggleComplete={complete => {
+                                onToggleComplete={(complete) => {
                                   setTaskComplete({ variables: { taskID: task.id, complete } });
                                 }}
                                 onTaskDetails={() => {
@@ -801,9 +798,11 @@ const Projects = () => {
                                 dueDate={task.dueDate}
                                 hasTime={task.hasTime ?? false}
                                 name={task.name}
-                                onEditName={name => updateTaskName({ variables: { taskID: task.id, name } })}
+                                onEditName={(name) => updateTaskName({ variables: { taskID: task.id, name } })}
                                 onEditProject={onEditProject}
-                                onEditDueDate={$target => onEditDueDate({ ...task, position: 0, labels: [] }, $target)}
+                                onEditDueDate={($target) =>
+                                  onEditDueDate({ ...task, position: 0, labels: [] }, $target)
+                                }
                               />
                             );
                           })}
@@ -856,17 +855,17 @@ const Projects = () => {
         )}
         <Route
           path={`${match.path}/c/:taskID`}
-          render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
-            <Details
-              refreshCache={NOOP}
-              availableMembers={[]}
-              projectURL={`${match.url}`}
-              taskID={routeProps.match.params.taskID}
-              onTaskNameChange={(updatedTask, newName) => {
-                updateTaskName({ variables: { taskID: updatedTask.id, name: newName } });
-              }}
-              onTaskDescriptionChange={(updatedTask, newDescription) => {
-                /*
+          render={() => {
+            return (
+              <Details
+                refreshCache={NOOP}
+                availableMembers={[]}
+                projectURL={`${match.url}`}
+                onTaskNameChange={(updatedTask, newName) => {
+                  updateTaskName({ variables: { taskID: updatedTask.id, name: newName } });
+                }}
+                onTaskDescriptionChange={(updatedTask, newDescription) => {
+                  /*
                 updateTaskDescription({
                   variables: { taskID: updatedTask.id, description: newDescription },
                   optimisticResponse: {
@@ -879,13 +878,13 @@ const Projects = () => {
                   },
                 });
                 */
-              }}
-              onDeleteTask={deletedTask => {
-                // deleteTask({ variables: { taskID: deletedTask.id } });
-                history.push(`${match.url}`);
-              }}
-              onOpenAddLabelPopup={(task, $targetRef) => {
-                /*
+                }}
+                onDeleteTask={(deletedTask) => {
+                  // deleteTask({ variables: { taskID: deletedTask.id } });
+                  history.push(`${match.url}`);
+                }}
+                onOpenAddLabelPopup={(task, $targetRef) => {
+                  /*
                 taskLabelsRef.current = task.labels;
                 showPopup(
                   $targetRef,
@@ -900,9 +899,10 @@ const Projects = () => {
                   />,
                 );
                 */
-              }}
-            />
-          )}
+                }}
+              />
+            );
+          }}
         />
       </>
     );

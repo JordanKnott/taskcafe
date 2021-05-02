@@ -25,7 +25,12 @@ import {
 
 const Login = ({ onSubmit }: LoginProps) => {
   const [isComplete, setComplete] = useState(true);
-  const { register, handleSubmit, errors, setError, formState } = useForm<LoginFormData>();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginFormData>();
   const loginSubmit = (data: LoginFormData) => {
     setComplete(false);
     onSubmit(data, setComplete, setError);
@@ -47,12 +52,7 @@ const Login = ({ onSubmit }: LoginProps) => {
             <Form onSubmit={handleSubmit(loginSubmit)}>
               <FormLabel htmlFor="username">
                 Username
-                <FormTextInput
-                  type="text"
-                  id="username"
-                  name="username"
-                  ref={register({ required: 'Username is required' })}
-                />
+                <FormTextInput type="text" {...register('username', { required: 'Username is required' })} />
                 <FormIcon>
                   <User width={20} height={20} />
                 </FormIcon>
@@ -60,12 +60,7 @@ const Login = ({ onSubmit }: LoginProps) => {
               {errors.username && <FormError>{errors.username.message}</FormError>}
               <FormLabel htmlFor="password">
                 Password
-                <FormTextInput
-                  type="password"
-                  id="password"
-                  name="password"
-                  ref={register({ required: 'Password is required' })}
-                />
+                <FormTextInput type="password" {...register('password', { required: 'Password is required' })} />
                 <FormIcon>
                   <Lock width={20} height={20} />
                 </FormIcon>

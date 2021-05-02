@@ -59,7 +59,7 @@ const HeaderSelectLabel = styled.div`
   color: #c2c6dc;
 
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
     color: #c2c6dc;
   }
 `;
@@ -78,12 +78,12 @@ const HeaderSelect = styled.select`
 
   & option {
     color: #c2c6dc;
-    background: ${props => props.theme.colors.bg.primary};
+    background: ${(props) => props.theme.colors.bg.primary};
   }
 
   & option:hover {
-    background: ${props => props.theme.colors.bg.secondary};
-    border: 1px solid ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.bg.secondary};
+    border: 1px solid ${(props) => props.theme.colors.primary};
     outline: none !important;
     box-shadow: none;
     color: #c2c6dc;
@@ -115,7 +115,7 @@ const HeaderButton = styled.button`
   border: none;
   border-radius: 3px;
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
     color: #fff;
   }
 `;
@@ -133,7 +133,14 @@ const HeaderActions = styled.div`
 
 const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, onRemoveDueDate, onCancel }) => {
   const currentDueDate = task.dueDate ? dayjs(task.dueDate).toDate() : null;
-  const { register, handleSubmit, errors, setValue, setError, formState, control } = useForm<DueDateFormData>();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    setError,
+    formState: { errors },
+    control,
+  } = useForm<DueDateFormData>();
 
   const [startDate, setStartDate] = useState<Date | null>(currentDueDate);
   const [endDate, setEndDate] = useState<Date | null>(currentDueDate);
@@ -203,7 +210,11 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
       <DateRangeInputs>
         <DatePicker
           selected={startDate}
-          onChange={date => setStartDate(date)}
+          onChange={(date) => {
+            if (!Array.isArray(date)) {
+              setStartDate(date);
+            }
+          }}
           popperClassName="picker-hidden"
           dateFormat="yyyy-MM-dd"
           disabledKeyboardNavigation
@@ -214,7 +225,11 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
           <DatePicker
             selected={startDate}
             isClearable
-            onChange={date => setStartDate(date)}
+            onChange={(date) => {
+              if (!Array.isArray(date)) {
+                setStartDate(date);
+              }
+            }}
             popperClassName="picker-hidden"
             dateFormat="yyyy-MM-dd"
             placeholderText="Select from date"
@@ -225,7 +240,11 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
       </DateRangeInputs>
       <DatePicker
         selected={startDate}
-        onChange={date => setStartDate(date)}
+        onChange={(date) => {
+          if (!Array.isArray(date)) {
+            setStartDate(date);
+          }
+        }}
         startDate={startDate}
         useWeekdaysShort
         renderCustomHeader={({
@@ -247,7 +266,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
                 value={months[getMonth(date)]}
                 onChange={({ target: { value } }) => changeMonth(months.indexOf(value))}
               >
-                {months.map(option => (
+                {months.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -257,7 +276,7 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
             <HeaderSelectLabel>
               {date.getFullYear()}
               <HeaderSelect value={getYear(date)} onChange={({ target: { value } }) => changeYear(parseInt(value, 10))}>
-                {years.map(option => (
+                {years.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -279,8 +298,10 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
           <ActionLabel>Due Time</ActionLabel>
           <DatePicker
             selected={startDate}
-            onChange={date => {
-              setStartDate(date);
+            onChange={(date) => {
+              if (!Array.isArray(date)) {
+                setStartDate(date);
+              }
             }}
             showTimeSelect
             showTimeSelectOnly

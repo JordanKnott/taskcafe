@@ -64,7 +64,7 @@ const Project = () => {
     pollInterval: polling.PROJECT,
   });
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
-    onCompleted: newTaskLabel => {
+    onCompleted: (newTaskLabel) => {
       taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
     },
   });
@@ -73,17 +73,17 @@ const Project = () => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             if (resp.data) {
               const taskGroupIdx = draftCache.findProject.taskGroups.findIndex(
-                tg => tg.tasks.findIndex(t => t.id === resp.data?.deleteTask.taskID) !== -1,
+                (tg) => tg.tasks.findIndex((t) => t.id === resp.data?.deleteTask.taskID) !== -1,
               );
 
               if (taskGroupIdx !== -1) {
                 draftCache.findProject.taskGroups[taskGroupIdx].tasks = cache.findProject.taskGroups[
                   taskGroupIdx
-                ].tasks.filter(t => t.id !== resp.data?.deleteTask.taskID);
+                ].tasks.filter((t) => t.id !== resp.data?.deleteTask.taskID);
               }
             }
           }),
@@ -96,8 +96,8 @@ const Project = () => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             draftCache.findProject.name = newName.data?.updateProjectName.name ?? '';
           }),
         { projectID },
@@ -110,8 +110,8 @@ const Project = () => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             if (response.data) {
               draftCache.findProject.members = [
                 ...cache.findProject.members,
@@ -132,10 +132,10 @@ const Project = () => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             draftCache.findProject.invitedMembers = cache.findProject.invitedMembers.filter(
-              m => m.email !== response.data?.deleteInvitedProjectMember.invitedMember.email ?? '',
+              (m) => m.email !== response.data?.deleteInvitedProjectMember.invitedMember.email ?? '',
             );
           }),
         { projectID },
@@ -147,10 +147,10 @@ const Project = () => {
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             draftCache.findProject.members = cache.findProject.members.filter(
-              m => m.id !== response.data?.deleteProjectMember.member.id,
+              (m) => m.id !== response.data?.deleteProjectMember.member.id,
             );
           }),
         { projectID },
@@ -176,23 +176,23 @@ const Project = () => {
           onChangeProjectOwner={() => {
             hidePopup();
           }}
-          onRemoveFromBoard={userID => {
+          onRemoveFromBoard={(userID) => {
             deleteProjectMember({ variables: { userID, projectID } });
             hidePopup();
           }}
-          onRemoveInvitedFromBoard={email => {
+          onRemoveInvitedFromBoard={(email) => {
             deleteInvitedProjectMember({ variables: { projectID, email } });
             hidePopup();
           }}
-          onSaveProjectName={projectName => {
+          onSaveProjectName={(projectName) => {
             updateProjectName({ variables: { projectID, name: projectName } });
           }}
-          onInviteUser={$target => {
+          onInviteUser={($target) => {
             showPopup(
               $target,
               <UserManagementPopup
                 projectID={projectID}
-                onInviteProjectMembers={members => {
+                onInviteProjectMembers={(members) => {
                   inviteProjectMembers({ variables: { projectID, members } });
                   hidePopup();
                 }}
@@ -233,50 +233,51 @@ const Project = () => {
         />
         <Route
           path={`${match.path}/board/c/:taskID`}
-          render={(routeProps: RouteComponentProps<TaskRouteProps>) => (
-            <Details
-              refreshCache={NOOP}
-              availableMembers={data.findProject.members}
-              projectURL={`${match.url}/board`}
-              taskID={routeProps.match.params.taskID}
-              onTaskNameChange={(updatedTask, newName) => {
-                updateTaskName({ variables: { taskID: updatedTask.id, name: newName } });
-              }}
-              onTaskDescriptionChange={(updatedTask, newDescription) => {
-                updateTaskDescription({
-                  variables: { taskID: updatedTask.id, description: newDescription },
-                  optimisticResponse: {
-                    __typename: 'Mutation',
-                    updateTaskDescription: {
-                      __typename: 'Task',
-                      id: updatedTask.id,
-                      description: newDescription,
+          render={() => {
+            return (
+              <Details
+                refreshCache={NOOP}
+                availableMembers={data.findProject.members}
+                projectURL={`${match.url}/board`}
+                onTaskNameChange={(updatedTask, newName) => {
+                  updateTaskName({ variables: { taskID: updatedTask.id, name: newName } });
+                }}
+                onTaskDescriptionChange={(updatedTask, newDescription) => {
+                  updateTaskDescription({
+                    variables: { taskID: updatedTask.id, description: newDescription },
+                    optimisticResponse: {
+                      __typename: 'Mutation',
+                      updateTaskDescription: {
+                        __typename: 'Task',
+                        id: updatedTask.id,
+                        description: newDescription,
+                      },
                     },
-                  },
-                });
-              }}
-              onDeleteTask={deletedTask => {
-                deleteTask({ variables: { taskID: deletedTask.id } });
-                history.push(`${match.url}/board`);
-              }}
-              onOpenAddLabelPopup={(task, $targetRef) => {
-                taskLabelsRef.current = task.labels;
-                showPopup(
-                  $targetRef,
-                  <LabelManagerEditor
-                    onLabelToggle={labelID => {
-                      toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
-                    }}
-                    taskID={task.id}
-                    labelColors={data.labelColors}
-                    labels={labelsRef}
-                    taskLabels={taskLabelsRef}
-                    projectID={projectID}
-                  />,
-                );
-              }}
-            />
-          )}
+                  });
+                }}
+                onDeleteTask={(deletedTask) => {
+                  deleteTask({ variables: { taskID: deletedTask.id } });
+                  history.push(`${match.url}/board`);
+                }}
+                onOpenAddLabelPopup={(task, $targetRef) => {
+                  taskLabelsRef.current = task.labels;
+                  showPopup(
+                    $targetRef,
+                    <LabelManagerEditor
+                      onLabelToggle={(labelID) => {
+                        toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
+                      }}
+                      taskID={task.id}
+                      labelColors={data.labelColors}
+                      labels={labelsRef}
+                      taskLabels={taskLabelsRef}
+                      projectID={projectID}
+                    />,
+                  );
+                }}
+              />
+            );
+          }}
         />
       </>
     );
