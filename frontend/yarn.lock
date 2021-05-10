@@ -2193,6 +2193,36 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
+"@taskcafe/rich-markdown-editor@^11.0.10":
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/@taskcafe/rich-markdown-editor/-/rich-markdown-editor-11.7.0.tgz#0911e39a3514d8fe8ae43348603b07161bf5dbec"
+  integrity sha512-1VAVaqzzBPvjFKS/u/pj9ouzm+OQoDTxRIj5MHkjtGOptJmVeSIhHL70aSaftahbBq1xx8F+RC2xp2nOMqYoZw==
+  dependencies:
+    copy-to-clipboard "^3.0.8"
+    lodash "^4.17.11"
+    markdown-it-container "^3.0.0"
+    outline-icons "^1.26.1"
+    prosemirror-commands "^1.1.6"
+    prosemirror-dropcursor "^1.3.3"
+    prosemirror-gapcursor "^1.1.5"
+    prosemirror-history "^1.1.3"
+    prosemirror-inputrules "^1.1.3"
+    prosemirror-keymap "^1.1.4"
+    prosemirror-markdown "^1.4.4"
+    prosemirror-model "^1.13.3"
+    prosemirror-schema-list "^1.1.2"
+    prosemirror-state "^1.3.4"
+    prosemirror-tables "^1.1.1"
+    prosemirror-transform "1.2.5"
+    prosemirror-utils "^0.9.6"
+    prosemirror-view "^1.17.6"
+    react-medium-image-zoom "^3.1.3"
+    react-portal "^4.2.1"
+    refractor "^3.3.1"
+    resize-observer-polyfill "^1.5.1"
+    slugify "^1.4.0"
+    smooth-scroll-into-view-if-needed "^1.1.29"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -12257,36 +12287,6 @@ rgba-regex@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/rgba-regex/-/rgba-regex-1.0.0.tgz#43374e2e2ca0968b0ef1523460b7d730ff22eeb3"
   integrity sha1-QzdOLiyglosO8VI0YLfXMP8i7rM=
-
-rich-markdown-editor@^11.0.10:
-  version "11.7.0"
-  resolved "https://registry.yarnpkg.com/rich-markdown-editor/-/rich-markdown-editor-11.7.0.tgz#dd2856a3e8407cc1026c93b7ee5dd633297b6d71"
-  integrity sha512-V51xWjNmRDCRxcLz2/+swKG2CKRHWvHdlDi9Xlu49WwTXV12OfX1VwRWqle2It59AgGZdyVQoWQ9j8SFpzEjXQ==
-  dependencies:
-    copy-to-clipboard "^3.0.8"
-    lodash "^4.17.11"
-    markdown-it-container "^3.0.0"
-    outline-icons "^1.26.1"
-    prosemirror-commands "^1.1.6"
-    prosemirror-dropcursor "^1.3.3"
-    prosemirror-gapcursor "^1.1.5"
-    prosemirror-history "^1.1.3"
-    prosemirror-inputrules "^1.1.3"
-    prosemirror-keymap "^1.1.4"
-    prosemirror-markdown "^1.4.4"
-    prosemirror-model "^1.13.3"
-    prosemirror-schema-list "^1.1.2"
-    prosemirror-state "^1.3.4"
-    prosemirror-tables "^1.1.1"
-    prosemirror-transform "1.2.5"
-    prosemirror-utils "^0.9.6"
-    prosemirror-view "^1.17.6"
-    react-medium-image-zoom "^3.1.3"
-    react-portal "^4.2.1"
-    refractor "^3.3.1"
-    resize-observer-polyfill "^1.5.1"
-    slugify "^1.4.0"
-    smooth-scroll-into-view-if-needed "^1.1.29"
 
 rimraf@^2.5.4, rimraf@^2.6.3:
   version "2.7.1"
