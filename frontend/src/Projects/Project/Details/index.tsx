@@ -413,6 +413,7 @@ const Details: React.FC<DetailsProps> = ({
         width={1070}
         onClose={() => {
           history.push(projectURL);
+          hidePopup();
         }}
         renderContent={() => {
           return data ? (
