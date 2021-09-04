@@ -150,7 +150,7 @@ export const ProfileIcon = styled.div<{
 export const ProjectMeta = styled.div<{ nameOnly?: boolean }>`
   display: flex;
   ${props => !props.nameOnly && 'padding-top: 9px;'}
-  margin-left: -14px;
+  margin-left: -6px;
   align-items: center;
   max-width: 100%;
   min-height: 51px;

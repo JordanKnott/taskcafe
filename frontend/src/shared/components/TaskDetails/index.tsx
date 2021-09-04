@@ -515,7 +515,6 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                   defaultValue={task.description ?? ''}
                   readOnly={user === null || !editTaskDescription}
                   autoFocus
-                  theme={dark}
                   onChange={(value) => {
                     setSaveTimeout(() => {
                       clearTimeout(saveTimeout);
