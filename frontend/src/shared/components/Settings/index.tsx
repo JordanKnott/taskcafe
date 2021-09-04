@@ -311,7 +311,7 @@ const ResetPasswordTab: React.FC<ResetPasswordTabProps> = ({ onResetPassword }) 
 };
 
 type UserInfoData = {
-  full_name: string;
+  fullName: string;
   bio: string;
   initials: string;
   email: string;
@@ -355,12 +355,12 @@ const UserInfoTab: React.FC<UserInfoTabProps> = ({
         })}
       >
         <UserInfoInput
-          {...register('full_name', { required: 'Full name is required' })}
+          {...register('fullName', { required: 'Full name is required' })}
           defaultValue={profile.fullName}
           width="100%"
           label="Name"
         />
-        {errors.full_name && <FormError>{errors.full_name.message}</FormError>}
+        {errors.fullName && <FormError>{errors.fullName.message}</FormError>}
         <UserInfoInput
           defaultValue={profile.profileIcon && profile.profileIcon.initials ? profile.profileIcon.initials : ''}
           {...register('initials', {

@@ -13,9 +13,4 @@ const Stack = ({ size, color }: Props) => {
   );
 };
 
-Stack.defaultProps = {
-  size: 16,
-  color: '#000',
-};
-
 export default Stack;

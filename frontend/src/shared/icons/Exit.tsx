@@ -13,9 +13,4 @@ const Exit = ({ size, color }: Props) => {
   );
 };
 
-Exit.defaultProps = {
-  size: 16,
-  color: '#000',
-};
-
 export default Exit;

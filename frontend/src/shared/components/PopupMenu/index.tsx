@@ -218,7 +218,7 @@ export const PopupProvider: React.FC = ({ children }) => {
 
   const setTab = (newTab: number, options?: PopupOptions) => {
     setState((prevState: PopupState) =>
-      produce(prevState, draftState => {
+      produce(prevState, (draftState) => {
         draftState.previousTab = currentState.currentTab;
         draftState.currentTab = newTab;
         if (options) {
@@ -296,7 +296,7 @@ const PopupMenu: React.FC<Props> = ({ width, title, top, left, onClose, noHeader
       <Wrapper padding borders>
         {onPrevious && (
           <PreviousButton onClick={onPrevious}>
-            <AngleLeft color="#c2c6dc" />
+            <AngleLeft size={16} color="#c2c6dc" />
           </PreviousButton>
         )}
         {noHeader ? (
@@ -332,7 +332,7 @@ export const Popup: React.FC<PopupProps> = ({ borders = true, padding = true, ti
               setTab(0);
             }}
           >
-            <AngleLeft color="#c2c6dc" />
+            <AngleLeft size={16} color="#c2c6dc" />
           </PreviousButton>
         )}
         {title && (

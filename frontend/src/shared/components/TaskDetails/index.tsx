@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useCurrentUser } from 'App/context';
 import {
   Plus,
   User,
@@ -81,9 +82,8 @@ import {
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
-import { plugin as em } from './remark';
+import plugin from './remark';
 import ActivityMessage from './ActivityMessage';
-import { useCurrentUser } from 'App/context';
 
 const parseEmojis = (value: string) => {
   const emojisArray = toArray(value);
@@ -136,7 +136,7 @@ const StreamComment: React.FC<StreamCommentProps> = ({
                   onCreateComment={onUpdateComment}
                 />
               ) : (
-                <ReactMarkdown skipHtml plugins={[em]}>
+                <ReactMarkdown skipHtml plugins={[plugin]}>
                   {DOMPurify.sanitize(comment.message, { FORBID_TAGS: ['style', 'img'] })}
                 </ReactMarkdown>
               )}

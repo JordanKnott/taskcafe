@@ -26,10 +26,10 @@ import useOnOutsideClick from 'shared/hooks/onOutsideClick';
 import DueDateManager from 'shared/components/DueDateManager';
 import dayjs from 'dayjs';
 import useStickyState from 'shared/hooks/useStickyState';
+import { StaticContext } from 'react-router';
 import MyTasksSortPopup from './MyTasksSort';
 import MyTasksStatusPopup from './MyTasksStatus';
 import TaskEntry from './TaskEntry';
-import { StaticContext } from 'react-router';
 
 type TaskRouteProps = {
   taskID: string;

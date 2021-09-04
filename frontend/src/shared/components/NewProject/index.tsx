@@ -98,8 +98,8 @@ const ProjectName = styled.input`
   font-weight: 400;
 
   &:focus {
-    background: ${props => mixin.darken(props.theme.colors.bg.secondary, 0.15)};
-    box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
+    background: ${(props) => mixin.darken(props.theme.colors.bg.secondary, 0.15)};
+    box-shadow: ${(props) => props.theme.colors.primary} 0px 0px 0px 1px;
   }
 `;
 const ProjectNameLabel = styled.label`
@@ -210,8 +210,8 @@ const CreateButton = styled.button`
 
   &:hover {
     color: #fff;
-    background: ${props => props.theme.colors.primary};
-    border-color: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
+    border-color: ${(props) => props.theme.colors.primary};
   }
 `;
 type NewProjectProps = {
@@ -224,7 +224,7 @@ type NewProjectProps = {
 const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, onCreateProject }) => {
   const [projectName, setProjectName] = useState('');
   const [team, setTeam] = useState<null | string>(initialTeamID);
-  const options = [{ label: 'No team', value: 'no-team' }, ...teams.map(t => ({ label: t.name, value: t.id }))];
+  const options = [{ label: 'No team', value: 'no-team' }, ...teams.map((t) => ({ label: t.name, value: t.id }))];
   return (
     <Overlay>
       <Content>
@@ -234,7 +234,7 @@ const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, 
               onClose();
             }}
           >
-            <ArrowLeft color="#c2c6dc" />
+            <ArrowLeft width={16} height={16} color="#c2c6dc" />
           </HeaderLeft>
           <HeaderRight
             onClick={() => {
@@ -263,7 +263,7 @@ const NewProject: React.FC<NewProjectProps> = ({ initialTeamID, teams, onClose, 
                   onChange={(e: any) => {
                     setTeam(e.value);
                   }}
-                  value={options.find(d => d.value === team)}
+                  value={options.find((d) => d.value === team)}
                   styles={colourStyles}
                   classNamePrefix="teamSelect"
                   options={options}

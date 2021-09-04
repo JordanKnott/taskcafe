@@ -25,6 +25,7 @@
   ],
   "rules": {
     "prettier/prettier": "warn",
+    "no-shadow": "off",
     "no-restricted-syntax": ["error", "LabeledStatement", "WithStatement"],
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-explicit-any": "off",

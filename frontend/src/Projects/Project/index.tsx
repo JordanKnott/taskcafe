@@ -31,11 +31,11 @@ import produce from 'immer';
 import NOOP from 'shared/utils/noop';
 import useStateWithLocalStorage from 'shared/hooks/useStateWithLocalStorage';
 import localStorage from 'shared/utils/localStorage';
+import polling from 'shared/utils/polling';
 import Board, { BoardLoading } from './Board';
 import Details from './Details';
 import LabelManagerEditor from './LabelManagerEditor';
 import UserManagementPopup from './UserManagementPopup';
-import polling from 'shared/utils/polling';
 
 type TaskRouteProps = {
   taskID: string;

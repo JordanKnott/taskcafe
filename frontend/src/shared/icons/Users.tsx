@@ -14,9 +14,4 @@ const Users = ({ size, color }: Props) => {
   );
 };
 
-Users.defaultProps = {
-  size: 16,
-  color: '#000',
-};
-
 export default Users;

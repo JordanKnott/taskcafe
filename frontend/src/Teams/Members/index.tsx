@@ -524,7 +524,7 @@ const Members: React.FC<MembersProps> = ({ teamID }) => {
                           members={data.findTeam.members}
                           warning={member.role && member.role.code === 'owner' ? warning : null}
                           // canChangeRole={user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID)} TODO: add permission check
-                          canChangeRole={true}
+                          canChangeRole
                           onChangeRole={(roleCode) => {
                             updateTeamMemberRole({ variables: { userID: member.id, teamID, roleCode } });
                           }}

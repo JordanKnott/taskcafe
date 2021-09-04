@@ -7,6 +7,8 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { getYear, getMonth } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
 import NOOP from 'shared/utils/noop';
+import { Clock, Cross } from 'shared/icons';
+import Select from 'react-select/src/Select';
 
 import {
   Wrapper,
@@ -23,8 +25,6 @@ import {
   ActionClock,
   ActionLabel,
 } from './Styles';
-import { Clock, Cross } from 'shared/icons';
-import Select from 'react-select/src/Select';
 
 type DueDateManagerProps = {
   task: Task;
@@ -189,21 +189,6 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
     setEndDate(end);
   };
   const [isRange, setIsRange] = useState(false);
-
-  const CustomTimeInput = forwardRef(({ value, onClick, onChange, onBlur, onFocus }: any, $ref: any) => {
-    return (
-      <DueDateInput
-        id="endTime"
-        value={value}
-        name="endTime"
-        onChange={onChange}
-        width="100%"
-        variant="alternate"
-        label="Time"
-        onClick={onClick}
-      />
-    );
-  });
 
   return (
     <Wrapper>

@@ -100,7 +100,7 @@ const List = React.forwardRef(
             />
             {!isPublic && (
               <ListExtraMenuButtonWrapper ref={$extraActionsRef} onClick={handleExtraMenuOpen}>
-                <Ellipsis size={16} color="#c2c6dc" />
+                <Ellipsis vertical={false} size={16} color="#c2c6dc" />
               </ListExtraMenuButtonWrapper>
             )}
           </Header>

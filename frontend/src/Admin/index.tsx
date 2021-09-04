@@ -223,7 +223,7 @@ TODO: add permision check
           users={data.users}
           invitedUsers={data.invitedUsers}
           // canInviteUser={user.roles.org === 'admin'} TODO: add permision check
-          canInviteUser={true}
+          canInviteUser
           onInviteUser={NOOP}
           onUpdateUserPassword={() => {
             hidePopup();

@@ -1,4 +1,4 @@
-import visit from 'unist-util-visit';
+import { visit } from 'unist-util-visit';
 import emoji from 'node-emoji';
 import { emoticon } from 'emoticon';
 import { Emoji } from 'emoji-mart';
@@ -15,17 +15,17 @@ const DEFAULT_SETTINGS = {
 };
 
 function plugin(options) {
-  const settings = Object.assign({}, DEFAULT_SETTINGS, options);
+  const settings = { ...DEFAULT_SETTINGS, ...options };
   const pad = !!settings.padSpaceAfter;
   const emoticonEnable = !!settings.emoticon;
 
   function getEmojiByShortCode(match) {
     // find emoji by shortcode - full match or with-out last char as it could be from text e.g. :-),
-    const iconFull = emoticon.find(e => e.emoticons.includes(match)); // full match
-    const iconPart = emoticon.find(e => e.emoticons.includes(match.slice(0, -1))); // second search pattern
+    const iconFull = emoticon.find((e) => e.emoticons.includes(match)); // full match
+    const iconPart = emoticon.find((e) => e.emoticons.includes(match.slice(0, -1))); // second search pattern
     const trimmedChar = iconPart ? match.slice(-1) : '';
     const addPad = pad ? ' ' : '';
-    let icon = iconFull ? iconFull.emoji + addPad : iconPart && iconPart.emoji + addPad + trimmedChar;
+    const icon = iconFull ? iconFull.emoji + addPad : iconPart && iconPart.emoji + addPad + trimmedChar;
     return icon || match;
   }
 
@@ -33,7 +33,7 @@ function plugin(options) {
     console.log(match);
     const got = emoji.get(match);
     if (pad && got !== match) {
-      return got + ' ';
+      return `${got} `;
     }
 
     console.log(got);
@@ -41,7 +41,7 @@ function plugin(options) {
   }
 
   function transformer(tree) {
-    visit(tree, 'paragraph', function(node) {
+    visit(tree, 'paragraph', function (node) {
       console.log(tree);
       // node.value = node.value.replace(RE_EMOJI, getEmoji);
       // jnode.type = 'html';
@@ -65,4 +65,4 @@ function plugin(options) {
   return transformer;
 }
 
-export { plugin };
+export default plugin;

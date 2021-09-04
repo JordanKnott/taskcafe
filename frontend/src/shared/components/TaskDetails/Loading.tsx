@@ -13,6 +13,7 @@ import {
   Smile,
 } from 'shared/icons';
 import { toArray } from 'react-emoji-render';
+import { useCurrentUser } from 'App/context';
 import DOMPurify from 'dompurify';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import useOnOutsideClick from 'shared/hooks/onOutsideClick';
@@ -80,11 +81,8 @@ import {
   ActivityItemHeaderTitleName,
   ActivityItemComment,
 } from './Styles';
-import { useCurrentUser } from 'App/context';
 
-type TaskDetailsProps = {};
-
-const TaskDetailsLoading: React.FC<TaskDetailsProps> = () => {
+const TaskDetailsLoading: React.FC = () => {
   const { user } = useCurrentUser();
   return (
     <Container>

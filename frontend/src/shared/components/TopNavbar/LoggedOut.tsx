@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Home, Star, Bell, AngleDown, BarChart, CheckCircle, ListUnordered } from 'shared/icons';
+import { Link } from 'react-router-dom';
 import { RoleCode } from 'shared/generated/graphql';
 import * as S from './Styles';
-import { Link } from 'react-router-dom';
 
 export type MenuItem = {
   name: string;

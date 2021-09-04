@@ -25,11 +25,4 @@ const Star = ({ width, height, color, filled }: Props) => {
   );
 };
 
-Star.defaultProps = {
-  width: 24,
-  height: 16,
-  color: '#000',
-  filled: false,
-};
-
 export default Star;

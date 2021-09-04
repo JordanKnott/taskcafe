@@ -44,7 +44,7 @@ const Projects = () => {
         name="file"
         style={{ display: 'none' }}
         ref={$fileUpload}
-        onChange={e => {
+        onChange={(e) => {
           if (e.target.files) {
             const fileData = new FormData();
             fileData.append('file', e.target.files[0]);
@@ -52,7 +52,7 @@ const Projects = () => {
               .post('/users/me/avatar', fileData, {
                 withCredentials: true,
               })
-              .then(res => {
+              .then((res) => {
                 if ($fileUpload && $fileUpload.current) {
                   $fileUpload.current.value = '';
                   refetch();
@@ -77,7 +77,7 @@ const Projects = () => {
           }}
           onChangeUserInfo={(d, done) => {
             updateUserInfo({
-              variables: { name: d.full_name, bio: d.bio, email: d.email, initials: d.initials },
+              variables: { name: d.fullName, bio: d.bio, email: d.email, initials: d.initials },
             });
             toast('User info was saved!');
             done();

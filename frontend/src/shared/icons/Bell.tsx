@@ -13,9 +13,4 @@ const Bell = ({ size, color }: Props) => {
   );
 };
 
-Bell.defaultProps = {
-  size: 16,
-  color: '#000',
-};
-
 export default Bell;

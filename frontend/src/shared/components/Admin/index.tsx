@@ -10,6 +10,215 @@ import Button from 'shared/components/Button';
 import NOOP from 'shared/utils/noop';
 import { mixin } from 'shared/utils/styles';
 
+const UserSelect = styled(Select)`
+  margin: 8px 0;
+  padding: 8px 0;
+`;
+
+const NewUserPassInput = styled(Input)`
+  margin: 8px 0;
+`;
+
+const InviteMemberButton = styled(Button)`
+  padding: 7px 12px;
+`;
+
+const UserPassBar = styled.div`
+  display: flex;
+  padding-top: 8px;
+`;
+
+const UserPassConfirmButton = styled(Button)`
+  width: 100%;
+  padding: 7px 12px;
+`;
+
+const UserPassButton = styled(Button)`
+  width: 50%;
+  padding: 7px 12px;
+  & ~ & {
+    margin-left: 6px;
+  }
+`;
+
+const MemberItemOptions = styled.div``;
+
+const MemberItemOption = styled(Button)`
+  padding: 7px 9px;
+  margin: 4px 0 4px 8px;
+  float: left;
+  min-width: 95px;
+`;
+
+const MemberList = styled.div`
+  border-top: 1px solid ${(props) => props.theme.colors.border};
+`;
+
+const MemberListItem = styled.div`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  border-bottom: 1px solid ${(props) => props.theme.colors.border};
+  min-height: 40px;
+  padding: 12px 0 12px 40px;
+  position: relative;
+`;
+
+const MemberListItemDetails = styled.div`
+  float: left;
+  flex: 1 0 auto;
+  padding-left: 8px;
+`;
+
+const InviteIcon = styled(UserPlus)`
+  padding-right: 4px;
+`;
+
+const MemberProfile = styled(TaskAssignee)`
+  position: absolute;
+  top: 16px;
+  left: 0;
+  margin: 0;
+`;
+
+const MemberItemName = styled.p`
+  color: ${(props) => props.theme.colors.text.secondary};
+`;
+
+const MemberItemUsername = styled.p`
+  color: ${(props) => props.theme.colors.text.primary};
+`;
+
+const MemberListHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+const ListTitle = styled.h3`
+  font-size: 18px;
+  color: ${(props) => props.theme.colors.text.secondary};
+  margin-bottom: 12px;
+`;
+const ListDesc = styled.span`
+  font-size: 16px;
+  color: ${(props) => props.theme.colors.text.primary};
+`;
+const FilterSearch = styled(Input)`
+  margin: 0;
+`;
+
+const ListActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 18px;
+`;
+
+const MemberListWrapper = styled.div`
+  flex: 1 1;
+`;
+
+const Container = styled.div`
+  padding: 2.2rem;
+  display: flex;
+  width: 100%;
+  max-width: 1400px;
+  position: relative;
+  margin: 0 auto;
+`;
+
+const TabNav = styled.div`
+  float: left;
+  width: 220px;
+  height: 100%;
+  display: block;
+  position: relative;
+`;
+
+const TabNavContent = styled.ul`
+  display: block;
+  width: auto;
+  border-bottom: 0 !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+`;
+
+const TabNavItem = styled.li`
+  padding: 0.35rem 0.3rem;
+  height: 48px;
+  display: block;
+  position: relative;
+`;
+
+const TabNavItemButton = styled.button<{ active: boolean }>`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  padding-left: 12px !important;
+  padding-right: 8px !important;
+  width: 100%;
+  position: relative;
+
+  color: ${(props) => (props.active ? `${props.theme.colors.secondary}` : props.theme.colors.text.primary)};
+  &:hover {
+    color: ${(props) => `${props.theme.colors.primary}`};
+  }
+  &:hover svg {
+    fill: ${(props) => props.theme.colors.primary};
+  }
+`;
+const TabItemUser = styled(User)<{ active: boolean }>`
+fill: ${(props) => (props.active ? `${props.theme.colors.primary}` : props.theme.colors.text.primary)}
+stroke: ${(props) => (props.active ? `${props.theme.colors.primary}` : props.theme.colors.text.primary)}
+`;
+
+const TabNavItemSpan = styled.span`
+  text-align: left;
+  padding-left: 9px;
+  font-size: 14px;
+`;
+
+const TabNavLine = styled.span<{ top: number }>`
+  left: auto;
+  right: 0;
+  width: 2px;
+  height: 48px;
+  transform: scaleX(1);
+  top: ${(props) => props.top}px;
+
+  background: linear-gradient(
+    30deg,
+    ${(props) => props.theme.colors.primary},
+    ${(props) => props.theme.colors.primary}
+  );
+  box-shadow: 0 0 8px 0 ${(props) => props.theme.colors.primary};
+  display: block;
+  position: absolute;
+  transition: all 0.2s ease;
+`;
+
+const TabContentWrapper = styled.div`
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  margin-left: 1rem;
+`;
+
+const TabContent = styled.div`
+  position: relative;
+  width: 100%;
+  display: block;
+  padding: 0;
+  padding: 1.5rem;
+  background-color: #10163a;
+  border-radius: 0.5rem;
+`;
+
+const items = [{ name: 'Members' }];
+
 export const RoleCheckmark = styled(Checkmark)`
   padding-left: 4px;
 `;
@@ -54,7 +263,7 @@ export const MiniProfileActionItem = styled.span<{ disabled?: boolean }>`
   position: relative;
   text-decoration: none;
 
-  ${props =>
+  ${(props) =>
     props.disabled
       ? css`
           user-select: none;
@@ -75,7 +284,7 @@ export const Content = styled.div`
 
 export const CurrentPermission = styled.span`
   margin-left: 4px;
-  color: ${props => mixin.rgba(props.theme.colors.text.secondary, 0.4)};
+  color: ${(props) => mixin.rgba(props.theme.colors.text.secondary, 0.4)};
 `;
 
 export const Separator = styled.div`
@@ -86,13 +295,13 @@ export const Separator = styled.div`
 
 export const WarningText = styled.span`
   display: flex;
-  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.4)};
+  color: ${(props) => mixin.rgba(props.theme.colors.text.primary, 0.4)};
   padding: 6px;
 `;
 
 export const DeleteDescription = styled.div`
   font-size: 14px;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
 `;
 
 export const RemoveMemberButton = styled(Button)`
@@ -161,8 +370,8 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
         <MiniProfileActions>
           <MiniProfileActionWrapper>
             {permissions
-              .filter(p => (user.role && user.role.code === 'owner') || p.code !== 'owner')
-              .map(perm => (
+              .filter((p) => (user.role && user.role.code === 'owner') || p.code !== 'owner')
+              .map((perm) => (
                 <MiniProfileActionItem
                   disabled={user.role && perm.code !== user.role.code && !canChangeRole}
                   key={perm.code}
@@ -213,9 +422,9 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
                 Choose a new user to take over ownership of the users teams & projects.
               </DeleteDescription>
               <UserSelect
-                onChange={v => setDeleteUser(v)}
+                onChange={(v) => setDeleteUser(v)}
                 value={deleteUser}
-                options={users.map(u => ({ label: u.fullName, value: u.id }))}
+                options={users.map((u) => ({ label: u.fullName, value: u.id }))}
               />
             </>
           )}
@@ -240,7 +449,7 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
             Removing this user from the organzation will remove them from assigned tasks, projects, and teams.
           </DeleteDescription>
           <DeleteDescription>{`The user is the owner of ${user.owned.projects.length} projects & ${user.owned.teams.length} teams.`}</DeleteDescription>
-          <UserSelect onChange={NOOP} value={null} options={users.map(u => ({ label: u.fullName, value: u.id }))} />
+          <UserSelect onChange={NOOP} value={null} options={users.map((u) => ({ label: u.fullName, value: u.id }))} />
           <UserPassConfirmButton
             onClick={() => {
               // onDeleteUser();
@@ -292,211 +501,6 @@ const TeamRoleManagerPopup: React.FC<TeamRoleManagerPopupProps> = ({
     </>
   );
 };
-
-const UserSelect = styled(Select)`
-  margin: 8px 0;
-  padding: 8px 0;
-`;
-
-const NewUserPassInput = styled(Input)`
-  margin: 8px 0;
-`;
-
-const InviteMemberButton = styled(Button)`
-  padding: 7px 12px;
-`;
-
-const UserPassBar = styled.div`
-  display: flex;
-  padding-top: 8px;
-`;
-
-const UserPassConfirmButton = styled(Button)`
-  width: 100%;
-  padding: 7px 12px;
-`;
-
-const UserPassButton = styled(Button)`
-  width: 50%;
-  padding: 7px 12px;
-  & ~ & {
-    margin-left: 6px;
-  }
-`;
-
-const MemberItemOptions = styled.div``;
-
-const MemberItemOption = styled(Button)`
-  padding: 7px 9px;
-  margin: 4px 0 4px 8px;
-  float: left;
-  min-width: 95px;
-`;
-
-const MemberList = styled.div`
-  border-top: 1px solid ${props => props.theme.colors.border};
-`;
-
-const MemberListItem = styled.div`
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  border-bottom: 1px solid ${props => props.theme.colors.border};
-  min-height: 40px;
-  padding: 12px 0 12px 40px;
-  position: relative;
-`;
-
-const MemberListItemDetails = styled.div`
-  float: left;
-  flex: 1 0 auto;
-  padding-left: 8px;
-`;
-
-const InviteIcon = styled(UserPlus)`
-  padding-right: 4px;
-`;
-
-const MemberProfile = styled(TaskAssignee)`
-  position: absolute;
-  top: 16px;
-  left: 0;
-  margin: 0;
-`;
-
-const MemberItemName = styled.p`
-  color: ${props => props.theme.colors.text.secondary};
-`;
-
-const MemberItemUsername = styled.p`
-  color: ${props => props.theme.colors.text.primary};
-`;
-
-const MemberListHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-const ListTitle = styled.h3`
-  font-size: 18px;
-  color: ${props => props.theme.colors.text.secondary};
-  margin-bottom: 12px;
-`;
-const ListDesc = styled.span`
-  font-size: 16px;
-  color: ${props => props.theme.colors.text.primary};
-`;
-const FilterSearch = styled(Input)`
-  margin: 0;
-`;
-
-const ListActions = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
-  margin-bottom: 18px;
-`;
-
-const MemberListWrapper = styled.div`
-  flex: 1 1;
-`;
-
-const Container = styled.div`
-  padding: 2.2rem;
-  display: flex;
-  width: 100%;
-  max-width: 1400px;
-  position: relative;
-  margin: 0 auto;
-`;
-
-const TabNav = styled.div`
-  float: left;
-  width: 220px;
-  height: 100%;
-  display: block;
-  position: relative;
-`;
-
-const TabNavContent = styled.ul`
-  display: block;
-  width: auto;
-  border-bottom: 0 !important;
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
-`;
-
-const TabNavItem = styled.li`
-  padding: 0.35rem 0.3rem;
-  height: 48px;
-  display: block;
-  position: relative;
-`;
-
-const TabNavItemButton = styled.button<{ active: boolean }>`
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
-  padding-left: 12px !important;
-  padding-right: 8px !important;
-  width: 100%;
-  position: relative;
-
-  color: ${props => (props.active ? `${props.theme.colors.secondary}` : props.theme.colors.text.primary)};
-  &:hover {
-    color: ${props => `${props.theme.colors.primary}`};
-  }
-  &:hover svg {
-    fill: ${props => props.theme.colors.primary};
-  }
-`;
-const TabItemUser = styled(User)<{ active: boolean }>`
-fill: ${props => (props.active ? `${props.theme.colors.primary}` : props.theme.colors.text.primary)}
-stroke: ${props => (props.active ? `${props.theme.colors.primary}` : props.theme.colors.text.primary)}
-`;
-
-const TabNavItemSpan = styled.span`
-  text-align: left;
-  padding-left: 9px;
-  font-size: 14px;
-`;
-
-const TabNavLine = styled.span<{ top: number }>`
-  left: auto;
-  right: 0;
-  width: 2px;
-  height: 48px;
-  transform: scaleX(1);
-  top: ${props => props.top}px;
-
-  background: linear-gradient(30deg, ${props => props.theme.colors.primary}, ${props => props.theme.colors.primary});
-  box-shadow: 0 0 8px 0 ${props => props.theme.colors.primary};
-  display: block;
-  position: absolute;
-  transition: all 0.2s ease;
-`;
-
-const TabContentWrapper = styled.div`
-  position: relative;
-  display: block;
-  overflow: hidden;
-  width: 100%;
-  margin-left: 1rem;
-`;
-
-const TabContent = styled.div`
-  position: relative;
-  width: 100%;
-  display: block;
-  padding: 0;
-  padding: 1.5rem;
-  background-color: #10163a;
-  border-radius: 0.5rem;
-`;
-
-const items = [{ name: 'Members' }];
 
 type NavItemProps = {
   active: boolean;
@@ -591,7 +595,7 @@ const Admin: React.FC<AdminProps> = ({
                 <FilterSearch width="250px" variant="alternate" placeholder="Filter by name" />
                 {canInviteUser && (
                   <InviteMemberButton
-                    onClick={$target => {
+                    onClick={($target) => {
                       onAddUser($target);
                     }}
                   >
@@ -602,7 +606,7 @@ const Admin: React.FC<AdminProps> = ({
               </ListActions>
             </MemberListHeader>
             <MemberList>
-              {users.map(member => {
+              {users.map((member) => {
                 const projectTotal = member.owned.projects.length + member.member.projects.length;
                 return (
                   <MemberListItem>
@@ -615,7 +619,7 @@ const Admin: React.FC<AdminProps> = ({
                       <MemberItemOption variant="flat">{`On ${projectTotal} projects`}</MemberItemOption>
                       <MemberItemOption
                         variant="outline"
-                        onClick={$target => {
+                        onClick={($target) => {
                           showPopup(
                             $target,
                             <TeamRoleManagerPopup
@@ -626,7 +630,7 @@ const Admin: React.FC<AdminProps> = ({
                                 onUpdateUserPassword(user, password);
                               }}
                               canChangeRole={(member.role && member.role.code !== 'owner') ?? false}
-                              onChangeRole={roleCode => {
+                              onChangeRole={(roleCode) => {
                                 updateUserRole({ variables: { userID: member.id, roleCode } });
                               }}
                               onDeleteUser={onDeleteUser}
@@ -640,7 +644,7 @@ const Admin: React.FC<AdminProps> = ({
                   </MemberListItem>
                 );
               })}
-              {invitedUsers.map(member => {
+              {invitedUsers.map((member) => {
                 return (
                   <MemberListItem>
                     <MemberProfile
@@ -664,7 +668,7 @@ const Admin: React.FC<AdminProps> = ({
                     <MemberItemOptions>
                       <MemberItemOption
                         variant="outline"
-                        onClick={$target => {
+                        onClick={($target) => {
                           showPopup(
                             $target,
                             <TeamRoleManagerPopup

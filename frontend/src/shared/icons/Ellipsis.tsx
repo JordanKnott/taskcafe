@@ -21,10 +21,4 @@ const Ellipsis = ({ size, color, vertical }: Props) => {
   );
 };
 
-Ellipsis.defaultProps = {
-  size: 16,
-  color: '#000',
-  vertical: false,
-};
-
 export default Ellipsis;

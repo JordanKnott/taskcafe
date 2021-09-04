@@ -144,7 +144,7 @@ const ProjectHeading: React.FC<ProjectHeadingProps> = ({
       </ProjectSettingsButton>
       {onFavorite && (
         <ProjectSettingsButton onClick={() => onFavorite()}>
-          <Star width={16} height={16} color="#c2c6dc" />
+          <Star filled width={16} height={16} color="#c2c6dc" />
         </ProjectSettingsButton>
       )}
     </>
@@ -228,7 +228,7 @@ const NavBar: React.FC<NavBarProps> = ({
     <NavbarWrapper>
       <NavbarHeader>
         <ProjectActions>
-          <ProjectSwitch ref={$finder} onClick={e => onOpenProjectFinder($finder)}>
+          <ProjectSwitch ref={$finder} onClick={(e) => onOpenProjectFinder($finder)}>
             <ProjectSwitchInner>
               <TaskcafeLogo innerColor="#9f46e4" outerColor="#000" width={32} height={32} />
             </ProjectSwitchInner>
@@ -304,7 +304,7 @@ const NavBar: React.FC<NavBarProps> = ({
                 ))}
                 {canInviteUser && (
                   <InviteButton
-                    onClick={$target => {
+                    onClick={($target) => {
                       if (onInviteUser) {
                         onInviteUser($target);
                       }
