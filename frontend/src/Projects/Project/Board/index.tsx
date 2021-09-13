@@ -136,16 +136,16 @@ const ProjectActionWrapper = styled.div<{ disabled?: boolean }>`
   display: flex;
   align-items: center;
   font-size: 15px;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
 
   &:not(:last-of-type) {
     margin-right: 16px;
   }
 
   &:hover {
-    color: ${props => props.theme.colors.text.secondary};
+    color: ${(props) => props.theme.colors.text.secondary};
   }
-  ${props =>
+  ${(props) =>
     props.disabled &&
     css`
       opacity: 0.5;
@@ -280,8 +280,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             draftCache.findProject.taskGroups = draftCache.findProject.taskGroups.filter(
               (taskGroup: TaskGroup) => taskGroup.id !== deletedTaskGroupData.data?.deleteTaskGroup.taskGroup.id,
             );
@@ -296,10 +296,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             const { taskGroups } = cache.findProject;
-            const idx = taskGroups.findIndex(taskGroup => taskGroup.id === newTaskData.data?.createTask.taskGroup.id);
+            const idx = taskGroups.findIndex((taskGroup) => taskGroup.id === newTaskData.data?.createTask.taskGroup.id);
             if (idx !== -1) {
               if (newTaskData.data) {
                 draftCache.findProject.taskGroups[idx].tasks.push({ ...newTaskData.data.createTask });
@@ -316,8 +316,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             if (newTaskGroupData.data) {
               draftCache.findProject.taskGroups.push({ ...newTaskGroupData.data.createTaskGroup, tasks: [] });
             }
@@ -336,10 +336,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             const idx = cache.findProject.taskGroups.findIndex(
-              t => t.id === resp.data?.deleteTaskGroupTasks.taskGroupID,
+              (t) => t.id === resp.data?.deleteTaskGroupTasks.taskGroupID,
             );
             if (idx !== -1) {
               draftCache.findProject.taskGroups[idx].tasks = [];
@@ -353,8 +353,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             if (resp.data) {
               draftCache.findProject.taskGroups.push(resp.data.duplicateTaskGroup.taskGroup);
             }
@@ -371,8 +371,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
       updateApolloCache<FindProjectQuery>(
         client,
         FindProjectDocument,
-        cache =>
-          produce(cache, draftCache => {
+        (cache) =>
+          produce(cache, (draftCache) => {
             if (newTask.data) {
               const { previousTaskGroupID, task } = newTask.data.updateTaskLocation;
               if (previousTaskGroupID !== task.taskGroup.id) {
@@ -380,7 +380,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                 const oldTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === previousTaskGroupID);
                 const newTaskGroupIdx = taskGroups.findIndex((t: TaskGroup) => t.id === task.taskGroup.id);
                 if (oldTaskGroupIdx !== -1 && newTaskGroupIdx !== -1) {
-                  const previousTask = cache.findProject.taskGroups[oldTaskGroupIdx].tasks.find(t => t.id === task.id);
+                  const previousTask = cache.findProject.taskGroups[oldTaskGroupIdx].tasks.find(
+                    (t) => t.id === task.id,
+                  );
                   draftCache.findProject.taskGroups[oldTaskGroupIdx].tasks = taskGroups[oldTaskGroupIdx].tasks.filter(
                     (t: Task) => t.id !== task.id,
                   );
@@ -401,14 +403,14 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
   const { user } = useCurrentUser();
   const [deleteTask] = useDeleteTaskMutation();
   const [toggleTaskLabel] = useToggleTaskLabelMutation({
-    onCompleted: newTaskLabel => {
+    onCompleted: (newTaskLabel) => {
       taskLabelsRef.current = newTaskLabel.toggleTaskLabel.task.labels;
     },
   });
 
   const onCreateTask = (taskGroupID: string, name: string) => {
     if (data) {
-      const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
+      const taskGroup = data.findProject.taskGroups.find((t) => t.id === taskGroupID);
       if (taskGroup) {
         let position = 65535;
         if (taskGroup.tasks.length !== 0) {
@@ -472,12 +474,13 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
     }
     return 'All Tasks';
   };
+
   if (data) {
     labelsRef.current = data.findProject.labels;
     membersRef.current = data.findProject.members;
     const onQuickEditorOpen = ($target: React.RefObject<HTMLElement>, taskID: string, taskGroupID: string) => {
-      const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
-      const currentTask = taskGroup ? taskGroup.tasks.find(t => t.id === taskID) : null;
+      const taskGroup = data.findProject.taskGroups.find((t) => t.id === taskGroupID);
+      const currentTask = taskGroup ? taskGroup.tasks.find((t) => t.id === taskID) : null;
       if (currentTask) {
         setQuickCardEditor({
           target: $target,
@@ -489,9 +492,9 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
     };
     let currentQuickTask = null;
     if (quickCardEditor.taskID && quickCardEditor.taskGroupID) {
-      const targetGroup = data.findProject.taskGroups.find(t => t.id === quickCardEditor.taskGroupID);
+      const targetGroup = data.findProject.taskGroups.find((t) => t.id === quickCardEditor.taskGroupID);
       if (targetGroup) {
-        currentQuickTask = targetGroup.tasks.find(t => t.id === quickCardEditor.taskID);
+        currentQuickTask = targetGroup.tasks.find((t) => t.id === quickCardEditor.taskID);
       }
     }
     return (
@@ -499,13 +502,13 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         <ProjectBar>
           <ProjectActions>
             <ProjectAction
-              onClick={target => {
+              onClick={(target) => {
                 showPopup(
                   target,
                   <Popup tab={0} title={null}>
                     <FilterStatus
                       filter={taskStatusFilter}
-                      onChangeTaskStatusFilter={filter => {
+                      onChangeTaskStatusFilter={(filter) => {
                         setTaskStatusFilter(filter);
                         hidePopup();
                       }}
@@ -519,13 +522,13 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               <ProjectActionText>{getTaskStatusFilterLabel(taskStatusFilter)}</ProjectActionText>
             </ProjectAction>
             <ProjectAction
-              onClick={target => {
+              onClick={(target) => {
                 showPopup(
                   target,
                   <Popup tab={0} title={null}>
                     <SortPopup
                       sorting={taskSorting}
-                      onChangeTaskSorting={sorting => {
+                      onChangeTaskSorting={(sorting) => {
                         setTaskSorting(sorting);
                       }}
                     />
@@ -538,16 +541,16 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               <ProjectActionText>{renderTaskSortingLabel(taskSorting)}</ProjectActionText>
             </ProjectAction>
             <ProjectAction
-              onClick={target => {
+              onClick={(target) => {
                 showPopup(
                   target,
                   <FilterMeta
                     filters={taskMetaFilters}
-                    onChangeTaskMetaFilter={filter => {
+                    onChangeTaskMetaFilter={(filter) => {
                       setTaskMetaFilters(filter);
                     }}
                     userID={user ?? ''}
-                    labels={labelsRef}
+                    projectID={projectID}
                     members={membersRef}
                   />,
                   { width: 200 },
@@ -559,11 +562,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
             </ProjectAction>
             {renderMetaFilters(taskMetaFilters, (meta, id) => {
               setTaskMetaFilters(
-                produce(taskMetaFilters, draftFilters => {
+                produce(taskMetaFilters, (draftFilters) => {
                   if (meta === TaskMeta.MEMBER) {
-                    draftFilters.members = draftFilters.members.filter(m => m.id !== id);
+                    draftFilters.members = draftFilters.members.filter((m) => m.id !== id);
                   } else if (meta === TaskMeta.LABEL) {
-                    draftFilters.labels = draftFilters.labels.filter(m => m.id !== id);
+                    draftFilters.labels = draftFilters.labels.filter((m) => m.id !== id);
                   } else if (meta === TaskMeta.TITLE) {
                     draftFilters.taskName = null;
                   } else if (meta === TaskMeta.DUE_DATE) {
@@ -576,15 +579,10 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
           {user && (
             <ProjectActions>
               <ProjectAction
-                onClick={$labelsRef => {
+                onClick={($labelsRef) => {
                   showPopup(
                     $labelsRef,
-                    <LabelManagerEditor
-                      taskLabels={null}
-                      labelColors={data.labelColors}
-                      labels={labelsRef}
-                      projectID={projectID ?? ''}
-                    />,
+                    <LabelManagerEditor taskLabels={null} labelColors={data.labelColors} projectID={projectID ?? ''} />,
                   );
                 }}
               >
@@ -604,7 +602,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         </ProjectBar>
         <SimpleLists
           isPublic={user === null}
-          onTaskClick={task => {
+          onTaskClick={(task) => {
             history.push(`${match.url}/c/${task.id}`);
           }}
           onCardLabelClick={onCardLabelClick ?? NOOP}
@@ -637,7 +635,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               },
             });
           }}
-          onTaskGroupDrop={droppedTaskGroup => {
+          onTaskGroupDrop={(droppedTaskGroup) => {
             updateTaskGroupLocation({
               variables: { taskGroupID: droppedTaskGroup.id, position: droppedTaskGroup.position },
               optimisticResponse: {
@@ -657,7 +655,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
           onCreateTask={onCreateTask}
           onCreateTaskGroup={onCreateList}
           onCardMemberClick={($targetRef, _taskID, memberID) => {
-            const member = data.findProject.members.find(m => m.id === memberID);
+            const member = data.findProject.members.find((m) => m.id === memberID);
             if (member) {
               showPopup(
                 $targetRef,
@@ -684,8 +682,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                   deleteTaskGroupTasks({ variables: { taskGroupID } });
                   hidePopup();
                 }}
-                onSortTaskGroup={taskSort => {
-                  const taskGroup = data.findProject.taskGroups.find(t => t.id === taskGroupID);
+                onSortTaskGroup={(taskSort) => {
+                  const taskGroup = data.findProject.taskGroups.find((t) => t.id === taskGroupID);
                   if (taskGroup) {
                     const tasks: Array<{ taskID: string; position: number }> = taskGroup.tasks
                       .sort((a, b) => sortTasks(a, b, taskSort))
@@ -697,8 +695,8 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                     hidePopup();
                   }
                 }}
-                onDuplicateTaskGroup={newName => {
-                  const idx = data.findProject.taskGroups.findIndex(t => t.id === taskGroupID);
+                onDuplicateTaskGroup={(newName) => {
+                  const idx = data.findProject.taskGroups.findIndex((t) => t.id === taskGroupID);
                   if (idx !== -1) {
                     const taskGroups = data.findProject.taskGroups.sort((a, b) => a.position - b.position);
                     const prevPos = taskGroups[idx].position;
@@ -711,7 +709,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                     hidePopup();
                   }
                 }}
-                onArchiveTaskGroup={tgID => {
+                onArchiveTaskGroup={(tgID) => {
                   deleteTaskGroup({ variables: { taskGroupID: tgID } });
                   hidePopup();
                 }}
@@ -745,7 +743,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               );
             }}
             onCardMemberClick={($targetRef, _taskID, memberID) => {
-              const member = data.findProject.members.find(m => m.id === memberID);
+              const member = data.findProject.members.find((m) => m.id === memberID);
               if (member) {
                 showPopup(
                   $targetRef,
@@ -764,12 +762,11 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               showPopup(
                 $targetRef,
                 <LabelManagerEditor
-                  onLabelToggle={labelID => {
+                  onLabelToggle={(labelID) => {
                     toggleTaskLabel({ variables: { taskID: task.id, projectLabelID: labelID } });
                   }}
                   taskID={task.id}
                   labelColors={data.labelColors}
-                  labels={labelsRef}
                   taskLabels={taskLabelsRef}
                   projectID={projectID ?? ''}
                 />,
@@ -778,15 +775,15 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
             onArchiveCard={(_listId: string, cardId: string) => {
               return deleteTask({
                 variables: { taskID: cardId },
-                update: client => {
+                update: (client) => {
                   updateApolloCache<FindProjectQuery>(
                     client,
                     FindProjectDocument,
-                    cache =>
-                      produce(cache, draftCache => {
-                        draftCache.findProject.taskGroups = cache.findProject.taskGroups.map(taskGroup => ({
+                    (cache) =>
+                      produce(cache, (draftCache) => {
+                        draftCache.findProject.taskGroups = cache.findProject.taskGroups.map((taskGroup) => ({
                           ...taskGroup,
-                          tasks: taskGroup.tasks.filter(t => t.id !== cardId),
+                          tasks: taskGroup.tasks.filter((t) => t.id !== cardId),
                         }));
                       }),
                     { projectID },
@@ -800,7 +797,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                 <Popup title="Change Due Date" tab={0} onClose={() => hidePopup()}>
                   <DueDateManager
                     task={task}
-                    onRemoveDueDate={t => {
+                    onRemoveDueDate={(t) => {
                       updateTaskDueDate({ variables: { taskID: t.id, dueDate: null, hasTime: false } });
                       // hidePopup();
                     }}
@@ -813,7 +810,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                 </Popup>,
               );
             }}
-            onToggleComplete={task => {
+            onToggleComplete={(task) => {
               setTaskComplete({ variables: { taskID: task.id, complete: !task.complete } });
             }}
             target={quickCardEditor.target}

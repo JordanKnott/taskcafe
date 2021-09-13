@@ -269,7 +269,6 @@ const Project = () => {
                       }}
                       taskID={task.id}
                       labelColors={data.labelColors}
-                      labels={labelsRef}
                       taskLabels={taskLabelsRef}
                       projectID={projectID}
                     />,

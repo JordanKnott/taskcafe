@@ -7,12 +7,13 @@ import { Popup, usePopup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import { mixin } from 'shared/utils/styles';
 import Member from 'shared/components/Member';
+import { useLabelsQuery } from 'shared/generated/graphql';
 
 const FilterMember = styled(Member)`
   margin: 2px 0;
   &:hover {
     cursor: pointer;
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
   }
 `;
 
@@ -28,7 +29,7 @@ export const Label = styled.li`
 `;
 
 export const CardLabel = styled.span<{ active: boolean; color: string }>`
-  ${props =>
+  ${(props) =>
     props.active &&
     css`
       margin-left: 4px;
@@ -43,7 +44,7 @@ export const CardLabel = styled.span<{ active: boolean; color: string }>`
   padding: 6px 12px;
   position: relative;
   transition: padding 85ms, margin 85ms, box-shadow 85ms;
-  background-color: ${props => props.color};
+  background-color: ${(props) => props.color};
   color: #fff;
   display: block;
   max-width: 100%;
@@ -71,7 +72,7 @@ export const ActionItem = styled.li`
   align-items: center;
   font-size: 14px;
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
   }
 `;
 
@@ -80,7 +81,7 @@ export const ActionTitle = styled.span`
 `;
 
 const ActionItemSeparator = styled.li`
-  color: ${props => mixin.rgba(props.theme.colors.text.primary, 0.4)};
+  color: ${(props) => mixin.rgba(props.theme.colors.text.primary, 0.4)};
   font-size: 12px;
   padding-left: 4px;
   padding-right: 4px;
@@ -110,15 +111,16 @@ const ActionItemLine = styled.div`
 type FilterMetaProps = {
   filters: TaskMetaFilters;
   userID: string;
-  labels: React.RefObject<Array<ProjectLabel>>;
+  projectID: string;
   members: React.RefObject<Array<TaskUser>>;
   onChangeTaskMetaFilter: (filters: TaskMetaFilters) => void;
 };
 
-const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter, userID, labels, members }) => {
+const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter, userID, projectID, members }) => {
   const [currentFilters, setFilters] = useState(filters);
   const [nameFilter, setNameFilter] = useState(filters.taskName ? filters.taskName.name : '');
   const [currentLabel, setCurrentLabel] = useState('');
+  const { data } = useLabelsQuery({ variables: { projectID } });
 
   const handleSetFilters = (f: TaskMetaFilters) => {
     setFilters(f);
@@ -127,7 +129,7 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
 
   const handleNameChange = (nFilter: string) => {
     handleSetFilters(
-      produce(currentFilters, draftFilters => {
+      produce(currentFilters, (draftFilters) => {
         draftFilters.taskName = nFilter !== '' ? { name: nFilter } : null;
       }),
     );
@@ -138,7 +140,7 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
 
   const handleSetDueDate = (filterType: DueDateFilterType, label: string) => {
     handleSetFilters(
-      produce(currentFilters, draftFilters => {
+      produce(currentFilters, (draftFilters) => {
         if (draftFilters.dueDate && draftFilters.dueDate.type === filterType) {
           draftFilters.dueDate = null;
         } else {
@@ -157,7 +159,7 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
         <ActionsList>
           <TaskNameInput
             width="100%"
-            onChange={e => handleNameChange(e.currentTarget.value)}
+            onChange={(e) => handleNameChange(e.currentTarget.value)}
             value={nameFilter}
             autoFocus
             variant="alternate"
@@ -167,14 +169,14 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
           <ActionItem
             onClick={() => {
               handleSetFilters(
-                produce(currentFilters, draftFilters => {
+                produce(currentFilters, (draftFilters) => {
                   if (members.current) {
-                    const member = members.current.find(m => m.id === userID);
-                    const draftMember = draftFilters.members.find(m => m.id === userID);
+                    const member = members.current.find((m) => m.id === userID);
+                    const draftMember = draftFilters.members.find((m) => m.id === userID);
                     if (member && !draftMember) {
                       draftFilters.members.push({ id: userID, username: member.username ? member.username : '' });
                     } else {
-                      draftFilters.members = draftFilters.members.filter(m => m.id !== userID);
+                      draftFilters.members = draftFilters.members.filter((m) => m.id !== userID);
                     }
                   }
                 }),
@@ -185,7 +187,7 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
               <User width={12} height={12} />
             </ItemIcon>
             <ActionTitle>Just my tasks</ActionTitle>
-            {currentFilters.members.find(m => m.id === userID) && <ActiveIcon width={12} height={12} />}
+            {currentFilters.members.find((m) => m.id === userID) && <ActiveIcon width={12} height={12} />}
           </ActionItem>
           <ActionItem onClick={() => handleSetDueDate(DueDateFilterType.THIS_WEEK, 'Due this week')}>
             <ItemIcon>
@@ -228,10 +230,10 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
       </Popup>
       <Popup tab={1} title="By Labels">
         <Labels>
-          {labels.current &&
-            labels.current
+          {data &&
+            data.findProject.labels
               // .filter(label => '' === '' || (label.name && label.name.toLowerCase().startsWith(''.toLowerCase())))
-              .map(label => (
+              .map((label) => (
                 <Label key={label.id}>
                   <CardLabel
                     key={label.id}
@@ -242,9 +244,9 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
                     }}
                     onClick={() => {
                       handleSetFilters(
-                        produce(currentFilters, draftFilters => {
-                          if (draftFilters.labels.find(l => l.id === label.id)) {
-                            draftFilters.labels = draftFilters.labels.filter(l => l.id !== label.id);
+                        produce(currentFilters, (draftFilters) => {
+                          if (draftFilters.labels.find((l) => l.id === label.id)) {
+                            draftFilters.labels = draftFilters.labels.filter((l) => l.id !== label.id);
                           } else {
                             draftFilters.labels.push({
                               id: label.id,
@@ -265,16 +267,16 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
       <Popup tab={2} title="By Member">
         <ActionsList>
           {members.current &&
-            members.current.map(member => (
+            members.current.map((member) => (
               <FilterMember
                 key={member.id}
                 member={member}
                 showName
                 onCardMemberClick={() => {
                   handleSetFilters(
-                    produce(currentFilters, draftFilters => {
-                      if (draftFilters.members.find(m => m.id === member.id)) {
-                        draftFilters.members = draftFilters.members.filter(m => m.id !== member.id);
+                    produce(currentFilters, (draftFilters) => {
+                      if (draftFilters.members.find((m) => m.id === member.id)) {
+                        draftFilters.members = draftFilters.members.filter((m) => m.id !== member.id);
                       } else {
                         draftFilters.members.push({ id: member.id, username: member.username ?? '' });
                       }
