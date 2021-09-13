@@ -12,7 +12,7 @@ services:
     volumes:
       - taskcafe-postgres:/var/lib/postgresql/data
     ports:
-      - 8855:5432
+      - 8865:5432
   mailhog:
     image: mailhog/mailhog:latest
     restart: always

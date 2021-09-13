@@ -1,0 +1,33 @@
+version: "3"
+services:
+  web:
+    image: taskcafe/taskcafe:latest
+    # build: .
+    ports:
+      - "6688:3333"
+    depends_on:
+      - postgres
+    networks:
+      - taskcafe-latest-test
+    environment:
+      TASKCAFE_DATABASE_HOST: postgres
+      TASKCAFE_MIGRATE: "true"
+  postgres:
+    image: postgres:12.3-alpine
+    restart: always
+    networks:
+      - taskcafe-latest-test
+    environment:
+      POSTGRES_USER: taskcafe
+      POSTGRES_PASSWORD: taskcafe_test
+      POSTGRES_DB: taskcafe
+    volumes:
+    - taskcafe-latest-postgres:/var/lib/postgresql/data
+
+volumes:
+  taskcafe-latest-postgres:
+    external: false
+
+networks:
+  taskcafe-latest-test:
+    driver: bridge

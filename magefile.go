@@ -98,8 +98,10 @@ func (Backend) GenFrontend() error {
 }
 
 func flagEnv() map[string]string {
-	hash, _ := sh.Output("git", "rev-parse", "--short", "HEAD")
-	fmt.Println("[ignore] fatal: no tag matches")
+	hash, err := sh.Output("git", "rev-parse", "--short", "HEAD")
+	if err != nil {
+		fmt.Println("[ignore] fatal: no tag matches")
+	}
 	tag, err := sh.Output("git", "describe", "--exact-match", "--tags")
 	if err != nil {
 		tag = "nightly"
@@ -158,6 +160,20 @@ func Install() {
 // Build runs frontend:build, backend:genMigrations, backend:genFrontend, backend:build
 func Build() {
 	mg.SerialDeps(Frontend.Build, Backend.GenMigrations, Backend.GenFrontend, Backend.Build)
+}
+
+// Latest is namespace for commands interacting with docker test setups
+type Latest mg.Namespace
+
+func (Latest) Up() error {
+	return sh.RunV("docker-compose", "-p", "taskcafe-latest", "-f", "testing/docker-compose.latest.yml", "up")
+}
+
+// Test is namespace for commands interacting with docker test setups
+type Dev mg.Namespace
+
+func (Dev) Up() error {
+	return sh.RunV("docker-compose", "-p", "taskcafe-dev", "-f", "testing/docker-compose.dev.yml", "up")
 }
 
 // Docker is namespace for commands interacting with docker
