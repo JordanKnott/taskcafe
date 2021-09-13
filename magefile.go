@@ -3,10 +3,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +20,8 @@ import (
 const (
 	packageName = "github.com/jordanknott/taskcafe"
 )
+
+var semverRegex = regexp.MustCompile(`^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 var ldflags = "-X $PACKAGE/internal/utils.commitHash=$COMMIT_HASH -X $PACKAGE/internal/utils.buildDate=$BUILD_DATE -X $PACKAGE/internal/utils.version=$VERSION"
 
@@ -147,6 +151,7 @@ func (Backend) Schema() error {
 	return sh.Run("gqlgen")
 }
 
+// Test run golang unit tests
 func (Backend) Test() error {
 	fmt.Println("running taskcafe backend unit tests")
 	return sh.RunV("go", "test", "./...")
@@ -162,16 +167,54 @@ func Build() {
 	mg.SerialDeps(Frontend.Build, Backend.GenMigrations, Backend.GenFrontend, Backend.Build)
 }
 
+// Release tags, builds, and upload a new release docker image
+func Release() error {
+	// mg.SerialDeps(Frontend.Eslint, Frontend.Tsc, Backend.Test)
+	version, ok := os.LookupEnv("TASKCAFE_RELEASE_VERSION")
+	if !ok {
+		return errors.New("TASKCAFE_RELEASE_VERSION must be set")
+	}
+	if !semverRegex.MatchString(version) {
+		return errors.New("TASKCAFE_RELEASE_VERSION must be a valid SemVer")
+	}
+	fmt.Println("Preparing " + version + " release...")
+
+	err := sh.RunV("git", "tag", version, "-m", "v"+version)
+	if err != nil {
+		return err
+	}
+	err = sh.RunV("git", "push", "origin", version)
+	if err != nil {
+		return err
+	}
+	err = sh.RunV("docker", "build", ".", "-t", "taskcafe/taskcafe:latest", "-t", "taskcafe/taskcafe:"+version)
+	if err != nil {
+		return err
+	}
+	err = sh.RunV("docker", "push", "taskcafe/latest:latest")
+	if err != nil {
+		return err
+	}
+	err = sh.RunV("docker", "push", "taskcafe/latest:"+version)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Released version " + version)
+	return nil
+}
+
 // Latest is namespace for commands interacting with docker test setups
 type Latest mg.Namespace
 
+// Up starts the docker-compose file using the `latest` taskcafe image
 func (Latest) Up() error {
 	return sh.RunV("docker-compose", "-p", "taskcafe-latest", "-f", "testing/docker-compose.latest.yml", "up")
 }
 
-// Test is namespace for commands interacting with docker test setups
+// Dev is namespace for commands interacting with docker test setups
 type Dev mg.Namespace
 
+// Up starts the docker-compose file using the current files
 func (Dev) Up() error {
 	return sh.RunV("docker-compose", "-p", "taskcafe-dev", "-f", "testing/docker-compose.dev.yml", "up")
 }
