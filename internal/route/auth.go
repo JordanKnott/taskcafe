@@ -334,7 +334,7 @@ func (h *TaskcafeHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Active:       false,
 	})
 	if err != nil {
-		log.Error("issue registering user account")
+		log.WithError(err).Error("issue registering user account")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
