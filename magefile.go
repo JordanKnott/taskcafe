@@ -191,11 +191,11 @@ func Release() error {
 	if err != nil {
 		return err
 	}
-	err = sh.RunV("docker", "push", "taskcafe/latest:latest")
+	err = sh.RunV("docker", "push", "taskcafe/taskcafe:latest")
 	if err != nil {
 		return err
 	}
-	err = sh.RunV("docker", "push", "taskcafe/latest:"+version)
+	err = sh.RunV("docker", "push", "taskcafe/taskcafe:"+version)
 	if err != nil {
 		return err
 	}
