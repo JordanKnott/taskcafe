@@ -35,6 +35,7 @@
     "no-case-declarations": "off",
     "no-plusplus": "off",
     "react/prop-types": 0,
+    "react/no-unused-prop-types": "off",
     "no-continue": "off",
     "react/jsx-props-no-spreading": "off",
     "no-param-reassign": "off",
