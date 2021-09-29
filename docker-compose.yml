@@ -12,6 +12,9 @@ services:
     environment:
       TASKCAFE_DATABASE_HOST: postgres
       TASKCAFE_MIGRATE: "true"
+    volumes:
+      - taskcafe-uploads:/root/uploads
+      
   postgres:
     image: postgres:12.3-alpine
     restart: always
@@ -22,10 +25,12 @@ services:
       POSTGRES_PASSWORD: taskcafe_test
       POSTGRES_DB: taskcafe
     volumes:
-    - taskcafe-postgres:/var/lib/postgresql/data
+      - taskcafe-postgres:/var/lib/postgresql/data
 
 volumes:
   taskcafe-postgres:
+    external: false
+  taskcafe-uploads:
     external: false
 
 networks:
