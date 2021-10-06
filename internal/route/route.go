@@ -102,6 +102,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityCon
 		mux.Mount("/uploads/", http.StripPrefix("/uploads/", imgServer))
 		mux.Post("/auth/confirm", taskcafeHandler.ConfirmUser)
 		mux.Post("/auth/register", taskcafeHandler.RegisterUser)
+		mux.Get("/settings", taskcafeHandler.PublicSettings)
 	})
 	auth := AuthenticationMiddleware{*repository}
 	r.Group(func(mux chi.Router) {

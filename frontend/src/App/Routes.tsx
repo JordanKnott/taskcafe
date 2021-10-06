@@ -32,7 +32,6 @@ type ValidateTokenResponse = {
 const UserRequiredRoute: React.FC<any> = ({ children }) => {
   const { user } = useCurrentUser();
   const location = useLocation();
-  console.log('user required', user);
   if (user) {
     return children;
   }

@@ -89,7 +89,7 @@ type ErrorOption =
 type SetFailedFn = () => void;
 type ConfirmProps = {
   hasConfirmToken: boolean;
-  onConfirmUser: (setFailed: SetFailedFn) => void;
+  hasFailed: boolean;
 };
 
 type RegisterProps = {

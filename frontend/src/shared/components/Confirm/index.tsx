@@ -21,14 +21,7 @@ import {
   SubTitle,
 } from './Styles';
 
-const Confirm = ({ onConfirmUser, hasConfirmToken }: ConfirmProps) => {
-  const [hasFailed, setFailed] = useState(false);
-  const setHasFailed = () => {
-    setFailed(true);
-  };
-  useEffect(() => {
-    onConfirmUser(setHasFailed);
-  });
+const Confirm = ({ hasFailed, hasConfirmToken }: ConfirmProps) => {
   return (
     <Wrapper>
       <Column>
