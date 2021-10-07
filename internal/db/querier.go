@@ -59,6 +59,7 @@ type Querier interface {
 	DeleteTeamMember(ctx context.Context, arg DeleteTeamMemberParams) error
 	DeleteUserAccountByID(ctx context.Context, userID uuid.UUID) error
 	DeleteUserAccountInvitedForEmail(ctx context.Context, email string) error
+	DoesUserExist(ctx context.Context, arg DoesUserExistParams) (bool, error)
 	GetActivityForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskActivity, error)
 	GetAllNotificationsForUserID(ctx context.Context, notifierID uuid.UUID) ([]Notification, error)
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)

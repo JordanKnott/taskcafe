@@ -157,6 +157,22 @@ func (q *Queries) DeleteUserAccountInvitedForEmail(ctx context.Context, email st
 	return err
 }
 
+const doesUserExist = `-- name: DoesUserExist :one
+SELECT EXISTS(SELECT 1 FROM user_account WHERE email = $1 OR username = $2)
+`
+
+type DoesUserExistParams struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+}
+
+func (q *Queries) DoesUserExist(ctx context.Context, arg DoesUserExistParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, doesUserExist, arg.Email, arg.Username)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getAllUserAccounts = `-- name: GetAllUserAccounts :many
 SELECT user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio, active FROM user_account WHERE username != 'system'
 `

@@ -872,22 +872,26 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, input DeleteTeam) (*D
 }
 
 func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*db.Team, error) {
-	_, ok := GetUser(ctx)
+	userID, ok := GetUserID(ctx)
 	if !ok {
 		return &db.Team{}, nil
 	}
-	// if role == auth.RoleAdmin { // TODO: add permision check
-	if true {
-		createdAt := time.Now().UTC()
-		team, err := r.Repository.CreateTeam(ctx, db.CreateTeamParams{OrganizationID: input.OrganizationID, CreatedAt: createdAt, Name: input.Name})
-		return &team, err
+	role, err := r.Repository.GetRoleForUserID(ctx, userID)
+	if err != nil {
+		log.WithError(err).Error("while creating team")
+		return &db.Team{}, nil
 	}
-	return &db.Team{}, &gqlerror.Error{
-		Message: "You must be an organization admin to create new teams",
-		Extensions: map[string]interface{}{
-			"code": "1-400",
-		},
+	if ConvertToRoleCode(role.Code) != RoleCodeAdmin {
+		return &db.Team{}, &gqlerror.Error{
+			Message: "Must be an organization admin",
+			Extensions: map[string]interface{}{
+				"code": "0-400",
+			},
+		}
 	}
+	createdAt := time.Now().UTC()
+	team, err := r.Repository.CreateTeam(ctx, db.CreateTeamParams{OrganizationID: input.OrganizationID, CreatedAt: createdAt, Name: input.Name})
+	return &team, err
 }
 
 func (r *mutationResolver) CreateTeamMember(ctx context.Context, input CreateTeamMember) (*CreateTeamMemberPayload, error) {
@@ -954,12 +958,16 @@ func (r *mutationResolver) DeleteTeamMember(ctx context.Context, input DeleteTea
 }
 
 func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserAccount) (*db.UserAccount, error) {
-	_, ok := GetUser(ctx)
+	userID, ok := GetUserID(ctx)
 	if !ok {
 		return &db.UserAccount{}, nil
 	}
-	// if role != auth.RoleAdmin { TODO: add permsion check
-	if true {
+	role, err := r.Repository.GetRoleForUserID(ctx, userID)
+	if err != nil {
+		log.WithError(err).Error("while creating user account")
+		return &db.UserAccount{}, nil
+	}
+	if ConvertToRoleCode(role.Code) != RoleCodeAdmin {
 		return &db.UserAccount{}, &gqlerror.Error{
 			Message: "Must be an organization admin",
 			Extensions: map[string]interface{}{
@@ -971,6 +979,19 @@ func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserA
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(input.Password), 14)
 	if err != nil {
 		return &db.UserAccount{}, err
+	}
+
+	userExists, err := r.Repository.DoesUserExist(ctx, db.DoesUserExistParams{Username: input.Username, Email: input.Email})
+	if err != nil {
+		return &db.UserAccount{}, err
+	}
+	if userExists {
+		return &db.UserAccount{}, &gqlerror.Error{
+			Message: "User with that username or email already exists",
+			Extensions: map[string]interface{}{
+				"code": "0-300",
+			},
+		}
 	}
 	userAccount, err := r.Repository.CreateUserAccount(ctx, db.CreateUserAccountParams{
 		FullName:     input.FullName,
@@ -986,16 +1007,20 @@ func (r *mutationResolver) CreateUserAccount(ctx context.Context, input NewUserA
 }
 
 func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error) {
-	_, ok := GetUser(ctx)
+	userID, ok := GetUserID(ctx)
 	if !ok {
 		return &DeleteUserAccountPayload{Ok: false}, nil
 	}
-	// if role != auth.RoleAdmin { TODO: add permision check
-	if true {
-		return &DeleteUserAccountPayload{Ok: false}, &gqlerror.Error{
-			Message: "User not found",
+	role, err := r.Repository.GetRoleForUserID(ctx, userID)
+	if err != nil {
+		log.WithError(err).Error("while deleting user account")
+		return &DeleteUserAccountPayload{}, nil
+	}
+	if ConvertToRoleCode(role.Code) != RoleCodeAdmin {
+		return &DeleteUserAccountPayload{}, &gqlerror.Error{
+			Message: "Must be an organization admin",
 			Extensions: map[string]interface{}{
-				"code": "0-401",
+				"code": "0-400",
 			},
 		}
 	}
@@ -1003,8 +1028,6 @@ func (r *mutationResolver) DeleteUserAccount(ctx context.Context, input DeleteUs
 	if err != nil {
 		return &DeleteUserAccountPayload{Ok: false}, err
 	}
-
-	// TODO(jordanknott) migrate admin ownership
 
 	err = r.Repository.DeleteUserAccountByID(ctx, input.UserID)
 	if err != nil {
@@ -1062,16 +1085,20 @@ func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input UpdateU
 }
 
 func (r *mutationResolver) UpdateUserRole(ctx context.Context, input UpdateUserRole) (*UpdateUserRolePayload, error) {
-	_, ok := GetUser(ctx)
+	userID, ok := GetUserID(ctx)
 	if !ok {
 		return &UpdateUserRolePayload{}, nil
 	}
-	// if role != auth.RoleAdmin { TODO: add permision check
-	if true {
+	role, err := r.Repository.GetRoleForUserID(ctx, userID)
+	if err != nil {
+		log.WithError(err).Error("while updating user role")
+		return &UpdateUserRolePayload{}, nil
+	}
+	if ConvertToRoleCode(role.Code) != RoleCodeAdmin {
 		return &UpdateUserRolePayload{}, &gqlerror.Error{
-			Message: "User not found",
+			Message: "Must be an organization admin",
 			Extensions: map[string]interface{}{
-				"code": "0-401",
+				"code": "0-400",
 			},
 		}
 	}
@@ -1331,14 +1358,7 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 
 	var teams []db.Team
 	var err error
-	/* TODO: add permsion check
-	if orgRole == "admin" {
-		teams, err = r.Repository.GetAllTeams(ctx)
-	} else {
-		teams, err = r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
-	}
-	*/
-	teams, err = r.Repository.GetAllTeams(ctx)
+	teams, err = r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)
 
 	projects := make(map[string]db.Project)
 	for _, team := range teams {
@@ -1389,13 +1409,6 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 		logger.New(ctx).Error("userID or org role does not exist")
 		return []db.Team{}, errors.New("internal error")
 	}
-
-	/*
-		TODO: add permision check
-		if orgRole == "admin" {
-			return r.Repository.GetAllTeams(ctx)
-		}
-	*/
 
 	teams := make(map[string]db.Team)
 	adminTeams, err := r.Repository.GetTeamsForUserIDWhereAdmin(ctx, userID)

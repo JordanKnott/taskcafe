@@ -63,6 +63,9 @@ SELECT EXISTS(SELECT 1 FROM user_account WHERE username != 'system');
 -- name: HasActiveUser :one
 SELECT EXISTS(SELECT 1 FROM user_account WHERE username != 'system' AND active = true);
 
+-- name: DoesUserExist :one
+SELECT EXISTS(SELECT 1 FROM user_account WHERE email = $1 OR username = $2);
+
 -- name: CreateConfirmToken :one
 INSERT INTO user_account_confirm_token (email) VALUES ($1) RETURNING *;
 

@@ -12,7 +12,7 @@ import {
 } from 'shared/generated/graphql';
 import styled from 'styled-components';
 import Button from 'shared/components/Button';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, UseFormSetError } from 'react-hook-form';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import produce from 'immer';
 import updateApolloCache from 'shared/utils/cache';
@@ -20,6 +20,7 @@ import { useCurrentUser } from 'App/context';
 import { Redirect } from 'react-router';
 import NOOP from 'shared/utils/noop';
 import ControlledInput from 'shared/components/ControlledInput';
+import FormInput from 'shared/components/FormInput';
 
 const DeleteUserWrapper = styled.div`
   display: flex;
@@ -77,7 +78,7 @@ const CreateUserButton = styled(Button)`
   width: 100%;
 `;
 
-const AddUserInput = styled(ControlledInput)`
+const AddUserInput = styled(FormInput)`
   margin-bottom: 8px;
 `;
 
@@ -87,7 +88,7 @@ const InputError = styled.span`
 `;
 
 type AddUserPopupProps = {
-  onAddUser: (user: CreateUserData) => void;
+  onAddUser: (user: CreateUserData, setError: UseFormSetError<CreateUserData>) => void;
 };
 
 const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
@@ -95,16 +96,16 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
     control,
   } = useForm<CreateUserData>();
 
   const createUser = (data: CreateUserData) => {
-    onAddUser(data);
+    onAddUser(data, setError);
   };
   return (
     <CreateUserForm onSubmit={handleSubmit(createUser)}>
       <AddUserInput
-        floatingLabel
         width="100%"
         label="Full Name"
         variant="alternate"
@@ -118,6 +119,7 @@ const AddUserPopup: React.FC<AddUserPopupProps> = ({ onAddUser }) => {
         variant="alternate"
         {...register('email', { required: 'Email is required' })}
       />
+      {errors.email && <InputError>{errors.email.message}</InputError>}
       <Controller
         control={control}
         name="roleCode"
@@ -241,10 +243,15 @@ TODO: add permision check
               $target,
               <Popup tab={0} title="Add member" onClose={() => hidePopup()}>
                 <AddUserPopup
-                  onAddUser={(u) => {
+                  onAddUser={(u, setError) => {
                     const { roleCode, ...userData } = u;
-                    createUser({ variables: { ...userData, roleCode: roleCode.value } });
-                    hidePopup();
+                    createUser({
+                      variables: { ...userData, roleCode: roleCode.value },
+                    })
+                      .then(() => hidePopup())
+                      .catch((e) => {
+                        setError('email', { type: 'validate', message: e.message });
+                      });
                   }}
                 />
               </Popup>,
