@@ -102,6 +102,15 @@ func (h *TaskcafeHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 
 // LoginHandler creates a new refresh & access token for the user if given the correct credentials
 func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if h.SecurityConfig.IsRemoteAuth() {
+		h.headerAuthenticate(w, r)
+		return
+	}
+
+	h.credentialsHandler(w, r)
+}
+
+func (h *TaskcafeHandler) credentialsHandler(w http.ResponseWriter, r *http.Request) {
 	var requestData LoginRequestData
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
@@ -139,9 +148,47 @@ func (h *TaskcafeHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	authCreatedAt := time.Now().UTC()
 	authExpiresAt := authCreatedAt.AddDate(0, 0, 1)
 	authToken, err := h.repo.CreateAuthToken(r.Context(), db.CreateAuthTokenParams{user.UserID, authCreatedAt, authExpiresAt})
-
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		// TODO: should we return here?
+	}
+
+	w.Header().Set("Content-type", "application/json")
+	http.SetCookie(w, &http.Cookie{
+		Name:     "authToken",
+		Value:    authToken.TokenID.String(),
+		Expires:  authExpiresAt,
+		Path:     "/",
+		HttpOnly: true,
+	})
+	json.NewEncoder(w).Encode(LoginResponseData{Complete: true, UserID: authToken.UserID.String()})
+}
+
+func (h *TaskcafeHandler) headerAuthenticate(w http.ResponseWriter, r *http.Request) {
+	xRemoteUser := r.Header.Get(h.SecurityConfig.UserAuthHeader)
+	user, err := h.repo.GetUserAccountByUsername(r.Context(), xRemoteUser)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"username": xRemoteUser,
+		}).Warn("user account not found")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if !user.Active {
+		log.WithFields(log.Fields{
+			"username": user.Username,
+		}).Warn("attempt to login with inactive user")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	authCreatedAt := time.Now().UTC()
+	authExpiresAt := authCreatedAt.AddDate(0, 0, 1)
+	authToken, err := h.repo.CreateAuthToken(r.Context(), db.CreateAuthTokenParams{user.UserID, authCreatedAt, authExpiresAt})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-type", "application/json")
