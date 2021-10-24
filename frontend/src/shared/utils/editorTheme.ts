@@ -52,10 +52,10 @@ export const base = {
   blockToolbarText: colors.white,
   blockToolbarHoverBackground: colors.primary,
   blockToolbarDivider: colors.almostWhite,
-
   blockToolbarIcon: undefined,
   blockToolbarIconSelected: colors.white,
   blockToolbarTextSelected: colors.white,
+  blockToolbarSelectedBackground: colors.greyMid,
 
   noticeInfoBackground: '#F5BE31',
   noticeInfoText: colors.almostBlack,
