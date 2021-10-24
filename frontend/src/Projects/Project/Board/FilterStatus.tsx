@@ -30,7 +30,7 @@ export const ActionItem = styled.li`
   align-items: center;
   font-size: 14px;
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
   }
   &:hover ${ActionExtraMenuContainer} {
     visibility: visible;
@@ -69,11 +69,11 @@ export const ActionExtraMenuItem = styled.li`
   align-items: center;
   font-size: 14px;
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
   }
 `;
 const ActionExtraMenuSeparator = styled.li`
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   font-size: 12px;
   padding-left: 4px;
   padding-right: 4px;

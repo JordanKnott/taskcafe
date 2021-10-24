@@ -60,19 +60,20 @@ const FilterChip = styled(Chip)`
 type MetaFilterCloseFn = (meta: TaskMeta, key: string) => void;
 
 const renderTaskSortingLabel = (sorting: TaskSorting) => {
-  if (sorting.type === TaskSortingType.TASK_TITLE) {
-    return 'Sort: Card title';
+  switch (sorting.type) {
+    case TaskSortingType.TASK_TITLE:
+      return 'Sort: Task Title';
+    case TaskSortingType.MEMBERS:
+      return 'Sort: Members';
+    case TaskSortingType.DUE_DATE:
+      return 'Sort: Due Date';
+    case TaskSortingType.LABELS:
+      return 'Sort: Labels';
+    case TaskSortingType.COMPLETE:
+      return 'Sort: Complete';
+    default:
+      return 'Sort';
   }
-  if (sorting.type === TaskSortingType.MEMBERS) {
-    return 'Sort: Members';
-  }
-  if (sorting.type === TaskSortingType.DUE_DATE) {
-    return 'Sort: Due Date';
-  }
-  if (sorting.type === TaskSortingType.LABELS) {
-    return 'Sort: Labels';
-  }
-  return 'Sort';
 };
 
 const renderMetaFilters = (filters: TaskMetaFilters, onClose: MetaFilterCloseFn) => {
