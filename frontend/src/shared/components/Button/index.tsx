@@ -6,11 +6,11 @@ const Text = styled.span<{ fontSize: string; justifyTextContent: string; hasIcon
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: ${props => props.justifyTextContent};
+  justify-content: ${(props) => props.justifyTextContent};
   transition: all 0.2s ease;
-  font-size: ${props => props.fontSize};
-  color: ${props => props.theme.colors.text.secondary};
-  ${props =>
+  font-size: ${(props) => props.fontSize};
+  color: ${(props) => props.theme.colors.text.secondary};
+  ${(props) =>
     props.hasIcon &&
     css`
       padding-left: 4px;
@@ -23,11 +23,11 @@ const Base = styled.button<{ color: string; disabled: boolean }>`
   border: none;
   cursor: pointer;
   padding: 0.75rem 2rem;
-  border-radius: ${props => props.theme.borderRadius.alternate};
+  border-radius: ${(props) => props.theme.borderRadius.alternate};
   display: flex;
   align-items: center;
 
-  ${props =>
+  ${(props) =>
     props.disabled &&
     css`
       opacity: 0.5;
@@ -37,8 +37,8 @@ const Base = styled.button<{ color: string; disabled: boolean }>`
 `;
 
 const Filled = styled(Base)<{ hoverVariant: HoverVariant }>`
-  background: ${props => props.theme.colors[props.color]};
-  ${props =>
+  background: ${(props) => props.theme.colors[props.color]};
+  ${(props) =>
     props.hoverVariant === 'boxShadow' &&
     css`
       &:hover {
@@ -48,9 +48,9 @@ const Filled = styled(Base)<{ hoverVariant: HoverVariant }>`
 `;
 
 const Outline = styled(Base)<{ invert: boolean }>`
-  border: 1px solid ${props => props.theme.colors[props.color]};
+  border: 1px solid ${(props) => props.theme.colors[props.color]};
   background: transparent;
-  ${props =>
+  ${(props) =>
     props.invert
       ? css`
           background: ${props.theme.colors[props.color]});
@@ -74,7 +74,7 @@ const Outline = styled(Base)<{ invert: boolean }>`
 const Flat = styled(Base)`
   background: transparent;
   &:hover {
-    background: ${props => mixin.rgba(props.theme.colors[props.color], 0.2)};
+    background: ${(props) => mixin.rgba(props.theme.colors[props.color], 0.2)};
   }
 `;
 
@@ -87,7 +87,7 @@ const LineX = styled.span<{ color: string }>`
   bottom: -2px;
   left: 50%;
   transform: translate(-50%);
-  background: ${props => mixin.rgba(props.theme.colors[props.color], 1)};
+  background: ${(props) => mixin.rgba(props.theme.colors[props.color], 1)};
 `;
 
 const LineDown = styled(Base)`
@@ -96,7 +96,7 @@ const LineDown = styled(Base)`
   border-width: 0;
   border-style: solid;
   border-bottom-width: 2px;
-  border-color: ${props => mixin.rgba(props.theme.colors[props.color], 0.2)};
+  border-color: ${(props) => mixin.rgba(props.theme.colors[props.color], 0.2)};
 
   &:hover ${LineX} {
     width: 100%;
@@ -109,17 +109,14 @@ const LineDown = styled(Base)`
 const Gradient = styled(Base)`
   background: linear-gradient(
     30deg,
-    ${props => mixin.rgba(props.theme.colors[props.color], 1)},
-    ${props => mixin.rgba(props.theme.colors[props.color], 0.5)}
+    ${(props) => mixin.rgba(props.theme.colors[props.color], 1)},
+    ${(props) => mixin.rgba(props.theme.colors[props.color], 0.5)}
   );
   text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
-  &:hover {
-    transform: translateY(-2px);
-  }
 `;
 
 const Relief = styled(Base)`
-  background: ${props => mixin.rgba(props.theme.colors[props.color], 1)};
+  background: ${(props) => mixin.rgba(props.theme.colors[props.color], 1)};
   -webkit-box-shadow: 0 -3px 0 0 rgba(0, 0, 0, 0.2) inset;
   box-shadow: inset 0 -3px 0 0 rgba(0, 0, 0, 0.2);
 
