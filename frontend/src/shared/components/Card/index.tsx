@@ -23,6 +23,8 @@ import {
   CardTitle,
   CardMembers,
   CardTitleText,
+  CommentsIcon,
+  CommentsBadge,
 } from './Styles';
 
 type DueDate = {
@@ -47,6 +49,7 @@ type Props = {
   dueDate?: DueDate;
   checklists?: Checklist | null;
   labels?: Array<ProjectLabel>;
+  comments?: { unread: boolean; total: number } | null;
   watched?: boolean;
   wrapperProps?: any;
   members?: Array<TaskUser> | null;
@@ -72,6 +75,7 @@ const Card = React.forwardRef(
       taskGroupID,
       complete,
       toggleLabels = false,
+      comments,
       toggleDirection = 'shrink',
       setToggleLabels,
       onClick,
@@ -138,7 +142,7 @@ const Card = React.forwardRef(
         onMouseEnter={() => setActive(true)}
         onMouseLeave={() => setActive(false)}
         ref={$cardRef}
-        onClick={e => {
+        onClick={(e) => {
           if (onClick) {
             onClick(e);
           }
@@ -151,7 +155,7 @@ const Card = React.forwardRef(
         <ListCardInnerContainer ref={$innerCardRef}>
           {!isPublic && isActive && !editable && (
             <ListCardOperation
-              onClick={e => {
+              onClick={(e) => {
                 e.stopPropagation();
                 if (onContextMenu) {
                   onContextMenu($innerCardRef, taskID, taskGroupID);
@@ -167,7 +171,7 @@ const Card = React.forwardRef(
                 <ListCardLabels
                   toggleLabels={toggleLabels}
                   toggleDirection={toggleDirection}
-                  onClick={e => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     if (onCardLabelClick) {
                       onCardLabelClick();
@@ -177,7 +181,7 @@ const Card = React.forwardRef(
                   {labels
                     .slice()
                     .sort((a, b) => a.labelColor.position - b.labelColor.position)
-                    .map(label => (
+                    .map((label) => (
                       <ListCardLabel
                         onAnimationEnd={() => {
                           if (setToggleLabels) {
@@ -198,13 +202,13 @@ const Card = React.forwardRef(
               <EditorContent>
                 {complete && <CompleteIcon width={16} height={16} />}
                 <EditorTextarea
-                  onChange={e => {
+                  onChange={(e) => {
                     setCardTitle(e.currentTarget.value);
                     if (onCardTitleChange) {
                       onCardTitleChange(e.currentTarget.value);
                     }
                   }}
-                  onClick={e => {
+                  onClick={(e) => {
                     e.stopPropagation();
                   }}
                   onKeyDown={handleKeyDown}
@@ -235,6 +239,12 @@ const Card = React.forwardRef(
                   <List width={8} height={8} />
                 </DescriptionBadge>
               )}
+              {comments && (
+                <CommentsBadge>
+                  <CommentsIcon color={comments.unread ? 'success' : 'normal'} width={8} height={8} />
+                  <ListCardBadgeText color={comments.unread ? 'success' : 'normal'}>{comments.total}</ListCardBadgeText>
+                </CommentsBadge>
+              )}
               {checklists && (
                 <ListCardBadge>
                   <ChecklistIcon
@@ -256,7 +266,7 @@ const Card = React.forwardRef(
                     size={28}
                     zIndex={members.length - idx}
                     member={member}
-                    onMemberProfile={$target => {
+                    onMemberProfile={($target) => {
                       if (onCardMemberClick) {
                         onCardMemberClick($target, taskID, member.id);
                       }

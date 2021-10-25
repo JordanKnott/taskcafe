@@ -15,6 +15,10 @@ const TASK_FRAGMENT = gql`
         complete
         total
       }
+      comments {
+        unread
+        total
+      }
     }
     taskGroup {
       id

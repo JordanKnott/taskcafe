@@ -79,6 +79,7 @@ import {
   ActivityItemHeaderTitle,
   ActivityItemHeaderTitleName,
   ActivityItemComment,
+  TabBarButton,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';

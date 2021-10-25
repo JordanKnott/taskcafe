@@ -59,8 +59,13 @@ type ChecklistBadge = {
   total: number;
 };
 
+type CommentsBadge = {
+  total: number;
+  unread: boolean;
+};
 type TaskBadges = {
   checklist?: ChecklistBadge | null;
+  comments?: CommentsBadge | null;
 };
 
 type TaskActivityData = {

@@ -316,6 +316,17 @@ func (q *Queries) GetAssignedTasksProjectForUserID(ctx context.Context, arg GetA
 	return items, nil
 }
 
+const getCommentCountForTask = `-- name: GetCommentCountForTask :one
+SELECT COUNT(*) FROM task_comment WHERE task_id = $1
+`
+
+func (q *Queries) GetCommentCountForTask(ctx context.Context, taskID uuid.UUID) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getCommentCountForTask, taskID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getCommentsForTaskID = `-- name: GetCommentsForTaskID :many
 SELECT task_comment_id, task_id, created_at, updated_at, created_by, pinned, message FROM task_comment WHERE task_id = $1 ORDER BY created_at
 `

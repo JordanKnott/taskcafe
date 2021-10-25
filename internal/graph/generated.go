@@ -73,6 +73,11 @@ type ComplexityRoot struct {
 		Total    func(childComplexity int) int
 	}
 
+	CommentsBadge struct {
+		Total  func(childComplexity int) int
+		Unread func(childComplexity int) int
+	}
+
 	CreateTaskCommentPayload struct {
 		Comment func(childComplexity int) int
 		TaskID  func(childComplexity int) int
@@ -419,6 +424,7 @@ type ComplexityRoot struct {
 
 	TaskBadges struct {
 		Checklist func(childComplexity int) int
+		Comments  func(childComplexity int) int
 	}
 
 	TaskChecklist struct {
@@ -767,6 +773,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ChecklistBadge.Total(childComplexity), true
+
+	case "CommentsBadge.total":
+		if e.complexity.CommentsBadge.Total == nil {
+			break
+		}
+
+		return e.complexity.CommentsBadge.Total(childComplexity), true
+
+	case "CommentsBadge.unread":
+		if e.complexity.CommentsBadge.Unread == nil {
+			break
+		}
+
+		return e.complexity.CommentsBadge.Unread(childComplexity), true
 
 	case "CreateTaskCommentPayload.comment":
 		if e.complexity.CreateTaskCommentPayload.Comment == nil {
@@ -2553,6 +2573,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TaskBadges.Checklist(childComplexity), true
 
+	case "TaskBadges.comments":
+		if e.complexity.TaskBadges.Comments == nil {
+			break
+		}
+
+		return e.complexity.TaskBadges.Comments(childComplexity), true
+
 	case "TaskChecklist.id":
 		if e.complexity.TaskChecklist.ID == nil {
 			break
@@ -3212,8 +3239,14 @@ type ChecklistBadge {
   total: Int!
 }
 
+type CommentsBadge {
+  total: Int!
+  unread: Boolean!
+}
+
 type TaskBadges {
   checklist: ChecklistBadge
+  comments: CommentsBadge
 }
 
 type CausedBy {
@@ -5278,6 +5311,76 @@ func (ec *executionContext) _ChecklistBadge_total(ctx context.Context, field gra
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentsBadge_total(ctx context.Context, field graphql.CollectedField, obj *CommentsBadge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentsBadge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CommentsBadge_unread(ctx context.Context, field graphql.CollectedField, obj *CommentsBadge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CommentsBadge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Unread, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CreateTaskCommentPayload_taskID(ctx context.Context, field graphql.CollectedField, obj *CreateTaskCommentPayload) (ret graphql.Marshaler) {
@@ -14831,6 +14934,38 @@ func (ec *executionContext) _TaskBadges_checklist(ctx context.Context, field gra
 	return ec.marshalOChecklistBadge2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐChecklistBadge(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TaskBadges_comments(ctx context.Context, field graphql.CollectedField, obj *TaskBadges) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TaskBadges",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Comments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*CommentsBadge)
+	fc.Result = res
+	return ec.marshalOCommentsBadge2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCommentsBadge(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TaskChecklist_id(ctx context.Context, field graphql.CollectedField, obj *db.TaskChecklist) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20124,6 +20259,38 @@ func (ec *executionContext) _ChecklistBadge(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var commentsBadgeImplementors = []string{"CommentsBadge"}
+
+func (ec *executionContext) _CommentsBadge(ctx context.Context, sel ast.SelectionSet, obj *CommentsBadge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, commentsBadgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CommentsBadge")
+		case "total":
+			out.Values[i] = ec._CommentsBadge_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unread":
+			out.Values[i] = ec._CommentsBadge_unread(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var createTaskCommentPayloadImplementors = []string{"CreateTaskCommentPayload"}
 
 func (ec *executionContext) _CreateTaskCommentPayload(ctx context.Context, sel ast.SelectionSet, obj *CreateTaskCommentPayload) graphql.Marshaler {
@@ -22580,6 +22747,8 @@ func (ec *executionContext) _TaskBadges(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("TaskBadges")
 		case "checklist":
 			out.Values[i] = ec._TaskBadges_checklist(ctx, field, obj)
+		case "comments":
+			out.Values[i] = ec._TaskBadges_comments(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -26304,6 +26473,13 @@ func (ec *executionContext) marshalOChecklistBadge2ᚖgithubᚗcomᚋjordanknott
 		return graphql.Null
 	}
 	return ec._ChecklistBadge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCommentsBadge2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCommentsBadge(ctx context.Context, sel ast.SelectionSet, v *CommentsBadge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CommentsBadge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCreateTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskComment(ctx context.Context, v interface{}) (*CreateTaskComment, error) {

@@ -69,6 +69,12 @@ export type ChecklistBadge = {
   total: Scalars['Int'];
 };
 
+export type CommentsBadge = {
+  __typename?: 'CommentsBadge';
+  total: Scalars['Int'];
+  unread: Scalars['Boolean'];
+};
+
 export type CreateTaskChecklist = {
   taskID: Scalars['UUID'];
   name: Scalars['String'];
@@ -1027,6 +1033,7 @@ export type TaskActivityData = {
 export type TaskBadges = {
   __typename?: 'TaskBadges';
   checklist?: Maybe<ChecklistBadge>;
+  comments?: Maybe<CommentsBadge>;
 };
 
 export type TaskChecklist = {
@@ -1592,6 +1599,9 @@ export type TaskFieldsFragment = (
     & { checklist?: Maybe<(
       { __typename?: 'ChecklistBadge' }
       & Pick<ChecklistBadge, 'complete' | 'total'>
+    )>, comments?: Maybe<(
+      { __typename?: 'CommentsBadge' }
+      & Pick<CommentsBadge, 'unread' | 'total'>
     )> }
   ), taskGroup: (
     { __typename?: 'TaskGroup' }
@@ -2691,6 +2701,10 @@ export const TaskFieldsFragmentDoc = gql`
   badges {
     checklist {
       complete
+      total
+    }
+    comments {
+      unread
       total
     }
   }

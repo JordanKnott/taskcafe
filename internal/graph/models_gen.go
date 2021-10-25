@@ -33,6 +33,11 @@ type ChecklistBadge struct {
 	Total    int `json:"total"`
 }
 
+type CommentsBadge struct {
+	Total  int  `json:"total"`
+	Unread bool `json:"unread"`
+}
+
 type CreateTaskChecklist struct {
 	TaskID   uuid.UUID `json:"taskID"`
 	Name     string    `json:"name"`
@@ -431,6 +436,7 @@ type TaskActivityData struct {
 
 type TaskBadges struct {
 	Checklist *ChecklistBadge `json:"checklist"`
+	Comments  *CommentsBadge  `json:"comments"`
 }
 
 type TaskPositionUpdate struct {

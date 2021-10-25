@@ -95,3 +95,6 @@ SELECT task.* FROM task_assigned
     )
   )
   ORDER BY task.due_date DESC, task_group.project_id DESC;
+
+-- name: GetCommentCountForTask :one
+SELECT COUNT(*) FROM task_comment WHERE task_id = $1;

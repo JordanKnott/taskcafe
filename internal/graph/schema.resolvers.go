@@ -1721,8 +1721,9 @@ func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, e
 	if err != nil {
 		return &TaskBadges{}, err
 	}
-	if len(checklists) == 0 {
-		return &TaskBadges{Checklist: nil}, err
+	comments, err := r.Repository.GetCommentCountForTask(ctx, obj.TaskID)
+	if err != nil {
+		return &TaskBadges{}, err
 	}
 	complete := 0
 	total := 0
@@ -1738,10 +1739,15 @@ func (r *taskResolver) Badges(ctx context.Context, obj *db.Task) (*TaskBadges, e
 			}
 		}
 	}
-	if complete == 0 && total == 0 {
-		return &TaskBadges{Checklist: nil}, nil
+	var taskChecklist *ChecklistBadge
+	if total != 0 {
+		taskChecklist = &ChecklistBadge{Total: total, Complete: complete}
 	}
-	return &TaskBadges{Checklist: &ChecklistBadge{Total: total, Complete: complete}}, nil
+	var taskComments *CommentsBadge
+	if comments != 0 {
+		taskComments = &CommentsBadge{Total: int(comments), Unread: false}
+	}
+	return &TaskBadges{Checklist: taskChecklist, Comments: taskComments}, nil
 }
 
 func (r *taskResolver) Activity(ctx context.Context, obj *db.Task) ([]db.TaskActivity, error) {

@@ -1,18 +1,27 @@
 import styled, { css, keyframes } from 'styled-components';
 import { mixin } from 'shared/utils/styles';
 import TextareaAutosize from 'react-autosize-textarea';
-import { CheckCircle, CheckSquareOutline, Clock } from 'shared/icons';
+import { CheckCircle, CheckSquareOutline, Clock, Bubble } from 'shared/icons';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
 export const CardMember = styled(TaskAssignee)<{ zIndex: number }>`
-  box-shadow: 0 0 0 2px ${props => props.theme.colors.bg.secondary},
-    inset 0 0 0 1px ${props => mixin.rgba(props.theme.colors.bg.secondary, 0.07)};
-  z-index: ${props => props.zIndex};
+  box-shadow: 0 0 0 2px ${(props) => props.theme.colors.bg.secondary},
+    inset 0 0 0 1px ${(props) => mixin.rgba(props.theme.colors.bg.secondary, 0.07)};
+  z-index: ${(props) => props.zIndex};
   position: relative;
 `;
 
+export const CommentsIcon = styled(Bubble)<{ color: 'success' | 'normal' }>`
+  ${(props) =>
+    props.color === 'success' &&
+    css`
+      fill: ${props.theme.colors.success};
+      stroke: ${props.theme.colors.success};
+    `}
+`;
+
 export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'normal' }>`
-  ${props =>
+  ${(props) =>
     props.color === 'success' &&
     css`
       fill: ${props.theme.colors.success};
@@ -21,7 +30,7 @@ export const ChecklistIcon = styled(CheckSquareOutline)<{ color: 'success' | 'no
 `;
 
 export const ClockIcon = styled(Clock)<{ color: string }>`
-  fill: ${props => props.color};
+  fill: ${(props) => props.color};
 `;
 
 export const EditorTextarea = styled(TextareaAutosize)`
@@ -40,7 +49,7 @@ export const EditorTextarea = styled(TextareaAutosize)`
   padding: 0;
   font-size: 14px;
   line-height: 18px;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   &:focus {
     border: none;
     outline: none;
@@ -52,6 +61,22 @@ export const ListCardBadges = styled.div`
   display: flex;
   max-width: 100%;
   margin-left: -2px;
+`;
+
+export const CommentsBadge = styled.div`
+  color: #5e6c84;
+  display: flex;
+  align-items: center;
+  margin: 0 6px 4px 0;
+  font-size: 12px;
+  max-width: 100%;
+  min-height: 20px;
+  overflow: hidden;
+  position: relative;
+  padding: 2px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  vertical-align: top;
 `;
 
 export const ListCardBadge = styled.div`
@@ -76,7 +101,7 @@ export const DescriptionBadge = styled(ListCardBadge)`
 
 export const DueDateCardBadge = styled(ListCardBadge)<{ isPastDue: boolean }>`
   font-size: 12px;
-  ${props =>
+  ${(props) =>
     props.isPastDue &&
     css`
       padding-left: 4px;
@@ -91,7 +116,7 @@ export const ListCardBadgeText = styled.span<{ color?: 'success' | 'normal' }>`
   padding: 0 4px 0 6px;
   vertical-align: top;
   white-space: nowrap;
-  ${props => props.color === 'success' && `color: ${props.theme.colors.success};`}
+  ${(props) => props.color === 'success' && `color: ${props.theme.colors.success};`}
 `;
 
 export const ListCardContainer = styled.div<{ isActive: boolean; editable: boolean }>`
@@ -102,7 +127,7 @@ export const ListCardContainer = styled.div<{ isActive: boolean; editable: boole
   cursor: pointer !important;
   position: relative;
 
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.isActive && !props.editable
       ? mixin.darken(props.theme.colors.bg.secondary, 0.1)
       : `${props.theme.colors.bg.secondary}`};
@@ -119,7 +144,7 @@ export const ListCardDetails = styled.div<{ complete: boolean }>`
   position: relative;
   z-index: 10;
 
-  ${props => props.complete && 'opacity: 0.6;'}
+  ${(props) => props.complete && 'opacity: 0.6;'}
 `;
 
 const labelVariantExpandAnimation = keyframes`
@@ -157,7 +182,7 @@ export const ListCardLabelsWrapper = styled.div`
 `;
 
 export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
-  ${props =>
+  ${(props) =>
     props.variant === 'small'
       ? css`
           height: 8px;
@@ -183,14 +208,14 @@ export const ListCardLabel = styled.span<{ variant: 'small' | 'large' }>`
   color: #fff;
   display: flex;
   position: relative;
-  background-color: ${props => props.color};
+  background-color: ${(props) => props.color};
 `;
 
 export const ListCardLabels = styled.div<{ toggleLabels: boolean; toggleDirection: 'expand' | 'shrink' }>`
   &:hover {
     opacity: 0.8;
   }
-  ${props =>
+  ${(props) =>
     props.toggleLabels &&
     props.toggleDirection === 'expand' &&
     css`
@@ -201,7 +226,7 @@ export const ListCardLabels = styled.div<{ toggleLabels: boolean; toggleDirectio
         animation: ${labelTextVariantExpandAnimation} 0.45s ease-out;
       }
     `}
-  ${props =>
+  ${(props) =>
     props.toggleLabels &&
     props.toggleDirection === 'shrink' &&
     css`
@@ -225,7 +250,7 @@ export const ListCardOperation = styled.span`
   top: 2px;
   z-index: 100;
   &:hover {
-    background-color: ${props => mixin.darken(props.theme.colors.bg.secondary, 0.25)};
+    background-color: ${(props) => mixin.darken(props.theme.colors.bg.secondary, 0.25)};
   }
 `;
 
@@ -234,7 +259,7 @@ export const CardTitle = styled.div`
   margin: 0 0 4px;
   overflow: hidden;
   text-decoration: none;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   display: block;
   align-items: center;
 `;
@@ -251,7 +276,7 @@ export const CardMembers = styled.div`
 `;
 
 export const CompleteIcon = styled(CheckCircle)`
-  fill: ${props => props.theme.colors.success};
+  fill: ${(props) => props.theme.colors.success};
   margin-right: 4px;
   flex-shrink: 0;
   margin-bottom: -2px;

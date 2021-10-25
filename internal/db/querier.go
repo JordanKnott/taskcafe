@@ -74,6 +74,7 @@ type Querier interface {
 	GetAssignedTasksDueDateForUserID(ctx context.Context, arg GetAssignedTasksDueDateForUserIDParams) ([]Task, error)
 	GetAssignedTasksProjectForUserID(ctx context.Context, arg GetAssignedTasksProjectForUserIDParams) ([]Task, error)
 	GetAuthTokenByID(ctx context.Context, tokenID uuid.UUID) (AuthToken, error)
+	GetCommentCountForTask(ctx context.Context, taskID uuid.UUID) (int64, error)
 	GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error)
 	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)

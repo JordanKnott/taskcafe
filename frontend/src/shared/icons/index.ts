@@ -1,6 +1,7 @@
 import Cross from './Cross';
 import Cog from './Cog';
 import Cogs from './Cogs';
+import Bubble from './Bubble';
 import ArrowDown from './ArrowDown';
 import CheckCircleOutline from './CheckCircleOutline';
 import Briefcase from './Briefcase';
@@ -110,5 +111,6 @@ export {
   Briefcase,
   DotCircle,
   ChevronRight,
+  Bubble,
   Cogs,
 };

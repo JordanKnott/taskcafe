@@ -138,8 +138,14 @@ type ChecklistBadge {
   total: Int!
 }
 
+type CommentsBadge {
+  total: Int!
+  unread: Boolean!
+}
+
 type TaskBadges {
   checklist: ChecklistBadge
+  comments: CommentsBadge
 }
 
 type CausedBy {
@@ -994,4 +1000,3 @@ type DeleteUserAccountPayload {
   ok: Boolean!
   userAccount: UserAccount!
 }
-
