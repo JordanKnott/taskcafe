@@ -108,7 +108,7 @@ const ActionItemLine = styled.div`
   margin: 0.25rem !important;
 `;
 
-type FilterMetaProps = {
+type ControlFilterProps = {
   filters: TaskMetaFilters;
   userID: string;
   projectID: string;
@@ -116,7 +116,13 @@ type FilterMetaProps = {
   onChangeTaskMetaFilter: (filters: TaskMetaFilters) => void;
 };
 
-const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter, userID, projectID, members }) => {
+const ControlFilter: React.FC<ControlFilterProps> = ({
+  filters,
+  onChangeTaskMetaFilter,
+  userID,
+  projectID,
+  members,
+}) => {
   const [currentFilters, setFilters] = useState(filters);
   const [nameFilter, setNameFilter] = useState(filters.taskName ? filters.taskName.name : '');
   const [currentLabel, setCurrentLabel] = useState('');
@@ -323,4 +329,4 @@ const FilterMeta: React.FC<FilterMetaProps> = ({ filters, onChangeTaskMetaFilter
   );
 };
 
-export default FilterMeta;
+export default ControlFilter;

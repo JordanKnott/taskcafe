@@ -49,9 +49,9 @@ import LabelManagerEditor from 'Projects/Project/LabelManagerEditor';
 import Chip from 'shared/components/Chip';
 import { toast } from 'react-toastify';
 import { useCurrentUser } from 'App/context';
-import FilterStatus from './FilterStatus';
-import FilterMeta from './FilterMeta';
-import SortPopup from './SortPopup';
+import ControlStatus from './ControlStatus';
+import ControlFilter from './ControlFilter';
+import ControlSort from './ControlSort';
 
 const FilterChip = styled(Chip)`
   margin-right: 4px;
@@ -507,7 +507,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                 showPopup(
                   target,
                   <Popup tab={0} title={null}>
-                    <FilterStatus
+                    <ControlStatus
                       filter={taskStatusFilter}
                       onChangeTaskStatusFilter={(filter) => {
                         setTaskStatusFilter(filter);
@@ -527,7 +527,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                 showPopup(
                   target,
                   <Popup tab={0} title={null}>
-                    <SortPopup
+                    <ControlSort
                       sorting={taskSorting}
                       onChangeTaskSorting={(sorting) => {
                         setTaskSorting(sorting);
@@ -545,7 +545,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               onClick={(target) => {
                 showPopup(
                   target,
-                  <FilterMeta
+                  <ControlFilter
                     filters={taskMetaFilters}
                     onChangeTaskMetaFilter={(filter) => {
                       setTaskMetaFilters(filter);

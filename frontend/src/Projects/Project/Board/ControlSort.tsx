@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { TaskSorting, TaskSortingType, TaskSortingDirection } from 'shared/utils/sorting';
-import { mixin } from 'shared/utils/styles';
 import { Checkmark } from 'shared/icons';
 
 const ActiveIcon = styled(Checkmark)`
@@ -34,21 +33,12 @@ export const ActionTitle = styled.span`
   margin-left: 20px;
 `;
 
-const ActionItemSeparator = styled.li`
-  color: ${(props) => mixin.rgba(props.theme.colors.text.primary, 0.4)};
-  font-size: 12px;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-top: 0.75rem;
-  padding-bottom: 0.25rem;
-`;
-
-type SortPopupProps = {
+type ControlSortProps = {
   sorting: TaskSorting;
   onChangeTaskSorting: (taskSorting: TaskSorting) => void;
 };
 
-const SortPopup: React.FC<SortPopupProps> = ({ sorting, onChangeTaskSorting }) => {
+const ControlSort: React.FC<ControlSortProps> = ({ sorting, onChangeTaskSorting }) => {
   const [currentSorting, setSorting] = useState(sorting);
   const handleSetSorting = (s: TaskSorting) => {
     setSorting(s);
@@ -94,4 +84,4 @@ const SortPopup: React.FC<SortPopupProps> = ({ sorting, onChangeTaskSorting }) =
   );
 };
 
-export default SortPopup;
+export default ControlSort;

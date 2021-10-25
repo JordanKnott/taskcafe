@@ -85,12 +85,12 @@ const ActiveIcon = styled(Checkmark)`
   position: absolute;
 `;
 
-type FilterStatusProps = {
+type ControlStatusProps = {
   filter: TaskStatusFilter;
   onChangeTaskStatusFilter: (filter: TaskStatusFilter) => void;
 };
 
-const FilterStatus: React.FC<FilterStatusProps> = ({ filter, onChangeTaskStatusFilter }) => {
+const ControlStatus: React.FC<ControlStatusProps> = ({ filter, onChangeTaskStatusFilter }) => {
   const [currentFilter, setFilter] = useState(filter);
   const handleFilterChange = (f: TaskStatusFilter) => {
     setFilter(f);
@@ -146,4 +146,4 @@ const FilterStatus: React.FC<FilterStatusProps> = ({ filter, onChangeTaskStatusF
   );
 };
 
-export default FilterStatus;
+export default ControlStatus;
