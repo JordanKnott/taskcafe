@@ -1,6 +1,6 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - internal/graph/*.graphqls
+  - internal/graph/schema/*.gql
 
 # Where should the generated server code go?
 exec:
@@ -22,6 +22,8 @@ resolver:
   layout: follow-schema
   dir: internal/graph
   package: graph
+  filename_template: "{name}.resolvers.go"
+
 
 # Optional: turn on to use []Thing instead of []*Thing
 omit_slice_element_pointers: true

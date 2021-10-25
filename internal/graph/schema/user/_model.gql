@@ -1,0 +1,20 @@
+type UserAccount {
+  id: ID!
+  email: String!
+  createdAt: Time!
+  fullName: String!
+  initials: String!
+  bio: String!
+  role: Role!
+  username: String!
+  profileIcon: ProfileIcon!
+  owned: OwnedList!
+  member: MemberList!
+}
+
+type InvitedUserAccount {
+  id: ID!
+  email: String!
+  invitedOn: Time!
+  member: MemberList!
+}

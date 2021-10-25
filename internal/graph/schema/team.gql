@@ -1,3 +1,61 @@
+type Team {
+  id: ID!
+  createdAt: Time!
+  name: String!
+  permission: TeamPermission!
+  members: [Member!]!
+}
+
+type TeamPermission {
+  team: RoleCode!
+  org: RoleCode!
+}
+
+
+extend type Mutation {
+  createTeamMember(input: CreateTeamMember!):
+    CreateTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  updateTeamMemberRole(input: UpdateTeamMemberRole!):
+    UpdateTeamMemberRolePayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteTeamMember(input: DeleteTeamMember!):
+    DeleteTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+
+}
+
+input DeleteTeamMember {
+  teamID: UUID!
+  userID: UUID!
+  newOwnerID: UUID
+}
+
+type DeleteTeamMemberPayload {
+  teamID: UUID!
+  userID: UUID!
+  affectedProjects: [Project!]!
+}
+
+input CreateTeamMember {
+  userID: UUID!
+  teamID: UUID!
+}
+
+type CreateTeamMemberPayload {
+  team: Team!
+  teamMember: Member!
+}
+
+input UpdateTeamMemberRole {
+  teamID: UUID!
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateTeamMemberRolePayload {
+  ok: Boolean!
+  teamID: UUID!
+  member: Member!
+}
+
 extend type Mutation {
   deleteTeam(input: DeleteTeam!):
     DeleteTeamPayload! @hasRole(roles:[ ADMIN], level: TEAM, type: TEAM)

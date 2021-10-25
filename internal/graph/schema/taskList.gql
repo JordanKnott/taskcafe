@@ -1,0 +1,8 @@
+type TaskGroup {
+  id: ID!
+  projectID: String!
+  createdAt: Time!
+  name: String!
+  position: Float!
+  tasks: [Task!]!
+}

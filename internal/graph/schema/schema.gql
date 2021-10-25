@@ -1,3 +1,45 @@
+scalar Time
+scalar UUID
+scalar Upload
+
+enum RoleCode {
+  owner
+  admin
+  member
+  observer
+}
+
+type Role {
+  code: String!
+  name: String!
+}
+
+type ProfileIcon {
+  url: String
+  initials: String
+  bgColor: String
+}
+
+type OwnersList  {
+  projects: [UUID!]!
+  teams: [UUID!]!
+}
+
+type OwnedList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
+type MemberList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
+type Organization {
+  id: ID!
+  name: String!
+}
+
 enum ShareStatus {
   INVITED
   JOINED
@@ -25,6 +67,7 @@ enum ObjectType {
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
+
 directive @requiresUser on FIELD_DEFINITION
 
 type Query {

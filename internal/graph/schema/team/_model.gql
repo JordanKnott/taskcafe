@@ -1,0 +1,12 @@
+type Team {
+  id: ID!
+  createdAt: Time!
+  name: String!
+  permission: TeamPermission!
+  members: [Member!]!
+}
+
+type TeamPermission {
+  team: RoleCode!
+  org: RoleCode!
+}

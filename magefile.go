@@ -126,25 +126,33 @@ func (Backend) Build() error {
 
 // Schema merges GraphQL schema files into single schema & runs gqlgen
 func (Backend) Schema() error {
-	files, err := ioutil.ReadDir("internal/graph/schema/")
+	folders, err := ioutil.ReadDir("internal/graph/schema/")
 	if err != nil {
 		panic(err)
 	}
-	var schema strings.Builder
-	for _, file := range files {
-		filename := "internal/graph/schema/" + file.Name()
-		fmt.Println(filename)
-		f, err := os.Open(filename)
+	for _, folder := range folders {
+		if !folder.IsDir() {
+			continue
+		}
+		var schema strings.Builder
+		filename := "internal/graph/schema/" + folder.Name()
+		files, err := ioutil.ReadDir(filename)
 		if err != nil {
 			panic(err)
 		}
-		content, err := ioutil.ReadAll(f)
-		if err != nil {
-			panic(err)
+		for _, file := range files {
+			f, err := os.Open(filename + "/" + file.Name())
+			if err != nil {
+				panic(err)
+			}
+			content, err := ioutil.ReadAll(f)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Fprintln(&schema, string(content))
 		}
-		fmt.Fprintln(&schema, string(content))
+		err = ioutil.WriteFile("internal/graph/schema/"+folder.Name()+".gql", []byte(schema.String()), os.FileMode(0755))
 	}
-	err = ioutil.WriteFile("internal/graph/schema.graphqls", []byte(schema.String()), os.FileMode(0755))
 	if err != nil {
 		panic(err)
 	}

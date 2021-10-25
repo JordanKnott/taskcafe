@@ -1,0 +1,21 @@
+extend type Mutation {
+  deleteTeam(input: DeleteTeam!):
+    DeleteTeamPayload! @hasRole(roles:[ ADMIN], level: TEAM, type: TEAM)
+  createTeam(input: NewTeam!):
+    Team! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+}
+
+input NewTeam {
+  name: String!
+  organizationID: UUID!
+}
+
+input DeleteTeam {
+  teamID: UUID!
+}
+
+type DeleteTeamPayload {
+  ok: Boolean!
+  team: Team!
+  projects: [Project!]!
+}

@@ -1,3 +1,150 @@
+type ProjectPermission {
+  team: RoleCode!
+  project: RoleCode!
+  org: RoleCode!
+}
+
+type Project {
+  id: ID!
+  createdAt: Time!
+  name: String!
+  team: Team
+  taskGroups: [TaskGroup!]!
+  members: [Member!]!
+  invitedMembers: [InvitedMember!]!
+  publicOn: Time
+  permission: ProjectPermission!
+  labels: [ProjectLabel!]!
+}
+
+type ProjectLabel {
+  id: ID!
+  createdDate: Time!
+  labelColor: LabelColor!
+  name: String
+}
+
+type LabelColor {
+  id: ID!
+  name: String!
+  position: Float!
+  colorHex: String!
+}
+
+type Member {
+  id: ID!
+  role: Role!
+  fullName: String!
+  username: String!
+  profileIcon: ProfileIcon!
+  owned: OwnedList!
+  member: MemberList!
+}
+
+type InvitedMember {
+  email: String!
+  invitedOn: Time!
+}
+
+extend type Mutation {
+  createProjectLabel(input: NewProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  deleteProjectLabel(input: DeleteProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  updateProjectLabel(input: UpdateProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  updateProjectLabelName(input: UpdateProjectLabelName!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  updateProjectLabelColor(input: UpdateProjectLabelColor!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+}
+
+input NewProjectLabel {
+  projectID: UUID!
+  labelColorID: UUID!
+  name: String
+}
+
+input DeleteProjectLabel {
+  projectLabelID: UUID!
+}
+
+input UpdateProjectLabelName {
+  projectLabelID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabel {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabelColor {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+}
+
+extend type Mutation {
+  inviteProjectMembers(input: InviteProjectMembers!):
+    InviteProjectMembersPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteProjectMember(input: DeleteProjectMember!):
+    DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectMemberRole(input: UpdateProjectMemberRole!):
+    UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+
+  deleteInvitedProjectMember(input: DeleteInvitedProjectMember!):
+    DeleteInvitedProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input DeleteInvitedProjectMember {
+  projectID: UUID!
+  email: String!
+}
+
+type DeleteInvitedProjectMemberPayload {
+  invitedMember: InvitedMember!
+}
+
+input MemberInvite {
+  userID: UUID
+  email: String
+}
+
+input InviteProjectMembers {
+  projectID: UUID!
+  members: [MemberInvite!]!
+}
+
+type InviteProjectMembersPayload {
+  ok: Boolean!
+  projectID: UUID!
+  members: [Member!]!
+  invitedMembers: [InvitedMember!]!
+}
+
+input DeleteProjectMember {
+  projectID: UUID!
+  userID: UUID!
+}
+
+type DeleteProjectMemberPayload {
+  ok: Boolean!
+  member: Member!
+  projectID: UUID!
+}
+
+input UpdateProjectMemberRole {
+  projectID: UUID!
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateProjectMemberRolePayload {
+  ok: Boolean!
+  member: Member!
+}
+
 extend type Mutation {
   createProject(input: NewProject!): Project! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
   deleteProject(input: DeleteProject!):

@@ -557,10 +557,6 @@ type LabelColorResolver interface {
 	ID(ctx context.Context, obj *db.LabelColor) (uuid.UUID, error)
 }
 type MutationResolver interface {
-	CreateProject(ctx context.Context, input NewProject) (*db.Project, error)
-	DeleteProject(ctx context.Context, input DeleteProject) (*DeleteProjectPayload, error)
-	UpdateProjectName(ctx context.Context, input *UpdateProjectName) (*db.Project, error)
-	ToggleProjectVisibility(ctx context.Context, input ToggleProjectVisibility) (*ToggleProjectVisibilityPayload, error)
 	CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*db.ProjectLabel, error)
 	DeleteProjectLabel(ctx context.Context, input DeleteProjectLabel) (*db.ProjectLabel, error)
 	UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*db.ProjectLabel, error)
@@ -570,15 +566,10 @@ type MutationResolver interface {
 	DeleteProjectMember(ctx context.Context, input DeleteProjectMember) (*DeleteProjectMemberPayload, error)
 	UpdateProjectMemberRole(ctx context.Context, input UpdateProjectMemberRole) (*UpdateProjectMemberRolePayload, error)
 	DeleteInvitedProjectMember(ctx context.Context, input DeleteInvitedProjectMember) (*DeleteInvitedProjectMemberPayload, error)
-	CreateTask(ctx context.Context, input NewTask) (*db.Task, error)
-	DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error)
-	UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*db.Task, error)
-	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error)
-	UpdateTaskName(ctx context.Context, input UpdateTaskName) (*db.Task, error)
-	SetTaskComplete(ctx context.Context, input SetTaskComplete) (*db.Task, error)
-	UpdateTaskDueDate(ctx context.Context, input UpdateTaskDueDate) (*db.Task, error)
-	AssignTask(ctx context.Context, input *AssignTaskInput) (*db.Task, error)
-	UnassignTask(ctx context.Context, input *UnassignTaskInput) (*db.Task, error)
+	CreateProject(ctx context.Context, input NewProject) (*db.Project, error)
+	DeleteProject(ctx context.Context, input DeleteProject) (*DeleteProjectPayload, error)
+	UpdateProjectName(ctx context.Context, input *UpdateProjectName) (*db.Project, error)
+	ToggleProjectVisibility(ctx context.Context, input ToggleProjectVisibility) (*ToggleProjectVisibilityPayload, error)
 	CreateTaskChecklist(ctx context.Context, input CreateTaskChecklist) (*db.TaskChecklist, error)
 	DeleteTaskChecklist(ctx context.Context, input DeleteTaskChecklist) (*DeleteTaskChecklistPayload, error)
 	UpdateTaskChecklistName(ctx context.Context, input UpdateTaskChecklistName) (*db.TaskChecklist, error)
@@ -601,11 +592,20 @@ type MutationResolver interface {
 	AddTaskLabel(ctx context.Context, input *AddTaskLabelInput) (*db.Task, error)
 	RemoveTaskLabel(ctx context.Context, input *RemoveTaskLabelInput) (*db.Task, error)
 	ToggleTaskLabel(ctx context.Context, input ToggleTaskLabelInput) (*ToggleTaskLabelPayload, error)
-	DeleteTeam(ctx context.Context, input DeleteTeam) (*DeleteTeamPayload, error)
-	CreateTeam(ctx context.Context, input NewTeam) (*db.Team, error)
+	CreateTask(ctx context.Context, input NewTask) (*db.Task, error)
+	DeleteTask(ctx context.Context, input DeleteTaskInput) (*DeleteTaskPayload, error)
+	UpdateTaskDescription(ctx context.Context, input UpdateTaskDescriptionInput) (*db.Task, error)
+	UpdateTaskLocation(ctx context.Context, input NewTaskLocation) (*UpdateTaskLocationPayload, error)
+	UpdateTaskName(ctx context.Context, input UpdateTaskName) (*db.Task, error)
+	SetTaskComplete(ctx context.Context, input SetTaskComplete) (*db.Task, error)
+	UpdateTaskDueDate(ctx context.Context, input UpdateTaskDueDate) (*db.Task, error)
+	AssignTask(ctx context.Context, input *AssignTaskInput) (*db.Task, error)
+	UnassignTask(ctx context.Context, input *UnassignTaskInput) (*db.Task, error)
 	CreateTeamMember(ctx context.Context, input CreateTeamMember) (*CreateTeamMemberPayload, error)
 	UpdateTeamMemberRole(ctx context.Context, input UpdateTeamMemberRole) (*UpdateTeamMemberRolePayload, error)
 	DeleteTeamMember(ctx context.Context, input DeleteTeamMember) (*DeleteTeamMemberPayload, error)
+	DeleteTeam(ctx context.Context, input DeleteTeam) (*DeleteTeamPayload, error)
+	CreateTeam(ctx context.Context, input NewTeam) (*db.Team, error)
 	CreateUserAccount(ctx context.Context, input NewUserAccount) (*db.UserAccount, error)
 	DeleteUserAccount(ctx context.Context, input DeleteUserAccount) (*DeleteUserAccountPayload, error)
 	DeleteInvitedUserAccount(ctx context.Context, input DeleteInvitedUserAccount) (*DeleteInvitedUserAccountPayload, error)
@@ -3099,114 +3099,45 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "internal/graph/schema.graphqls", Input: `scalar Time
-scalar UUID
-scalar Upload
-
-enum RoleCode {
-  owner
-  admin
-  member
-  observer
+	{Name: "internal/graph/schema/notification.gql", Input: `extend type Query {
+  notifications: [Notification!]!
 }
 
-type ProjectLabel {
-  id: ID!
-  createdDate: Time!
-  labelColor: LabelColor!
-  name: String
+enum EntityType {
+  TASK
 }
 
-type LabelColor {
-  id: ID!
-  name: String!
-  position: Float!
-  colorHex: String!
+enum ActorType {
+  USER
 }
 
-type TaskLabel {
-  id: ID!
-  projectLabel: ProjectLabel!
-  assignedDate: Time!
+enum ActionType {
+  TASK_MEMBER_ADDED
 }
 
-type ProfileIcon {
-  url: String
-  initials: String
-  bgColor: String
-}
-
-type OwnersList  {
-  projects: [UUID!]!
-  teams: [UUID!]!
-}
-
-type Member {
-  id: ID!
-  role: Role!
-  fullName: String!
-  username: String!
-  profileIcon: ProfileIcon!
-  owned: OwnedList!
-  member: MemberList!
-}
-
-type Role {
-  code: String!
+type NotificationActor {
+  id: UUID!
+  type: ActorType!
   name: String!
 }
 
-type OwnedList {
-  teams: [Team!]!
-  projects: [Project!]!
+type NotificationEntity {
+  id: UUID!
+  type: EntityType!
+  name: String!
 }
 
-type MemberList {
-  teams: [Team!]!
-  projects: [Project!]!
-}
-
-type UserAccount {
+type Notification {
   id: ID!
-  email: String!
+  entity: NotificationEntity!
+  actionType: ActionType!
+  actor: NotificationActor!
+  read: Boolean!
   createdAt: Time!
-  fullName: String!
-  initials: String!
-  bio: String!
-  role: Role!
-  username: String!
-  profileIcon: ProfileIcon!
-  owned: OwnedList!
-  member: MemberList!
 }
 
-type InvitedUserAccount {
-  id: ID!
-  email: String!
-  invitedOn: Time!
-  member: MemberList!
-}
-
-type Team {
-  id: ID!
-  createdAt: Time!
-  name: String!
-  permission: TeamPermission!
-  members: [Member!]!
-}
-
-
-type InvitedMember {
-  email: String!
-  invitedOn: Time!
-}
-
-type TeamPermission {
-  team: RoleCode!
-  org: RoleCode!
-}
-
-type ProjectPermission {
+`, BuiltIn: false},
+	{Name: "internal/graph/schema/project.gql", Input: `type ProjectPermission {
   team: RoleCode!
   project: RoleCode!
   org: RoleCode!
@@ -3225,115 +3156,212 @@ type Project {
   labels: [ProjectLabel!]!
 }
 
-type TaskGroup {
+type ProjectLabel {
   id: ID!
-  projectID: String!
-  createdAt: Time!
+  createdDate: Time!
+  labelColor: LabelColor!
+  name: String
+}
+
+type LabelColor {
+  id: ID!
   name: String!
   position: Float!
-  tasks: [Task!]!
+  colorHex: String!
 }
 
-type ChecklistBadge {
-  complete: Int!
-  total: Int!
-}
-
-type CommentsBadge {
-  total: Int!
-  unread: Boolean!
-}
-
-type TaskBadges {
-  checklist: ChecklistBadge
-  comments: CommentsBadge
-}
-
-type CausedBy {
+type Member {
   id: ID!
+  role: Role!
   fullName: String!
-  profileIcon: ProfileIcon
-}
-
-type TaskActivityData {
-  name: String!
-  value: String!
-}
-
-enum ActivityType {
-  TASK_ADDED
-  TASK_MOVED
-  TASK_MARKED_COMPLETE
-  TASK_MARKED_INCOMPLETE
-  TASK_DUE_DATE_CHANGED
-  TASK_DUE_DATE_ADDED
-  TASK_DUE_DATE_REMOVED
-  TASK_CHECKLIST_CHANGED
-  TASK_CHECKLIST_ADDED
-  TASK_CHECKLIST_REMOVED
-}
-
-type TaskActivity {
-  id: ID!
-  type: ActivityType!
-  data: [TaskActivityData!]!
-  causedBy: CausedBy!
-  createdAt: Time!
-}
-
-type Task {
-  id: ID!
-  taskGroup: TaskGroup!
-  createdAt: Time!
-  name: String!
-  position: Float!
-  description: String
-  dueDate: Time
-  hasTime: Boolean!
-  complete: Boolean!
-  completedAt: Time
-  assigned: [Member!]!
-  labels: [TaskLabel!]!
-  checklists: [TaskChecklist!]!
-  badges: TaskBadges!
-  activity: [TaskActivity!]!
-  comments: [TaskComment!]!
-}
-
-type CreatedBy {
-  id: ID!
-  fullName: String!
+  username: String!
   profileIcon: ProfileIcon!
+  owned: OwnedList!
+  member: MemberList!
 }
 
-type TaskComment {
-  id: ID!
-  createdAt: Time!
-  updatedAt: Time
-  message: String!
-  createdBy: CreatedBy!
-  pinned: Boolean!
+type InvitedMember {
+  email: String!
+  invitedOn: Time!
+}
+
+extend type Mutation {
+  createProjectLabel(input: NewProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  deleteProjectLabel(input: DeleteProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  updateProjectLabel(input: UpdateProjectLabel!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  updateProjectLabelName(input: UpdateProjectLabelName!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+  updateProjectLabelColor(input: UpdateProjectLabelColor!):
+    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
+}
+
+input NewProjectLabel {
+  projectID: UUID!
+  labelColorID: UUID!
+  name: String
+}
+
+input DeleteProjectLabel {
+  projectLabelID: UUID!
+}
+
+input UpdateProjectLabelName {
+  projectLabelID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabel {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+  name: String!
+}
+
+input UpdateProjectLabelColor {
+  projectLabelID: UUID!
+  labelColorID: UUID!
+}
+
+extend type Mutation {
+  inviteProjectMembers(input: InviteProjectMembers!):
+    InviteProjectMembersPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  deleteProjectMember(input: DeleteProjectMember!):
+    DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectMemberRole(input: UpdateProjectMemberRole!):
+    UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+
+  deleteInvitedProjectMember(input: DeleteInvitedProjectMember!):
+    DeleteInvitedProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input DeleteInvitedProjectMember {
+  projectID: UUID!
+  email: String!
+}
+
+type DeleteInvitedProjectMemberPayload {
+  invitedMember: InvitedMember!
+}
+
+input MemberInvite {
+  userID: UUID
+  email: String
+}
+
+input InviteProjectMembers {
+  projectID: UUID!
+  members: [MemberInvite!]!
+}
+
+type InviteProjectMembersPayload {
+  ok: Boolean!
+  projectID: UUID!
+  members: [Member!]!
+  invitedMembers: [InvitedMember!]!
+}
+
+input DeleteProjectMember {
+  projectID: UUID!
+  userID: UUID!
+}
+
+type DeleteProjectMemberPayload {
+  ok: Boolean!
+  member: Member!
+  projectID: UUID!
+}
+
+input UpdateProjectMemberRole {
+  projectID: UUID!
+  userID: UUID!
+  roleCode: RoleCode!
+}
+
+type UpdateProjectMemberRolePayload {
+  ok: Boolean!
+  member: Member!
+}
+
+extend type Mutation {
+  createProject(input: NewProject!): Project! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
+  deleteProject(input: DeleteProject!):
+    DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  updateProjectName(input: UpdateProjectName):
+    Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+  toggleProjectVisibility(input: ToggleProjectVisibility!): ToggleProjectVisibilityPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+}
+
+input ToggleProjectVisibility {
+  projectID: UUID!
+  isPublic: Boolean!
+}
+
+type ToggleProjectVisibilityPayload {
+  project: Project!
+}
+
+input NewProject {
+  teamID: UUID
+  name: String!
+}
+
+input UpdateProjectName {
+  projectID: UUID!
+  name: String!
+}
+
+input DeleteProject {
+  projectID: UUID!
+}
+
+type DeleteProjectPayload {
+  ok: Boolean!
+  project: Project!
+}
+
+`, BuiltIn: false},
+	{Name: "internal/graph/schema/schema.gql", Input: `scalar Time
+scalar UUID
+scalar Upload
+
+enum RoleCode {
+  owner
+  admin
+  member
+  observer
+}
+
+type Role {
+  code: String!
+  name: String!
+}
+
+type ProfileIcon {
+  url: String
+  initials: String
+  bgColor: String
+}
+
+type OwnersList  {
+  projects: [UUID!]!
+  teams: [UUID!]!
+}
+
+type OwnedList {
+  teams: [Team!]!
+  projects: [Project!]!
+}
+
+type MemberList {
+  teams: [Team!]!
+  projects: [Project!]!
 }
 
 type Organization {
   id: ID!
   name: String!
-}
-
-type TaskChecklistItem {
-  id: ID!
-  name: String!
-  taskChecklistID: UUID!
-  complete: Boolean!
-  position: Float!
-  dueDate: Time!
-}
-
-type TaskChecklist {
-  id: ID!
-  name: String!
-  position: Float!
-  items: [TaskChecklistItem!]!
 }
 
 enum ShareStatus {
@@ -3363,6 +3391,7 @@ enum ObjectType {
 }
 
 directive @hasRole(roles: [RoleLevel!]!, level: ActionLevel!, type: ObjectType!) on FIELD_DEFINITION
+
 directive @requiresUser on FIELD_DEFINITION
 
 type Query {
@@ -3453,258 +3482,110 @@ input FindTask {
 input FindTeam {
   teamID: UUID!
 }
-
-extend type Query {
-  notifications: [Notification!]!
-}
-
-enum EntityType {
-  TASK
-}
-
-enum ActorType {
-  USER
-}
-
-enum ActionType {
-  TASK_MEMBER_ADDED
-}
-
-type NotificationActor {
-  id: UUID!
-  type: ActorType!
-  name: String!
-}
-
-type NotificationEntity {
-  id: UUID!
-  type: EntityType!
-  name: String!
-}
-
-type Notification {
+`, BuiltIn: false},
+	{Name: "internal/graph/schema/task.gql", Input: `
+type TaskLabel {
   id: ID!
-  entity: NotificationEntity!
-  actionType: ActionType!
-  actor: NotificationActor!
-  read: Boolean!
+  projectLabel: ProjectLabel!
+  assignedDate: Time!
+}
+
+type ChecklistBadge {
+  complete: Int!
+  total: Int!
+}
+
+type CommentsBadge {
+  total: Int!
+  unread: Boolean!
+}
+
+type TaskBadges {
+  checklist: ChecklistBadge
+  comments: CommentsBadge
+}
+
+type Task {
+  id: ID!
+  taskGroup: TaskGroup!
+  createdAt: Time!
+  name: String!
+  position: Float!
+  description: String
+  dueDate: Time
+  hasTime: Boolean!
+  complete: Boolean!
+  completedAt: Time
+  assigned: [Member!]!
+  labels: [TaskLabel!]!
+  checklists: [TaskChecklist!]!
+  badges: TaskBadges!
+  activity: [TaskActivity!]!
+  comments: [TaskComment!]!
+}
+
+type TaskActivityData {
+  name: String!
+  value: String!
+}
+
+enum ActivityType {
+  TASK_ADDED
+  TASK_MOVED
+  TASK_MARKED_COMPLETE
+  TASK_MARKED_INCOMPLETE
+  TASK_DUE_DATE_CHANGED
+  TASK_DUE_DATE_ADDED
+  TASK_DUE_DATE_REMOVED
+  TASK_CHECKLIST_CHANGED
+  TASK_CHECKLIST_ADDED
+  TASK_CHECKLIST_REMOVED
+}
+
+type TaskActivity {
+  id: ID!
+  type: ActivityType!
+  data: [TaskActivityData!]!
+  causedBy: CausedBy!
   createdAt: Time!
 }
 
-extend type Mutation {
-  createProject(input: NewProject!): Project! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
-  deleteProject(input: DeleteProject!):
-    DeleteProjectPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  updateProjectName(input: UpdateProjectName):
-    Project! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  toggleProjectVisibility(input: ToggleProjectVisibility!): ToggleProjectVisibilityPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
+type CausedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon
 }
 
-input ToggleProjectVisibility {
-  projectID: UUID!
-  isPublic: Boolean!
+
+type CreatedBy {
+  id: ID!
+  fullName: String!
+  profileIcon: ProfileIcon!
 }
 
-type ToggleProjectVisibilityPayload {
-  project: Project!
+type TaskComment {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time
+  message: String!
+  createdBy: CreatedBy!
+  pinned: Boolean!
 }
 
-input NewProject {
-  teamID: UUID
+type TaskChecklistItem {
+  id: ID!
   name: String!
-}
-
-input UpdateProjectName {
-  projectID: UUID!
-  name: String!
-}
-
-input DeleteProject {
-  projectID: UUID!
-}
-
-type DeleteProjectPayload {
-  ok: Boolean!
-  project: Project!
-}
-
-extend type Mutation {
-  createProjectLabel(input: NewProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
-  deleteProjectLabel(input: DeleteProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
-  updateProjectLabel(input: UpdateProjectLabel!):
-    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
-  updateProjectLabelName(input: UpdateProjectLabelName!):
-    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
-  updateProjectLabelColor(input: UpdateProjectLabelColor!):
-    ProjectLabel! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: PROJECT)
-}
-
-input NewProjectLabel {
-  projectID: UUID!
-  labelColorID: UUID!
-  name: String
-}
-
-input DeleteProjectLabel {
-  projectLabelID: UUID!
-}
-
-input UpdateProjectLabelName {
-  projectLabelID: UUID!
-  name: String!
-}
-
-input UpdateProjectLabel {
-  projectLabelID: UUID!
-  labelColorID: UUID!
-  name: String!
-}
-
-input UpdateProjectLabelColor {
-  projectLabelID: UUID!
-  labelColorID: UUID!
-}
-
-extend type Mutation {
-  inviteProjectMembers(input: InviteProjectMembers!):
-    InviteProjectMembersPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  deleteProjectMember(input: DeleteProjectMember!):
-    DeleteProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-  updateProjectMemberRole(input: UpdateProjectMemberRole!):
-    UpdateProjectMemberRolePayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-
-deleteInvitedProjectMember(input: DeleteInvitedProjectMember!):
-  DeleteInvitedProjectMemberPayload! @hasRole(roles: [ADMIN], level: PROJECT, type: PROJECT)
-}
-
-input DeleteInvitedProjectMember {
-  projectID: UUID!
-  email: String!
-}
-
-type DeleteInvitedProjectMemberPayload {
-  invitedMember: InvitedMember!
-}
-
-input MemberInvite {
-  userID: UUID
-  email: String
-}
-
-input InviteProjectMembers {
-  projectID: UUID!
-  members: [MemberInvite!]!
-}
-
-type InviteProjectMembersPayload {
-  ok: Boolean!
-  projectID: UUID!
-  members: [Member!]!
-  invitedMembers: [InvitedMember!]!
-}
-
-input DeleteProjectMember {
-  projectID: UUID!
-  userID: UUID!
-}
-
-type DeleteProjectMemberPayload {
-  ok: Boolean!
-  member: Member!
-  projectID: UUID!
-}
-
-input UpdateProjectMemberRole {
-  projectID: UUID!
-  userID: UUID!
-  roleCode: RoleCode!
-}
-
-type UpdateProjectMemberRolePayload {
-  ok: Boolean!
-  member: Member!
-}
-
-extend type Mutation {
-  createTask(input: NewTask!):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
-  deleteTask(input: DeleteTaskInput!):
-    DeleteTaskPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-
-  updateTaskDescription(input: UpdateTaskDescriptionInput!):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-  updateTaskLocation(input: NewTaskLocation!):
-    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-  updateTaskName(input: UpdateTaskName!):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-  setTaskComplete(input: SetTaskComplete!):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-  updateTaskDueDate(input: UpdateTaskDueDate!):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-
-  assignTask(input: AssignTaskInput):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-  unassignTask(input: UnassignTaskInput):
-    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
-}
-
-input NewTask {
-  taskGroupID: UUID!
-  name: String!
-  position: Float!
-  assigned: [UUID!]
-}
-
-input AssignTaskInput {
-  taskID: UUID!
-  userID: UUID!
-}
-
-input UnassignTaskInput {
-  taskID: UUID!
-  userID: UUID!
-}
-
-input UpdateTaskDescriptionInput {
-  taskID: UUID!
-  description: String!
-}
-
-type UpdateTaskLocationPayload {
-  previousTaskGroupID: UUID!
-  task: Task!
-}
-
-input UpdateTaskDueDate  {
-  taskID: UUID!
-  hasTime: Boolean!
-  dueDate: Time
-}
-
-input SetTaskComplete {
-  taskID: UUID!
+  taskChecklistID: UUID!
   complete: Boolean!
-}
-
-input NewTaskLocation {
-  taskID: UUID!
-  taskGroupID: UUID!
   position: Float!
+  dueDate: Time!
 }
 
-input DeleteTaskInput {
-  taskID: UUID!
-}
-
-type DeleteTaskPayload {
-  taskID: UUID!
-}
-
-input UpdateTaskName {
-  taskID: UUID!
+type TaskChecklist {
+  id: ID!
   name: String!
+  position: Float!
+  items: [TaskChecklistItem!]!
 }
 
 extend type Mutation {
@@ -3941,26 +3822,110 @@ type ToggleTaskLabelPayload {
 }
 
 extend type Mutation {
-  deleteTeam(input: DeleteTeam!):
-    DeleteTeamPayload! @hasRole(roles:[ ADMIN], level: TEAM, type: TEAM)
-  createTeam(input: NewTeam!):
-    Team! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+  createTask(input: NewTask!):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)
+  deleteTask(input: DeleteTaskInput!):
+    DeleteTaskPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
+  updateTaskDescription(input: UpdateTaskDescriptionInput!):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  updateTaskLocation(input: NewTaskLocation!):
+    UpdateTaskLocationPayload! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  updateTaskName(input: UpdateTaskName!):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  setTaskComplete(input: SetTaskComplete!):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  updateTaskDueDate(input: UpdateTaskDueDate!):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
+  assignTask(input: AssignTaskInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  unassignTask(input: UnassignTaskInput):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 }
 
-input NewTeam {
+input NewTask {
+  taskGroupID: UUID!
   name: String!
-  organizationID: UUID!
+  position: Float!
+  assigned: [UUID!]
 }
 
-input DeleteTeam {
-  teamID: UUID!
+input AssignTaskInput {
+  taskID: UUID!
+  userID: UUID!
 }
 
-type DeleteTeamPayload {
-  ok: Boolean!
-  team: Team!
-  projects: [Project!]!
+input UnassignTaskInput {
+  taskID: UUID!
+  userID: UUID!
 }
+
+input UpdateTaskDescriptionInput {
+  taskID: UUID!
+  description: String!
+}
+
+type UpdateTaskLocationPayload {
+  previousTaskGroupID: UUID!
+  task: Task!
+}
+
+input UpdateTaskDueDate  {
+  taskID: UUID!
+  hasTime: Boolean!
+  dueDate: Time
+}
+
+input SetTaskComplete {
+  taskID: UUID!
+  complete: Boolean!
+}
+
+input NewTaskLocation {
+  taskID: UUID!
+  taskGroupID: UUID!
+  position: Float!
+}
+
+input DeleteTaskInput {
+  taskID: UUID!
+}
+
+type DeleteTaskPayload {
+  taskID: UUID!
+}
+
+input UpdateTaskName {
+  taskID: UUID!
+  name: String!
+}
+
+`, BuiltIn: false},
+	{Name: "internal/graph/schema/taskList.gql", Input: `type TaskGroup {
+  id: ID!
+  projectID: String!
+  createdAt: Time!
+  name: String!
+  position: Float!
+  tasks: [Task!]!
+}
+
+
+`, BuiltIn: false},
+	{Name: "internal/graph/schema/team.gql", Input: `type Team {
+  id: ID!
+  createdAt: Time!
+  name: String!
+  permission: TeamPermission!
+  members: [Member!]!
+}
+
+type TeamPermission {
+  team: RoleCode!
+  org: RoleCode!
+}
+
 
 extend type Mutation {
   createTeamMember(input: CreateTeamMember!):
@@ -4005,6 +3970,52 @@ type UpdateTeamMemberRolePayload {
   teamID: UUID!
   member: Member!
 }
+
+extend type Mutation {
+  deleteTeam(input: DeleteTeam!):
+    DeleteTeamPayload! @hasRole(roles:[ ADMIN], level: TEAM, type: TEAM)
+  createTeam(input: NewTeam!):
+    Team! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
+}
+
+input NewTeam {
+  name: String!
+  organizationID: UUID!
+}
+
+input DeleteTeam {
+  teamID: UUID!
+}
+
+type DeleteTeamPayload {
+  ok: Boolean!
+  team: Team!
+  projects: [Project!]!
+}
+
+`, BuiltIn: false},
+	{Name: "internal/graph/schema/user.gql", Input: `type UserAccount {
+  id: ID!
+  email: String!
+  createdAt: Time!
+  fullName: String!
+  initials: String!
+  bio: String!
+  role: Role!
+  username: String!
+  profileIcon: ProfileIcon!
+  owned: OwnedList!
+  member: MemberList!
+}
+
+type InvitedUserAccount {
+  id: ID!
+  email: String!
+  invitedOn: Time!
+  member: MemberList!
+}
+
+
 
 extend type Mutation {
   createUserAccount(input: NewUserAccount!):
@@ -7687,302 +7698,6 @@ func (ec *executionContext) _MemberSearchResult_status(ctx context.Context, fiel
 	return ec.marshalNShareStatus2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐShareStatus(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createProject_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateProject(rctx, args["input"].(NewProject))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "TEAM")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TEAM")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Project); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Project`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Project)
-	fc.Result = res
-	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProject(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_deleteProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteProject_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteProject(rctx, args["input"].(DeleteProject))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*DeleteProjectPayload); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteProjectPayload`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*DeleteProjectPayload)
-	fc.Result = res
-	return ec.marshalNDeleteProjectPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteProjectPayload(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateProjectName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateProjectName_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateProjectName(rctx, args["input"].(*UpdateProjectName))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Project); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Project`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Project)
-	fc.Result = res
-	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProject(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_toggleProjectVisibility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_toggleProjectVisibility_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ToggleProjectVisibility(rctx, args["input"].(ToggleProjectVisibility))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*ToggleProjectVisibilityPayload); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.ToggleProjectVisibilityPayload`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ToggleProjectVisibilityPayload)
-	fc.Result = res
-	return ec.marshalNToggleProjectVisibilityPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibilityPayload(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_createProjectLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8649,7 +8364,7 @@ func (ec *executionContext) _Mutation_deleteInvitedProjectMember(ctx context.Con
 	return ec.marshalNDeleteInvitedProjectMemberPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteInvitedProjectMemberPayload(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8666,7 +8381,7 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createTask_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createProject_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -8675,18 +8390,18 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateTask(rctx, args["input"].(NewTask))
+			return ec.resolvers.Mutation().CreateProject(rctx, args["input"].(NewProject))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
 			if err != nil {
 				return nil, err
 			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "TEAM")
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TEAM")
 			if err != nil {
 				return nil, err
 			}
@@ -8703,10 +8418,10 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*db.Task); ok {
+		if data, ok := tmp.(*db.Project); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Project`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8718,12 +8433,12 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*db.Task)
+	res := resTmp.(*db.Project)
 	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProject(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8740,7 +8455,7 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteTask_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteProject_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -8749,10 +8464,10 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteTask(rctx, args["input"].(DeleteTaskInput))
+			return ec.resolvers.Mutation().DeleteProject(rctx, args["input"].(DeleteProject))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
 			if err != nil {
 				return nil, err
 			}
@@ -8760,7 +8475,7 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
 			if err != nil {
 				return nil, err
 			}
@@ -8777,10 +8492,10 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*DeleteTaskPayload); ok {
+		if data, ok := tmp.(*DeleteProjectPayload); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskPayload`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteProjectPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8792,12 +8507,12 @@ func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DeleteTaskPayload)
+	res := resTmp.(*DeleteProjectPayload)
 	fc.Result = res
-	return ec.marshalNDeleteTaskPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskPayload(ctx, field.Selections, res)
+	return ec.marshalNDeleteProjectPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteProjectPayload(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateProjectName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8814,7 +8529,7 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateTaskDescription_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateProjectName_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -8823,10 +8538,10 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTaskDescription(rctx, args["input"].(UpdateTaskDescriptionInput))
+			return ec.resolvers.Mutation().UpdateProjectName(rctx, args["input"].(*UpdateProjectName))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
 			if err != nil {
 				return nil, err
 			}
@@ -8834,7 +8549,7 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
 			if err != nil {
 				return nil, err
 			}
@@ -8851,10 +8566,10 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*db.Task); ok {
+		if data, ok := tmp.(*db.Project); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Project`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8866,12 +8581,12 @@ func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*db.Task)
+	res := resTmp.(*db.Project)
 	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+	return ec.marshalNProject2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐProject(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_toggleProjectVisibility(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8888,7 +8603,7 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateTaskLocation_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_toggleProjectVisibility_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -8897,10 +8612,10 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTaskLocation(rctx, args["input"].(NewTaskLocation))
+			return ec.resolvers.Mutation().ToggleProjectVisibility(rctx, args["input"].(ToggleProjectVisibility))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
 			if err != nil {
 				return nil, err
 			}
@@ -8908,7 +8623,7 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "PROJECT")
 			if err != nil {
 				return nil, err
 			}
@@ -8925,10 +8640,10 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*UpdateTaskLocationPayload); ok {
+		if data, ok := tmp.(*ToggleProjectVisibilityPayload); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskLocationPayload`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.ToggleProjectVisibilityPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8940,379 +8655,9 @@ func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*UpdateTaskLocationPayload)
+	res := resTmp.(*ToggleProjectVisibilityPayload)
 	fc.Result = res
-	return ec.marshalNUpdateTaskLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskLocationPayload(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateTaskName_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTaskName(rctx, args["input"].(UpdateTaskName))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Task); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Task)
-	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setTaskComplete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setTaskComplete_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().SetTaskComplete(rctx, args["input"].(SetTaskComplete))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Task); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Task)
-	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateTaskDueDate_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTaskDueDate(rctx, args["input"].(UpdateTaskDueDate))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Task); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Task)
-	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_assignTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_assignTask_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().AssignTask(rctx, args["input"].(*AssignTaskInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Task); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Task)
-	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_unassignTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_unassignTask_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UnassignTask(rctx, args["input"].(*UnassignTaskInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
-			if err != nil {
-				return nil, err
-			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
-			if err != nil {
-				return nil, err
-			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*db.Task); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*db.Task)
-	fc.Result = res
-	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+	return ec.marshalNToggleProjectVisibilityPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleProjectVisibilityPayload(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTaskChecklist(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10943,7 +10288,7 @@ func (ec *executionContext) _Mutation_toggleTaskLabel(ctx context.Context, field
 	return ec.marshalNToggleTaskLabelPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐToggleTaskLabelPayload(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10960,7 +10305,7 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteTeam_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createTask_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -10969,18 +10314,18 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteTeam(rctx, args["input"].(DeleteTeam))
+			return ec.resolvers.Mutation().CreateTask(rctx, args["input"].(NewTask))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "TEAM")
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TEAM")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK_GROUP")
 			if err != nil {
 				return nil, err
 			}
@@ -10997,10 +10342,10 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*DeleteTeamPayload); ok {
+		if data, ok := tmp.(*db.Task); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTeamPayload`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11012,12 +10357,12 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DeleteTeamPayload)
+	res := resTmp.(*db.Task)
 	fc.Result = res
-	return ec.marshalNDeleteTeamPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTeamPayload(ctx, field.Selections, res)
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -11034,7 +10379,7 @@ func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createTeam_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteTask_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -11043,18 +10388,18 @@ func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateTeam(rctx, args["input"].(NewTeam))
+			return ec.resolvers.Mutation().DeleteTask(rctx, args["input"].(DeleteTaskInput))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
 			if err != nil {
 				return nil, err
 			}
-			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "ORG")
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
 			if err != nil {
 				return nil, err
 			}
-			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "ORG")
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
 			if err != nil {
 				return nil, err
 			}
@@ -11071,10 +10416,10 @@ func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field grap
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*db.Team); ok {
+		if data, ok := tmp.(*DeleteTaskPayload); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Team`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTaskPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11086,9 +10431,527 @@ func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*db.Team)
+	res := resTmp.(*DeleteTaskPayload)
 	fc.Result = res
-	return ec.marshalNTeam2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx, field.Selections, res)
+	return ec.marshalNDeleteTaskPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskDescription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskDescription_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskDescription(rctx, args["input"].(UpdateTaskDescriptionInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskLocation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskLocation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskLocation(rctx, args["input"].(NewTaskLocation))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdateTaskLocationPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.UpdateTaskLocationPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateTaskLocationPayload)
+	fc.Result = res
+	return ec.marshalNUpdateTaskLocationPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskLocationPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskName_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskName(rctx, args["input"].(UpdateTaskName))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setTaskComplete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setTaskComplete_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SetTaskComplete(rctx, args["input"].(SetTaskComplete))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskDueDate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskDueDate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTaskDueDate(rctx, args["input"].(UpdateTaskDueDate))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_assignTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_assignTask_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AssignTask(rctx, args["input"].(*AssignTaskInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_unassignTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_unassignTask_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UnassignTask(rctx, args["input"].(*UnassignTaskInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN", "MEMBER"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "PROJECT")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TASK")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Task); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Task`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Task)
+	fc.Result = res
+	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTeamMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11311,6 +11174,154 @@ func (ec *executionContext) _Mutation_deleteTeamMember(ctx context.Context, fiel
 	res := resTmp.(*DeleteTeamMemberPayload)
 	fc.Result = res
 	return ec.marshalNDeleteTeamMemberPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTeamMemberPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTeam_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTeam(rctx, args["input"].(DeleteTeam))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "TEAM")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "TEAM")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*DeleteTeamPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/graph.DeleteTeamPayload`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTeamPayload)
+	fc.Result = res
+	return ec.marshalNDeleteTeamPayload2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTeamPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createTeam_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTeam(rctx, args["input"].(NewTeam))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			roles, err := ec.unmarshalNRoleLevel2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐRoleLevelᚄ(ctx, []interface{}{"ADMIN"})
+			if err != nil {
+				return nil, err
+			}
+			level, err := ec.unmarshalNActionLevel2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐActionLevel(ctx, "ORG")
+			if err != nil {
+				return nil, err
+			}
+			typeArg, err := ec.unmarshalNObjectType2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐObjectType(ctx, "ORG")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, roles, level, typeArg)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*db.Team); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/jordanknott/taskcafe/internal/db.Team`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*db.Team)
+	fc.Result = res
+	return ec.marshalNTeam2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTeam(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createUserAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -21189,26 +21200,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createProject":
-			out.Values[i] = ec._Mutation_createProject(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "deleteProject":
-			out.Values[i] = ec._Mutation_deleteProject(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateProjectName":
-			out.Values[i] = ec._Mutation_updateProjectName(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "toggleProjectVisibility":
-			out.Values[i] = ec._Mutation_toggleProjectVisibility(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createProjectLabel":
 			out.Values[i] = ec._Mutation_createProjectLabel(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -21254,48 +21245,23 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createTask":
-			out.Values[i] = ec._Mutation_createTask(ctx, field)
+		case "createProject":
+			out.Values[i] = ec._Mutation_createProject(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deleteTask":
-			out.Values[i] = ec._Mutation_deleteTask(ctx, field)
+		case "deleteProject":
+			out.Values[i] = ec._Mutation_deleteProject(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateTaskDescription":
-			out.Values[i] = ec._Mutation_updateTaskDescription(ctx, field)
+		case "updateProjectName":
+			out.Values[i] = ec._Mutation_updateProjectName(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateTaskLocation":
-			out.Values[i] = ec._Mutation_updateTaskLocation(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateTaskName":
-			out.Values[i] = ec._Mutation_updateTaskName(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "setTaskComplete":
-			out.Values[i] = ec._Mutation_setTaskComplete(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateTaskDueDate":
-			out.Values[i] = ec._Mutation_updateTaskDueDate(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "assignTask":
-			out.Values[i] = ec._Mutation_assignTask(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "unassignTask":
-			out.Values[i] = ec._Mutation_unassignTask(ctx, field)
+		case "toggleProjectVisibility":
+			out.Values[i] = ec._Mutation_toggleProjectVisibility(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21409,13 +21375,48 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deleteTeam":
-			out.Values[i] = ec._Mutation_deleteTeam(ctx, field)
+		case "createTask":
+			out.Values[i] = ec._Mutation_createTask(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createTeam":
-			out.Values[i] = ec._Mutation_createTeam(ctx, field)
+		case "deleteTask":
+			out.Values[i] = ec._Mutation_deleteTask(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskDescription":
+			out.Values[i] = ec._Mutation_updateTaskDescription(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskLocation":
+			out.Values[i] = ec._Mutation_updateTaskLocation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskName":
+			out.Values[i] = ec._Mutation_updateTaskName(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setTaskComplete":
+			out.Values[i] = ec._Mutation_setTaskComplete(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskDueDate":
+			out.Values[i] = ec._Mutation_updateTaskDueDate(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "assignTask":
+			out.Values[i] = ec._Mutation_assignTask(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unassignTask":
+			out.Values[i] = ec._Mutation_unassignTask(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21431,6 +21432,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteTeamMember":
 			out.Values[i] = ec._Mutation_deleteTeamMember(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTeam":
+			out.Values[i] = ec._Mutation_deleteTeam(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createTeam":
+			out.Values[i] = ec._Mutation_createTeam(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
