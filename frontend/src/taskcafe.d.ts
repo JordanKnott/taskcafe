@@ -1,3 +1,5 @@
+declare module 'loglevel-plugin-remote';
+
 interface JWTToken {
   userId: string;
   orgRole: string;

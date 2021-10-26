@@ -103,6 +103,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityCon
 		mux.Post("/auth/confirm", taskcafeHandler.ConfirmUser)
 		mux.Post("/auth/register", taskcafeHandler.RegisterUser)
 		mux.Get("/settings", taskcafeHandler.PublicSettings)
+		mux.Post("/logger", taskcafeHandler.HandleClientLog)
 	})
 	auth := AuthenticationMiddleware{*repository}
 	r.Group(func(mux chi.Router) {

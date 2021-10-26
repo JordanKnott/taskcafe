@@ -10,10 +10,24 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import isBetween from 'dayjs/plugin/isBetween';
 import weekday from 'dayjs/plugin/weekday';
+import log from 'loglevel';
+import remote from 'loglevel-plugin-remote';
 import cache from './App/cache';
 import App from './App';
 
-// https://able.bio/AnasT/apollo-graphql-async-access-token-refresh--470t1c8
+if (process.env.REACT_APP_NODE_ENV === 'production') {
+  remote.apply(log, { format: remote.json });
+  switch (process.env.REACT_APP_LOG_LEVEL) {
+    case 'info':
+      log.setLevel(log.levels.INFO);
+      break;
+    case 'debug':
+      log.setLevel(log.levels.DEBUG);
+      break;
+    default:
+      log.setLevel(log.levels.ERROR);
+  }
+}
 
 enableMapSet();
 
@@ -30,7 +44,6 @@ dayjs.updateLocale('en', {
 });
 
 const client = new ApolloClient({ uri: '/graphql', cache });
-console.log('cloient', client);
 
 ReactDOM.render(
   <ApolloProvider client={client}>

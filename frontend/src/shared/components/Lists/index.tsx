@@ -4,6 +4,7 @@ import List, { ListCards } from 'shared/components/List';
 import Card from 'shared/components/Card';
 import CardComposer from 'shared/components/CardComposer';
 import AddList from 'shared/components/AddList';
+import log from 'loglevel';
 import {
   isPositionChanged,
   getSortedDraggables,
@@ -262,6 +263,9 @@ const SimpleLists: React.FC<SimpleProps> = ({
             id: destination.droppableId,
           },
         };
+        log.debug(
+          `action=move taskId=${droppedTask.id} source=${source.droppableId} dest=${destination.droppableId} oldPos=${droppedTask.position} newPos=${newPosition}`,
+        );
         onTaskDrop(newTask, droppedTask.taskGroup.id);
       }
     }
