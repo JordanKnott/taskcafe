@@ -11,7 +11,6 @@ type TeamPermission {
   org: RoleCode!
 }
 
-
 extend type Mutation {
   createTeamMember(input: CreateTeamMember!):
     CreateTeamMemberPayload! @hasRole(roles: [ADMIN], level: TEAM, type: TEAM)
@@ -77,3 +76,4 @@ type DeleteTeamPayload {
   team: Team!
   projects: [Project!]!
 }
+

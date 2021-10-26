@@ -1,36 +1,37 @@
+extend type Subscription {
+    notificationAdded: Notified!
+}
+
 extend type Query {
-  notifications: [Notification!]!
-}
-
-enum EntityType {
-  TASK
-}
-
-enum ActorType {
-  USER
+  notifications: [Notified!]!
 }
 
 enum ActionType {
   TASK_MEMBER_ADDED
 }
 
-type NotificationActor {
-  id: UUID!
-  type: ActorType!
-  name: String!
+type NotificationData {
+  key: String!
+  value: String!
 }
 
-type NotificationEntity {
-  id: UUID!
-  type: EntityType!
-  name: String!
+type NotificationCausedBy {
+  fullname: String!
+  username: String!
+  id: ID!
 }
 
 type Notification {
   id: ID!
-  entity: NotificationEntity!
   actionType: ActionType!
-  actor: NotificationActor!
-  read: Boolean!
+  causedBy: NotificationCausedBy!
+  data: [NotificationData!]!
   createdAt: Time!
+}
+
+type Notified {
+  id: ID!
+  notification: Notification!
+  read: Boolean!
+  read_at: Time
 }

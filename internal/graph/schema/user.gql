@@ -19,8 +19,6 @@ type InvitedUserAccount {
   member: MemberList!
 }
 
-
-
 extend type Mutation {
   createUserAccount(input: NewUserAccount!):
     UserAccount! @hasRole(roles: [ADMIN], level: ORG, type: ORG)
@@ -116,3 +114,4 @@ type DeleteUserAccountPayload {
   ok: Boolean!
   userAccount: UserAccount!
 }
+

@@ -356,16 +356,22 @@ type NewUserAccount struct {
 	RoleCode string `json:"roleCode"`
 }
 
-type NotificationActor struct {
-	ID   uuid.UUID `json:"id"`
-	Type ActorType `json:"type"`
-	Name string    `json:"name"`
+type NotificationCausedBy struct {
+	Fullname string    `json:"fullname"`
+	Username string    `json:"username"`
+	ID       uuid.UUID `json:"id"`
 }
 
-type NotificationEntity struct {
-	ID   uuid.UUID  `json:"id"`
-	Type EntityType `json:"type"`
-	Name string     `json:"name"`
+type NotificationData struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type Notified struct {
+	ID           uuid.UUID        `json:"id"`
+	Notification *db.Notification `json:"notification"`
+	Read         bool             `json:"read"`
+	ReadAt       *time.Time       `json:"read_at"`
 }
 
 type OwnedList struct {
@@ -755,84 +761,6 @@ func (e *ActivityType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ActivityType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type ActorType string
-
-const (
-	ActorTypeUser ActorType = "USER"
-)
-
-var AllActorType = []ActorType{
-	ActorTypeUser,
-}
-
-func (e ActorType) IsValid() bool {
-	switch e {
-	case ActorTypeUser:
-		return true
-	}
-	return false
-}
-
-func (e ActorType) String() string {
-	return string(e)
-}
-
-func (e *ActorType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ActorType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ActorType", str)
-	}
-	return nil
-}
-
-func (e ActorType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type EntityType string
-
-const (
-	EntityTypeTask EntityType = "TASK"
-)
-
-var AllEntityType = []EntityType{
-	EntityTypeTask,
-}
-
-func (e EntityType) IsValid() bool {
-	switch e {
-	case EntityTypeTask:
-		return true
-	}
-	return false
-}
-
-func (e EntityType) String() string {
-	return string(e)
-}
-
-func (e *EntityType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = EntityType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid EntityType", str)
-	}
-	return nil
-}
-
-func (e EntityType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

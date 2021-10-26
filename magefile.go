@@ -151,7 +151,7 @@ func (Backend) Schema() error {
 			}
 			fmt.Fprintln(&schema, string(content))
 		}
-		err = ioutil.WriteFile("internal/graph/schema/"+folder.Name()+".gql", []byte(schema.String()), os.FileMode(0755))
+		err = ioutil.WriteFile("internal/graph/schema/"+folder.Name()+".gql", []byte(schema.String()), os.FileMode(0644))
 	}
 	if err != nil {
 		panic(err)
