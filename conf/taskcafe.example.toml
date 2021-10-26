@@ -1,5 +1,6 @@
 [server]
 hostname = '0.0.0.0:3333'
+remote_user_header = ""
 
 [email_notifications]
 enabled = true

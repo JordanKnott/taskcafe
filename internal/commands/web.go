@@ -75,15 +75,24 @@ func newWebCmd() *cobra.Command {
 				log.Warn("server.secret is not set, generating a random secret")
 				secret = uuid.New().String()
 			}
+
 			security, err := utils.GetSecurityConfig(viper.GetString("security.token_expiration"), []byte(secret))
-			r, _ := route.NewRouter(db, utils.EmailConfig{
-				From:               viper.GetString("smtp.from"),
-				Host:               viper.GetString("smtp.host"),
-				Port:               viper.GetInt("smtp.port"),
-				Username:           viper.GetString("smtp.username"),
-				Password:           viper.GetString("smtp.password"),
-				InsecureSkipVerify: viper.GetBool("smtp.skip_verify"),
-			}, security)
+			if err != nil {
+				log.Error(err)
+			}
+			security.UserAuthHeader = viper.GetString("server.remote_user_header")
+
+			r, _ := route.NewRouter(db, route.Config{
+				Email: utils.EmailConfig{
+					From:               viper.GetString("smtp.from"),
+					Host:               viper.GetString("smtp.host"),
+					Port:               viper.GetInt("smtp.port"),
+					Username:           viper.GetString("smtp.username"),
+					Password:           viper.GetString("smtp.password"),
+					InsecureSkipVerify: viper.GetBool("smtp.skip_verify"),
+				},
+				Security: security,
+			})
 			log.WithFields(log.Fields{"url": viper.GetString("server.hostname")}).Info("starting server")
 			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},

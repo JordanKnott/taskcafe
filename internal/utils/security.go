@@ -9,6 +9,11 @@ import (
 type SecurityConfig struct {
 	AccessTokenExpiration time.Duration
 	Secret                []byte
+	UserAuthHeader        string
+}
+
+func (c SecurityConfig) IsRemoteAuth() bool {
+	return c.UserAuthHeader != ""
 }
 
 func GetSecurityConfig(accessTokenExp string, secret []byte) (SecurityConfig, error) {

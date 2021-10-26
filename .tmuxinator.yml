@@ -21,4 +21,4 @@ windows:
   - database:
       root: ./
       panes:
-        - pgcli postgres://taskcafe:taskcafe_test@localhost:8855/taskcafe
+        - pgcli postgres://taskcafe:taskcafe_test@localhost:8865/taskcafe
