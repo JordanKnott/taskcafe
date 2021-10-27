@@ -16,7 +16,7 @@ type Querier interface {
 	CreateInvitedUser(ctx context.Context, email string) (UserAccountInvited, error)
 	CreateLabelColor(ctx context.Context, arg CreateLabelColorParams) (LabelColor, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
-	CreateNotificationObject(ctx context.Context, arg CreateNotificationObjectParams) (NotificationObject, error)
+	CreateNotificationNotifed(ctx context.Context, arg CreateNotificationNotifedParams) (NotificationNotified, error)
 	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) (Organization, error)
 	CreatePersonalProject(ctx context.Context, arg CreatePersonalProjectParams) (Project, error)
 	CreatePersonalProjectLink(ctx context.Context, arg CreatePersonalProjectLinkParams) (PersonalProject, error)
@@ -61,7 +61,7 @@ type Querier interface {
 	DeleteUserAccountInvitedForEmail(ctx context.Context, email string) error
 	DoesUserExist(ctx context.Context, arg DoesUserExistParams) (bool, error)
 	GetActivityForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskActivity, error)
-	GetAllNotificationsForUserID(ctx context.Context, notifierID uuid.UUID) ([]Notification, error)
+	GetAllNotificationsForUserID(ctx context.Context, userID uuid.UUID) ([]GetAllNotificationsForUserIDRow, error)
 	GetAllOrganizations(ctx context.Context) ([]Organization, error)
 	GetAllProjectsForTeam(ctx context.Context, teamID uuid.UUID) ([]Project, error)
 	GetAllTaskGroups(ctx context.Context) ([]TaskGroup, error)
@@ -78,8 +78,6 @@ type Querier interface {
 	GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error)
 	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)
-	GetEntityForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetEntityForNotificationIDRow, error)
-	GetEntityIDForNotificationID(ctx context.Context, notificationID uuid.UUID) (uuid.UUID, error)
 	GetInvitedMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]GetInvitedMembersForProjectIDRow, error)
 	GetInvitedUserAccounts(ctx context.Context) ([]UserAccountInvited, error)
 	GetInvitedUserByEmail(ctx context.Context, email string) (UserAccountInvited, error)
@@ -89,7 +87,6 @@ type Querier interface {
 	GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error)
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
-	GetNotificationForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetNotificationForNotificationIDRow, error)
 	GetPersonalProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectIDForTask(ctx context.Context, taskID uuid.UUID) (uuid.UUID, error)
@@ -134,6 +131,7 @@ type Querier interface {
 	GetUserRolesForProject(ctx context.Context, arg GetUserRolesForProjectParams) (GetUserRolesForProjectRow, error)
 	HasActiveUser(ctx context.Context) (bool, error)
 	HasAnyUser(ctx context.Context) (bool, error)
+	MarkNotificationAsRead(ctx context.Context, arg MarkNotificationAsReadParams) error
 	SetFirstUserActive(ctx context.Context) (UserAccount, error)
 	SetInactiveLastMoveForTaskID(ctx context.Context, taskID uuid.UUID) error
 	SetPublicOn(ctx context.Context, arg SetPublicOnParams) (Project, error)

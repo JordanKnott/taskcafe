@@ -5,86 +5,129 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 const createNotification = `-- name: CreateNotification :one
-INSERT INTO notification(notification_object_id, notifier_id)
-  VALUES ($1, $2) RETURNING notification_id, notification_object_id, notifier_id, read
+INSERT INTO notification (caused_by, data, action_type, created_on)
+  VALUES ($1, $2, $3, $4) RETURNING notification_id, caused_by, action_type, data, created_on
 `
 
 type CreateNotificationParams struct {
-	NotificationObjectID uuid.UUID `json:"notification_object_id"`
-	NotifierID           uuid.UUID `json:"notifier_id"`
+	CausedBy   uuid.UUID       `json:"caused_by"`
+	Data       json.RawMessage `json:"data"`
+	ActionType string          `json:"action_type"`
+	CreatedOn  time.Time       `json:"created_on"`
 }
 
 func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error) {
-	row := q.db.QueryRowContext(ctx, createNotification, arg.NotificationObjectID, arg.NotifierID)
+	row := q.db.QueryRowContext(ctx, createNotification,
+		arg.CausedBy,
+		arg.Data,
+		arg.ActionType,
+		arg.CreatedOn,
+	)
 	var i Notification
 	err := row.Scan(
 		&i.NotificationID,
-		&i.NotificationObjectID,
-		&i.NotifierID,
-		&i.Read,
-	)
-	return i, err
-}
-
-const createNotificationObject = `-- name: CreateNotificationObject :one
-INSERT INTO notification_object(entity_type, action_type, entity_id, created_on, actor_id)
-  VALUES ($1, $2, $3, $4, $5) RETURNING notification_object_id, entity_id, action_type, actor_id, entity_type, created_on
-`
-
-type CreateNotificationObjectParams struct {
-	EntityType int32     `json:"entity_type"`
-	ActionType int32     `json:"action_type"`
-	EntityID   uuid.UUID `json:"entity_id"`
-	CreatedOn  time.Time `json:"created_on"`
-	ActorID    uuid.UUID `json:"actor_id"`
-}
-
-func (q *Queries) CreateNotificationObject(ctx context.Context, arg CreateNotificationObjectParams) (NotificationObject, error) {
-	row := q.db.QueryRowContext(ctx, createNotificationObject,
-		arg.EntityType,
-		arg.ActionType,
-		arg.EntityID,
-		arg.CreatedOn,
-		arg.ActorID,
-	)
-	var i NotificationObject
-	err := row.Scan(
-		&i.NotificationObjectID,
-		&i.EntityID,
+		&i.CausedBy,
 		&i.ActionType,
-		&i.ActorID,
-		&i.EntityType,
+		&i.Data,
 		&i.CreatedOn,
 	)
 	return i, err
 }
 
-const getAllNotificationsForUserID = `-- name: GetAllNotificationsForUserID :many
-SELECT n.notification_id, n.notification_object_id, n.notifier_id, n.read FROM notification as n
-INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notifier_id = $1 ORDER BY no.created_on DESC
+const createNotificationNotifed = `-- name: CreateNotificationNotifed :one
+INSERT INTO notification_notified (notification_id, user_id) VALUES ($1, $2) RETURNING notified_id, notification_id, user_id, read, read_at
 `
 
-func (q *Queries) GetAllNotificationsForUserID(ctx context.Context, notifierID uuid.UUID) ([]Notification, error) {
-	rows, err := q.db.QueryContext(ctx, getAllNotificationsForUserID, notifierID)
+type CreateNotificationNotifedParams struct {
+	NotificationID uuid.UUID `json:"notification_id"`
+	UserID         uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) CreateNotificationNotifed(ctx context.Context, arg CreateNotificationNotifedParams) (NotificationNotified, error) {
+	row := q.db.QueryRowContext(ctx, createNotificationNotifed, arg.NotificationID, arg.UserID)
+	var i NotificationNotified
+	err := row.Scan(
+		&i.NotifiedID,
+		&i.NotificationID,
+		&i.UserID,
+		&i.Read,
+		&i.ReadAt,
+	)
+	return i, err
+}
+
+const getAllNotificationsForUserID = `-- name: GetAllNotificationsForUserID :many
+SELECT notified_id, nn.notification_id, nn.user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on, user_account.user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio, active FROM notification_notified AS nn
+  INNER JOIN notification AS n ON n.notification_id = nn.notification_id
+  LEFT JOIN user_account ON user_account.user_id = n.caused_by
+  WHERE nn.user_id = $1
+`
+
+type GetAllNotificationsForUserIDRow struct {
+	NotifiedID       uuid.UUID       `json:"notified_id"`
+	NotificationID   uuid.UUID       `json:"notification_id"`
+	UserID           uuid.UUID       `json:"user_id"`
+	Read             bool            `json:"read"`
+	ReadAt           sql.NullTime    `json:"read_at"`
+	NotificationID_2 uuid.UUID       `json:"notification_id_2"`
+	CausedBy         uuid.UUID       `json:"caused_by"`
+	ActionType       string          `json:"action_type"`
+	Data             json.RawMessage `json:"data"`
+	CreatedOn        time.Time       `json:"created_on"`
+	UserID_2         uuid.UUID       `json:"user_id_2"`
+	CreatedAt        time.Time       `json:"created_at"`
+	Email            string          `json:"email"`
+	Username         string          `json:"username"`
+	PasswordHash     string          `json:"password_hash"`
+	ProfileBgColor   string          `json:"profile_bg_color"`
+	FullName         string          `json:"full_name"`
+	Initials         string          `json:"initials"`
+	ProfileAvatarUrl sql.NullString  `json:"profile_avatar_url"`
+	RoleCode         string          `json:"role_code"`
+	Bio              string          `json:"bio"`
+	Active           bool            `json:"active"`
+}
+
+func (q *Queries) GetAllNotificationsForUserID(ctx context.Context, userID uuid.UUID) ([]GetAllNotificationsForUserIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllNotificationsForUserID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Notification
+	var items []GetAllNotificationsForUserIDRow
 	for rows.Next() {
-		var i Notification
+		var i GetAllNotificationsForUserIDRow
 		if err := rows.Scan(
+			&i.NotifiedID,
 			&i.NotificationID,
-			&i.NotificationObjectID,
-			&i.NotifierID,
+			&i.UserID,
 			&i.Read,
+			&i.ReadAt,
+			&i.NotificationID_2,
+			&i.CausedBy,
+			&i.ActionType,
+			&i.Data,
+			&i.CreatedOn,
+			&i.UserID_2,
+			&i.CreatedAt,
+			&i.Email,
+			&i.Username,
+			&i.PasswordHash,
+			&i.ProfileBgColor,
+			&i.FullName,
+			&i.Initials,
+			&i.ProfileAvatarUrl,
+			&i.RoleCode,
+			&i.Bio,
+			&i.Active,
 		); err != nil {
 			return nil, err
 		}
@@ -99,79 +142,16 @@ func (q *Queries) GetAllNotificationsForUserID(ctx context.Context, notifierID u
 	return items, nil
 }
 
-const getEntityForNotificationID = `-- name: GetEntityForNotificationID :one
-SELECT no.created_on, no.entity_id, no.entity_type, no.action_type, no.actor_id FROM notification as n
-  INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notification_id = $1
+const markNotificationAsRead = `-- name: MarkNotificationAsRead :exec
+UPDATE notification_notified SET read = true, read_at = $2 WHERE user_id = $1
 `
 
-type GetEntityForNotificationIDRow struct {
-	CreatedOn  time.Time `json:"created_on"`
-	EntityID   uuid.UUID `json:"entity_id"`
-	EntityType int32     `json:"entity_type"`
-	ActionType int32     `json:"action_type"`
-	ActorID    uuid.UUID `json:"actor_id"`
+type MarkNotificationAsReadParams struct {
+	UserID uuid.UUID    `json:"user_id"`
+	ReadAt sql.NullTime `json:"read_at"`
 }
 
-func (q *Queries) GetEntityForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetEntityForNotificationIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getEntityForNotificationID, notificationID)
-	var i GetEntityForNotificationIDRow
-	err := row.Scan(
-		&i.CreatedOn,
-		&i.EntityID,
-		&i.EntityType,
-		&i.ActionType,
-		&i.ActorID,
-	)
-	return i, err
-}
-
-const getEntityIDForNotificationID = `-- name: GetEntityIDForNotificationID :one
-SELECT no.entity_id FROM notification as n
-  INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notification_id = $1
-`
-
-func (q *Queries) GetEntityIDForNotificationID(ctx context.Context, notificationID uuid.UUID) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, getEntityIDForNotificationID, notificationID)
-	var entity_id uuid.UUID
-	err := row.Scan(&entity_id)
-	return entity_id, err
-}
-
-const getNotificationForNotificationID = `-- name: GetNotificationForNotificationID :one
-SELECT n.notification_id, n.notification_object_id, n.notifier_id, n.read, no.notification_object_id, no.entity_id, no.action_type, no.actor_id, no.entity_type, no.created_on FROM notification as n
-  INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notification_id = $1
-`
-
-type GetNotificationForNotificationIDRow struct {
-	NotificationID         uuid.UUID `json:"notification_id"`
-	NotificationObjectID   uuid.UUID `json:"notification_object_id"`
-	NotifierID             uuid.UUID `json:"notifier_id"`
-	Read                   bool      `json:"read"`
-	NotificationObjectID_2 uuid.UUID `json:"notification_object_id_2"`
-	EntityID               uuid.UUID `json:"entity_id"`
-	ActionType             int32     `json:"action_type"`
-	ActorID                uuid.UUID `json:"actor_id"`
-	EntityType             int32     `json:"entity_type"`
-	CreatedOn              time.Time `json:"created_on"`
-}
-
-func (q *Queries) GetNotificationForNotificationID(ctx context.Context, notificationID uuid.UUID) (GetNotificationForNotificationIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getNotificationForNotificationID, notificationID)
-	var i GetNotificationForNotificationIDRow
-	err := row.Scan(
-		&i.NotificationID,
-		&i.NotificationObjectID,
-		&i.NotifierID,
-		&i.Read,
-		&i.NotificationObjectID_2,
-		&i.EntityID,
-		&i.ActionType,
-		&i.ActorID,
-		&i.EntityType,
-		&i.CreatedOn,
-	)
-	return i, err
+func (q *Queries) MarkNotificationAsRead(ctx context.Context, arg MarkNotificationAsReadParams) error {
+	_, err := q.db.ExecContext(ctx, markNotificationAsRead, arg.UserID, arg.ReadAt)
+	return err
 }

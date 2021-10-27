@@ -25,19 +25,19 @@ type LabelColor struct {
 }
 
 type Notification struct {
-	NotificationID       uuid.UUID `json:"notification_id"`
-	NotificationObjectID uuid.UUID `json:"notification_object_id"`
-	NotifierID           uuid.UUID `json:"notifier_id"`
-	Read                 bool      `json:"read"`
+	NotificationID uuid.UUID       `json:"notification_id"`
+	CausedBy       uuid.UUID       `json:"caused_by"`
+	ActionType     string          `json:"action_type"`
+	Data           json.RawMessage `json:"data"`
+	CreatedOn      time.Time       `json:"created_on"`
 }
 
-type NotificationObject struct {
-	NotificationObjectID uuid.UUID `json:"notification_object_id"`
-	EntityID             uuid.UUID `json:"entity_id"`
-	ActionType           int32     `json:"action_type"`
-	ActorID              uuid.UUID `json:"actor_id"`
-	EntityType           int32     `json:"entity_type"`
-	CreatedOn            time.Time `json:"created_on"`
+type NotificationNotified struct {
+	NotifiedID     uuid.UUID    `json:"notified_id"`
+	NotificationID uuid.UUID    `json:"notification_id"`
+	UserID         uuid.UUID    `json:"user_id"`
+	Read           bool         `json:"read"`
+	ReadAt         sql.NullTime `json:"read_at"`
 }
 
 type Organization struct {

@@ -1,27 +1,15 @@
 -- name: GetAllNotificationsForUserID :many
-SELECT n.* FROM notification as n
-INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notifier_id = $1 ORDER BY no.created_on DESC;
+SELECT * FROM notification_notified AS nn
+  INNER JOIN notification AS n ON n.notification_id = nn.notification_id
+  LEFT JOIN user_account ON user_account.user_id = n.caused_by
+  WHERE nn.user_id = $1;
 
--- name: GetNotificationForNotificationID :one
-SELECT n.*, no.* FROM notification as n
-  INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notification_id = $1;
-
--- name: CreateNotificationObject :one
-INSERT INTO notification_object(entity_type, action_type, entity_id, created_on, actor_id)
-  VALUES ($1, $2, $3, $4, $5) RETURNING *;
-
--- name: GetEntityIDForNotificationID :one
-SELECT no.entity_id FROM notification as n
-  INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notification_id = $1;
-
--- name: GetEntityForNotificationID :one
-SELECT no.created_on, no.entity_id, no.entity_type, no.action_type, no.actor_id FROM notification as n
-  INNER JOIN notification_object as no ON no.notification_object_id = n.notification_object_id
-WHERE n.notification_id = $1;
+-- name: MarkNotificationAsRead :exec
+UPDATE notification_notified SET read = true, read_at = $2 WHERE user_id = $1;
 
 -- name: CreateNotification :one
-INSERT INTO notification(notification_object_id, notifier_id)
-  VALUES ($1, $2) RETURNING *;
+INSERT INTO notification (caused_by, data, action_type, created_on)
+  VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: CreateNotificationNotifed :one
+INSERT INTO notification_notified (notification_id, user_id) VALUES ($1, $2) RETURNING *;

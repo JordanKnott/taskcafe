@@ -3,8 +3,8 @@ DROP TABLE notification CASCADE;
 
 CREATE TABLE notification (
   notification_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  actor_id uuid,
-  action_type int NOT NULL,
+  caused_by uuid NOT NULL,
+  action_type text NOT NULL,
   data jsonb,
   created_on timestamptz NOT NULL
 );

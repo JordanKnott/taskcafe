@@ -222,16 +222,6 @@ func ConvertToRoleCode(r string) RoleCode {
 	return RoleCodeObserver
 }
 
-// GetEntityType converts integer to EntityType enum
-func GetEntityType(entityType int32) EntityType {
-	switch entityType {
-	case 1:
-		return EntityTypeTask
-	default:
-		panic("Not a valid entity type!")
-	}
-}
-
 // GetActionType converts integer to ActionType enum
 func GetActionType(actionType int32) ActionType {
 	switch actionType {
