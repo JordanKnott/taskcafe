@@ -17,6 +17,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/google/uuid"
+	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	"github.com/jordanknott/taskcafe/internal/utils"
@@ -25,11 +26,11 @@ import (
 )
 
 // NewHandler returns a new graphql endpoint handler.
-func NewHandler(repo db.Repository, emailConfig utils.EmailConfig) http.Handler {
+func NewHandler(repo db.Repository, appConfig config.AppConfig) http.Handler {
 	c := Config{
 		Resolvers: &Resolver{
-			Repository:  repo,
-			EmailConfig: emailConfig,
+			Repository: repo,
+			AppConfig:  appConfig,
 		},
 	}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (interface{}, error) {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -52,6 +53,7 @@ func initConfig() {
 	viper.SetEnvPrefix("TASKCAFE")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+	config.InitDefaults()
 
 	err := viper.ReadInConfig()
 	if err == nil {
@@ -61,30 +63,10 @@ func initConfig() {
 		panic(err)
 	}
 
-	viper.SetDefault("server.hostname", "0.0.0.0:3333")
-	viper.SetDefault("database.host", "127.0.0.1")
-	viper.SetDefault("database.name", "taskcafe")
-	viper.SetDefault("database.user", "taskcafe")
-	viper.SetDefault("database.password", "taskcafe_test")
-
-	viper.SetDefault("queue.broker", "amqp://guest:guest@localhost:5672/")
-	viper.SetDefault("queue.store", "memcache://localhost:11211")
-
 }
 
 // Execute the root cobra command
 func Execute() {
-	viper.SetDefault("server.hostname", "0.0.0.0:3333")
-	viper.SetDefault("database.host", "127.0.0.1")
-	viper.SetDefault("database.name", "taskcafe")
-	viper.SetDefault("database.user", "taskcafe")
-	viper.SetDefault("database.password", "taskcafe_test")
-	viper.SetDefault("database.port", "5432")
-	viper.SetDefault("security.token_expiration", "15m")
-
-	viper.SetDefault("queue.broker", "amqp://guest:guest@localhost:5672/")
-	viper.SetDefault("queue.store", "memcache://localhost:11211")
-
 	rootCmd.SetVersionTemplate(VersionTemplate())
 	rootCmd.AddCommand(newWebCmd(), newMigrateCmd(), newWorkerCmd(), newResetPasswordCmd(), newSeedCmd())
 	rootCmd.Execute()

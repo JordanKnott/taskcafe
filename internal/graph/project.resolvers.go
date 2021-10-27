@@ -130,7 +130,7 @@ func (r *mutationResolver) InviteProjectMembers(ctx context.Context, input Invit
 						return &InviteProjectMembersPayload{Ok: false}, err
 					}
 					invite := utils.EmailInvite{To: *invitedMember.Email, FullName: *invitedMember.Email, ConfirmToken: confirmToken.ConfirmTokenID.String()}
-					err = utils.SendEmailInvite(r.EmailConfig, invite)
+					err = utils.SendEmailInvite(r.AppConfig.Email, invite)
 					if err != nil {
 						logger.New(ctx).WithError(err).Error("issue sending email")
 						return &InviteProjectMembersPayload{Ok: false}, err

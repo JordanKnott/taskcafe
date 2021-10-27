@@ -6,13 +6,13 @@ package graph
 import (
 	"sync"
 
+	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
-	"github.com/jordanknott/taskcafe/internal/utils"
 )
 
 // Resolver handles resolving GraphQL queries & mutations
 type Resolver struct {
-	Repository  db.Repository
-	EmailConfig utils.EmailConfig
-	mu          sync.Mutex
+	Repository db.Repository
+	AppConfig  config.AppConfig
+	mu         sync.Mutex
 }

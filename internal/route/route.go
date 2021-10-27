@@ -13,11 +13,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/frontend"
 	"github.com/jordanknott/taskcafe/internal/graph"
 	"github.com/jordanknott/taskcafe/internal/logger"
-	"github.com/jordanknott/taskcafe/internal/utils"
 )
 
 // FrontendHandler serves an embed React client through chi
@@ -61,12 +61,12 @@ func (h FrontendHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // TaskcafeHandler contains all the route handlers
 type TaskcafeHandler struct {
-	repo           db.Repository
-	SecurityConfig utils.SecurityConfig
+	repo      db.Repository
+	AppConfig config.AppConfig
 }
 
 // NewRouter creates a new router for chi
-func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityConfig utils.SecurityConfig) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB, appConfig config.AppConfig) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -93,7 +93,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityCon
 	}))
 
 	repository := db.NewRepository(dbConnection)
-	taskcafeHandler := TaskcafeHandler{*repository, securityConfig}
+	taskcafeHandler := TaskcafeHandler{*repository, appConfig}
 
 	var imgServer = http.FileServer(http.Dir("./uploads/"))
 	r.Group(func(mux chi.Router) {
@@ -109,7 +109,7 @@ func NewRouter(dbConnection *sqlx.DB, emailConfig utils.EmailConfig, securityCon
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
-		mux.Handle("/graphql", graph.NewHandler(*repository, emailConfig))
+		mux.Handle("/graphql", graph.NewHandler(*repository, appConfig))
 	})
 
 	frontend := FrontendHandler{staticPath: "build", indexPath: "index.html"}
