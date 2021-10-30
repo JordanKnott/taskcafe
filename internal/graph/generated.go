@@ -2047,7 +2047,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Notified.Read(childComplexity), true
 
-	case "Notified.read_at":
+	case "Notified.readAt":
 		if e.complexity.Notified.ReadAt == nil {
 			break
 		}
@@ -3185,7 +3185,7 @@ type Notified {
   id: ID!
   notification: Notification!
   read: Boolean!
-  read_at: Time
+  readAt: Time
 }
 
 `, BuiltIn: false},
@@ -12388,7 +12388,7 @@ func (ec *executionContext) _Notified_read(ctx context.Context, field graphql.Co
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Notified_read_at(ctx context.Context, field graphql.CollectedField, obj *Notified) (ret graphql.Marshaler) {
+func (ec *executionContext) _Notified_readAt(ctx context.Context, field graphql.CollectedField, obj *Notified) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -21877,8 +21877,8 @@ func (ec *executionContext) _Notified(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "read_at":
-			out.Values[i] = ec._Notified_read_at(ctx, field, obj)
+		case "readAt":
+			out.Values[i] = ec._Notified_readAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

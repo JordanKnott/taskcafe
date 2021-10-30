@@ -33,6 +33,6 @@ type Notified {
   id: ID!
   notification: Notification!
   read: Boolean!
-  read_at: Time
+  readAt: Time
 }
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/RichardKnop/machinery/v1"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
@@ -66,7 +67,7 @@ type TaskcafeHandler struct {
 }
 
 // NewRouter creates a new router for chi
-func NewRouter(dbConnection *sqlx.DB, appConfig config.AppConfig) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB, job *machinery.Server, appConfig config.AppConfig) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true

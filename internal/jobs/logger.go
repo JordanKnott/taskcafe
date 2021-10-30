@@ -1,4 +1,4 @@
-package notification
+package jobs
 
 import (
 	log "github.com/sirupsen/logrus"

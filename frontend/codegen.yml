@@ -1,6 +1,6 @@
 overwrite: true
 schema:
-  - '../internal/graph/schema.graphqls'
+  - '../internal/graph/schema/*.gql'
 documents:
   - 'src/shared/graphql/*.graphqls'
   - 'src/shared/graphql/**/*.ts'

@@ -42,10 +42,6 @@ export enum ActivityType {
   TaskChecklistRemoved = 'TASK_CHECKLIST_REMOVED'
 }
 
-export enum ActorType {
-  User = 'USER'
-}
-
 export type AddTaskLabelInput = {
   taskID: Scalars['UUID'];
   projectLabelID: Scalars['UUID'];
@@ -267,10 +263,6 @@ export type DuplicateTaskGroupPayload = {
   __typename?: 'DuplicateTaskGroupPayload';
   taskGroup: TaskGroup;
 };
-
-export enum EntityType {
-  Task = 'TASK'
-}
 
 export type FindProject = {
   projectID: Scalars['UUID'];
@@ -791,25 +783,31 @@ export type NewUserAccount = {
 export type Notification = {
   __typename?: 'Notification';
   id: Scalars['ID'];
-  entity: NotificationEntity;
   actionType: ActionType;
-  actor: NotificationActor;
-  read: Scalars['Boolean'];
+  causedBy: NotificationCausedBy;
+  data: Array<NotificationData>;
   createdAt: Scalars['Time'];
 };
 
-export type NotificationActor = {
-  __typename?: 'NotificationActor';
-  id: Scalars['UUID'];
-  type: ActorType;
-  name: Scalars['String'];
+export type NotificationCausedBy = {
+  __typename?: 'NotificationCausedBy';
+  fullname: Scalars['String'];
+  username: Scalars['String'];
+  id: Scalars['ID'];
 };
 
-export type NotificationEntity = {
-  __typename?: 'NotificationEntity';
-  id: Scalars['UUID'];
-  type: EntityType;
-  name: Scalars['String'];
+export type NotificationData = {
+  __typename?: 'NotificationData';
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type Notified = {
+  __typename?: 'Notified';
+  id: Scalars['ID'];
+  notification: Notification;
+  read: Scalars['Boolean'];
+  readAt?: Maybe<Scalars['Time']>;
 };
 
 export enum ObjectType {
@@ -902,7 +900,7 @@ export type Query = {
   labelColors: Array<LabelColor>;
   me?: Maybe<MePayload>;
   myTasks: MyTasksPayload;
-  notifications: Array<Notification>;
+  notifications: Array<Notified>;
   organizations: Array<Organization>;
   projects: Array<Project>;
   searchMembers: Array<MemberSearchResult>;
@@ -993,6 +991,11 @@ export type SortTaskGroupPayload = {
   __typename?: 'SortTaskGroupPayload';
   taskGroupID: Scalars['UUID'];
   tasks: Array<Task>;
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  notificationAdded: Notified;
 };
 
 export type Task = {
@@ -2355,14 +2358,15 @@ export type TopNavbarQueryVariables = Exact<{ [key: string]: never; }>;
 export type TopNavbarQuery = (
   { __typename?: 'Query' }
   & { notifications: Array<(
-    { __typename?: 'Notification' }
-    & Pick<Notification, 'createdAt' | 'read' | 'id' | 'actionType'>
-    & { entity: (
-      { __typename?: 'NotificationEntity' }
-      & Pick<NotificationEntity, 'id' | 'type' | 'name'>
-    ), actor: (
-      { __typename?: 'NotificationActor' }
-      & Pick<NotificationActor, 'id' | 'type' | 'name'>
+    { __typename?: 'Notified' }
+    & Pick<Notified, 'id' | 'read' | 'readAt'>
+    & { notification: (
+      { __typename?: 'Notification' }
+      & Pick<Notification, 'id' | 'actionType' | 'createdAt'>
+      & { causedBy: (
+        { __typename?: 'NotificationCausedBy' }
+        & Pick<NotificationCausedBy, 'username' | 'fullname' | 'id'>
+      ) }
     ) }
   )>, me?: Maybe<(
     { __typename?: 'MePayload' }
@@ -4819,20 +4823,19 @@ export type ToggleTaskLabelMutationOptions = Apollo.BaseMutationOptions<ToggleTa
 export const TopNavbarDocument = gql`
     query topNavbar {
   notifications {
-    createdAt
-    read
     id
-    entity {
+    read
+    readAt
+    notification {
       id
-      type
-      name
+      actionType
+      causedBy {
+        username
+        fullname
+        id
+      }
+      createdAt
     }
-    actor {
-      id
-      type
-      name
-    }
-    actionType
   }
   me {
     user {

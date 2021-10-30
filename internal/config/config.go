@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	mConfig "github.com/RichardKnop/machinery/v1/config"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -22,8 +23,10 @@ const (
 	SecurityTokenExpiration = "security.token_expiration"
 	SecuritySecret          = "security.secret"
 
-	QueueBroker = "queue.broker"
-	QueueStore  = "queue.store"
+	JobEnabled   = "job.enabled"
+	JobBroker    = "job.broker"
+	JobStore     = "job.store"
+	JobQueueName = "job.queue_name"
 
 	SmtpFrom       = "smtp.from"
 	SmtpHost       = "smtp.host"
@@ -33,7 +36,7 @@ const (
 	SmtpSkipVerify = "false"
 )
 
-var defaults = map[string]string{
+var defaults = map[string]interface{}{
 	ServerHostname:          "0.0.0.0:3333",
 	DatabaseHost:            "127.0.0.1",
 	DatabaseName:            "taskcafe",
@@ -43,14 +46,16 @@ var defaults = map[string]string{
 	DatabaseSslMode:         "disable",
 	SecurityTokenExpiration: "15m",
 	SecuritySecret:          "",
-	QueueBroker:             "amqp://guest:guest@localhost:5672/",
-	QueueStore:              "memcache://localhost:11211",
+	JobEnabled:              false,
+	JobBroker:               "amqp://guest:guest@localhost:5672/",
+	JobStore:                "memcache://localhost:11211",
+	JobQueueName:            "taskcafe_tasks",
 	SmtpFrom:                "no-reply@example.com",
 	SmtpHost:                "localhost",
 	SmtpPort:                "587",
 	SmtpUsername:            "",
 	SmtpPassword:            "",
-	SmtpSkipVerify:          "false",
+	SmtpSkipVerify:          false,
 }
 
 func InitDefaults() {
@@ -59,21 +64,40 @@ func InitDefaults() {
 	}
 }
 
-func GetDatabaseConnectionUri() string {
-	connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s port=%s sslmode=%s",
-		viper.GetString(DatabaseUser),
-		viper.GetString(DatabasePassword),
-		viper.GetString(DatabaseHost),
-		viper.GetString(DatabaseName),
-		viper.GetString(DatabasePort),
-		viper.GetString(DatabaseSslMode),
-	)
-	return connection
-}
-
 type AppConfig struct {
 	Email    EmailConfig
 	Security SecurityConfig
+	Database DatabaseConfig
+	Job      JobConfig
+}
+
+type JobConfig struct {
+	Enabled   bool
+	Broker    string
+	QueueName string
+	Store     string
+}
+
+func GetJobConfig() JobConfig {
+	return JobConfig{
+		Enabled:   viper.GetBool(JobEnabled),
+		Broker:    viper.GetString(JobBroker),
+		QueueName: viper.GetString(JobQueueName),
+		Store:     viper.GetString(JobStore),
+	}
+}
+
+func (cfg *JobConfig) GetJobConfig() mConfig.Config {
+	return mConfig.Config{
+		Broker:        cfg.Broker,
+		DefaultQueue:  cfg.QueueName,
+		ResultBackend: cfg.Store,
+		AMQP: &mConfig.AMQPConfig{
+			Exchange:     "machinery_exchange",
+			ExchangeType: "direct",
+			BindingKey:   "machinery_task",
+		},
+	}
 }
 
 type EmailConfig struct {
@@ -84,6 +108,27 @@ type EmailConfig struct {
 	Password           string
 	SiteURL            string
 	InsecureSkipVerify bool
+}
+
+type DatabaseConfig struct {
+	Host     string
+	Port     string
+	Name     string
+	Username string
+	Password string
+	SslMode  string
+}
+
+func (cfg DatabaseConfig) GetDatabaseConnectionUri() string {
+	connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s port=%s sslmode=%s",
+		cfg.Username,
+		cfg.Password,
+		cfg.Host,
+		cfg.Name,
+		cfg.Port,
+		cfg.SslMode,
+	)
+	return connection
 }
 
 type SecurityConfig struct {
@@ -101,10 +146,14 @@ func GetAppConfig() (AppConfig, error) {
 	if err != nil {
 		return AppConfig{}, err
 	}
+	jobCfg := GetJobConfig()
+	databaseCfg := GetDatabaseConfig()
 	emailCfg := GetEmailConfig()
 	return AppConfig{
 		Email:    emailCfg,
 		Security: securityCfg,
+		Database: databaseCfg,
+		Job:      jobCfg,
 	}, nil
 }
 
@@ -119,11 +168,22 @@ func GetSecurityConfig(accessTokenExp string, secret []byte) (SecurityConfig, er
 
 func GetEmailConfig() EmailConfig {
 	return EmailConfig{
-		From:               viper.GetString("smtp.from"),
-		Host:               viper.GetString("smtp.host"),
-		Port:               viper.GetInt("smtp.port"),
-		Username:           viper.GetString("smtp.username"),
-		Password:           viper.GetString("smtp.password"),
-		InsecureSkipVerify: viper.GetBool("smtp.skip_verify"),
+		From:               viper.GetString(SmtpFrom),
+		Host:               viper.GetString(SmtpHost),
+		Port:               viper.GetInt(SmtpPort),
+		Username:           viper.GetString(SmtpUsername),
+		Password:           viper.GetString(SmtpPassword),
+		InsecureSkipVerify: viper.GetBool(SmtpSkipVerify),
+	}
+}
+
+func GetDatabaseConfig() DatabaseConfig {
+	return DatabaseConfig{
+		Username: viper.GetString(DatabaseUser),
+		Password: viper.GetString(DatabasePassword),
+		Port:     viper.GetString(DatabasePort),
+		SslMode:  viper.GetString(DatabaseSslMode),
+		Name:     viper.GetString(DatabaseName),
+		Host:     viper.GetString(DatabaseHost),
 	}
 }

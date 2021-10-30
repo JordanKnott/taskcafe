@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/RichardKnop/machinery/v1"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
@@ -30,9 +31,13 @@ func newWebCmd() *cobra.Command {
 			log.SetFormatter(Formatter)
 			log.SetLevel(log.InfoLevel)
 
-			connection := config.GetDatabaseConnectionUri()
+			appConfig, err := config.GetAppConfig()
+			if err != nil {
+				return err
+			}
+
+			connection := appConfig.Database.GetDatabaseConnectionUri()
 			var db *sqlx.DB
-			var err error
 			var retryDuration time.Duration
 			maxRetryNumber := 4
 			for i := 0; i < maxRetryNumber; i++ {
@@ -61,11 +66,16 @@ func newWebCmd() *cobra.Command {
 				}
 			}
 
-			appConfig, err := config.GetAppConfig()
-			if err != nil {
-				return err
+			var server *machinery.Server
+			if appConfig.Job.Enabled {
+				jobConfig := appConfig.Job.GetJobConfig()
+				server, err = machinery.NewServer(&jobConfig)
+				if err != nil {
+					return err
+				}
 			}
-			r, _ := route.NewRouter(db, appConfig)
+
+			r, _ := route.NewRouter(db, server, appConfig)
 			log.WithFields(log.Fields{"url": viper.GetString("server.hostname")}).Info("starting server")
 			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},

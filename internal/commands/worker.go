@@ -1,18 +1,16 @@
 package commands
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/RichardKnop/machinery/v1"
-	"github.com/RichardKnop/machinery/v1/config"
 	queueLog "github.com/RichardKnop/machinery/v1/log"
 	"github.com/jmoiron/sqlx"
+	"github.com/jordanknott/taskcafe/internal/config"
 	repo "github.com/jordanknott/taskcafe/internal/db"
-	"github.com/jordanknott/taskcafe/internal/notification"
+	"github.com/jordanknott/taskcafe/internal/jobs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,13 +26,11 @@ func newWorkerCmd() *cobra.Command {
 			log.SetFormatter(Formatter)
 			log.SetLevel(log.InfoLevel)
 
-			connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s sslmode=disable",
-				viper.GetString("database.user"),
-				viper.GetString("database.password"),
-				viper.GetString("database.host"),
-				viper.GetString("database.name"),
-			)
-			db, err := sqlx.Connect("postgres", connection)
+			appConfig, err := config.GetAppConfig()
+			if err != nil {
+				log.Panic(err)
+			}
+			db, err := sqlx.Connect("postgres", config.GetDatabaseConfig().GetDatabaseConnectionUri())
 			if err != nil {
 				log.Panic(err)
 			}
@@ -43,25 +39,15 @@ func newWorkerCmd() *cobra.Command {
 			db.SetConnMaxLifetime(5 * time.Minute)
 			defer db.Close()
 
-			var cnf = &config.Config{
-				Broker:        viper.GetString("queue.broker"),
-				DefaultQueue:  "machinery_tasks",
-				ResultBackend: viper.GetString("queue.store"),
-				AMQP: &config.AMQPConfig{
-					Exchange:     "machinery_exchange",
-					ExchangeType: "direct",
-					BindingKey:   "machinery_task",
-				},
-			}
-
 			log.Info("starting task queue server instance")
-			server, err := machinery.NewServer(cnf)
+			jobConfig := appConfig.Job.GetJobConfig()
+			server, err := machinery.NewServer(&jobConfig)
 			if err != nil {
 				// do something with the error
 			}
-			queueLog.Set(&notification.MachineryLogger{})
+			queueLog.Set(&jobs.MachineryLogger{})
 			repo := *repo.NewRepository(db)
-			notification.RegisterTasks(server, repo)
+			jobs.RegisterTasks(server, repo)
 
 			worker := server.NewWorker("taskcafe_worker", 10)
 			log.Info("starting task queue worker")

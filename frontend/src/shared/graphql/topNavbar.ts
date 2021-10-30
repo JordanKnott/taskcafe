@@ -3,20 +3,19 @@ import gql from 'graphql-tag';
 export const TOP_NAVBAR_QUERY = gql`
   query topNavbar {
     notifications {
-      createdAt
-      read
       id
-      entity {
+      read
+      readAt
+      notification {
         id
-        type
-        name
+        actionType
+        causedBy {
+          username
+          fullname
+          id
+        }
+        createdAt
       }
-      actor {
-        id
-        type
-        name
-      }
-      actionType
     }
     me {
       user {

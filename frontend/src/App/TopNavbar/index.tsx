@@ -57,7 +57,7 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
     fetch('/auth/logout', {
       method: 'POST',
       credentials: 'include',
-    }).then(async x => {
+    }).then(async (x) => {
       const { status } = x;
       if (status === 200) {
         cache.reset();
@@ -99,11 +99,11 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
       showPopup(
         $target,
         <NotificationPopup>
-          {data.notifications.map(notification => (
+          {data.notifications.map((notification) => (
             <NotificationItem
-              title={notification.entity.name}
-              description={`${notification.actor.name} added you as a meber to the task "${notification.entity.name}"`}
-              createdAt={notification.createdAt}
+              title={notification.notification.actionType}
+              description={`${notification.notification.causedBy.fullname} added you as a meber to the task "${notification.notification.actionType}"`}
+              createdAt={notification.notification.createdAt}
             />
           ))}
         </NotificationPopup>,
@@ -116,7 +116,7 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
   // const userIsTeamOrProjectAdmin = user.isAdmin(PermissionLevel.TEAM, PermissionObjectType.TEAM, teamID);
   const userIsTeamOrProjectAdmin = true;
   const onInvitedMemberProfile = ($targetRef: React.RefObject<HTMLElement>, email: string) => {
-    const member = projectInvitedMembers ? projectInvitedMembers.find(u => u.email === email) : null;
+    const member = projectInvitedMembers ? projectInvitedMembers.find((u) => u.email === email) : null;
     if (member) {
       showPopup(
         $targetRef,
@@ -144,7 +144,7 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
   };
 
   const onMemberProfile = ($targetRef: React.RefObject<HTMLElement>, memberID: string) => {
-    const member = projectMembers ? projectMembers.find(u => u.id === memberID) : null;
+    const member = projectMembers ? projectMembers.find((u) => u.id === memberID) : null;
     const warning =
       'You can’t leave because you are the only admin. To make another user an admin, click their avatar, select “Change permissions…”, and select “Admin”.';
     if (member) {
@@ -153,7 +153,7 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
         <MiniProfile
           warning={member.role && member.role.code === 'owner' ? warning : null}
           canChangeRole={userIsTeamOrProjectAdmin}
-          onChangeRole={roleCode => {
+          onChangeRole={(roleCode) => {
             if (onChangeRole) {
               onChangeRole(member.id, roleCode);
             }
@@ -174,6 +174,12 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
     }
   };
 
+  if (data) {
+    console.log('HERE DATA');
+    console.log(data.me);
+  } else {
+    console.log('NO DATA');
+  }
   const user = data ? data.me?.user : null;
 
   return (
@@ -181,7 +187,7 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
       <TopNavbar
         name={name}
         menuType={menuType}
-        onOpenProjectFinder={$target => {
+        onOpenProjectFinder={($target) => {
           showPopup(
             $target,
             <Popup tab={0} title={null}>

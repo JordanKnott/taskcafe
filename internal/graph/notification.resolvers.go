@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
+	log "github.com/sirupsen/logrus"
 )
 
 func (r *notificationResolver) ID(ctx context.Context, obj *db.Notification) (uuid.UUID, error) {
@@ -23,7 +24,23 @@ func (r *notificationResolver) ActionType(ctx context.Context, obj *db.Notificat
 }
 
 func (r *notificationResolver) CausedBy(ctx context.Context, obj *db.Notification) (*NotificationCausedBy, error) {
-	panic(fmt.Errorf("not implemented"))
+	user, err := r.Repository.GetUserAccountByID(ctx, obj.CausedBy)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &NotificationCausedBy{
+				Fullname: "Unknown user",
+				Username: "unknown",
+				ID:       obj.CausedBy,
+			}, nil
+		}
+		log.WithError(err).Error("error while resolving Notification.CausedBy")
+		return &NotificationCausedBy{}, err
+	}
+	return &NotificationCausedBy{
+		Fullname: user.FullName,
+		Username: user.Username,
+		ID:       obj.CausedBy,
+	}, nil
 }
 
 func (r *notificationResolver) Data(ctx context.Context, obj *db.Notification) ([]NotificationData, error) {

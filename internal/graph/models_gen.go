@@ -371,7 +371,7 @@ type Notified struct {
 	ID           uuid.UUID        `json:"id"`
 	Notification *db.Notification `json:"notification"`
 	Read         bool             `json:"read"`
-	ReadAt       *time.Time       `json:"read_at"`
+	ReadAt       *time.Time       `json:"readAt"`
 }
 
 type OwnedList struct {
