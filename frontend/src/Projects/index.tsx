@@ -23,6 +23,7 @@ import NOOP from 'shared/utils/noop';
 import theme from 'App/ThemeStyles';
 import polling from 'shared/utils/polling';
 import { mixin } from '../shared/utils/styles';
+import FormInput from 'shared/components/FormInput';
 
 type CreateTeamData = { name: string };
 
@@ -52,7 +53,7 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onCreateTeam }) => {
   return (
     <CreateTeamFormContainer onSubmit={handleSubmit(createTeam)}>
       {errors.name && <ErrorText>{errors.name.message}</ErrorText>}
-      <ControlledInput width="100%" label="Team name" variant="alternate" {...register('name')} />
+      <FormInput width="100%" label="Team name" variant="alternate" {...register('name')} />
       <CreateTeamButton type="submit">Create</CreateTeamButton>
     </CreateTeamFormContainer>
   );

@@ -118,7 +118,22 @@ func (r *mutationResolver) CreateTeam(ctx context.Context, input NewTeam) (*db.T
 	}
 	createdAt := time.Now().UTC()
 	team, err := r.Repository.CreateTeam(ctx, db.CreateTeamParams{OrganizationID: input.OrganizationID, CreatedAt: createdAt, Name: input.Name})
-	return &team, err
+	if err != nil {
+		log.WithError(err).Error("while creating team")
+		return &db.Team{}, nil
+	}
+	_, err = r.Repository.CreateTeamMember(ctx, db.CreateTeamMemberParams{
+		UserID:    userID,
+		TeamID:    team.TeamID,
+		Addeddate: createdAt,
+		RoleCode:  "admin",
+	})
+	if err != nil {
+		log.WithError(err).Error("error while creating team member")
+		return &db.Team{}, nil
+	}
+
+	return &team, nil
 }
 
 func (r *teamResolver) ID(ctx context.Context, obj *db.Team) (uuid.UUID, error) {
