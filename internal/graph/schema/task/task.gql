@@ -14,11 +14,17 @@ extend type Mutation {
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   updateTaskDueDate(input: UpdateTaskDueDate!):
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+  toggleTaskWatch(input: ToggleTaskWatch!):
+    Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
 
   assignTask(input: AssignTaskInput):
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+}
+
+input ToggleTaskWatch {
+  taskID: UUID!
 }
 
 input NewTask {

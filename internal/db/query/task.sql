@@ -1,3 +1,12 @@
+-- name: GetTaskWatcher :one
+SELECT * FROM task_watcher WHERE user_id = $1 AND task_id = $2;
+
+-- name: CreateTaskWatcher :one
+INSERT INTO task_watcher (user_id, task_id, watched_at) VALUES ($1, $2, $3) RETURNING *;
+
+-- name: DeleteTaskWatcher :exec
+DELETE FROM task_watcher WHERE user_id = $1 AND task_id = $2;
+
 -- name: CreateTask :one
 INSERT INTO task (task_group_id, created_at, name, position)
   VALUES($1, $2, $3, $4) RETURNING *;
@@ -42,6 +51,12 @@ UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING *;
 -- name: GetProjectIDForTask :one
 SELECT project_id FROM task
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  WHERE task_id = $1;
+
+-- name: GetProjectInfoForTask :one
+SELECT project.project_id, project.name FROM task
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  INNER JOIN project ON task_group.project_id = project.project_id
   WHERE task_id = $1;
 
 -- name: CreateTaskComment :one

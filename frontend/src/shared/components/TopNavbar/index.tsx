@@ -36,6 +36,7 @@ import {
   ProjectMember,
   ProjectMembers,
   ProjectSwitchInner,
+  NotificationCount,
 } from './Styles';
 
 type IconContainerProps = {
@@ -185,6 +186,7 @@ type NavBarProps = {
   projectMembers?: Array<TaskUser> | null;
   projectInvitedMembers?: Array<InvitedUser> | null;
 
+  hasUnread: boolean;
   onRemoveFromBoard?: (userID: string) => void;
   onMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, memberID: string) => void;
   onInvitedMemberProfile?: ($targetRef: React.RefObject<HTMLElement>, email: string) => void;
@@ -203,6 +205,7 @@ const NavBar: React.FC<NavBarProps> = ({
   onOpenProjectFinder,
   onFavorite,
   onSetTab,
+  hasUnread,
   projectInvitedMembers,
   onChangeRole,
   name,
@@ -330,8 +333,9 @@ const NavBar: React.FC<NavBarProps> = ({
           <IconContainer disabled onClick={NOOP}>
             <ListUnordered width={20} height={20} />
           </IconContainer>
-          <IconContainer disabled onClick={onNotificationClick}>
+          <IconContainer onClick={onNotificationClick}>
             <Bell color="#c2c6dc" size={20} />
+            {hasUnread && <NotificationCount />}
           </IconContainer>
           <IconContainer disabled onClick={NOOP}>
             <BarChart width={20} height={20} />

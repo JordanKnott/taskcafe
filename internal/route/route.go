@@ -110,7 +110,7 @@ func NewRouter(dbConnection *sqlx.DB, job *machinery.Server, appConfig config.Ap
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
-		mux.Handle("/graphql", graph.NewHandler(*repository, appConfig))
+		mux.Mount("/graphql", graph.NewHandler(*repository, appConfig))
 	})
 
 	frontend := FrontendHandler{staticPath: "build", indexPath: "index.html"}

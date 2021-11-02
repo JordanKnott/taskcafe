@@ -225,7 +225,7 @@ const Card = React.forwardRef(
             <ListCardBadges>
               {watched && (
                 <ListCardBadge>
-                  <Eye width={8} height={8} />
+                  <Eye width={12} height={12} />
                 </ListCardBadge>
               )}
               {dueDate && (

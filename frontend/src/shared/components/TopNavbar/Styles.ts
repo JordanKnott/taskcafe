@@ -6,11 +6,11 @@ import { NavLink, Link } from 'react-router-dom';
 import TaskAssignee from 'shared/components/TaskAssignee';
 
 export const ProjectMember = styled(TaskAssignee)<{ zIndex: number }>`
-  z-index: ${props => props.zIndex};
+  z-index: ${(props) => props.zIndex};
   position: relative;
 
-  box-shadow: 0 0 0 2px ${props => props.theme.colors.bg.primary},
-    inset 0 0 0 1px ${props => mixin.rgba(props.theme.colors.bg.primary, 0.07)};
+  box-shadow: 0 0 0 2px ${(props) => props.theme.colors.bg.primary},
+    inset 0 0 0 1px ${(props) => mixin.rgba(props.theme.colors.bg.primary, 0.07)};
 `;
 
 export const NavbarWrapper = styled.div`
@@ -27,9 +27,9 @@ export const NavbarHeader = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: ${props => props.theme.colors.bg.primary};
+  background: ${(props) => props.theme.colors.bg.primary};
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid ${props => mixin.rgba(props.theme.colors.alternate, 0.65)};
+  border-bottom: 1px solid ${(props) => mixin.rgba(props.theme.colors.alternate, 0.65)};
 `;
 export const Breadcrumbs = styled.div`
   color: rgb(94, 108, 132);
@@ -59,7 +59,7 @@ export const ProjectSwitchInner = styled.div`
   flex-direction: column;
   justify-content: center;
 
-  background-color: ${props => props.theme.colors.primary};
+  background-color: ${(props) => props.theme.colors.primary};
 `;
 
 export const ProjectSwitch = styled.div`
@@ -109,10 +109,27 @@ export const NavbarLink = styled(Link)`
   cursor: pointer;
 `;
 
+export const NotificationCount = styled.div`
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #7367f0;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgb(16, 22, 58);
+  color: #fff;
+  font-size: 14px;
+`;
+
 export const IconContainerWrapper = styled.div<{ disabled?: boolean }>`
   margin-right: 20px;
+  position: relative;
   cursor: pointer;
-  ${props =>
+  ${(props) =>
     props.disabled &&
     css`
       opacity: 0.5;
@@ -142,14 +159,14 @@ export const ProfileIcon = styled.div<{
   justify-content: center;
   color: #fff;
   font-weight: 700;
-  background: ${props => (props.backgroundURL ? `url(${props.backgroundURL})` : props.bgColor)};
+  background: ${(props) => (props.backgroundURL ? `url(${props.backgroundURL})` : props.bgColor)};
   background-position: center;
   background-size: contain;
 `;
 
 export const ProjectMeta = styled.div<{ nameOnly?: boolean }>`
   display: flex;
-  ${props => !props.nameOnly && 'padding-top: 9px;'}
+  ${(props) => !props.nameOnly && 'padding-top: 9px;'}
   margin-left: -6px;
   align-items: center;
   max-width: 100%;
@@ -167,7 +184,7 @@ export const ProjectTabs = styled.div`
 
 export const ProjectTab = styled(NavLink)`
   font-size: 80%;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   font-size: 15px;
   cursor: pointer;
   display: flex;
@@ -184,22 +201,22 @@ export const ProjectTab = styled(NavLink)`
   }
 
   &:hover {
-    box-shadow: inset 0 -2px ${props => props.theme.colors.text.secondary};
-    color: ${props => props.theme.colors.text.secondary};
+    box-shadow: inset 0 -2px ${(props) => props.theme.colors.text.secondary};
+    color: ${(props) => props.theme.colors.text.secondary};
   }
 
   &.active {
-    box-shadow: inset 0 -2px ${props => props.theme.colors.secondary};
-    color: ${props => props.theme.colors.secondary};
+    box-shadow: inset 0 -2px ${(props) => props.theme.colors.secondary};
+    color: ${(props) => props.theme.colors.secondary};
   }
   &.active:hover {
-    box-shadow: inset 0 -2px ${props => props.theme.colors.secondary};
-    color: ${props => props.theme.colors.secondary};
+    box-shadow: inset 0 -2px ${(props) => props.theme.colors.secondary};
+    color: ${(props) => props.theme.colors.secondary};
   }
 `;
 
 export const ProjectName = styled.h1`
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   font-weight: 600;
   font-size: 20px;
   padding: 3px 10px 3px 8px;
@@ -241,7 +258,7 @@ export const ProjectNameTextarea = styled.input`
   font-size: 20px;
   padding: 3px 10px 3px 8px;
   &:focus {
-    box-shadow: ${props => props.theme.colors.primary} 0px 0px 0px 1px;
+    box-shadow: ${(props) => props.theme.colors.primary} 0px 0px 0px 1px;
   }
 `;
 
@@ -259,7 +276,7 @@ export const ProjectSwitcher = styled.button`
   color: #c2c6dc;
   cursor: pointer;
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
   }
 `;
 
@@ -283,7 +300,7 @@ export const ProjectSettingsButton = styled.button`
   justify-content: center;
   cursor: pointer;
   &:hover {
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
   }
 `;
 
@@ -309,7 +326,7 @@ export const SignIn = styled(Button)`
 
 export const NavSeparator = styled.div`
   width: 1px;
-  background: ${props => props.theme.colors.border};
+  background: ${(props) => props.theme.colors.border};
   height: 34px;
   margin: 0 20px;
 `;
@@ -326,11 +343,11 @@ export const LogoContainer = styled(Link)`
 
 export const TaskcafeTitle = styled.h2`
   margin-left: 5px;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   font-size: 20px;
 `;
 
 export const TaskcafeLogo = styled(Taskcafe)`
-  fill: ${props => props.theme.colors.text.primary};
-  stroke: ${props => props.theme.colors.text.primary};
+  fill: ${(props) => props.theme.colors.text.primary};
+  stroke: ${(props) => props.theme.colors.text.primary};
 `;

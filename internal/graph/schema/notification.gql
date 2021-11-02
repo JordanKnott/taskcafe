@@ -4,10 +4,60 @@ extend type Subscription {
 
 extend type Query {
   notifications: [Notified!]!
+  notified(input: NotifiedInput!): NotifiedResult!
+  hasUnreadNotifications: HasUnreadNotificationsResult!
+}
+
+extend type Mutation {
+  notificationToggleRead(input: NotificationToggleReadInput!): Notified!
+}
+
+type HasUnreadNotificationsResult {
+  unread: Boolean!
+}
+input NotificationToggleReadInput {
+  notifiedID: UUID!
+}
+
+input NotifiedInput {
+  limit: Int!
+  cursor: String
+  filter: NotificationFilter!
+}
+
+type PageInfo {
+  endCursor: String!
+  hasNextPage: Boolean!
+}
+
+type NotifiedResult {
+  totalCount: Int!
+  notified: [Notified!]!
+  pageInfo: PageInfo!
 }
 
 enum ActionType {
-  TASK_MEMBER_ADDED
+  TEAM_ADDED
+  TEAM_REMOVED
+  PROJECT_ADDED
+  PROJECT_REMOVED
+  PROJECT_ARCHIVED
+  DUE_DATE_ADDED
+  DUE_DATE_REMOVED
+  DUE_DATE_CHANGED
+  TASK_ASSIGNED
+  TASK_MOVED
+  TASK_ARCHIVED
+  TASK_ATTACHMENT_UPLOADED
+  COMMENT_MENTIONED
+  COMMENT_OTHER
+}
+
+enum NotificationFilter {
+  ALL
+  UNREAD
+  ASSIGNED
+  MENTIONED
 }
 
 type NotificationData {
@@ -24,7 +74,7 @@ type NotificationCausedBy {
 type Notification {
   id: ID!
   actionType: ActionType!
-  causedBy: NotificationCausedBy!
+  causedBy: NotificationCausedBy
   data: [NotificationData!]!
   createdAt: Time!
 }

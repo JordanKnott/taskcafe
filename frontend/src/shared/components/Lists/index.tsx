@@ -329,6 +329,7 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                                 toggleLabels={toggleLabels}
                                                 isPublic={isPublic}
                                                 labelVariant={cardLabelVariant}
+                                                watched={task.watched}
                                                 wrapperProps={{
                                                   ...taskProvided.draggableProps,
                                                   ...taskProvided.dragHandleProps,

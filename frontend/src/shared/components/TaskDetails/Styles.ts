@@ -4,6 +4,7 @@ import { mixin } from 'shared/utils/styles';
 import Button from 'shared/components/Button';
 import TaskAssignee from 'shared/components/TaskAssignee';
 import theme from 'App/ThemeStyles';
+import { Checkmark } from 'shared/icons';
 
 export const Container = styled.div`
   display: flex;
@@ -309,6 +310,7 @@ export const ActionButton = styled(Button)`
   text-align: left;
   transition: transform 0.2s ease;
   & span {
+    position: unset;
     justify-content: flex-start;
   }
   &:hover {
@@ -716,4 +718,9 @@ export const TaskDetailsEditor = styled(TextareaAutosize)`
   padding: 9px 8px 7px 8px;
   outline: none;
   border: none;
+`;
+
+export const WatchedCheckmark = styled(Checkmark)`
+  position: absolute;
+  right: 16px;
 `;

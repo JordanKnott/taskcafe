@@ -10,6 +10,34 @@ import (
 	"github.com/google/uuid"
 )
 
+type AccountSetting struct {
+	AccountSettingID          string         `json:"account_setting_id"`
+	Constrained               bool           `json:"constrained"`
+	DataType                  string         `json:"data_type"`
+	ConstrainedDefaultValue   sql.NullString `json:"constrained_default_value"`
+	UnconstrainedDefaultValue sql.NullString `json:"unconstrained_default_value"`
+}
+
+type AccountSettingAllowedValue struct {
+	AllowedValueID uuid.UUID `json:"allowed_value_id"`
+	SettingID      int32     `json:"setting_id"`
+	ItemValue      string    `json:"item_value"`
+}
+
+type AccountSettingDataType struct {
+	DataTypeID string `json:"data_type_id"`
+}
+
+type AccountSettingValue struct {
+	AccountSettingID   uuid.UUID      `json:"account_setting_id"`
+	UserID             uuid.UUID      `json:"user_id"`
+	SettingID          int32          `json:"setting_id"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
+	AllowedValueID     uuid.UUID      `json:"allowed_value_id"`
+	UnconstrainedValue sql.NullString `json:"unconstrained_value"`
+}
+
 type AuthToken struct {
 	TokenID   uuid.UUID `json:"token_id"`
 	UserID    uuid.UUID `json:"user_id"`
@@ -170,6 +198,13 @@ type TaskLabel struct {
 	TaskID         uuid.UUID `json:"task_id"`
 	ProjectLabelID uuid.UUID `json:"project_label_id"`
 	AssignedDate   time.Time `json:"assigned_date"`
+}
+
+type TaskWatcher struct {
+	TaskWatcherID uuid.UUID `json:"task_watcher_id"`
+	TaskID        uuid.UUID `json:"task_id"`
+	UserID        uuid.UUID `json:"user_id"`
+	WatchedAt     time.Time `json:"watched_at"`
 }
 
 type Team struct {

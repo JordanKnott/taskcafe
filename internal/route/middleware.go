@@ -18,30 +18,36 @@ type AuthenticationMiddleware struct {
 // Middleware returns the middleware handler
 func (m *AuthenticationMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Info("middleware")
 		requestID := uuid.New()
 		foundToken := true
 		tokenRaw := ""
-		c, err := r.Cookie("authToken")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				foundToken = false
-			}
-		}
-		if !foundToken {
-			token := r.Header.Get("Authorization")
-			if token != "" {
-				tokenRaw = token
-			}
+
+		token := r.Header.Get("Authorization")
+		if token != "" {
+			tokenRaw = token
 		} else {
+			foundToken = false
+		}
+
+		if !foundToken {
+			c, err := r.Cookie("authToken")
+			if err != nil {
+				if err == http.ErrNoCookie {
+					log.WithError(err).Error("error while fetching authToken")
+					w.WriteHeader(http.StatusBadRequest)
+				}
+				log.WithError(err).Error("error while fetching authToken")
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			tokenRaw = c.Value
 		}
 		authTokenID, err := uuid.Parse(tokenRaw)
-		log.Info("checking if logged in")
 		ctx := r.Context()
 		if err == nil {
 			token, err := m.repo.GetAuthTokenByID(r.Context(), authTokenID)
 			if err == nil {
+				log.WithField("tokenID", authTokenID).WithField("userID", token.UserID).Info("setting auth token")
 				ctx = context.WithValue(ctx, utils.UserIDKey, token.UserID)
 			}
 		}

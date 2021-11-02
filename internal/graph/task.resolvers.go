@@ -543,6 +543,45 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 	return &task, err
 }
 
+func (r *mutationResolver) ToggleTaskWatch(ctx context.Context, input ToggleTaskWatch) (*db.Task, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		log.Error("user ID is missing")
+		return &db.Task{}, errors.New("user ID is unknown")
+	}
+	_, err := r.Repository.GetTaskWatcher(ctx, db.GetTaskWatcherParams{UserID: userID, TaskID: input.TaskID})
+
+	isWatching := true
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.WithError(err).Error("error while getting task watcher")
+			return &db.Task{}, err
+		}
+		isWatching = false
+	}
+
+	if isWatching {
+		err := r.Repository.DeleteTaskWatcher(ctx, db.DeleteTaskWatcherParams{UserID: userID, TaskID: input.TaskID})
+		if err != nil {
+			log.WithError(err).Error("error while getting deleteing task watcher")
+			return &db.Task{}, err
+		}
+	} else {
+		now := time.Now().UTC()
+		_, err := r.Repository.CreateTaskWatcher(ctx, db.CreateTaskWatcherParams{UserID: userID, TaskID: input.TaskID, WatchedAt: now})
+		if err != nil {
+			log.WithError(err).Error("error while creating task watcher")
+			return &db.Task{}, err
+		}
+	}
+	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
+	if err != nil {
+		log.WithError(err).Error("error while getting task by id")
+		return &db.Task{}, err
+	}
+	return &task, nil
+}
+
 func (r *mutationResolver) AssignTask(ctx context.Context, input *AssignTaskInput) (*db.Task, error) {
 	assignedDate := time.Now().UTC()
 	assignedTask, err := r.Repository.CreateTaskAssigned(ctx, db.CreateTaskAssignedParams{input.TaskID, input.UserID, assignedDate})
@@ -552,20 +591,80 @@ func (r *mutationResolver) AssignTask(ctx context.Context, input *AssignTaskInpu
 		"assignedTaskID": assignedTask.TaskAssignedID,
 	}).Info("assigned task")
 	if err != nil {
+		log.WithError(err).Error("error while creating task assigned")
 		return &db.Task{}, err
 	}
-	// r.NotificationQueue.TaskMemberWasAdded(assignedTask.TaskID, userID, assignedTask.UserID)
+	_, err = r.Repository.GetTaskWatcher(ctx, db.GetTaskWatcherParams{UserID: assignedTask.UserID, TaskID: assignedTask.TaskID})
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.WithError(err).Error("error while fetching task watcher")
+			return &db.Task{}, err
+		}
+		_, err = r.Repository.CreateTaskWatcher(ctx, db.CreateTaskWatcherParams{UserID: assignedTask.UserID, TaskID: assignedTask.TaskID, WatchedAt: assignedDate})
+		if err != nil {
+			log.WithError(err).Error("error while creating task assigned task watcher")
+			return &db.Task{}, err
+		}
+	}
+
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		log.Error("error getting user ID")
+		return &db.Task{}, errors.New("UserID is missing")
+	}
 	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
-	return &task, err
+	if err != nil {
+		log.WithError(err).Error("error while getting task by ID")
+		return &db.Task{}, err
+	}
+	if userID != assignedTask.UserID {
+		causedBy, err := r.Repository.GetUserAccountByID(ctx, userID)
+		if err != nil {
+			log.WithError(err).Error("error while getting user account in assign task")
+			return &db.Task{}, err
+		}
+		project, err := r.Repository.GetProjectInfoForTask(ctx, input.TaskID)
+		if err != nil {
+			log.WithError(err).Error("error while getting project in assign task")
+			return &db.Task{}, err
+		}
+		err = r.CreateNotification(ctx, CreateNotificationParams{
+			ActionType:   ActionTypeTaskAssigned,
+			CausedBy:     userID,
+			NotifiedList: []uuid.UUID{assignedTask.UserID},
+			Data: map[string]string{
+				"CausedByUsername": causedBy.Username,
+				"CausedByFullName": causedBy.FullName,
+				"TaskID":           assignedTask.TaskID.String(),
+				"TaskName":         task.Name,
+				"ProjectID":        project.ProjectID.String(),
+				"ProjectName":      project.Name,
+			},
+		})
+	}
+	if err != nil {
+		return &task, err
+	}
+
+	// r.NotificationQueue.TaskMemberWasAdded(assignedTask.TaskID, userID, assignedTask.UserID)
+	return &task, nil
 }
 
 func (r *mutationResolver) UnassignTask(ctx context.Context, input *UnassignTaskInput) (*db.Task, error) {
 	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
 	if err != nil {
+		log.WithError(err).Error("error while getting task by ID")
 		return &db.Task{}, err
 	}
-	_, err = r.Repository.DeleteTaskAssignedByID(ctx, db.DeleteTaskAssignedByIDParams{input.TaskID, input.UserID})
+	log.WithFields(log.Fields{"UserID": input.UserID, "TaskID": input.TaskID}).Info("deleting task assignment")
+	_, err = r.Repository.DeleteTaskAssignedByID(ctx, db.DeleteTaskAssignedByIDParams{TaskID: input.TaskID, UserID: input.UserID})
+	if err != nil && err != sql.ErrNoRows {
+		log.WithError(err).Error("error while deleting task by ID")
+		return &db.Task{}, err
+	}
+	err = r.Repository.DeleteTaskWatcher(ctx, db.DeleteTaskWatcherParams{UserID: input.UserID, TaskID: input.TaskID})
 	if err != nil {
+		log.WithError(err).Error("error while creating task assigned task watcher")
 		return &db.Task{}, err
 	}
 	return &task, nil
@@ -589,6 +688,23 @@ func (r *taskResolver) Description(ctx context.Context, obj *db.Task) (*string, 
 		return nil, nil
 	}
 	return &task.Description.String, nil
+}
+
+func (r *taskResolver) Watched(ctx context.Context, obj *db.Task) (bool, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		log.Error("user ID is missing")
+		return false, errors.New("user ID is unknown")
+	}
+	_, err := r.Repository.GetTaskWatcher(ctx, db.GetTaskWatcherParams{UserID: userID, TaskID: obj.TaskID})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		log.WithError(err).Error("error while getting task watcher")
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *taskResolver) DueDate(ctx context.Context, obj *db.Task) (*time.Time, error) {

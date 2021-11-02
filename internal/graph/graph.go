@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -31,6 +32,10 @@ func NewHandler(repo db.Repository, appConfig config.AppConfig) http.Handler {
 		Resolvers: &Resolver{
 			Repository: repo,
 			AppConfig:  appConfig,
+			Notifications: NotificationObservers{
+				Mu:          sync.Mutex{},
+				Subscribers: make(map[string]map[string]chan *Notified),
+			},
 		},
 	}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (interface{}, error) {
@@ -221,16 +226,6 @@ func ConvertToRoleCode(r string) RoleCode {
 		return RoleCodeMember
 	}
 	return RoleCodeObserver
-}
-
-// GetActionType converts integer to ActionType enum
-func GetActionType(actionType int32) ActionType {
-	switch actionType {
-	case 1:
-		return ActionTypeTaskMemberAdded
-	default:
-		panic("Not a valid entity type!")
-	}
 }
 
 type MemberType string

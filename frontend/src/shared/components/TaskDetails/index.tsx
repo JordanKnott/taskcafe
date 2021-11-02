@@ -12,6 +12,7 @@ import {
   CheckSquareOutline,
   At,
   Smile,
+  Eye,
 } from 'shared/icons';
 import { toArray } from 'react-emoji-render';
 import DOMPurify from 'dompurify';
@@ -80,6 +81,7 @@ import {
   ActivityItemHeaderTitleName,
   ActivityItemComment,
   TabBarButton,
+  WatchedCheckmark,
 } from './Styles';
 import Checklist, { ChecklistItem, ChecklistItems } from '../Checklist';
 import onDragEnd from './onDragEnd';
@@ -237,6 +239,7 @@ type TaskDetailsProps = {
   onToggleChecklistItem: (itemID: string, complete: boolean) => void;
   onOpenAddMemberPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddLabelPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
+  onToggleTaskWatch: (task: Task, watched: boolean) => void;
   onOpenDueDatePopop: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onOpenAddChecklistPopup: (task: Task, $targetRef: React.RefObject<HTMLElement>) => void;
   onCreateComment: (task: Task, message: string) => void;
@@ -258,6 +261,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   task,
   editableComment = null,
   onDeleteChecklist,
+  onToggleTaskWatch,
   onTaskNameChange,
   onCommentShowActions,
   onOpenAddChecklistPopup,
@@ -328,6 +332,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const saveDescription = () => {
     onTaskDescriptionChange(task, taskDescriptionRef.current);
   };
+  console.log(task.watched);
   return (
     <Container>
       <LeftSidebar>
@@ -418,6 +423,14 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 Checklist
               </ActionButton>
               <ActionButton>Cover</ActionButton>
+              <ActionButton
+                onClick={() => {
+                  onToggleTaskWatch(task, !task.watched);
+                }}
+                icon={<Eye width={12} height={12} />}
+              >
+                Watch {task.watched && <WatchedCheckmark width={18} height={18} />}
+              </ActionButton>
             </ExtraActionsSection>
           )}
         </LeftSidebarContent>

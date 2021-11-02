@@ -62,7 +62,6 @@ func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserA
 }
 
 func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db.Project, error) {
-	logger.New(ctx).Info("finding project user")
 	_, isLoggedIn := GetUser(ctx)
 	if !isLoggedIn {
 		isPublic, _ := IsProjectPublic(ctx, r.Repository, input.ProjectID)

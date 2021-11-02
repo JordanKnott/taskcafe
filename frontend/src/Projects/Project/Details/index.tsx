@@ -7,6 +7,7 @@ import MemberManager from 'shared/components/MemberManager';
 import { useRouteMatch, useHistory, useParams } from 'react-router';
 import {
   useDeleteTaskChecklistMutation,
+  useToggleTaskWatchMutation,
   useUpdateTaskChecklistNameMutation,
   useUpdateTaskChecklistItemLocationMutation,
   useCreateTaskChecklistMutation,
@@ -216,6 +217,7 @@ const Details: React.FC<DetailsProps> = ({
       );
     },
   });
+  const [toggleTaskWatch] = useToggleTaskWatchMutation();
   const [createTaskComment] = useCreateTaskCommentMutation({
     update: (client, response) => {
       updateApolloCache<FindTaskQuery>(
@@ -440,6 +442,19 @@ const Details: React.FC<DetailsProps> = ({
                 );
               }}
               task={data.findTask}
+              onToggleTaskWatch={(task, watched) => {
+                toggleTaskWatch({
+                  variables: { taskID: task.id },
+                  optimisticResponse: {
+                    __typename: 'Mutation',
+                    toggleTaskWatch: {
+                      id: task.id,
+                      __typename: 'Task',
+                      watched,
+                    },
+                  },
+                });
+              }}
               onCreateComment={(task, message) => {
                 createTaskComment({ variables: { taskID: task.id, message } });
               }}
@@ -540,7 +555,8 @@ const Details: React.FC<DetailsProps> = ({
                         bio="None"
                         onRemoveFromTask={() => {
                           if (user) {
-                            unassignTask({ variables: { taskID: data.findTask.id, userID: user ?? '' } });
+                            unassignTask({ variables: { taskID: data.findTask.id, userID: member.id ?? '' } });
+                            hidePopup();
                           }
                         }}
                       />

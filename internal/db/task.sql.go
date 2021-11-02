@@ -120,6 +120,28 @@ func (q *Queries) CreateTaskComment(ctx context.Context, arg CreateTaskCommentPa
 	return i, err
 }
 
+const createTaskWatcher = `-- name: CreateTaskWatcher :one
+INSERT INTO task_watcher (user_id, task_id, watched_at) VALUES ($1, $2, $3) RETURNING task_watcher_id, task_id, user_id, watched_at
+`
+
+type CreateTaskWatcherParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	TaskID    uuid.UUID `json:"task_id"`
+	WatchedAt time.Time `json:"watched_at"`
+}
+
+func (q *Queries) CreateTaskWatcher(ctx context.Context, arg CreateTaskWatcherParams) (TaskWatcher, error) {
+	row := q.db.QueryRowContext(ctx, createTaskWatcher, arg.UserID, arg.TaskID, arg.WatchedAt)
+	var i TaskWatcher
+	err := row.Scan(
+		&i.TaskWatcherID,
+		&i.TaskID,
+		&i.UserID,
+		&i.WatchedAt,
+	)
+	return i, err
+}
+
 const deleteTaskByID = `-- name: DeleteTaskByID :exec
 DELETE FROM task WHERE task_id = $1
 `
@@ -146,6 +168,20 @@ func (q *Queries) DeleteTaskCommentByID(ctx context.Context, taskCommentID uuid.
 		&i.Message,
 	)
 	return i, err
+}
+
+const deleteTaskWatcher = `-- name: DeleteTaskWatcher :exec
+DELETE FROM task_watcher WHERE user_id = $1 AND task_id = $2
+`
+
+type DeleteTaskWatcherParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	TaskID uuid.UUID `json:"task_id"`
+}
+
+func (q *Queries) DeleteTaskWatcher(ctx context.Context, arg DeleteTaskWatcherParams) error {
+	_, err := q.db.ExecContext(ctx, deleteTaskWatcher, arg.UserID, arg.TaskID)
+	return err
 }
 
 const deleteTasksByTaskGroupID = `-- name: DeleteTasksByTaskGroupID :execrows
@@ -409,6 +445,25 @@ func (q *Queries) GetProjectIdMappings(ctx context.Context, dollar_1 []uuid.UUID
 	return items, nil
 }
 
+const getProjectInfoForTask = `-- name: GetProjectInfoForTask :one
+SELECT project.project_id, project.name FROM task
+  INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
+  INNER JOIN project ON task_group.project_id = project.project_id
+  WHERE task_id = $1
+`
+
+type GetProjectInfoForTaskRow struct {
+	ProjectID uuid.UUID `json:"project_id"`
+	Name      string    `json:"name"`
+}
+
+func (q *Queries) GetProjectInfoForTask(ctx context.Context, taskID uuid.UUID) (GetProjectInfoForTaskRow, error) {
+	row := q.db.QueryRowContext(ctx, getProjectInfoForTask, taskID)
+	var i GetProjectInfoForTaskRow
+	err := row.Scan(&i.ProjectID, &i.Name)
+	return i, err
+}
+
 const getRecentlyAssignedTaskForUserID = `-- name: GetRecentlyAssignedTaskForUserID :many
 SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned INNER JOIN
   task ON task.task_id = task_assigned.task_id WHERE user_id = $1
@@ -484,6 +539,27 @@ func (q *Queries) GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, erro
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+	)
+	return i, err
+}
+
+const getTaskWatcher = `-- name: GetTaskWatcher :one
+SELECT task_watcher_id, task_id, user_id, watched_at FROM task_watcher WHERE user_id = $1 AND task_id = $2
+`
+
+type GetTaskWatcherParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	TaskID uuid.UUID `json:"task_id"`
+}
+
+func (q *Queries) GetTaskWatcher(ctx context.Context, arg GetTaskWatcherParams) (TaskWatcher, error) {
+	row := q.db.QueryRowContext(ctx, getTaskWatcher, arg.UserID, arg.TaskID)
+	var i TaskWatcher
+	err := row.Scan(
+		&i.TaskWatcherID,
+		&i.TaskID,
+		&i.UserID,
+		&i.WatchedAt,
 	)
 	return i, err
 }

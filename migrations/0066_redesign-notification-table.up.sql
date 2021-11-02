@@ -16,3 +16,5 @@ CREATE TABLE notification_notified (
   read boolean NOT NULL DEFAULT false,
   read_at timestamptz
 );
+
+CREATE INDEX idx_notification_pagination ON notification (created_on, notification_id);

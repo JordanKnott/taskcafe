@@ -32,6 +32,7 @@ type Querier interface {
 	CreateTaskComment(ctx context.Context, arg CreateTaskCommentParams) (TaskComment, error)
 	CreateTaskGroup(ctx context.Context, arg CreateTaskGroupParams) (TaskGroup, error)
 	CreateTaskLabelForTask(ctx context.Context, arg CreateTaskLabelForTaskParams) (TaskLabel, error)
+	CreateTaskWatcher(ctx context.Context, arg CreateTaskWatcherParams) (TaskWatcher, error)
 	CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, error)
 	CreateTeamMember(ctx context.Context, arg CreateTeamMemberParams) (TeamMember, error)
 	CreateTeamProject(ctx context.Context, arg CreateTeamProjectParams) (Project, error)
@@ -54,6 +55,7 @@ type Querier interface {
 	DeleteTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTaskLabelByID(ctx context.Context, taskLabelID uuid.UUID) error
 	DeleteTaskLabelForTaskByProjectLabelID(ctx context.Context, arg DeleteTaskLabelForTaskByProjectLabelIDParams) error
+	DeleteTaskWatcher(ctx context.Context, arg DeleteTaskWatcherParams) error
 	DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) (int64, error)
 	DeleteTeamByID(ctx context.Context, teamID uuid.UUID) error
 	DeleteTeamMember(ctx context.Context, arg DeleteTeamMemberParams) error
@@ -87,6 +89,9 @@ type Querier interface {
 	GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error)
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetNotificationsForUserIDCursor(ctx context.Context, arg GetNotificationsForUserIDCursorParams) ([]GetNotificationsForUserIDCursorRow, error)
+	GetNotificationsForUserIDPaged(ctx context.Context, arg GetNotificationsForUserIDPagedParams) ([]GetNotificationsForUserIDPagedRow, error)
+	GetNotifiedByID(ctx context.Context, notifiedID uuid.UUID) (GetNotifiedByIDRow, error)
 	GetPersonalProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectIDForTask(ctx context.Context, taskID uuid.UUID) (uuid.UUID, error)
@@ -94,6 +99,7 @@ type Querier interface {
 	GetProjectIDForTaskChecklistItem(ctx context.Context, taskChecklistItemID uuid.UUID) (uuid.UUID, error)
 	GetProjectIDForTaskGroup(ctx context.Context, taskGroupID uuid.UUID) (uuid.UUID, error)
 	GetProjectIdMappings(ctx context.Context, dollar_1 []uuid.UUID) ([]GetProjectIdMappingsRow, error)
+	GetProjectInfoForTask(ctx context.Context, taskID uuid.UUID) (GetProjectInfoForTaskRow, error)
 	GetProjectLabelByID(ctx context.Context, projectLabelID uuid.UUID) (ProjectLabel, error)
 	GetProjectLabelsForProject(ctx context.Context, projectID uuid.UUID) ([]ProjectLabel, error)
 	GetProjectMemberInvitedIDByEmail(ctx context.Context, email string) (GetProjectMemberInvitedIDByEmailRow, error)
@@ -116,6 +122,7 @@ type Querier interface {
 	GetTaskLabelByID(ctx context.Context, taskLabelID uuid.UUID) (TaskLabel, error)
 	GetTaskLabelForTaskByProjectLabelID(ctx context.Context, arg GetTaskLabelForTaskByProjectLabelIDParams) (TaskLabel, error)
 	GetTaskLabelsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskLabel, error)
+	GetTaskWatcher(ctx context.Context, arg GetTaskWatcherParams) (TaskWatcher, error)
 	GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error)
 	GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error)
 	GetTeamMemberByID(ctx context.Context, arg GetTeamMemberByIDParams) (TeamMember, error)
@@ -131,6 +138,7 @@ type Querier interface {
 	GetUserRolesForProject(ctx context.Context, arg GetUserRolesForProjectParams) (GetUserRolesForProjectRow, error)
 	HasActiveUser(ctx context.Context) (bool, error)
 	HasAnyUser(ctx context.Context) (bool, error)
+	HasUnreadNotification(ctx context.Context, userID uuid.UUID) (bool, error)
 	MarkNotificationAsRead(ctx context.Context, arg MarkNotificationAsReadParams) error
 	SetFirstUserActive(ctx context.Context) (UserAccount, error)
 	SetInactiveLastMoveForTaskID(ctx context.Context, taskID uuid.UUID) error

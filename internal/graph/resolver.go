@@ -10,9 +10,14 @@ import (
 	"github.com/jordanknott/taskcafe/internal/db"
 )
 
+type NotificationObservers struct {
+	Subscribers map[string]map[string]chan *Notified
+	Mu          sync.Mutex
+}
+
 // Resolver handles resolving GraphQL queries & mutations
 type Resolver struct {
-	Repository db.Repository
-	AppConfig  config.AppConfig
-	mu         sync.Mutex
+	Repository    db.Repository
+	AppConfig     config.AppConfig
+	Notifications NotificationObservers
 }

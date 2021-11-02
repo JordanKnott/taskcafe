@@ -430,6 +430,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
               __typename: 'Task',
               id: `${Math.round(Math.random() * -1000000)}`,
               name,
+              watched: false,
               complete: false,
               completedAt: null,
               hasTime: false,

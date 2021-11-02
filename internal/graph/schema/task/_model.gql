@@ -27,6 +27,7 @@ type Task {
   name: String!
   position: Float!
   description: String
+  watched: Boolean!
   dueDate: Time
   hasTime: Boolean!
   complete: Boolean!

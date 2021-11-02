@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import LoggedOutNavbar from 'shared/components/TopNavbar/LoggedOut';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
 import { useHistory, useRouteMatch } from 'react-router';
 import { useCurrentUser } from 'App/context';
-import { RoleCode, useTopNavbarQuery } from 'shared/generated/graphql';
+import {
+  RoleCode,
+  useTopNavbarQuery,
+  useNotificationAddedSubscription,
+  useHasUnreadNotificationsQuery,
+} from 'shared/generated/graphql';
 import { usePopup, Popup } from 'shared/components/PopupMenu';
 import MiniProfile from 'shared/components/MiniProfile';
 import cache from 'App/cache';
 import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
 import theme from 'App/ThemeStyles';
 import ProjectFinder from './ProjectFinder';
+import polling from 'shared/utils/polling';
 
 // TODO: Move to context based navbar?
 
@@ -49,9 +55,25 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
   onRemoveInvitedFromBoard,
   onRemoveFromBoard,
 }) => {
-  const { data } = useTopNavbarQuery();
+  const [notifications, setNotifications] = useState<Array<{ id: string; notification: { actionType: string } }>>([]);
+  const { data } = useTopNavbarQuery({
+    onCompleted: (d) => {
+      setNotifications((n) => [...n, ...d.notifications]);
+    },
+  });
+  const { data: nData, loading } = useNotificationAddedSubscription({
+    onSubscriptionData: (d) => {
+      setNotifications((n) => {
+        if (d.subscriptionData.data) {
+          return [...n, d.subscriptionData.data.notificationAdded];
+        }
+        return n;
+      });
+    },
+  });
   const { showPopup, hidePopup } = usePopup();
   const { setUser } = useCurrentUser();
+  const { data: unreadData } = useHasUnreadNotificationsQuery({ pollInterval: polling.UNREAD_NOTIFICATIONS });
   const history = useHistory();
   const onLogout = () => {
     fetch('/auth/logout', {
@@ -94,21 +116,10 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
     }
   };
 
+  // TODO: rewrite popup to contain subscription and notification fetch
   const onNotificationClick = ($target: React.RefObject<HTMLElement>) => {
     if (data) {
-      showPopup(
-        $target,
-        <NotificationPopup>
-          {data.notifications.map((notification) => (
-            <NotificationItem
-              title={notification.notification.actionType}
-              description={`${notification.notification.causedBy.fullname} added you as a meber to the task "${notification.notification.actionType}"`}
-              createdAt={notification.notification.createdAt}
-            />
-          ))}
-        </NotificationPopup>,
-        { width: 415, borders: false, diamondColor: theme.colors.primary },
-      );
+      showPopup($target, <NotificationPopup />, { width: 605, borders: false, diamondColor: theme.colors.primary });
     }
   };
 
@@ -174,17 +185,12 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
     }
   };
 
-  if (data) {
-    console.log('HERE DATA');
-    console.log(data.me);
-  } else {
-    console.log('NO DATA');
-  }
   const user = data ? data.me?.user : null;
 
   return (
     <>
       <TopNavbar
+        hasUnread={unreadData ? unreadData.hasUnreadNotifications.unread : false}
         name={name}
         menuType={menuType}
         onOpenProjectFinder={($target) => {

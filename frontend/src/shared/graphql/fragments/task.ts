@@ -8,6 +8,7 @@ const TASK_FRAGMENT = gql`
     dueDate
     hasTime
     complete
+    watched
     completedAt
     position
     badges {

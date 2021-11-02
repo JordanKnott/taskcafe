@@ -230,6 +230,10 @@ type FindUser struct {
 	UserID uuid.UUID `json:"userID"`
 }
 
+type HasUnreadNotificationsResult struct {
+	Unread bool `json:"unread"`
+}
+
 type InviteProjectMembers struct {
 	ProjectID uuid.UUID      `json:"projectID"`
 	Members   []MemberInvite `json:"members"`
@@ -367,11 +371,27 @@ type NotificationData struct {
 	Value string `json:"value"`
 }
 
+type NotificationToggleReadInput struct {
+	NotifiedID uuid.UUID `json:"notifiedID"`
+}
+
 type Notified struct {
 	ID           uuid.UUID        `json:"id"`
 	Notification *db.Notification `json:"notification"`
 	Read         bool             `json:"read"`
 	ReadAt       *time.Time       `json:"readAt"`
+}
+
+type NotifiedInput struct {
+	Limit  int                `json:"limit"`
+	Cursor *string            `json:"cursor"`
+	Filter NotificationFilter `json:"filter"`
+}
+
+type NotifiedResult struct {
+	TotalCount int        `json:"totalCount"`
+	Notified   []Notified `json:"notified"`
+	PageInfo   *PageInfo  `json:"pageInfo"`
 }
 
 type OwnedList struct {
@@ -382,6 +402,11 @@ type OwnedList struct {
 type OwnersList struct {
 	Projects []uuid.UUID `json:"projects"`
 	Teams    []uuid.UUID `json:"teams"`
+}
+
+type PageInfo struct {
+	EndCursor   string `json:"endCursor"`
+	HasNextPage bool   `json:"hasNextPage"`
 }
 
 type ProfileIcon struct {
@@ -477,6 +502,10 @@ type ToggleTaskLabelInput struct {
 type ToggleTaskLabelPayload struct {
 	Active bool     `json:"active"`
 	Task   *db.Task `json:"task"`
+}
+
+type ToggleTaskWatch struct {
+	TaskID uuid.UUID `json:"taskID"`
 }
 
 type UnassignTaskInput struct {
@@ -671,16 +700,42 @@ func (e ActionLevel) MarshalGQL(w io.Writer) {
 type ActionType string
 
 const (
-	ActionTypeTaskMemberAdded ActionType = "TASK_MEMBER_ADDED"
+	ActionTypeTeamAdded              ActionType = "TEAM_ADDED"
+	ActionTypeTeamRemoved            ActionType = "TEAM_REMOVED"
+	ActionTypeProjectAdded           ActionType = "PROJECT_ADDED"
+	ActionTypeProjectRemoved         ActionType = "PROJECT_REMOVED"
+	ActionTypeProjectArchived        ActionType = "PROJECT_ARCHIVED"
+	ActionTypeDueDateAdded           ActionType = "DUE_DATE_ADDED"
+	ActionTypeDueDateRemoved         ActionType = "DUE_DATE_REMOVED"
+	ActionTypeDueDateChanged         ActionType = "DUE_DATE_CHANGED"
+	ActionTypeTaskAssigned           ActionType = "TASK_ASSIGNED"
+	ActionTypeTaskMoved              ActionType = "TASK_MOVED"
+	ActionTypeTaskArchived           ActionType = "TASK_ARCHIVED"
+	ActionTypeTaskAttachmentUploaded ActionType = "TASK_ATTACHMENT_UPLOADED"
+	ActionTypeCommentMentioned       ActionType = "COMMENT_MENTIONED"
+	ActionTypeCommentOther           ActionType = "COMMENT_OTHER"
 )
 
 var AllActionType = []ActionType{
-	ActionTypeTaskMemberAdded,
+	ActionTypeTeamAdded,
+	ActionTypeTeamRemoved,
+	ActionTypeProjectAdded,
+	ActionTypeProjectRemoved,
+	ActionTypeProjectArchived,
+	ActionTypeDueDateAdded,
+	ActionTypeDueDateRemoved,
+	ActionTypeDueDateChanged,
+	ActionTypeTaskAssigned,
+	ActionTypeTaskMoved,
+	ActionTypeTaskArchived,
+	ActionTypeTaskAttachmentUploaded,
+	ActionTypeCommentMentioned,
+	ActionTypeCommentOther,
 }
 
 func (e ActionType) IsValid() bool {
 	switch e {
-	case ActionTypeTaskMemberAdded:
+	case ActionTypeTeamAdded, ActionTypeTeamRemoved, ActionTypeProjectAdded, ActionTypeProjectRemoved, ActionTypeProjectArchived, ActionTypeDueDateAdded, ActionTypeDueDateRemoved, ActionTypeDueDateChanged, ActionTypeTaskAssigned, ActionTypeTaskMoved, ActionTypeTaskArchived, ActionTypeTaskAttachmentUploaded, ActionTypeCommentMentioned, ActionTypeCommentOther:
 		return true
 	}
 	return false
@@ -857,6 +912,51 @@ func (e *MyTasksStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MyTasksStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type NotificationFilter string
+
+const (
+	NotificationFilterAll       NotificationFilter = "ALL"
+	NotificationFilterUnread    NotificationFilter = "UNREAD"
+	NotificationFilterAssigned  NotificationFilter = "ASSIGNED"
+	NotificationFilterMentioned NotificationFilter = "MENTIONED"
+)
+
+var AllNotificationFilter = []NotificationFilter{
+	NotificationFilterAll,
+	NotificationFilterUnread,
+	NotificationFilterAssigned,
+	NotificationFilterMentioned,
+}
+
+func (e NotificationFilter) IsValid() bool {
+	switch e {
+	case NotificationFilterAll, NotificationFilterUnread, NotificationFilterAssigned, NotificationFilterMentioned:
+		return true
+	}
+	return false
+}
+
+func (e NotificationFilter) String() string {
+	return string(e)
+}
+
+func (e *NotificationFilter) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NotificationFilter(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NotificationFilter", str)
+	}
+	return nil
+}
+
+func (e NotificationFilter) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

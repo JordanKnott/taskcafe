@@ -105,6 +105,7 @@ type Task = {
   id: string;
   taskGroup: InnerTaskGroup;
   name: string;
+  watched?: boolean;
   badges?: TaskBadges;
   position: number;
   hasTime?: boolean;

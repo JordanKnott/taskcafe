@@ -8,6 +8,7 @@ const polling = {
   MEMBERS: resolve(3000),
   TEAM_PROJECTS: resolve(3000),
   TASK_DETAILS: resolve(3000),
+  UNREAD_NOTIFICATIONS: resolve(30000),
 };
 
 export default polling;

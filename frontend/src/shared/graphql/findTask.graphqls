@@ -2,6 +2,7 @@ query findTask($taskID: UUID!) {
   findTask(input: {taskID: $taskID}) {
     id
     name
+    watched
     description
     dueDate
     position

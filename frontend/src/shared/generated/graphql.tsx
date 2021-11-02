@@ -26,7 +26,20 @@ export enum ActionLevel {
 }
 
 export enum ActionType {
-  TaskMemberAdded = 'TASK_MEMBER_ADDED'
+  TeamAdded = 'TEAM_ADDED',
+  TeamRemoved = 'TEAM_REMOVED',
+  ProjectAdded = 'PROJECT_ADDED',
+  ProjectRemoved = 'PROJECT_REMOVED',
+  ProjectArchived = 'PROJECT_ARCHIVED',
+  DueDateAdded = 'DUE_DATE_ADDED',
+  DueDateRemoved = 'DUE_DATE_REMOVED',
+  DueDateChanged = 'DUE_DATE_CHANGED',
+  TaskAssigned = 'TASK_ASSIGNED',
+  TaskMoved = 'TASK_MOVED',
+  TaskArchived = 'TASK_ARCHIVED',
+  TaskAttachmentUploaded = 'TASK_ATTACHMENT_UPLOADED',
+  CommentMentioned = 'COMMENT_MENTIONED',
+  CommentOther = 'COMMENT_OTHER'
 }
 
 export enum ActivityType {
@@ -280,6 +293,11 @@ export type FindUser = {
   userID: Scalars['UUID'];
 };
 
+export type HasUnreadNotificationsResult = {
+  __typename?: 'HasUnreadNotificationsResult';
+  unread: Scalars['Boolean'];
+};
+
 export type InviteProjectMembers = {
   projectID: Scalars['UUID'];
   members: Array<MemberInvite>;
@@ -394,12 +412,14 @@ export type Mutation = {
   duplicateTaskGroup: DuplicateTaskGroupPayload;
   inviteProjectMembers: InviteProjectMembersPayload;
   logoutUser: Scalars['Boolean'];
+  notificationToggleRead: Notified;
   removeTaskLabel: Task;
   setTaskChecklistItemComplete: TaskChecklistItem;
   setTaskComplete: Task;
   sortTaskGroup: SortTaskGroupPayload;
   toggleProjectVisibility: ToggleProjectVisibilityPayload;
   toggleTaskLabel: ToggleTaskLabelPayload;
+  toggleTaskWatch: Task;
   unassignTask: Task;
   updateProjectLabel: ProjectLabel;
   updateProjectLabelColor: ProjectLabel;
@@ -569,6 +589,11 @@ export type MutationLogoutUserArgs = {
 };
 
 
+export type MutationNotificationToggleReadArgs = {
+  input: NotificationToggleReadInput;
+};
+
+
 export type MutationRemoveTaskLabelArgs = {
   input?: Maybe<RemoveTaskLabelInput>;
 };
@@ -596,6 +621,11 @@ export type MutationToggleProjectVisibilityArgs = {
 
 export type MutationToggleTaskLabelArgs = {
   input: ToggleTaskLabelInput;
+};
+
+
+export type MutationToggleTaskWatchArgs = {
+  input: ToggleTaskWatch;
 };
 
 
@@ -784,7 +814,7 @@ export type Notification = {
   __typename?: 'Notification';
   id: Scalars['ID'];
   actionType: ActionType;
-  causedBy: NotificationCausedBy;
+  causedBy?: Maybe<NotificationCausedBy>;
   data: Array<NotificationData>;
   createdAt: Scalars['Time'];
 };
@@ -802,12 +832,36 @@ export type NotificationData = {
   value: Scalars['String'];
 };
 
+export enum NotificationFilter {
+  All = 'ALL',
+  Unread = 'UNREAD',
+  Assigned = 'ASSIGNED',
+  Mentioned = 'MENTIONED'
+}
+
+export type NotificationToggleReadInput = {
+  notifiedID: Scalars['UUID'];
+};
+
 export type Notified = {
   __typename?: 'Notified';
   id: Scalars['ID'];
   notification: Notification;
   read: Scalars['Boolean'];
   readAt?: Maybe<Scalars['Time']>;
+};
+
+export type NotifiedInput = {
+  limit: Scalars['Int'];
+  cursor?: Maybe<Scalars['String']>;
+  filter: NotificationFilter;
+};
+
+export type NotifiedResult = {
+  __typename?: 'NotifiedResult';
+  totalCount: Scalars['Int'];
+  notified: Array<Notified>;
+  pageInfo: PageInfo;
 };
 
 export enum ObjectType {
@@ -836,6 +890,12 @@ export type OwnersList = {
   __typename?: 'OwnersList';
   projects: Array<Scalars['UUID']>;
   teams: Array<Scalars['UUID']>;
+};
+
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  endCursor: Scalars['String'];
+  hasNextPage: Scalars['Boolean'];
 };
 
 export type ProfileIcon = {
@@ -896,11 +956,13 @@ export type Query = {
   findTask: Task;
   findTeam: Team;
   findUser: UserAccount;
+  hasUnreadNotifications: HasUnreadNotificationsResult;
   invitedUsers: Array<InvitedUserAccount>;
   labelColors: Array<LabelColor>;
   me?: Maybe<MePayload>;
   myTasks: MyTasksPayload;
   notifications: Array<Notified>;
+  notified: NotifiedResult;
   organizations: Array<Organization>;
   projects: Array<Project>;
   searchMembers: Array<MemberSearchResult>;
@@ -932,6 +994,11 @@ export type QueryFindUserArgs = {
 
 export type QueryMyTasksArgs = {
   input: MyTasks;
+};
+
+
+export type QueryNotifiedArgs = {
+  input: NotifiedInput;
 };
 
 
@@ -1006,6 +1073,7 @@ export type Task = {
   name: Scalars['String'];
   position: Scalars['Float'];
   description?: Maybe<Scalars['String']>;
+  watched: Scalars['Boolean'];
   dueDate?: Maybe<Scalars['Time']>;
   hasTime: Scalars['Boolean'];
   complete: Scalars['Boolean'];
@@ -1130,6 +1198,10 @@ export type ToggleTaskLabelPayload = {
   __typename?: 'ToggleTaskLabelPayload';
   active: Scalars['Boolean'];
   task: Task;
+};
+
+export type ToggleTaskWatch = {
+  taskID: Scalars['UUID'];
 };
 
 
@@ -1520,7 +1592,7 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'position' | 'complete' | 'hasTime'>
+    & Pick<Task, 'id' | 'name' | 'watched' | 'description' | 'dueDate' | 'position' | 'complete' | 'hasTime'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name'>
@@ -1596,7 +1668,7 @@ export type FindTaskQuery = (
 
 export type TaskFieldsFragment = (
   { __typename?: 'Task' }
-  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'hasTime' | 'complete' | 'completedAt' | 'position'>
+  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'hasTime' | 'complete' | 'watched' | 'completedAt' | 'position'>
   & { badges: (
     { __typename?: 'TaskBadges' }
     & { checklist?: Maybe<(
@@ -1722,6 +1794,74 @@ export type MyTasksQuery = (
       { __typename?: 'ProjectTaskMapping' }
       & Pick<ProjectTaskMapping, 'projectID' | 'taskID'>
     )> }
+  ) }
+);
+
+export type NotificationToggleReadMutationVariables = Exact<{
+  notifiedID: Scalars['UUID'];
+}>;
+
+
+export type NotificationToggleReadMutation = (
+  { __typename?: 'Mutation' }
+  & { notificationToggleRead: (
+    { __typename?: 'Notified' }
+    & Pick<Notified, 'id' | 'read' | 'readAt'>
+  ) }
+);
+
+export type NotificationsQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  cursor?: Maybe<Scalars['String']>;
+  filter: NotificationFilter;
+}>;
+
+
+export type NotificationsQuery = (
+  { __typename?: 'Query' }
+  & { notified: (
+    { __typename?: 'NotifiedResult' }
+    & Pick<NotifiedResult, 'totalCount'>
+    & { pageInfo: (
+      { __typename?: 'PageInfo' }
+      & Pick<PageInfo, 'endCursor' | 'hasNextPage'>
+    ), notified: Array<(
+      { __typename?: 'Notified' }
+      & Pick<Notified, 'id' | 'read' | 'readAt'>
+      & { notification: (
+        { __typename?: 'Notification' }
+        & Pick<Notification, 'id' | 'actionType' | 'createdAt'>
+        & { data: Array<(
+          { __typename?: 'NotificationData' }
+          & Pick<NotificationData, 'key' | 'value'>
+        )>, causedBy?: Maybe<(
+          { __typename?: 'NotificationCausedBy' }
+          & Pick<NotificationCausedBy, 'username' | 'fullname' | 'id'>
+        )> }
+      ) }
+    )> }
+  ) }
+);
+
+export type NotificationAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationAddedSubscription = (
+  { __typename?: 'Subscription' }
+  & { notificationAdded: (
+    { __typename?: 'Notified' }
+    & Pick<Notified, 'id' | 'read' | 'readAt'>
+    & { notification: (
+      { __typename?: 'Notification' }
+      & Pick<Notification, 'id' | 'actionType' | 'createdAt'>
+      & { data: Array<(
+        { __typename?: 'NotificationData' }
+        & Pick<NotificationData, 'key' | 'value'>
+      )>, causedBy?: Maybe<(
+        { __typename?: 'NotificationCausedBy' }
+        & Pick<NotificationCausedBy, 'username' | 'fullname' | 'id'>
+      )> }
+    ) }
   ) }
 );
 
@@ -1976,6 +2116,19 @@ export type SetTaskCompleteMutation = (
   & { setTaskComplete: (
     { __typename?: 'Task' }
     & TaskFieldsFragment
+  ) }
+);
+
+export type ToggleTaskWatchMutationVariables = Exact<{
+  taskID: Scalars['UUID'];
+}>;
+
+
+export type ToggleTaskWatchMutation = (
+  { __typename?: 'Mutation' }
+  & { toggleTaskWatch: (
+    { __typename?: 'Task' }
+    & Pick<Task, 'id' | 'watched'>
   ) }
 );
 
@@ -2363,10 +2516,10 @@ export type TopNavbarQuery = (
     & { notification: (
       { __typename?: 'Notification' }
       & Pick<Notification, 'id' | 'actionType' | 'createdAt'>
-      & { causedBy: (
+      & { causedBy?: Maybe<(
         { __typename?: 'NotificationCausedBy' }
         & Pick<NotificationCausedBy, 'username' | 'fullname' | 'id'>
-      ) }
+      )> }
     ) }
   )>, me?: Maybe<(
     { __typename?: 'MePayload' }
@@ -2402,6 +2555,17 @@ export type UnassignTaskMutation = (
       { __typename?: 'Member' }
       & Pick<Member, 'id' | 'fullName'>
     )> }
+  ) }
+);
+
+export type HasUnreadNotificationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type HasUnreadNotificationsQuery = (
+  { __typename?: 'Query' }
+  & { hasUnreadNotifications: (
+    { __typename?: 'HasUnreadNotificationsResult' }
+    & Pick<HasUnreadNotificationsResult, 'unread'>
   ) }
 );
 
@@ -2700,6 +2864,7 @@ export const TaskFieldsFragmentDoc = gql`
   dueDate
   hasTime
   complete
+  watched
   completedAt
   position
   badges {
@@ -3171,6 +3336,7 @@ export const FindTaskDocument = gql`
   findTask(input: {taskID: $taskID}) {
     id
     name
+    watched
     description
     dueDate
     position
@@ -3505,6 +3671,146 @@ export function useMyTasksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<My
 export type MyTasksQueryHookResult = ReturnType<typeof useMyTasksQuery>;
 export type MyTasksLazyQueryHookResult = ReturnType<typeof useMyTasksLazyQuery>;
 export type MyTasksQueryResult = Apollo.QueryResult<MyTasksQuery, MyTasksQueryVariables>;
+export const NotificationToggleReadDocument = gql`
+    mutation notificationToggleRead($notifiedID: UUID!) {
+  notificationToggleRead(input: {notifiedID: $notifiedID}) {
+    id
+    read
+    readAt
+  }
+}
+    `;
+export type NotificationToggleReadMutationFn = Apollo.MutationFunction<NotificationToggleReadMutation, NotificationToggleReadMutationVariables>;
+
+/**
+ * __useNotificationToggleReadMutation__
+ *
+ * To run a mutation, you first call `useNotificationToggleReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useNotificationToggleReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [notificationToggleReadMutation, { data, loading, error }] = useNotificationToggleReadMutation({
+ *   variables: {
+ *      notifiedID: // value for 'notifiedID'
+ *   },
+ * });
+ */
+export function useNotificationToggleReadMutation(baseOptions?: Apollo.MutationHookOptions<NotificationToggleReadMutation, NotificationToggleReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<NotificationToggleReadMutation, NotificationToggleReadMutationVariables>(NotificationToggleReadDocument, options);
+      }
+export type NotificationToggleReadMutationHookResult = ReturnType<typeof useNotificationToggleReadMutation>;
+export type NotificationToggleReadMutationResult = Apollo.MutationResult<NotificationToggleReadMutation>;
+export type NotificationToggleReadMutationOptions = Apollo.BaseMutationOptions<NotificationToggleReadMutation, NotificationToggleReadMutationVariables>;
+export const NotificationsDocument = gql`
+    query notifications($limit: Int!, $cursor: String, $filter: NotificationFilter!) {
+  notified(input: {limit: $limit, cursor: $cursor, filter: $filter}) {
+    totalCount
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+    notified {
+      id
+      read
+      readAt
+      notification {
+        id
+        actionType
+        data {
+          key
+          value
+        }
+        causedBy {
+          username
+          fullname
+          id
+        }
+        createdAt
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useNotificationsQuery__
+ *
+ * To run a query within a React component, call `useNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      cursor: // value for 'cursor'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useNotificationsQuery(baseOptions: Apollo.QueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+      }
+export function useNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+        }
+export type NotificationsQueryHookResult = ReturnType<typeof useNotificationsQuery>;
+export type NotificationsLazyQueryHookResult = ReturnType<typeof useNotificationsLazyQuery>;
+export type NotificationsQueryResult = Apollo.QueryResult<NotificationsQuery, NotificationsQueryVariables>;
+export const NotificationAddedDocument = gql`
+    subscription notificationAdded {
+  notificationAdded {
+    id
+    read
+    readAt
+    notification {
+      id
+      actionType
+      data {
+        key
+        value
+      }
+      causedBy {
+        username
+        fullname
+        id
+      }
+      createdAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useNotificationAddedSubscription__
+ *
+ * To run a query within a React component, call `useNotificationAddedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationAddedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationAddedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationAddedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<NotificationAddedSubscription, NotificationAddedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<NotificationAddedSubscription, NotificationAddedSubscriptionVariables>(NotificationAddedDocument, options);
+      }
+export type NotificationAddedSubscriptionHookResult = ReturnType<typeof useNotificationAddedSubscription>;
+export type NotificationAddedSubscriptionResult = Apollo.SubscriptionResult<NotificationAddedSubscription>;
 export const DeleteProjectDocument = gql`
     mutation deleteProject($projectID: UUID!) {
   deleteProject(input: {projectID: $projectID}) {
@@ -4061,6 +4367,40 @@ export function useSetTaskCompleteMutation(baseOptions?: Apollo.MutationHookOpti
 export type SetTaskCompleteMutationHookResult = ReturnType<typeof useSetTaskCompleteMutation>;
 export type SetTaskCompleteMutationResult = Apollo.MutationResult<SetTaskCompleteMutation>;
 export type SetTaskCompleteMutationOptions = Apollo.BaseMutationOptions<SetTaskCompleteMutation, SetTaskCompleteMutationVariables>;
+export const ToggleTaskWatchDocument = gql`
+    mutation toggleTaskWatch($taskID: UUID!) {
+  toggleTaskWatch(input: {taskID: $taskID}) {
+    id
+    watched
+  }
+}
+    `;
+export type ToggleTaskWatchMutationFn = Apollo.MutationFunction<ToggleTaskWatchMutation, ToggleTaskWatchMutationVariables>;
+
+/**
+ * __useToggleTaskWatchMutation__
+ *
+ * To run a mutation, you first call `useToggleTaskWatchMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useToggleTaskWatchMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [toggleTaskWatchMutation, { data, loading, error }] = useToggleTaskWatchMutation({
+ *   variables: {
+ *      taskID: // value for 'taskID'
+ *   },
+ * });
+ */
+export function useToggleTaskWatchMutation(baseOptions?: Apollo.MutationHookOptions<ToggleTaskWatchMutation, ToggleTaskWatchMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ToggleTaskWatchMutation, ToggleTaskWatchMutationVariables>(ToggleTaskWatchDocument, options);
+      }
+export type ToggleTaskWatchMutationHookResult = ReturnType<typeof useToggleTaskWatchMutation>;
+export type ToggleTaskWatchMutationResult = Apollo.MutationResult<ToggleTaskWatchMutation>;
+export type ToggleTaskWatchMutationOptions = Apollo.BaseMutationOptions<ToggleTaskWatchMutation, ToggleTaskWatchMutationVariables>;
 export const UpdateTaskChecklistItemLocationDocument = gql`
     mutation updateTaskChecklistItemLocation($taskChecklistID: UUID!, $taskChecklistItemID: UUID!, $position: Float!) {
   updateTaskChecklistItemLocation(
@@ -4923,6 +5263,40 @@ export function useUnassignTaskMutation(baseOptions?: Apollo.MutationHookOptions
 export type UnassignTaskMutationHookResult = ReturnType<typeof useUnassignTaskMutation>;
 export type UnassignTaskMutationResult = Apollo.MutationResult<UnassignTaskMutation>;
 export type UnassignTaskMutationOptions = Apollo.BaseMutationOptions<UnassignTaskMutation, UnassignTaskMutationVariables>;
+export const HasUnreadNotificationsDocument = gql`
+    query hasUnreadNotifications {
+  hasUnreadNotifications {
+    unread
+  }
+}
+    `;
+
+/**
+ * __useHasUnreadNotificationsQuery__
+ *
+ * To run a query within a React component, call `useHasUnreadNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useHasUnreadNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useHasUnreadNotificationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useHasUnreadNotificationsQuery(baseOptions?: Apollo.QueryHookOptions<HasUnreadNotificationsQuery, HasUnreadNotificationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<HasUnreadNotificationsQuery, HasUnreadNotificationsQueryVariables>(HasUnreadNotificationsDocument, options);
+      }
+export function useHasUnreadNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<HasUnreadNotificationsQuery, HasUnreadNotificationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<HasUnreadNotificationsQuery, HasUnreadNotificationsQueryVariables>(HasUnreadNotificationsDocument, options);
+        }
+export type HasUnreadNotificationsQueryHookResult = ReturnType<typeof useHasUnreadNotificationsQuery>;
+export type HasUnreadNotificationsLazyQueryHookResult = ReturnType<typeof useHasUnreadNotificationsLazyQuery>;
+export type HasUnreadNotificationsQueryResult = Apollo.QueryResult<HasUnreadNotificationsQuery, HasUnreadNotificationsQueryVariables>;
 export const UpdateProjectLabelDocument = gql`
     mutation updateProjectLabel($projectLabelID: UUID!, $labelColorID: UUID!, $name: String!) {
   updateProjectLabel(

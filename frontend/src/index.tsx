@@ -10,6 +10,8 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import isBetween from 'dayjs/plugin/isBetween';
 import weekday from 'dayjs/plugin/weekday';
+import duration from 'dayjs/plugin/duration';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import log from 'loglevel';
 import remote from 'loglevel-plugin-remote';
 import cache from './App/cache';
@@ -36,6 +38,8 @@ dayjs.extend(weekday);
 dayjs.extend(isBetween);
 dayjs.extend(customParseFormat);
 dayjs.extend(updateLocale);
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
 dayjs.updateLocale('en', {
   week: {
     dow: 1, // First day of week is Monday
