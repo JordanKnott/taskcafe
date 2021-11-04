@@ -75,12 +75,9 @@ type Query {
   users: [UserAccount!]!
   invitedUsers: [InvitedUserAccount!]!
   findUser(input: FindUser!): UserAccount!
-  findProject(input: FindProject!):
-    Project!
-  findTask(input: FindTask!): Task!
   projects(input: ProjectsFilter): [Project!]!
-  findTeam(input: FindTeam!): Team!
   teams: [Team!]!
+  findTeam(input: FindTeam!): Team!
   myTasks(input: MyTasks!): MyTasksPayload!
   labelColors: [LabelColor!]!
   taskGroups: [TaskGroup!]!
@@ -148,13 +145,6 @@ input FindUser {
   userID: UUID!
 }
 
-input FindProject {
-  projectID: UUID!
-}
-
-input FindTask {
-  taskID: UUID!
-}
 
 input FindTeam {
   teamID: UUID!

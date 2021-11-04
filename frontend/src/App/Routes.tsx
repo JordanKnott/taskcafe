@@ -70,11 +70,10 @@ const Routes: React.FC = () => {
       <Route exact path="/confirm" component={Confirm} />
       <Switch>
         <MainContent>
-          <Route path="/projects/:projectID" component={Project} />
+          <Route path="/p/:projectID" component={Project} />
 
           <UserRequiredRoute>
-            <Route exact path="/" component={Dashboard} />
-            <Route exact path="/projects" component={Projects} />
+            <Route exact path="/" component={Projects} />
             <Route path="/teams/:teamID" component={Teams} />
             <Route path="/profile" component={Profile} />
             <Route path="/admin" component={Admin} />

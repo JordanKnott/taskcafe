@@ -6,6 +6,7 @@ type ProjectPermission {
 
 type Project {
   id: ID!
+  shortId: String!
   createdAt: Time!
   name: String!
   team: Team

@@ -103,6 +103,7 @@ type TaskComment = {
 
 type Task = {
   id: string;
+  shortId: string;
   taskGroup: InnerTaskGroup;
   name: string;
   watched?: boolean;

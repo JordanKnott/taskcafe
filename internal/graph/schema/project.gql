@@ -6,6 +6,7 @@ type ProjectPermission {
 
 type Project {
   id: ID!
+  shortId: String!
   createdAt: Time!
   name: String!
   team: Team
@@ -143,6 +144,15 @@ input UpdateProjectMemberRole {
 type UpdateProjectMemberRolePayload {
   ok: Boolean!
   member: Member!
+}
+
+extend type Query {
+  findProject(input: FindProject!): Project!
+}
+
+input FindProject {
+  projectID: UUID
+  projectShortID: String
 }
 
 extend type Mutation {

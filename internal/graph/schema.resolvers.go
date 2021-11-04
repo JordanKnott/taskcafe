@@ -61,31 +61,6 @@ func (r *queryResolver) FindUser(ctx context.Context, input FindUser) (*db.UserA
 	return &account, err
 }
 
-func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db.Project, error) {
-	_, isLoggedIn := GetUser(ctx)
-	if !isLoggedIn {
-		isPublic, _ := IsProjectPublic(ctx, r.Repository, input.ProjectID)
-		if !isPublic {
-			return &db.Project{}, NotAuthorized()
-		}
-	}
-	project, err := r.Repository.GetProjectByID(ctx, input.ProjectID)
-	if err == sql.ErrNoRows {
-		return &db.Project{}, &gqlerror.Error{
-			Message: "Project not found",
-			Extensions: map[string]interface{}{
-				"code": "NOT_FOUND",
-			},
-		}
-	}
-	return &project, nil
-}
-
-func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*db.Task, error) {
-	task, err := r.Repository.GetTaskByID(ctx, input.TaskID)
-	return &task, err
-}
-
 func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]db.Project, error) {
 	userID, ok := GetUser(ctx)
 	if !ok {
@@ -137,14 +112,6 @@ func (r *queryResolver) Projects(ctx context.Context, input *ProjectsFilter) ([]
 	return allProjects, nil
 }
 
-func (r *queryResolver) FindTeam(ctx context.Context, input FindTeam) (*db.Team, error) {
-	team, err := r.Repository.GetTeamByID(ctx, input.TeamID)
-	if err != nil {
-		return &db.Team{}, err
-	}
-	return &team, nil
-}
-
 func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 	userID, ok := GetUser(ctx)
 	if !ok {
@@ -188,6 +155,14 @@ func (r *queryResolver) Teams(ctx context.Context) ([]db.Team, error) {
 		foundTeams = append(foundTeams, team)
 	}
 	return foundTeams, nil
+}
+
+func (r *queryResolver) FindTeam(ctx context.Context, input FindTeam) (*db.Team, error) {
+	team, err := r.Repository.GetTeamByID(ctx, input.TeamID)
+	if err != nil {
+		return &db.Team{}, err
+	}
+	return &team, nil
 }
 
 func (r *queryResolver) MyTasks(ctx context.Context, input MyTasks) (*MyTasksPayload, error) {

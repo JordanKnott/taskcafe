@@ -87,7 +87,7 @@ const Project = () => {
               }
             }
           }),
-        { projectID },
+        { projectID: data ? data.findProject.id : '' },
       ),
   });
 
@@ -100,7 +100,7 @@ const Project = () => {
           produce(cache, (draftCache) => {
             draftCache.findProject.name = newName.data?.updateProjectName.name ?? '';
           }),
-        { projectID },
+        { projectID: data ? data.findProject.id : '' },
       );
     },
   });
@@ -123,7 +123,7 @@ const Project = () => {
               ];
             }
           }),
-        { projectID },
+        { projectID: data ? data.findProject.id : '' },
       );
     },
   });
@@ -138,7 +138,7 @@ const Project = () => {
               (m) => m.email !== response.data?.deleteInvitedProjectMember.invitedMember.email ?? '',
             );
           }),
-        { projectID },
+        { projectID: data ? data.findProject.id : '' },
       );
     },
   });
@@ -153,7 +153,7 @@ const Project = () => {
               (m) => m.id !== response.data?.deleteProjectMember.member.id,
             );
           }),
-        { projectID },
+        { projectID: data ? data.findProject.id : '' },
       );
     },
   });
@@ -171,29 +171,29 @@ const Project = () => {
       <>
         <GlobalTopNavbar
           onChangeRole={(userID, roleCode) => {
-            updateProjectMemberRole({ variables: { userID, roleCode, projectID } });
+            updateProjectMemberRole({ variables: { userID, roleCode, projectID: data ? data.findProject.id : '' } });
           }}
           onChangeProjectOwner={() => {
             hidePopup();
           }}
           onRemoveFromBoard={(userID) => {
-            deleteProjectMember({ variables: { userID, projectID } });
+            deleteProjectMember({ variables: { userID, projectID: data ? data.findProject.id : '' } });
             hidePopup();
           }}
           onRemoveInvitedFromBoard={(email) => {
-            deleteInvitedProjectMember({ variables: { projectID, email } });
+            deleteInvitedProjectMember({ variables: { projectID: data ? data.findProject.id : '', email } });
             hidePopup();
           }}
           onSaveProjectName={(projectName) => {
-            updateProjectName({ variables: { projectID, name: projectName } });
+            updateProjectName({ variables: { projectID: data ? data.findProject.id : '', name: projectName } });
           }}
           onInviteUser={($target) => {
             showPopup(
               $target,
               <UserManagementPopup
-                projectID={projectID}
+                projectID={data ? data.findProject.id : ''}
                 onInviteProjectMembers={(members) => {
-                  inviteProjectMembers({ variables: { projectID, members } });
+                  inviteProjectMembers({ variables: { projectID: data ? data.findProject.id : '', members } });
                   hidePopup();
                 }}
                 users={data.users}

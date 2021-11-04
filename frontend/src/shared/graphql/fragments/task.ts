@@ -3,6 +3,7 @@ import gql from 'graphql-tag';
 const TASK_FRAGMENT = gql`
   fragment TaskFields on Task {
     id
+    shortId
     name
     description
     dueDate

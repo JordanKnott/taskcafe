@@ -635,9 +635,9 @@ func (r *mutationResolver) AssignTask(ctx context.Context, input *AssignTaskInpu
 			Data: map[string]string{
 				"CausedByUsername": causedBy.Username,
 				"CausedByFullName": causedBy.FullName,
-				"TaskID":           assignedTask.TaskID.String(),
+				"TaskID":           project.TaskShortID,
 				"TaskName":         task.Name,
-				"ProjectID":        project.ProjectID.String(),
+				"ProjectID":        project.ProjectShortID,
 				"ProjectName":      project.Name,
 			},
 		})
@@ -668,6 +668,23 @@ func (r *mutationResolver) UnassignTask(ctx context.Context, input *UnassignTask
 		return &db.Task{}, err
 	}
 	return &task, nil
+}
+
+func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*db.Task, error) {
+	var taskID uuid.UUID
+	var err error
+	if input.TaskID != nil {
+		taskID = *input.TaskID
+	} else if input.TaskShortID != nil {
+		taskID, err = r.Repository.GetTaskIDByShortID(ctx, *input.TaskShortID)
+		if err != nil {
+			return &db.Task{}, err
+		}
+	} else {
+		return &db.Task{}, errors.New("FindTask requires either TaskID or TaskShortID to be set")
+	}
+	task, err := r.Repository.GetTaskByID(ctx, taskID)
+	return &task, err
 }
 
 func (r *taskResolver) ID(ctx context.Context, obj *db.Task) (uuid.UUID, error) {

@@ -4,6 +4,9 @@ SELECT * FROM task_watcher WHERE user_id = $1 AND task_id = $2;
 -- name: CreateTaskWatcher :one
 INSERT INTO task_watcher (user_id, task_id, watched_at) VALUES ($1, $2, $3) RETURNING *;
 
+-- name: GetTaskIDByShortID :one
+SELECT task_id FROM task WHERE short_id = $1;
+
 -- name: DeleteTaskWatcher :exec
 DELETE FROM task_watcher WHERE user_id = $1 AND task_id = $2;
 
@@ -54,7 +57,7 @@ SELECT project_id FROM task
   WHERE task_id = $1;
 
 -- name: GetProjectInfoForTask :one
-SELECT project.project_id, project.name FROM task
+SELECT project.short_id AS project_short_id, project.name, task.short_id AS task_short_id FROM task
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
   INNER JOIN project ON task_group.project_id = project.project_id
   WHERE task_id = $1;

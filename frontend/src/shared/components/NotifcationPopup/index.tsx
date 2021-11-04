@@ -331,7 +331,7 @@ const Notification: React.FC<NotificationProps> = ({ causedBy, createdAt, data, 
       prefix.push(<UserCircle width={14} height={16} />);
       prefix.push(<NotificationPrefix>Assigned </NotificationPrefix>);
       prefix.push(<span>you to the task "{dataMap.get('TaskName')}"</span>);
-      link = `/projects/${dataMap.get('ProjectID')}/board/c/${dataMap.get('TaskID')}`;
+      link = `/p/${dataMap.get('ProjectID')}/board/c/${dataMap.get('TaskID')}`;
       break;
     default:
       throw new Error('unknown action type');

@@ -1,3 +1,13 @@
+extend type Query {
+  findTask(input: FindTask!): Task!
+}
+
+input FindTask {
+  taskID: UUID
+  taskShortID: String
+}
+
+
 extend type Mutation {
   createTask(input: NewTask!):
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK_GROUP)

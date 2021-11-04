@@ -307,7 +307,7 @@ const Projects = () => {
               <ProjectList>
                 {personalProjects.map((project, idx) => (
                   <ProjectListItem key={project.id}>
-                    <ProjectTile color={colors[idx % 5]} to={`/projects/${project.id}`}>
+                    <ProjectTile color={colors[idx % 5]} to={`/p/${project.shortId}`}>
                       <ProjectTileFade />
                       <ProjectTileDetails>
                         <ProjectTileName>{project.name}</ProjectTileName>
@@ -351,7 +351,7 @@ const Projects = () => {
                   <ProjectList>
                     {team.projects.map((project, idx) => (
                       <ProjectListItem key={project.id}>
-                        <ProjectTile color={colors[idx % 5]} to={`/projects/${project.id}`}>
+                        <ProjectTile color={colors[idx % 5]} to={`/p/${project.shortId}`}>
                           <ProjectTileFade />
                           <ProjectTileDetails>
                             <ProjectTileName>{project.name}</ProjectTileName>

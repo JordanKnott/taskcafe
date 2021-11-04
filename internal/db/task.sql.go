@@ -14,7 +14,7 @@ import (
 
 const createTask = `-- name: CreateTask :one
 INSERT INTO task (task_group_id, created_at, name, position)
-  VALUES($1, $2, $3, $4) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+  VALUES($1, $2, $3, $4) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type CreateTaskParams struct {
@@ -43,13 +43,14 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
 
 const createTaskAll = `-- name: CreateTaskAll :one
 INSERT INTO task (task_group_id, created_at, name, position, description, complete, due_date)
-  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type CreateTaskAllParams struct {
@@ -84,6 +85,7 @@ func (q *Queries) CreateTaskAll(ctx context.Context, arg CreateTaskAllParams) (T
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
@@ -197,7 +199,7 @@ func (q *Queries) DeleteTasksByTaskGroupID(ctx context.Context, taskGroupID uuid
 }
 
 const getAllTasks = `-- name: GetAllTasks :many
-SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time FROM task
+SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id FROM task
 `
 
 func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
@@ -220,6 +222,7 @@ func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
 			&i.Complete,
 			&i.CompletedAt,
 			&i.HasTime,
+			&i.ShortID,
 		); err != nil {
 			return nil, err
 		}
@@ -235,7 +238,7 @@ func (q *Queries) GetAllTasks(ctx context.Context) ([]Task, error) {
 }
 
 const getAssignedTasksDueDateForUserID = `-- name: GetAssignedTasksDueDateForUserID :many
-SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned
+SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time, task.short_id FROM task_assigned
   INNER JOIN task ON task.task_id = task_assigned.task_id
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
   WHERE user_id = $1
@@ -279,6 +282,7 @@ func (q *Queries) GetAssignedTasksDueDateForUserID(ctx context.Context, arg GetA
 			&i.Complete,
 			&i.CompletedAt,
 			&i.HasTime,
+			&i.ShortID,
 		); err != nil {
 			return nil, err
 		}
@@ -294,7 +298,7 @@ func (q *Queries) GetAssignedTasksDueDateForUserID(ctx context.Context, arg GetA
 }
 
 const getAssignedTasksProjectForUserID = `-- name: GetAssignedTasksProjectForUserID :many
-SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned
+SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time, task.short_id FROM task_assigned
   INNER JOIN task ON task.task_id = task_assigned.task_id
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
   WHERE user_id = $1
@@ -338,6 +342,7 @@ func (q *Queries) GetAssignedTasksProjectForUserID(ctx context.Context, arg GetA
 			&i.Complete,
 			&i.CompletedAt,
 			&i.HasTime,
+			&i.ShortID,
 		); err != nil {
 			return nil, err
 		}
@@ -446,26 +451,27 @@ func (q *Queries) GetProjectIdMappings(ctx context.Context, dollar_1 []uuid.UUID
 }
 
 const getProjectInfoForTask = `-- name: GetProjectInfoForTask :one
-SELECT project.project_id, project.name FROM task
+SELECT project.short_id AS project_short_id, project.name, task.short_id AS task_short_id FROM task
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
   INNER JOIN project ON task_group.project_id = project.project_id
   WHERE task_id = $1
 `
 
 type GetProjectInfoForTaskRow struct {
-	ProjectID uuid.UUID `json:"project_id"`
-	Name      string    `json:"name"`
+	ProjectShortID string `json:"project_short_id"`
+	Name           string `json:"name"`
+	TaskShortID    string `json:"task_short_id"`
 }
 
 func (q *Queries) GetProjectInfoForTask(ctx context.Context, taskID uuid.UUID) (GetProjectInfoForTaskRow, error) {
 	row := q.db.QueryRowContext(ctx, getProjectInfoForTask, taskID)
 	var i GetProjectInfoForTaskRow
-	err := row.Scan(&i.ProjectID, &i.Name)
+	err := row.Scan(&i.ProjectShortID, &i.Name, &i.TaskShortID)
 	return i, err
 }
 
 const getRecentlyAssignedTaskForUserID = `-- name: GetRecentlyAssignedTaskForUserID :many
-SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time FROM task_assigned INNER JOIN
+SELECT task.task_id, task.task_group_id, task.created_at, task.name, task.position, task.description, task.due_date, task.complete, task.completed_at, task.has_time, task.short_id FROM task_assigned INNER JOIN
   task ON task.task_id = task_assigned.task_id WHERE user_id = $1
   AND $4::boolean = true OR (
     $4::boolean = false AND complete = $2 AND (
@@ -507,6 +513,7 @@ func (q *Queries) GetRecentlyAssignedTaskForUserID(ctx context.Context, arg GetR
 			&i.Complete,
 			&i.CompletedAt,
 			&i.HasTime,
+			&i.ShortID,
 		); err != nil {
 			return nil, err
 		}
@@ -522,7 +529,7 @@ func (q *Queries) GetRecentlyAssignedTaskForUserID(ctx context.Context, arg GetR
 }
 
 const getTaskByID = `-- name: GetTaskByID :one
-SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time FROM task WHERE task_id = $1
+SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id FROM task WHERE task_id = $1
 `
 
 func (q *Queries) GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, error) {
@@ -539,8 +546,20 @@ func (q *Queries) GetTaskByID(ctx context.Context, taskID uuid.UUID) (Task, erro
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
+}
+
+const getTaskIDByShortID = `-- name: GetTaskIDByShortID :one
+SELECT task_id FROM task WHERE short_id = $1
+`
+
+func (q *Queries) GetTaskIDByShortID(ctx context.Context, shortID string) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getTaskIDByShortID, shortID)
+	var task_id uuid.UUID
+	err := row.Scan(&task_id)
+	return task_id, err
 }
 
 const getTaskWatcher = `-- name: GetTaskWatcher :one
@@ -565,7 +584,7 @@ func (q *Queries) GetTaskWatcher(ctx context.Context, arg GetTaskWatcherParams) 
 }
 
 const getTasksForTaskGroupID = `-- name: GetTasksForTaskGroupID :many
-SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time FROM task WHERE task_group_id = $1
+SELECT task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id FROM task WHERE task_group_id = $1
 `
 
 func (q *Queries) GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error) {
@@ -588,6 +607,7 @@ func (q *Queries) GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.U
 			&i.Complete,
 			&i.CompletedAt,
 			&i.HasTime,
+			&i.ShortID,
 		); err != nil {
 			return nil, err
 		}
@@ -603,7 +623,7 @@ func (q *Queries) GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.U
 }
 
 const setTaskComplete = `-- name: SetTaskComplete :one
-UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+UPDATE task SET complete = $2, completed_at = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type SetTaskCompleteParams struct {
@@ -626,6 +646,7 @@ func (q *Queries) SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
@@ -656,7 +677,7 @@ func (q *Queries) UpdateTaskComment(ctx context.Context, arg UpdateTaskCommentPa
 }
 
 const updateTaskDescription = `-- name: UpdateTaskDescription :one
-UPDATE task SET description = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+UPDATE task SET description = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type UpdateTaskDescriptionParams struct {
@@ -678,12 +699,13 @@ func (q *Queries) UpdateTaskDescription(ctx context.Context, arg UpdateTaskDescr
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
 
 const updateTaskDueDate = `-- name: UpdateTaskDueDate :one
-UPDATE task SET due_date = $2, has_time = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+UPDATE task SET due_date = $2, has_time = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type UpdateTaskDueDateParams struct {
@@ -706,12 +728,13 @@ func (q *Queries) UpdateTaskDueDate(ctx context.Context, arg UpdateTaskDueDatePa
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
 
 const updateTaskLocation = `-- name: UpdateTaskLocation :one
-UPDATE task SET task_group_id = $2, position = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+UPDATE task SET task_group_id = $2, position = $3 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type UpdateTaskLocationParams struct {
@@ -734,12 +757,13 @@ func (q *Queries) UpdateTaskLocation(ctx context.Context, arg UpdateTaskLocation
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
 
 const updateTaskName = `-- name: UpdateTaskName :one
-UPDATE task SET name = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+UPDATE task SET name = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type UpdateTaskNameParams struct {
@@ -761,12 +785,13 @@ func (q *Queries) UpdateTaskName(ctx context.Context, arg UpdateTaskNameParams) 
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }
 
 const updateTaskPosition = `-- name: UpdateTaskPosition :one
-UPDATE task SET position = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time
+UPDATE task SET position = $2 WHERE task_id = $1 RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
 `
 
 type UpdateTaskPositionParams struct {
@@ -788,6 +813,7 @@ func (q *Queries) UpdateTaskPosition(ctx context.Context, arg UpdateTaskPosition
 		&i.Complete,
 		&i.CompletedAt,
 		&i.HasTime,
+		&i.ShortID,
 	)
 	return i, err
 }

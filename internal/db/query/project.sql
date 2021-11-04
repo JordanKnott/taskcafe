@@ -1,6 +1,9 @@
 -- name: GetAllTeamProjects :many
 SELECT * FROM project WHERE team_id IS NOT null;
 
+-- name: GetProjectIDByShortID :one
+SELECT project_id FROM project WHERE short_id = $1;
+
 -- name: GetAllProjectsForTeam :many
 SELECT * FROM project WHERE team_id = $1;
 

@@ -392,6 +392,39 @@ func (r *projectLabelResolver) Name(ctx context.Context, obj *db.ProjectLabel) (
 	return name, nil
 }
 
+func (r *queryResolver) FindProject(ctx context.Context, input FindProject) (*db.Project, error) {
+	_, isLoggedIn := GetUser(ctx)
+	var projectID uuid.UUID
+	var err error
+	if input.ProjectID != nil {
+		projectID = *input.ProjectID
+	} else if input.ProjectShortID != nil {
+		projectID, err = r.Repository.GetProjectIDByShortID(ctx, *input.ProjectShortID)
+		if err != nil {
+			log.WithError(err).Error("error while getting project id by short id")
+			return &db.Project{}, err
+		}
+	} else {
+		return &db.Project{}, errors.New("FindProject requires either ProjectID or ProjectShortID to be set")
+	}
+	if !isLoggedIn {
+		isPublic, _ := IsProjectPublic(ctx, r.Repository, projectID)
+		if !isPublic {
+			return &db.Project{}, NotAuthorized()
+		}
+	}
+	project, err := r.Repository.GetProjectByID(ctx, projectID)
+	if err == sql.ErrNoRows {
+		return &db.Project{}, &gqlerror.Error{
+			Message: "Project not found",
+			Extensions: map[string]interface{}{
+				"code": "NOT_FOUND",
+			},
+		}
+	}
+	return &project, nil
+}
+
 // LabelColor returns LabelColorResolver implementation.
 func (r *Resolver) LabelColor() LabelColorResolver { return &labelColorResolver{r} }
 

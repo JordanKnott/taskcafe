@@ -2,8 +2,9 @@ import gql from 'graphql-tag';
 import TASK_FRAGMENT from './fragments/task';
 
 const FIND_PROJECT_QUERY = gql`
-query findProject($projectID: UUID!) {
-  findProject(input: { projectID: $projectID }) {
+query findProject($projectID: String!) {
+  findProject(input: { projectShortID: $projectID }) {
+    id
     name
     publicOn
     team {

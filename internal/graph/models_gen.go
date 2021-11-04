@@ -215,11 +215,13 @@ type DuplicateTaskGroupPayload struct {
 }
 
 type FindProject struct {
-	ProjectID uuid.UUID `json:"projectID"`
+	ProjectID      *uuid.UUID `json:"projectID"`
+	ProjectShortID *string    `json:"projectShortID"`
 }
 
 type FindTask struct {
-	TaskID uuid.UUID `json:"taskID"`
+	TaskID      *uuid.UUID `json:"taskID"`
+	TaskShortID *string    `json:"taskShortID"`
 }
 
 type FindTeam struct {

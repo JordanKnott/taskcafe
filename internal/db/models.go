@@ -86,6 +86,7 @@ type Project struct {
 	CreatedAt time.Time    `json:"created_at"`
 	Name      string       `json:"name"`
 	PublicOn  sql.NullTime `json:"public_on"`
+	ShortID   string       `json:"short_id"`
 }
 
 type ProjectLabel struct {
@@ -132,6 +133,7 @@ type Task struct {
 	Complete    bool           `json:"complete"`
 	CompletedAt sql.NullTime   `json:"completed_at"`
 	HasTime     bool           `json:"has_time"`
+	ShortID     string         `json:"short_id"`
 }
 
 type TaskActivity struct {

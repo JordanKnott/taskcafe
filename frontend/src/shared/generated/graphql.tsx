@@ -278,11 +278,13 @@ export type DuplicateTaskGroupPayload = {
 };
 
 export type FindProject = {
-  projectID: Scalars['UUID'];
+  projectID?: Maybe<Scalars['UUID']>;
+  projectShortID?: Maybe<Scalars['String']>;
 };
 
 export type FindTask = {
-  taskID: Scalars['UUID'];
+  taskID?: Maybe<Scalars['UUID']>;
+  taskShortID?: Maybe<Scalars['String']>;
 };
 
 export type FindTeam = {
@@ -908,6 +910,7 @@ export type ProfileIcon = {
 export type Project = {
   __typename?: 'Project';
   id: Scalars['ID'];
+  shortId: Scalars['String'];
   createdAt: Scalars['Time'];
   name: Scalars['String'];
   team?: Maybe<Team>;
@@ -1068,6 +1071,7 @@ export type Subscription = {
 export type Task = {
   __typename?: 'Task';
   id: Scalars['ID'];
+  shortId: Scalars['String'];
   taskGroup: TaskGroup;
   createdAt: Scalars['Time'];
   name: Scalars['String'];
@@ -1419,7 +1423,7 @@ export type CreateProjectMutation = (
   { __typename?: 'Mutation' }
   & { createProject: (
     { __typename?: 'Project' }
-    & Pick<Project, 'id' | 'name'>
+    & Pick<Project, 'id' | 'shortId' | 'name'>
     & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id' | 'name'>
@@ -1509,7 +1513,7 @@ export type DeleteTaskGroupMutation = (
 );
 
 export type FindProjectQueryVariables = Exact<{
-  projectID: Scalars['UUID'];
+  projectID: Scalars['String'];
 }>;
 
 
@@ -1517,7 +1521,7 @@ export type FindProjectQuery = (
   { __typename?: 'Query' }
   & { findProject: (
     { __typename?: 'Project' }
-    & Pick<Project, 'name' | 'publicOn'>
+    & Pick<Project, 'id' | 'name' | 'publicOn'>
     & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id'>
@@ -1584,7 +1588,7 @@ export type FindProjectQuery = (
 );
 
 export type FindTaskQueryVariables = Exact<{
-  taskID: Scalars['UUID'];
+  taskID: Scalars['String'];
 }>;
 
 
@@ -1592,7 +1596,7 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'name' | 'watched' | 'description' | 'dueDate' | 'position' | 'complete' | 'hasTime'>
+    & Pick<Task, 'id' | 'shortId' | 'name' | 'watched' | 'description' | 'dueDate' | 'position' | 'complete' | 'hasTime'>
     & { taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name'>
@@ -1668,7 +1672,7 @@ export type FindTaskQuery = (
 
 export type TaskFieldsFragment = (
   { __typename?: 'Task' }
-  & Pick<Task, 'id' | 'name' | 'description' | 'dueDate' | 'hasTime' | 'complete' | 'watched' | 'completedAt' | 'position'>
+  & Pick<Task, 'id' | 'shortId' | 'name' | 'description' | 'dueDate' | 'hasTime' | 'complete' | 'watched' | 'completedAt' | 'position'>
   & { badges: (
     { __typename?: 'TaskBadges' }
     & { checklist?: Maybe<(
@@ -1715,7 +1719,7 @@ export type GetProjectsQuery = (
     & Pick<Team, 'id' | 'name' | 'createdAt'>
   )>, projects: Array<(
     { __typename?: 'Project' }
-    & Pick<Project, 'id' | 'name'>
+    & Pick<Project, 'id' | 'shortId' | 'name'>
     & { team?: Maybe<(
       { __typename?: 'Team' }
       & Pick<Team, 'id' | 'name'>
@@ -1785,7 +1789,7 @@ export type MyTasksQuery = (
     { __typename?: 'MyTasksPayload' }
     & { tasks: Array<(
       { __typename?: 'Task' }
-      & Pick<Task, 'id' | 'name' | 'dueDate' | 'hasTime' | 'complete' | 'completedAt'>
+      & Pick<Task, 'id' | 'shortId' | 'name' | 'dueDate' | 'hasTime' | 'complete' | 'completedAt'>
       & { taskGroup: (
         { __typename?: 'TaskGroup' }
         & Pick<TaskGroup, 'id' | 'name'>
@@ -2859,6 +2863,7 @@ export type UsersQuery = (
 export const TaskFieldsFragmentDoc = gql`
     fragment TaskFields on Task {
   id
+  shortId
   name
   description
   dueDate
@@ -2988,6 +2993,7 @@ export const CreateProjectDocument = gql`
     mutation createProject($teamID: UUID, $name: String!) {
   createProject(input: {teamID: $teamID, name: $name}) {
     id
+    shortId
     name
     team {
       id
@@ -3215,8 +3221,9 @@ export type DeleteTaskGroupMutationHookResult = ReturnType<typeof useDeleteTaskG
 export type DeleteTaskGroupMutationResult = Apollo.MutationResult<DeleteTaskGroupMutation>;
 export type DeleteTaskGroupMutationOptions = Apollo.BaseMutationOptions<DeleteTaskGroupMutation, DeleteTaskGroupMutationVariables>;
 export const FindProjectDocument = gql`
-    query findProject($projectID: UUID!) {
-  findProject(input: {projectID: $projectID}) {
+    query findProject($projectID: String!) {
+  findProject(input: {projectShortID: $projectID}) {
+    id
     name
     publicOn
     team {
@@ -3332,9 +3339,10 @@ export type FindProjectQueryHookResult = ReturnType<typeof useFindProjectQuery>;
 export type FindProjectLazyQueryHookResult = ReturnType<typeof useFindProjectLazyQuery>;
 export type FindProjectQueryResult = Apollo.QueryResult<FindProjectQuery, FindProjectQueryVariables>;
 export const FindTaskDocument = gql`
-    query findTask($taskID: UUID!) {
-  findTask(input: {taskID: $taskID}) {
+    query findTask($taskID: String!) {
+  findTask(input: {taskShortID: $taskID}) {
     id
+    shortId
     name
     watched
     description
@@ -3477,6 +3485,7 @@ export const GetProjectsDocument = gql`
   }
   projects {
     id
+    shortId
     name
     team {
       id
@@ -3625,6 +3634,7 @@ export const MyTasksDocument = gql`
   myTasks(input: {status: $status, sort: $sort}) {
     tasks {
       id
+      shortId
       taskGroup {
         id
         name

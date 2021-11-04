@@ -429,6 +429,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
             createTask: {
               __typename: 'Task',
               id: `${Math.round(Math.random() * -1000000)}`,
+              shortId: '',
               name,
               watched: false,
               complete: false,
@@ -605,7 +606,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
         <SimpleLists
           isPublic={user === null}
           onTaskClick={(task) => {
-            history.push(`${match.url}/c/${task.id}`);
+            history.push(`${match.url}/c/${task.shortId}`);
           }}
           onCardLabelClick={onCardLabelClick ?? NOOP}
           cardLabelVariant={cardLabelVariant ?? 'large'}
