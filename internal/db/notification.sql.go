@@ -149,15 +149,20 @@ SELECT notified_id, nn.notification_id, nn.user_id, read, read_at, n.notificatio
   LEFT JOIN user_account ON user_account.user_id = n.caused_by
   WHERE (n.created_on, n.notification_id) < ($1::timestamptz, $2::uuid)
   AND nn.user_id = $3::uuid
+  AND ($4::boolean = false OR nn.read = false)
+  AND ($5::boolean = false OR n.action_type = ANY($6::text[]))
   ORDER BY n.created_on DESC
-  LIMIT $4::int
+  LIMIT $7::int
 `
 
 type GetNotificationsForUserIDCursorParams struct {
-	CreatedOn      time.Time `json:"created_on"`
-	NotificationID uuid.UUID `json:"notification_id"`
-	UserID         uuid.UUID `json:"user_id"`
-	LimitRows      int32     `json:"limit_rows"`
+	CreatedOn        time.Time `json:"created_on"`
+	NotificationID   uuid.UUID `json:"notification_id"`
+	UserID           uuid.UUID `json:"user_id"`
+	EnableUnread     bool      `json:"enable_unread"`
+	EnableActionType bool      `json:"enable_action_type"`
+	ActionType       []string  `json:"action_type"`
+	LimitRows        int32     `json:"limit_rows"`
 }
 
 type GetNotificationsForUserIDCursorRow struct {
@@ -190,6 +195,9 @@ func (q *Queries) GetNotificationsForUserIDCursor(ctx context.Context, arg GetNo
 		arg.CreatedOn,
 		arg.NotificationID,
 		arg.UserID,
+		arg.EnableUnread,
+		arg.EnableActionType,
+		pq.Array(arg.ActionType),
 		arg.LimitRows,
 	)
 	if err != nil {

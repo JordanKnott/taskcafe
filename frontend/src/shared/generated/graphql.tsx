@@ -894,7 +894,7 @@ export type OwnersList = {
 
 export type PageInfo = {
   __typename?: 'PageInfo';
-  endCursor: Scalars['String'];
+  endCursor?: Maybe<Scalars['String']>;
   hasNextPage: Scalars['Boolean'];
 };
 

@@ -39,5 +39,7 @@ SELECT * FROM notification_notified AS nn
   LEFT JOIN user_account ON user_account.user_id = n.caused_by
   WHERE (n.created_on, n.notification_id) < (@created_on::timestamptz, @notification_id::uuid)
   AND nn.user_id = @user_id::uuid
+  AND (@enable_unread::boolean = false OR nn.read = false)
+  AND (@enable_action_type::boolean = false OR n.action_type = ANY(@action_type::text[]))
   ORDER BY n.created_on DESC
   LIMIT @limit_rows::int;

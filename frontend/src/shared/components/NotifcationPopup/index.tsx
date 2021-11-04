@@ -427,7 +427,7 @@ const NotificationPopup: React.FC = ({ children }) => {
     onCompleted: (d) => {
       setData((prev) => ({
         hasNextPage: d.notified.pageInfo.hasNextPage,
-        cursor: d.notified.pageInfo.endCursor,
+        cursor: d.notified.pageInfo.endCursor ?? '',
         nodes: [...prev.nodes, ...d.notified.notified],
       }));
     },
@@ -482,7 +482,7 @@ const NotificationPopup: React.FC = ({ children }) => {
                   updateQuery: (prev, { fetchMoreResult }) => {
                     if (!fetchMoreResult) return prev;
                     setData((d) => ({
-                      cursor: fetchMoreResult.notified.pageInfo.endCursor,
+                      cursor: fetchMoreResult.notified.pageInfo.endCursor ?? '',
                       hasNextPage: fetchMoreResult.notified.pageInfo.hasNextPage,
                       nodes: [...d.nodes, ...fetchMoreResult.notified.notified],
                     }));

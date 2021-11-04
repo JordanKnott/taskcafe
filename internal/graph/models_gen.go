@@ -405,8 +405,8 @@ type OwnersList struct {
 }
 
 type PageInfo struct {
-	EndCursor   string `json:"endCursor"`
-	HasNextPage bool   `json:"hasNextPage"`
+	EndCursor   *string `json:"endCursor"`
+	HasNextPage bool    `json:"hasNextPage"`
 }
 
 type ProfileIcon struct {

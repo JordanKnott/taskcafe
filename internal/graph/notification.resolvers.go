@@ -163,11 +163,30 @@ func (r *queryResolver) Notified(ctx context.Context, input NotifiedInput) (*Not
 			log.WithError(err).Error("error decoding cursor")
 			return &NotifiedResult{}, err
 		}
+		enableRead := false
+		enableActionType := false
+		actionTypes := []string{}
+		switch input.Filter {
+		case NotificationFilterUnread:
+			enableRead = true
+			break
+		case NotificationFilterMentioned:
+			enableActionType = true
+			actionTypes = []string{"COMMENT_MENTIONED"}
+			break
+		case NotificationFilterAssigned:
+			enableActionType = true
+			actionTypes = []string{"TASK_ASSIGNED"}
+			break
+		}
 		n, err := r.Repository.GetNotificationsForUserIDCursor(ctx, db.GetNotificationsForUserIDCursorParams{
-			CreatedOn:      t,
-			NotificationID: id,
-			LimitRows:      int32(input.Limit + 1),
-			UserID:         userID,
+			CreatedOn:        t,
+			NotificationID:   id,
+			LimitRows:        int32(input.Limit + 1),
+			UserID:           userID,
+			EnableUnread:     enableRead,
+			EnableActionType: enableActionType,
+			ActionType:       actionTypes,
 		})
 		if err != nil {
 			log.WithError(err).Error("error decoding fetching notifications")
@@ -180,11 +199,14 @@ func (r *queryResolver) Notified(ctx context.Context, input NotifiedInput) (*Not
 			"cursorId":   id,
 			"limit":      input.Limit,
 		}).Info("fetched notified")
-		endCursor := n[len(n)-1]
-		if len(n) == input.Limit+1 {
-			hasNextPage = true
-			n = n[:len(n)-1]
-			endCursor = n[len(n)-1]
+		var endCursor *db.GetNotificationsForUserIDCursorRow
+		if len(n) != 0 {
+			endCursor = &n[len(n)-1]
+			if len(n) == input.Limit+1 {
+				hasNextPage = true
+				n = n[:len(n)-1]
+				endCursor = &n[len(n)-1]
+			}
 		}
 		userNotifications := []Notified{}
 		for _, notified := range n {
@@ -206,9 +228,14 @@ func (r *queryResolver) Notified(ctx context.Context, input NotifiedInput) (*Not
 			}
 			userNotifications = append(userNotifications, n)
 		}
+		var endCursorEncoded *string
+		if endCursor != nil {
+			eCur := utils.EncodeCursor(endCursor.CreatedOn, endCursor.NotificationID)
+			endCursorEncoded = &eCur
+		}
 		pageInfo := &PageInfo{
 			HasNextPage: hasNextPage,
-			EndCursor:   utils.EncodeCursor(endCursor.CreatedOn, endCursor.NotificationID),
+			EndCursor:   endCursorEncoded,
 		}
 		log.WithField("pageInfo", pageInfo).Info("created page info")
 		return &NotifiedResult{
@@ -249,11 +276,14 @@ func (r *queryResolver) Notified(ctx context.Context, input NotifiedInput) (*Not
 		"nLen":  len(n),
 		"limit": input.Limit,
 	}).Info("fetched notified")
-	endCursor := n[len(n)-1]
-	if len(n) == input.Limit+1 {
-		hasNextPage = true
-		n = n[:len(n)-1]
-		endCursor = n[len(n)-1]
+	var endCursor *db.GetNotificationsForUserIDPagedRow
+	if len(n) != 0 {
+		endCursor = &n[len(n)-1]
+		if len(n) == input.Limit+1 {
+			hasNextPage = true
+			n = n[:len(n)-1]
+			endCursor = &n[len(n)-1]
+		}
 	}
 	userNotifications := []Notified{}
 	for _, notified := range n {
@@ -275,9 +305,14 @@ func (r *queryResolver) Notified(ctx context.Context, input NotifiedInput) (*Not
 		}
 		userNotifications = append(userNotifications, n)
 	}
+	var endCursorEncoded *string
+	if endCursor != nil {
+		eCur := utils.EncodeCursor(endCursor.CreatedOn, endCursor.NotificationID)
+		endCursorEncoded = &eCur
+	}
 	pageInfo := &PageInfo{
 		HasNextPage: hasNextPage,
-		EndCursor:   utils.EncodeCursor(endCursor.CreatedOn, endCursor.NotificationID),
+		EndCursor:   endCursorEncoded,
 	}
 	log.WithField("pageInfo", pageInfo).Info("created page info")
 	return &NotifiedResult{
