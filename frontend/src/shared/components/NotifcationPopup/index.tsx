@@ -15,6 +15,8 @@ import dayjs from 'dayjs';
 import { Popup, usePopup } from 'shared/components/PopupMenu';
 import { CheckCircleOutline, Circle, CircleSolid, UserCircle } from 'shared/icons';
 import produce from 'immer';
+import { useLocalStorage } from 'shared/hooks/useStateWithLocalStorage';
+import localStorage from 'shared/utils/localStorage';
 
 const ItemWrapper = styled.div`
   cursor: pointer;
@@ -403,7 +405,10 @@ type NotificationEntry = {
   };
 };
 const NotificationPopup: React.FC = ({ children }) => {
-  const [filter, setFilter] = useState<NotificationFilter>(NotificationFilter.Unread);
+  const [filter, setFilter] = useLocalStorage<NotificationFilter>(
+    localStorage.NOTIFICATIONS_FILTER,
+    NotificationFilter.Unread,
+  );
   const [data, setData] = useState<{ nodes: Array<NotificationEntry>; hasNextPage: boolean; cursor: string }>({
     nodes: [],
     hasNextPage: false,
