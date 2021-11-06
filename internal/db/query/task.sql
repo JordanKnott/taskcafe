@@ -116,3 +116,16 @@ SELECT task.* FROM task_assigned
 
 -- name: GetCommentCountForTask :one
 SELECT COUNT(*) FROM task_comment WHERE task_id = $1;
+
+
+-- name: CreateDueDateReminder :one
+INSERT INTO task_due_date_reminder (task_id, period, duration) VALUES ($1, $2, $3) RETURNING *;
+
+-- name: UpdateDueDateReminder :one
+UPDATE task_due_date_reminder SET period = $2, duration = $3 WHERE due_date_reminder_id = $1 RETURNING *;
+
+-- name: GetDueDateRemindersForTaskID :many
+SELECT * FROM task_due_date_reminder WHERE task_id = $1;
+
+-- name: DeleteDueDateReminder :exec
+DELETE FROM task_due_date_reminder WHERE due_date_reminder_id = $1;

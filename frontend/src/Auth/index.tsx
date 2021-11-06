@@ -9,7 +9,6 @@ const Auth = () => {
   const history = useHistory();
   const location = useLocation<{ redirect: string } | undefined>();
   const { setUser } = useContext(UserContext);
-  console.log('auth');
   const login = (
     data: LoginFormData,
     setComplete: (val: boolean) => void,

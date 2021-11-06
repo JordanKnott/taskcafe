@@ -1,9 +1,8 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import Button from 'shared/components/Button';
 import { mixin } from 'shared/utils/styles';
-import Input from 'shared/components/Input';
 import ControlledInput from 'shared/components/ControlledInput';
-import { Clock } from 'shared/icons';
+import { Bell, Clock } from 'shared/icons';
 
 export const Wrapper = styled.div`
 display: flex
@@ -22,27 +21,27 @@ display: flex
   & .react-datepicker__close-icon::after {
     background: none;
     font-size: 16px;
-    color: ${props => props.theme.colors.text.primary};
+    color: ${(props) => props.theme.colors.text.primary};
   }
 
   & .react-datepicker-time__header {
-    color: ${props => props.theme.colors.text.primary};
+    color: ${(props) => props.theme.colors.text.primary};
   }
   & .react-datepicker__time-list-item {
-    color: ${props => props.theme.colors.text.primary};
+    color: ${(props) => props.theme.colors.text.primary};
   }
   & .react-datepicker__time-container .react-datepicker__time
   .react-datepicker__time-box ul.react-datepicker__time-list
   li.react-datepicker__time-list-item:hover {
-    color: ${props => props.theme.colors.text.secondary};
-    background: ${props => props.theme.colors.bg.secondary};
+    color: ${(props) => props.theme.colors.text.secondary};
+    background: ${(props) => props.theme.colors.bg.secondary};
   }
   & .react-datepicker__time-container .react-datepicker__time {
-    background: ${props => props.theme.colors.bg.primary};
+    background: ${(props) => props.theme.colors.bg.primary};
   }
   & .react-datepicker--time-only {
-    background: ${props => props.theme.colors.bg.primary};
-    border: 1px solid ${props => props.theme.colors.border};
+    background: ${(props) => props.theme.colors.bg.primary};
+    border: 1px solid ${(props) => props.theme.colors.border};
   }
 
   & .react-datepicker * {
@@ -82,12 +81,12 @@ display: flex
   }
   & .react-datepicker__day--selected {
     border-radius: 50%;
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
     color: #fff;
   }
   & .react-datepicker__day--selected:hover {
     border-radius: 50%;
-    background: ${props => props.theme.colors.primary};
+    background: ${(props) => props.theme.colors.primary};
     color: #fff;
   }
   & .react-datepicker__header {
@@ -95,12 +94,12 @@ display: flex
     border: none;
   }
   & .react-datepicker__header--time {
-    border-bottom: 1px solid ${props => props.theme.colors.border};
+    border-bottom: 1px solid ${(props) => props.theme.colors.border};
   }
 
   & .react-datepicker__input-container input {
   border: 1px solid rgba(0, 0, 0, 0.2);
-  border-color: ${props => props.theme.colors.alternate};
+  border-color: ${(props) => props.theme.colors.alternate};
   background: #262c49;
   box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.15);
 padding: 0.7rem;
@@ -114,7 +113,7 @@ padding: 0.7rem;
   &:focus {
     box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(115, 103, 240);
-    background: ${props => props.theme.colors.bg.primary};
+    background: ${(props) => props.theme.colors.bg.primary};
   }
 `;
 
@@ -142,9 +141,9 @@ export const AddDateRange = styled.div`
   width: 100%;
   font-size: 12px;
   line-height: 16px;
-  color: ${props => mixin.rgba(props.theme.colors.primary, 0.8)};
+  color: ${(props) => mixin.rgba(props.theme.colors.primary, 0.8)};
   &:hover {
-    color: ${props => mixin.rgba(props.theme.colors.primary, 1)};
+    color: ${(props) => mixin.rgba(props.theme.colors.primary, 1)};
     text-decoration: underline;
   }
 `;
@@ -201,18 +200,62 @@ export const ActionsWrapper = styled.div`
   align-items: center;
   & .react-datepicker-wrapper {
     margin-left: auto;
-    width: 82px;
+    width: 86px;
   }
   & .react-datepicker__input-container input {
     padding-bottom: 4px;
     padding-top: 4px;
     width: 100%;
   }
+
+  & .react-period-select__indicators {
+    display: none;
+  }
+  & .react-period {
+    width: 100%;
+    max-width: 86px;
+  }
+
+  & .react-period-select__single-value {
+    color: #c2c6dc;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  & .react-period-select__value-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  & .react-period-select__control {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    min-height: 30px;
+    border-color: rgb(65, 69, 97);
+    background: #262c49;
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 15%);
+    color: #c2c6dc;
+    padding-right: 12px;
+    padding-left: 12px;
+    padding-bottom: 4px;
+    padding-top: 4px;
+    width: 100%;
+    position: relative;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-size: 13px;
+    line-height: 20px;
+    padding: 0 12px;
+  }
 `;
 
 export const ActionClock = styled(Clock)`
   align-self: center;
-  fill: ${props => props.theme.colors.primary};
+  fill: ${(props) => props.theme.colors.primary};
+  margin: 0 8px;
+  flex: 0 0 auto;
+`;
+
+export const ActionBell = styled(Bell)`
+  align-self: center;
+  fill: ${(props) => props.theme.colors.primary};
   margin: 0 8px;
   flex: 0 0 auto;
 `;
@@ -222,7 +265,7 @@ export const ActionLabel = styled.div`
   line-height: 14px;
 `;
 
-export const ActionIcon = styled.div`
+export const ActionIcon = styled.div<{ disabled?: boolean }>`
   height: 36px;
   min-height: 36px;
   min-width: 36px;
@@ -232,17 +275,25 @@ export const ActionIcon = styled.div`
   cursor: pointer;
   margin-right: 8px;
   svg {
-    fill: ${props => props.theme.colors.text.primary};
+    fill: ${(props) => props.theme.colors.text.primary};
     transition-duration: 0.2s;
     transition-property: background, border, box-shadow, fill;
   }
   &:hover svg {
-    fill: ${props => props.theme.colors.text.secondary};
+    fill: ${(props) => props.theme.colors.text.secondary};
   }
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      opacity: 0.8;
+      cursor: not-allowed;
+    `}
 
   align-items: center;
   display: inline-flex;
   justify-content: center;
+  position: relative;
 `;
 
 export const ClearButton = styled.div`
@@ -260,8 +311,38 @@ export const ClearButton = styled.div`
   justify-content: center;
   transition-duration: 0.2s;
   transition-property: background, border, box-shadow, color, fill;
-  color: ${props => props.theme.colors.text.primary};
+  color: ${(props) => props.theme.colors.text.primary};
   &:hover {
-    color: ${props => props.theme.colors.text.secondary};
+    color: ${(props) => props.theme.colors.text.secondary};
   }
+`;
+
+export const ControlWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+`;
+
+export const RightWrapper = styled.div`
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+`;
+
+export const LeftWrapper = styled.div`
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+`;
+
+export const SaveButton = styled(Button)`
+  padding: 6px 12px;
+  justify-content: center;
+  margin-right: 4px;
+`;
+
+export const RemoveButton = styled.div`
+  width: 100%;
+  justify-content: center;
 `;

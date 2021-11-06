@@ -61,7 +61,6 @@ const Routes: React.FC = () => {
       setLoading(false);
     });
   }, []);
-  console.log('loading', loading);
   if (loading) return null;
   return (
     <Switch>

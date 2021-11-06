@@ -446,7 +446,7 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                 checklist: null,
               },
               position,
-              dueDate: null,
+              dueDate: { at: null },
               description: null,
               labels: [],
               assigned: [],
@@ -801,12 +801,30 @@ const ProjectBoard: React.FC<ProjectBoardProps> = ({ projectID, onCardLabelClick
                   <DueDateManager
                     task={task}
                     onRemoveDueDate={(t) => {
-                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: null, hasTime: false } });
-                      // hidePopup();
+                      hidePopup();
+                      updateTaskDueDate({
+                        variables: {
+                          taskID: t.id,
+                          dueDate: null,
+                          hasTime: false,
+                          deleteNotifications: [],
+                          updateNotifications: [],
+                          createNotifications: [],
+                        },
+                      });
                     }}
                     onDueDateChange={(t, newDueDate, hasTime) => {
-                      updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate, hasTime } });
-                      // hidePopup();
+                      hidePopup();
+                      updateTaskDueDate({
+                        variables: {
+                          taskID: t.id,
+                          dueDate: newDueDate,
+                          hasTime,
+                          deleteNotifications: [],
+                          updateNotifications: [],
+                          createNotifications: [],
+                        },
+                      });
                     }}
                     onCancel={NOOP}
                   />

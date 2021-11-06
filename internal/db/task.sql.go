@@ -12,6 +12,28 @@ import (
 	"github.com/lib/pq"
 )
 
+const createDueDateReminder = `-- name: CreateDueDateReminder :one
+INSERT INTO task_due_date_reminder (task_id, period, duration) VALUES ($1, $2, $3) RETURNING due_date_reminder_id, task_id, period, duration
+`
+
+type CreateDueDateReminderParams struct {
+	TaskID   uuid.UUID `json:"task_id"`
+	Period   int32     `json:"period"`
+	Duration string    `json:"duration"`
+}
+
+func (q *Queries) CreateDueDateReminder(ctx context.Context, arg CreateDueDateReminderParams) (TaskDueDateReminder, error) {
+	row := q.db.QueryRowContext(ctx, createDueDateReminder, arg.TaskID, arg.Period, arg.Duration)
+	var i TaskDueDateReminder
+	err := row.Scan(
+		&i.DueDateReminderID,
+		&i.TaskID,
+		&i.Period,
+		&i.Duration,
+	)
+	return i, err
+}
+
 const createTask = `-- name: CreateTask :one
 INSERT INTO task (task_group_id, created_at, name, position)
   VALUES($1, $2, $3, $4) RETURNING task_id, task_group_id, created_at, name, position, description, due_date, complete, completed_at, has_time, short_id
@@ -142,6 +164,15 @@ func (q *Queries) CreateTaskWatcher(ctx context.Context, arg CreateTaskWatcherPa
 		&i.WatchedAt,
 	)
 	return i, err
+}
+
+const deleteDueDateReminder = `-- name: DeleteDueDateReminder :exec
+DELETE FROM task_due_date_reminder WHERE due_date_reminder_id = $1
+`
+
+func (q *Queries) DeleteDueDateReminder(ctx context.Context, dueDateReminderID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteDueDateReminder, dueDateReminderID)
+	return err
 }
 
 const deleteTaskByID = `-- name: DeleteTaskByID :exec
@@ -403,6 +434,38 @@ func (q *Queries) GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([
 	return items, nil
 }
 
+const getDueDateRemindersForTaskID = `-- name: GetDueDateRemindersForTaskID :many
+SELECT due_date_reminder_id, task_id, period, duration FROM task_due_date_reminder WHERE task_id = $1
+`
+
+func (q *Queries) GetDueDateRemindersForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskDueDateReminder, error) {
+	rows, err := q.db.QueryContext(ctx, getDueDateRemindersForTaskID, taskID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TaskDueDateReminder
+	for rows.Next() {
+		var i TaskDueDateReminder
+		if err := rows.Scan(
+			&i.DueDateReminderID,
+			&i.TaskID,
+			&i.Period,
+			&i.Duration,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProjectIDForTask = `-- name: GetProjectIDForTask :one
 SELECT project_id FROM task
   INNER JOIN task_group ON task_group.task_group_id = task.task_group_id
@@ -647,6 +710,28 @@ func (q *Queries) SetTaskComplete(ctx context.Context, arg SetTaskCompleteParams
 		&i.CompletedAt,
 		&i.HasTime,
 		&i.ShortID,
+	)
+	return i, err
+}
+
+const updateDueDateReminder = `-- name: UpdateDueDateReminder :one
+UPDATE task_due_date_reminder SET period = $2, duration = $3 WHERE due_date_reminder_id = $1 RETURNING due_date_reminder_id, task_id, period, duration
+`
+
+type UpdateDueDateReminderParams struct {
+	DueDateReminderID uuid.UUID `json:"due_date_reminder_id"`
+	Period            int32     `json:"period"`
+	Duration          string    `json:"duration"`
+}
+
+func (q *Queries) UpdateDueDateReminder(ctx context.Context, arg UpdateDueDateReminderParams) (TaskDueDateReminder, error) {
+	row := q.db.QueryRowContext(ctx, updateDueDateReminder, arg.DueDateReminderID, arg.Period, arg.Duration)
+	var i TaskDueDateReminder
+	err := row.Scan(
+		&i.DueDateReminderID,
+		&i.TaskID,
+		&i.Period,
+		&i.Duration,
 	)
 	return i, err
 }

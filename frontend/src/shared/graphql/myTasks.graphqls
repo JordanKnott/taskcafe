@@ -12,7 +12,9 @@ query myTasks($status: MyTasksStatus!, $sort: MyTasksSort!) {
         name
       }
       name
-      dueDate
+      dueDate {
+        at
+      }
       hasTime
       complete
       completedAt

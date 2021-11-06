@@ -46,7 +46,7 @@ export function sortTasks(a: Task, b: Task, taskSorting: TaskSorting) {
     if (b.dueDate && !a.dueDate) {
       return 1;
     }
-    return dayjs(a.dueDate).diff(dayjs(b.dueDate));
+    return dayjs(a.dueDate.at).diff(dayjs(b.dueDate.at));
   }
   if (taskSorting.type === TaskSortingType.COMPLETE) {
     if (a.complete && !b.complete) {

@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -501,8 +501,20 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 	if err != nil {
 		return &db.Task{}, err
 	}
+	isSame := false
+	if prevTask.DueDate.Valid && input.DueDate != nil {
+		if prevTask.DueDate.Time == *input.DueDate && prevTask.HasTime == input.HasTime {
+			isSame = true
+		}
+	}
+	log.WithFields(log.Fields{
+		"isSame": isSame,
+		"prev":   prevTask.HasTime,
+		"new":    input.HasTime,
+	}).Info("chekcing same")
 	data := map[string]string{}
 	var activityType = TASK_DUE_DATE_ADDED
+	data["HasTime"] = strconv.FormatBool(input.HasTime)
 	if input.DueDate == nil && prevTask.DueDate.Valid {
 		activityType = TASK_DUE_DATE_REMOVED
 		data["PrevDueDate"] = prevTask.DueDate.Time.String()
@@ -529,13 +541,15 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 		})
 		createdAt := time.Now().UTC()
 		d, _ := json.Marshal(data)
-		_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
-			TaskID:         task.TaskID,
-			Data:           d,
-			CausedBy:       userID,
-			CreatedAt:      createdAt,
-			ActivityTypeID: activityType,
-		})
+		if !isSame {
+			_, err = r.Repository.CreateTaskActivity(ctx, db.CreateTaskActivityParams{
+				TaskID:         task.TaskID,
+				Data:           d,
+				CausedBy:       userID,
+				CreatedAt:      createdAt,
+				ActivityTypeID: activityType,
+			})
+		}
 	} else {
 		task, err = r.Repository.GetTaskByID(ctx, input.TaskID)
 	}
@@ -670,6 +684,73 @@ func (r *mutationResolver) UnassignTask(ctx context.Context, input *UnassignTask
 	return &task, nil
 }
 
+func (r *mutationResolver) CreateTaskDueDateNotifications(ctx context.Context, input []CreateTaskDueDateNotification) (*CreateTaskDueDateNotificationsResult, error) {
+	reminders := []DueDateNotification{}
+	for _, in := range input {
+		n, err := r.Repository.CreateDueDateReminder(ctx, db.CreateDueDateReminderParams{
+			TaskID:   in.TaskID,
+			Period:   int32(in.Period),
+			Duration: in.Duration.String(),
+		})
+		if err != nil {
+			return &CreateTaskDueDateNotificationsResult{}, err
+		}
+		duration := DueDateNotificationDuration(n.Duration)
+		if !duration.IsValid() {
+			log.WithField("duration", n.Duration).Error("invalid duration found")
+			return &CreateTaskDueDateNotificationsResult{}, errors.New("invalid duration")
+		}
+		reminders = append(reminders, DueDateNotification{
+			ID:       n.DueDateReminderID,
+			Period:   int(n.Period),
+			Duration: duration,
+		})
+	}
+	return &CreateTaskDueDateNotificationsResult{
+		Notifications: reminders,
+	}, nil
+}
+
+func (r *mutationResolver) UpdateTaskDueDateNotifications(ctx context.Context, input []UpdateTaskDueDateNotification) (*UpdateTaskDueDateNotificationsResult, error) {
+	reminders := []DueDateNotification{}
+	for _, in := range input {
+		n, err := r.Repository.UpdateDueDateReminder(ctx, db.UpdateDueDateReminderParams{
+			DueDateReminderID: in.ID,
+			Period:            int32(in.Period),
+			Duration:          in.Duration.String(),
+		})
+		if err != nil {
+			return &UpdateTaskDueDateNotificationsResult{}, err
+		}
+		duration := DueDateNotificationDuration(n.Duration)
+		if !duration.IsValid() {
+			log.WithField("duration", n.Duration).Error("invalid duration found")
+			return &UpdateTaskDueDateNotificationsResult{}, errors.New("invalid duration")
+		}
+		reminders = append(reminders, DueDateNotification{
+			ID:       n.DueDateReminderID,
+			Period:   int(n.Period),
+			Duration: duration,
+		})
+	}
+	return &UpdateTaskDueDateNotificationsResult{
+		Notifications: reminders,
+	}, nil
+}
+
+func (r *mutationResolver) DeleteTaskDueDateNotifications(ctx context.Context, input []DeleteTaskDueDateNotification) (*DeleteTaskDueDateNotificationsResult, error) {
+	ids := []uuid.UUID{}
+	for _, n := range input {
+		err := r.Repository.DeleteDueDateReminder(ctx, n.ID)
+		if err != nil {
+			log.WithError(err).Error("error while deleting task due date notification")
+			return &DeleteTaskDueDateNotificationsResult{}, err
+		}
+		ids = append(ids, n.ID)
+	}
+	return &DeleteTaskDueDateNotificationsResult{Notifications: ids}, nil
+}
+
 func (r *queryResolver) FindTask(ctx context.Context, input FindTask) (*db.Task, error) {
 	var taskID uuid.UUID
 	var err error
@@ -724,11 +805,34 @@ func (r *taskResolver) Watched(ctx context.Context, obj *db.Task) (bool, error) 
 	return true, nil
 }
 
-func (r *taskResolver) DueDate(ctx context.Context, obj *db.Task) (*time.Time, error) {
-	if obj.DueDate.Valid {
-		return &obj.DueDate.Time, nil
+func (r *taskResolver) DueDate(ctx context.Context, obj *db.Task) (*DueDate, error) {
+	nots, err := r.Repository.GetDueDateRemindersForTaskID(ctx, obj.TaskID)
+	if err != nil {
+		log.WithError(err).Error("error while fetching due date reminders")
+		return &DueDate{}, err
 	}
-	return nil, nil
+	reminders := []DueDateNotification{}
+	for _, n := range nots {
+		duration := DueDateNotificationDuration(n.Duration)
+		if !duration.IsValid() {
+			log.WithField("duration", n.Duration).Error("invalid duration found")
+			return &DueDate{}, errors.New("invalid duration")
+		}
+		reminders = append(reminders, DueDateNotification{
+			ID:       n.DueDateReminderID,
+			Period:   int(n.Period),
+			Duration: duration,
+		})
+	}
+	var time *time.Time
+	if obj.DueDate.Valid {
+		time = &obj.DueDate.Time
+	}
+
+	return &DueDate{
+		At:            time,
+		Notifications: reminders,
+	}, nil
 }
 
 func (r *taskResolver) CompletedAt(ctx context.Context, obj *db.Task) (*time.Time, error) {
@@ -904,7 +1008,10 @@ func (r *taskChecklistItemResolver) ID(ctx context.Context, obj *db.TaskChecklis
 }
 
 func (r *taskChecklistItemResolver) DueDate(ctx context.Context, obj *db.TaskChecklistItem) (*time.Time, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.DueDate.Valid {
+		return &obj.DueDate.Time, nil
+	}
+	return nil, nil
 }
 
 func (r *taskCommentResolver) ID(ctx context.Context, obj *db.TaskComment) (uuid.UUID, error) {

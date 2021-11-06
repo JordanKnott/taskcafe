@@ -351,10 +351,10 @@ const SimpleLists: React.FC<SimpleProps> = ({
                                                 description=""
                                                 labels={task.labels.map((label) => label.projectLabel)}
                                                 dueDate={
-                                                  task.dueDate
+                                                  task.dueDate.at
                                                     ? {
                                                         isPastDue: false,
-                                                        formattedDate: dayjs(task.dueDate).format('MMM D, YYYY'),
+                                                        formattedDate: dayjs(task.dueDate.at).format('MMM D, YYYY'),
                                                       }
                                                     : undefined
                                                 }

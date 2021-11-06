@@ -60,6 +60,16 @@ type CreateTaskCommentPayload struct {
 	Comment *db.TaskComment `json:"comment"`
 }
 
+type CreateTaskDueDateNotification struct {
+	TaskID   uuid.UUID                   `json:"taskID"`
+	Period   int                         `json:"period"`
+	Duration DueDateNotificationDuration `json:"duration"`
+}
+
+type CreateTaskDueDateNotificationsResult struct {
+	Notifications []DueDateNotification `json:"notifications"`
+}
+
 type CreateTeamMember struct {
 	UserID uuid.UUID `json:"userID"`
 	TeamID uuid.UUID `json:"teamID"`
@@ -144,6 +154,14 @@ type DeleteTaskCommentPayload struct {
 	CommentID uuid.UUID `json:"commentID"`
 }
 
+type DeleteTaskDueDateNotification struct {
+	ID uuid.UUID `json:"id"`
+}
+
+type DeleteTaskDueDateNotificationsResult struct {
+	Notifications []uuid.UUID `json:"notifications"`
+}
+
 type DeleteTaskGroupInput struct {
 	TaskGroupID uuid.UUID `json:"taskGroupID"`
 }
@@ -201,6 +219,17 @@ type DeleteUserAccount struct {
 type DeleteUserAccountPayload struct {
 	Ok          bool            `json:"ok"`
 	UserAccount *db.UserAccount `json:"userAccount"`
+}
+
+type DueDate struct {
+	At            *time.Time            `json:"at"`
+	Notifications []DueDateNotification `json:"notifications"`
+}
+
+type DueDateNotification struct {
+	ID       uuid.UUID                   `json:"id"`
+	Period   int                         `json:"period"`
+	Duration DueDateNotificationDuration `json:"duration"`
 }
 
 type DuplicateTaskGroup struct {
@@ -599,6 +628,16 @@ type UpdateTaskDueDate struct {
 	DueDate *time.Time `json:"dueDate"`
 }
 
+type UpdateTaskDueDateNotification struct {
+	ID       uuid.UUID                   `json:"id"`
+	Period   int                         `json:"period"`
+	Duration DueDateNotificationDuration `json:"duration"`
+}
+
+type UpdateTaskDueDateNotificationsResult struct {
+	Notifications []DueDateNotification `json:"notifications"`
+}
+
 type UpdateTaskGroupName struct {
 	TaskGroupID uuid.UUID `json:"taskGroupID"`
 	Name        string    `json:"name"`
@@ -818,6 +857,51 @@ func (e *ActivityType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ActivityType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DueDateNotificationDuration string
+
+const (
+	DueDateNotificationDurationMinute DueDateNotificationDuration = "MINUTE"
+	DueDateNotificationDurationHour   DueDateNotificationDuration = "HOUR"
+	DueDateNotificationDurationDay    DueDateNotificationDuration = "DAY"
+	DueDateNotificationDurationWeek   DueDateNotificationDuration = "WEEK"
+)
+
+var AllDueDateNotificationDuration = []DueDateNotificationDuration{
+	DueDateNotificationDurationMinute,
+	DueDateNotificationDurationHour,
+	DueDateNotificationDurationDay,
+	DueDateNotificationDurationWeek,
+}
+
+func (e DueDateNotificationDuration) IsValid() bool {
+	switch e {
+	case DueDateNotificationDurationMinute, DueDateNotificationDurationHour, DueDateNotificationDurationDay, DueDateNotificationDurationWeek:
+		return true
+	}
+	return false
+}
+
+func (e DueDateNotificationDuration) String() string {
+	return string(e)
+}
+
+func (e *DueDateNotificationDuration) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DueDateNotificationDuration(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DueDateNotificationDuration", str)
+	}
+	return nil
+}
+
+func (e DueDateNotificationDuration) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

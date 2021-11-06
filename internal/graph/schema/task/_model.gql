@@ -1,3 +1,9 @@
+enum DueDateNotificationDuration {
+  MINUTE
+  HOUR
+  DAY
+  WEEK
+}
 
 type TaskLabel {
   id: ID!
@@ -20,6 +26,18 @@ type TaskBadges {
   comments: CommentsBadge
 }
 
+type DueDateNotification {
+  id: ID!
+  period: Int!
+  duration: DueDateNotificationDuration!
+}
+
+type DueDate {
+  at: Time
+  notifications: [DueDateNotification!]!
+}
+
+
 type Task {
   id: ID!
   shortId: String!
@@ -29,7 +47,7 @@ type Task {
   position: Float!
   description: String
   watched: Boolean!
-  dueDate: Time
+  dueDate: DueDate!
   hasTime: Boolean!
   complete: Boolean!
   completedAt: Time

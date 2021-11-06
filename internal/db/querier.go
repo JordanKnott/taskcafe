@@ -12,6 +12,7 @@ import (
 type Querier interface {
 	CreateAuthToken(ctx context.Context, arg CreateAuthTokenParams) (AuthToken, error)
 	CreateConfirmToken(ctx context.Context, email string) (UserAccountConfirmToken, error)
+	CreateDueDateReminder(ctx context.Context, arg CreateDueDateReminderParams) (TaskDueDateReminder, error)
 	CreateInvitedProjectMember(ctx context.Context, arg CreateInvitedProjectMemberParams) (ProjectMemberInvited, error)
 	CreateInvitedUser(ctx context.Context, email string) (UserAccountInvited, error)
 	CreateLabelColor(ctx context.Context, arg CreateLabelColorParams) (LabelColor, error)
@@ -40,6 +41,7 @@ type Querier interface {
 	DeleteAuthTokenByID(ctx context.Context, tokenID uuid.UUID) error
 	DeleteAuthTokenByUserID(ctx context.Context, userID uuid.UUID) error
 	DeleteConfirmTokenForEmail(ctx context.Context, email string) error
+	DeleteDueDateReminder(ctx context.Context, dueDateReminderID uuid.UUID) error
 	DeleteExpiredTokens(ctx context.Context) error
 	DeleteInvitedProjectMemberByID(ctx context.Context, projectMemberInvitedID uuid.UUID) error
 	DeleteInvitedUserAccount(ctx context.Context, userAccountInvitedID uuid.UUID) (UserAccountInvited, error)
@@ -80,6 +82,7 @@ type Querier interface {
 	GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error)
 	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)
+	GetDueDateRemindersForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskDueDateReminder, error)
 	GetInvitedMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]GetInvitedMembersForProjectIDRow, error)
 	GetInvitedUserAccounts(ctx context.Context) ([]UserAccountInvited, error)
 	GetInvitedUserByEmail(ctx context.Context, email string) (UserAccountInvited, error)
@@ -150,6 +153,7 @@ type Querier interface {
 	SetTaskGroupName(ctx context.Context, arg SetTaskGroupNameParams) (TaskGroup, error)
 	SetUserActiveByEmail(ctx context.Context, email string) (UserAccount, error)
 	SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (UserAccount, error)
+	UpdateDueDateReminder(ctx context.Context, arg UpdateDueDateReminderParams) (TaskDueDateReminder, error)
 	UpdateProjectLabel(ctx context.Context, arg UpdateProjectLabelParams) (ProjectLabel, error)
 	UpdateProjectLabelColor(ctx context.Context, arg UpdateProjectLabelColorParams) (ProjectLabel, error)
 	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)

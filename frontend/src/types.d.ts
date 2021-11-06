@@ -110,7 +110,7 @@ type Task = {
   badges?: TaskBadges;
   position: number;
   hasTime?: boolean;
-  dueDate?: string;
+  dueDate: { at?: string; notifications?: Array<{ id: string; period: number; duration: string }> };
   complete?: boolean;
   completedAt?: string | null;
   labels: TaskLabel[];

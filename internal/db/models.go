@@ -187,6 +187,17 @@ type TaskComment struct {
 	Message       string       `json:"message"`
 }
 
+type TaskDueDateReminder struct {
+	DueDateReminderID uuid.UUID `json:"due_date_reminder_id"`
+	TaskID            uuid.UUID `json:"task_id"`
+	Period            int32     `json:"period"`
+	Duration          string    `json:"duration"`
+}
+
+type TaskDueDateReminderDuration struct {
+	Code string `json:"code"`
+}
+
 type TaskGroup struct {
 	TaskGroupID uuid.UUID `json:"task_group_id"`
 	ProjectID   uuid.UUID `json:"project_id"`

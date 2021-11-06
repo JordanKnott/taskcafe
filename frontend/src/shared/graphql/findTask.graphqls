@@ -5,7 +5,14 @@ query findTask($taskID: String!) {
     name
     watched
     description
-    dueDate
+    dueDate {
+      at
+      notifications {
+        id
+        period
+        duration
+      }
+    }
     position
     complete
     hasTime

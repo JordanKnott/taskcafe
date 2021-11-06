@@ -332,7 +332,6 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   const saveDescription = () => {
     onTaskDescriptionChange(task, taskDescriptionRef.current);
   };
-  console.log(task.watched);
   return (
     <Container>
       <LeftSidebar>
@@ -351,9 +350,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 }
               }}
             >
-              {task.dueDate ? (
+              {task.dueDate.at ? (
                 <SidebarButtonText>
-                  {dayjs(task.dueDate).format(task.hasTime ? 'MMM D [at] h:mm A' : 'MMMM D')}
+                  {dayjs(task.dueDate.at).format(task.hasTime ? 'MMM D [at] h:mm A' : 'MMMM D')}
                 </SidebarButtonText>
               ) : (
                 <SidebarButtonText>No due date</SidebarButtonText>
@@ -632,6 +631,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             {activityStream.map((stream) =>
               stream.data.type === 'comment' ? (
                 <StreamComment
+                  key={stream.id}
                   onExtraActions={onCommentShowActions}
                   onCancelCommentEdit={onCancelCommentEdit}
                   onUpdateComment={(message) => onUpdateComment(stream.id, message)}
@@ -640,6 +640,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 />
               ) : (
                 <StreamActivity
+                  key={stream.id}
                   activity={task.activity && task.activity.find((activity) => activity.id === stream.id)}
                 />
               ),

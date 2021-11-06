@@ -107,6 +107,17 @@ export type CreateTaskCommentPayload = {
   comment: TaskComment;
 };
 
+export type CreateTaskDueDateNotification = {
+  taskID: Scalars['UUID'];
+  period: Scalars['Int'];
+  duration: DueDateNotificationDuration;
+};
+
+export type CreateTaskDueDateNotificationsResult = {
+  __typename?: 'CreateTaskDueDateNotificationsResult';
+  notifications: Array<DueDateNotification>;
+};
+
 export type CreateTeamMember = {
   userID: Scalars['UUID'];
   teamID: Scalars['UUID'];
@@ -200,6 +211,15 @@ export type DeleteTaskCommentPayload = {
   commentID: Scalars['UUID'];
 };
 
+export type DeleteTaskDueDateNotification = {
+  id: Scalars['UUID'];
+};
+
+export type DeleteTaskDueDateNotificationsResult = {
+  __typename?: 'DeleteTaskDueDateNotificationsResult';
+  notifications: Array<Scalars['UUID']>;
+};
+
 export type DeleteTaskGroupInput = {
   taskGroupID: Scalars['UUID'];
 };
@@ -264,6 +284,26 @@ export type DeleteUserAccountPayload = {
   ok: Scalars['Boolean'];
   userAccount: UserAccount;
 };
+
+export type DueDate = {
+  __typename?: 'DueDate';
+  at?: Maybe<Scalars['Time']>;
+  notifications: Array<DueDateNotification>;
+};
+
+export type DueDateNotification = {
+  __typename?: 'DueDateNotification';
+  id: Scalars['ID'];
+  period: Scalars['Int'];
+  duration: DueDateNotificationDuration;
+};
+
+export enum DueDateNotificationDuration {
+  Minute = 'MINUTE',
+  Hour = 'HOUR',
+  Day = 'DAY',
+  Week = 'WEEK'
+}
 
 export type DuplicateTaskGroup = {
   projectID: Scalars['UUID'];
@@ -393,6 +433,7 @@ export type Mutation = {
   createTaskChecklist: TaskChecklist;
   createTaskChecklistItem: TaskChecklistItem;
   createTaskComment: CreateTaskCommentPayload;
+  createTaskDueDateNotifications: CreateTaskDueDateNotificationsResult;
   createTaskGroup: TaskGroup;
   createTeam: Team;
   createTeamMember: CreateTeamMemberPayload;
@@ -406,6 +447,7 @@ export type Mutation = {
   deleteTaskChecklist: DeleteTaskChecklistPayload;
   deleteTaskChecklistItem: DeleteTaskChecklistItemPayload;
   deleteTaskComment: DeleteTaskCommentPayload;
+  deleteTaskDueDateNotifications: DeleteTaskDueDateNotificationsResult;
   deleteTaskGroup: DeleteTaskGroupPayload;
   deleteTaskGroupTasks: DeleteTaskGroupTasksPayload;
   deleteTeam: DeleteTeamPayload;
@@ -435,6 +477,7 @@ export type Mutation = {
   updateTaskComment: UpdateTaskCommentPayload;
   updateTaskDescription: Task;
   updateTaskDueDate: Task;
+  updateTaskDueDateNotifications: UpdateTaskDueDateNotificationsResult;
   updateTaskGroupLocation: TaskGroup;
   updateTaskGroupName: TaskGroup;
   updateTaskLocation: UpdateTaskLocationPayload;
@@ -483,6 +526,11 @@ export type MutationCreateTaskChecklistItemArgs = {
 
 export type MutationCreateTaskCommentArgs = {
   input?: Maybe<CreateTaskComment>;
+};
+
+
+export type MutationCreateTaskDueDateNotificationsArgs = {
+  input: Array<CreateTaskDueDateNotification>;
 };
 
 
@@ -548,6 +596,11 @@ export type MutationDeleteTaskChecklistItemArgs = {
 
 export type MutationDeleteTaskCommentArgs = {
   input?: Maybe<DeleteTaskComment>;
+};
+
+
+export type MutationDeleteTaskDueDateNotificationsArgs = {
+  input: Array<DeleteTaskDueDateNotification>;
 };
 
 
@@ -693,6 +746,11 @@ export type MutationUpdateTaskDescriptionArgs = {
 
 export type MutationUpdateTaskDueDateArgs = {
   input: UpdateTaskDueDate;
+};
+
+
+export type MutationUpdateTaskDueDateNotificationsArgs = {
+  input: Array<UpdateTaskDueDateNotification>;
 };
 
 
@@ -1078,7 +1136,7 @@ export type Task = {
   position: Scalars['Float'];
   description?: Maybe<Scalars['String']>;
   watched: Scalars['Boolean'];
-  dueDate?: Maybe<Scalars['Time']>;
+  dueDate: DueDate;
   hasTime: Scalars['Boolean'];
   complete: Scalars['Boolean'];
   completedAt?: Maybe<Scalars['Time']>;
@@ -1300,6 +1358,17 @@ export type UpdateTaskDueDate = {
   taskID: Scalars['UUID'];
   hasTime: Scalars['Boolean'];
   dueDate?: Maybe<Scalars['Time']>;
+};
+
+export type UpdateTaskDueDateNotification = {
+  id: Scalars['UUID'];
+  period: Scalars['Int'];
+  duration: DueDateNotificationDuration;
+};
+
+export type UpdateTaskDueDateNotificationsResult = {
+  __typename?: 'UpdateTaskDueDateNotificationsResult';
+  notifications: Array<DueDateNotification>;
 };
 
 export type UpdateTaskGroupName = {
@@ -1596,8 +1665,15 @@ export type FindTaskQuery = (
   { __typename?: 'Query' }
   & { findTask: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'shortId' | 'name' | 'watched' | 'description' | 'dueDate' | 'position' | 'complete' | 'hasTime'>
-    & { taskGroup: (
+    & Pick<Task, 'id' | 'shortId' | 'name' | 'watched' | 'description' | 'position' | 'complete' | 'hasTime'>
+    & { dueDate: (
+      { __typename?: 'DueDate' }
+      & Pick<DueDate, 'at'>
+      & { notifications: Array<(
+        { __typename?: 'DueDateNotification' }
+        & Pick<DueDateNotification, 'id' | 'period' | 'duration'>
+      )> }
+    ), taskGroup: (
       { __typename?: 'TaskGroup' }
       & Pick<TaskGroup, 'id' | 'name'>
     ), comments: Array<(
@@ -1672,8 +1748,11 @@ export type FindTaskQuery = (
 
 export type TaskFieldsFragment = (
   { __typename?: 'Task' }
-  & Pick<Task, 'id' | 'shortId' | 'name' | 'description' | 'dueDate' | 'hasTime' | 'complete' | 'watched' | 'completedAt' | 'position'>
-  & { badges: (
+  & Pick<Task, 'id' | 'shortId' | 'name' | 'description' | 'hasTime' | 'complete' | 'watched' | 'completedAt' | 'position'>
+  & { dueDate: (
+    { __typename?: 'DueDate' }
+    & Pick<DueDate, 'at'>
+  ), badges: (
     { __typename?: 'TaskBadges' }
     & { checklist?: Maybe<(
       { __typename?: 'ChecklistBadge' }
@@ -1789,10 +1868,13 @@ export type MyTasksQuery = (
     { __typename?: 'MyTasksPayload' }
     & { tasks: Array<(
       { __typename?: 'Task' }
-      & Pick<Task, 'id' | 'shortId' | 'name' | 'dueDate' | 'hasTime' | 'complete' | 'completedAt'>
+      & Pick<Task, 'id' | 'shortId' | 'name' | 'hasTime' | 'complete' | 'completedAt'>
       & { taskGroup: (
         { __typename?: 'TaskGroup' }
         & Pick<TaskGroup, 'id' | 'name'>
+      ), dueDate: (
+        { __typename?: 'DueDate' }
+        & Pick<DueDate, 'at'>
       ) }
     )>, projects: Array<(
       { __typename?: 'ProjectTaskMapping' }
@@ -2624,6 +2706,9 @@ export type UpdateTaskDueDateMutationVariables = Exact<{
   taskID: Scalars['UUID'];
   dueDate?: Maybe<Scalars['Time']>;
   hasTime: Scalars['Boolean'];
+  createNotifications: Array<CreateTaskDueDateNotification> | CreateTaskDueDateNotification;
+  updateNotifications: Array<UpdateTaskDueDateNotification> | UpdateTaskDueDateNotification;
+  deleteNotifications: Array<DeleteTaskDueDateNotification> | DeleteTaskDueDateNotification;
 }>;
 
 
@@ -2631,7 +2716,26 @@ export type UpdateTaskDueDateMutation = (
   { __typename?: 'Mutation' }
   & { updateTaskDueDate: (
     { __typename?: 'Task' }
-    & Pick<Task, 'id' | 'dueDate' | 'hasTime'>
+    & Pick<Task, 'id' | 'hasTime'>
+    & { dueDate: (
+      { __typename?: 'DueDate' }
+      & Pick<DueDate, 'at'>
+    ) }
+  ), createTaskDueDateNotifications: (
+    { __typename?: 'CreateTaskDueDateNotificationsResult' }
+    & { notifications: Array<(
+      { __typename?: 'DueDateNotification' }
+      & Pick<DueDateNotification, 'id' | 'period' | 'duration'>
+    )> }
+  ), updateTaskDueDateNotifications: (
+    { __typename?: 'UpdateTaskDueDateNotificationsResult' }
+    & { notifications: Array<(
+      { __typename?: 'DueDateNotification' }
+      & Pick<DueDateNotification, 'id' | 'period' | 'duration'>
+    )> }
+  ), deleteTaskDueDateNotifications: (
+    { __typename?: 'DeleteTaskDueDateNotificationsResult' }
+    & Pick<DeleteTaskDueDateNotificationsResult, 'notifications'>
   ) }
 );
 
@@ -2866,7 +2970,9 @@ export const TaskFieldsFragmentDoc = gql`
   shortId
   name
   description
-  dueDate
+  dueDate {
+    at
+  }
   hasTime
   complete
   watched
@@ -3346,7 +3452,14 @@ export const FindTaskDocument = gql`
     name
     watched
     description
-    dueDate
+    dueDate {
+      at
+      notifications {
+        id
+        period
+        duration
+      }
+    }
     position
     complete
     hasTime
@@ -3640,7 +3753,9 @@ export const MyTasksDocument = gql`
         name
       }
       name
-      dueDate
+      dueDate {
+        at
+      }
       hasTime
       complete
       completedAt
@@ -5423,13 +5538,32 @@ export type UpdateTaskDescriptionMutationHookResult = ReturnType<typeof useUpdat
 export type UpdateTaskDescriptionMutationResult = Apollo.MutationResult<UpdateTaskDescriptionMutation>;
 export type UpdateTaskDescriptionMutationOptions = Apollo.BaseMutationOptions<UpdateTaskDescriptionMutation, UpdateTaskDescriptionMutationVariables>;
 export const UpdateTaskDueDateDocument = gql`
-    mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time, $hasTime: Boolean!) {
+    mutation updateTaskDueDate($taskID: UUID!, $dueDate: Time, $hasTime: Boolean!, $createNotifications: [CreateTaskDueDateNotification!]!, $updateNotifications: [UpdateTaskDueDateNotification!]!, $deleteNotifications: [DeleteTaskDueDateNotification!]!) {
   updateTaskDueDate(
     input: {taskID: $taskID, dueDate: $dueDate, hasTime: $hasTime}
   ) {
     id
-    dueDate
+    dueDate {
+      at
+    }
     hasTime
+  }
+  createTaskDueDateNotifications(input: $createNotifications) {
+    notifications {
+      id
+      period
+      duration
+    }
+  }
+  updateTaskDueDateNotifications(input: $updateNotifications) {
+    notifications {
+      id
+      period
+      duration
+    }
+  }
+  deleteTaskDueDateNotifications(input: $deleteNotifications) {
+    notifications
   }
 }
     `;
@@ -5451,6 +5585,9 @@ export type UpdateTaskDueDateMutationFn = Apollo.MutationFunction<UpdateTaskDueD
  *      taskID: // value for 'taskID'
  *      dueDate: // value for 'dueDate'
  *      hasTime: // value for 'hasTime'
+ *      createNotifications: // value for 'createNotifications'
+ *      updateNotifications: // value for 'updateNotifications'
+ *      deleteNotifications: // value for 'deleteNotifications'
  *   },
  * });
  */

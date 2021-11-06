@@ -30,19 +30,16 @@ function plugin(options) {
   }
 
   function getEmoji(match) {
-    console.log(match);
     const got = emoji.get(match);
     if (pad && got !== match) {
       return `${got} `;
     }
 
-    console.log(got);
     return ReactDOMServer.renderToStaticMarkup(<Emoji set="google" emoji={match} size={16} />);
   }
 
   function transformer(tree) {
     visit(tree, 'paragraph', function (node) {
-      console.log(tree);
       // node.value = node.value.replace(RE_EMOJI, getEmoji);
       // jnode.type = 'html';
       // jnode.tagName = 'div';
@@ -58,7 +55,6 @@ function plugin(options) {
       if (emoticonEnable) {
         // node.value = node.value.replace(RE_SHORT, getEmojiByShortCode);
       }
-      console.log(node);
     });
   }
 

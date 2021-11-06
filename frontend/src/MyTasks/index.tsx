@@ -562,13 +562,36 @@ const Projects = () => {
             onCancel={() => null}
             onDueDateChange={(task, dueDate, hasTime) => {
               if (dateEditor.task) {
-                updateTaskDueDate({ variables: { taskID: dateEditor.task.id, dueDate, hasTime } });
-                setDateEditor((prev) => ({ ...prev, task: { ...task, dueDate: dueDate.toISOString(), hasTime } }));
+                hidePopup();
+                updateTaskDueDate({
+                  variables: {
+                    taskID: dateEditor.task.id,
+                    dueDate,
+                    hasTime,
+                    deleteNotifications: [],
+                    updateNotifications: [],
+                    createNotifications: [],
+                  },
+                });
+                setDateEditor((prev) => ({
+                  ...prev,
+                  task: { ...task, dueDate: { at: dueDate.toISOString(), notifications: [] }, hasTime },
+                }));
               }
             }}
             onRemoveDueDate={(task) => {
               if (dateEditor.task) {
-                updateTaskDueDate({ variables: { taskID: dateEditor.task.id, dueDate: null, hasTime: false } });
+                hidePopup();
+                updateTaskDueDate({
+                  variables: {
+                    taskID: dateEditor.task.id,
+                    dueDate: null,
+                    hasTime: false,
+                    deleteNotifications: [],
+                    updateNotifications: [],
+                    createNotifications: [],
+                  },
+                });
                 setDateEditor((prev) => ({ ...prev, task: { ...task, hasTime: false } }));
               }
             }}
@@ -655,8 +678,8 @@ const Projects = () => {
               if (a.dueDate === null && b.dueDate === null) return 0;
               if (a.dueDate === null && b.dueDate !== null) return 1;
               if (a.dueDate !== null && b.dueDate === null) return -1;
-              const first = dayjs(a.dueDate);
-              const second = dayjs(b.dueDate);
+              const first = dayjs(a.dueDate.at);
+              const second = dayjs(b.dueDate.at);
               if (first.isSame(second, 'minute')) return 0;
               if (first.isAfter(second)) return -1;
               return 1;
@@ -792,10 +815,19 @@ const Projects = () => {
                                   history.push(`${match.url}/c/${task.id}`);
                                 }}
                                 onRemoveDueDate={() => {
-                                  updateTaskDueDate({ variables: { taskID: task.id, dueDate: null, hasTime: false } });
+                                  updateTaskDueDate({
+                                    variables: {
+                                      taskID: task.id,
+                                      dueDate: null,
+                                      hasTime: false,
+                                      deleteNotifications: [],
+                                      updateNotifications: [],
+                                      createNotifications: [],
+                                    },
+                                  });
                                 }}
                                 project={projectName ?? 'none'}
-                                dueDate={task.dueDate}
+                                dueDate={task.dueDate.at}
                                 hasTime={task.hasTime ?? false}
                                 name={task.name}
                                 onEditName={(name) => updateTaskName({ variables: { taskID: task.id, name } })}
@@ -821,7 +853,9 @@ const Projects = () => {
                 <EditorCell width={120}>
                   <DueDateEditorLabel>
                     {dateEditor.task.dueDate
-                      ? dayjs(dateEditor.task.dueDate).format(dateEditor.task.hasTime ? 'MMM D [at] h:mm A' : 'MMM D')
+                      ? dayjs(dateEditor.task.dueDate.at).format(
+                          dateEditor.task.hasTime ? 'MMM D [at] h:mm A' : 'MMM D',
+                        )
                       : ''}
                   </DueDateEditorLabel>
                 </EditorCell>

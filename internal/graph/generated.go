@@ -85,6 +85,10 @@ type ComplexityRoot struct {
 		TaskID  func(childComplexity int) int
 	}
 
+	CreateTaskDueDateNotificationsResult struct {
+		Notifications func(childComplexity int) int
+	}
+
 	CreateTeamMemberPayload struct {
 		Team       func(childComplexity int) int
 		TeamMember func(childComplexity int) int
@@ -130,6 +134,10 @@ type ComplexityRoot struct {
 		TaskID    func(childComplexity int) int
 	}
 
+	DeleteTaskDueDateNotificationsResult struct {
+		Notifications func(childComplexity int) int
+	}
+
 	DeleteTaskGroupPayload struct {
 		AffectedRows func(childComplexity int) int
 		Ok           func(childComplexity int) int
@@ -160,6 +168,17 @@ type ComplexityRoot struct {
 	DeleteUserAccountPayload struct {
 		Ok          func(childComplexity int) int
 		UserAccount func(childComplexity int) int
+	}
+
+	DueDate struct {
+		At            func(childComplexity int) int
+		Notifications func(childComplexity int) int
+	}
+
+	DueDateNotification struct {
+		Duration func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Period   func(childComplexity int) int
 	}
 
 	DuplicateTaskGroupPayload struct {
@@ -235,6 +254,7 @@ type ComplexityRoot struct {
 		CreateTaskChecklist             func(childComplexity int, input CreateTaskChecklist) int
 		CreateTaskChecklistItem         func(childComplexity int, input CreateTaskChecklistItem) int
 		CreateTaskComment               func(childComplexity int, input *CreateTaskComment) int
+		CreateTaskDueDateNotifications  func(childComplexity int, input []CreateTaskDueDateNotification) int
 		CreateTaskGroup                 func(childComplexity int, input NewTaskGroup) int
 		CreateTeam                      func(childComplexity int, input NewTeam) int
 		CreateTeamMember                func(childComplexity int, input CreateTeamMember) int
@@ -248,6 +268,7 @@ type ComplexityRoot struct {
 		DeleteTaskChecklist             func(childComplexity int, input DeleteTaskChecklist) int
 		DeleteTaskChecklistItem         func(childComplexity int, input DeleteTaskChecklistItem) int
 		DeleteTaskComment               func(childComplexity int, input *DeleteTaskComment) int
+		DeleteTaskDueDateNotifications  func(childComplexity int, input []DeleteTaskDueDateNotification) int
 		DeleteTaskGroup                 func(childComplexity int, input DeleteTaskGroupInput) int
 		DeleteTaskGroupTasks            func(childComplexity int, input DeleteTaskGroupTasks) int
 		DeleteTeam                      func(childComplexity int, input DeleteTeam) int
@@ -277,6 +298,7 @@ type ComplexityRoot struct {
 		UpdateTaskComment               func(childComplexity int, input *UpdateTaskComment) int
 		UpdateTaskDescription           func(childComplexity int, input UpdateTaskDescriptionInput) int
 		UpdateTaskDueDate               func(childComplexity int, input UpdateTaskDueDate) int
+		UpdateTaskDueDateNotifications  func(childComplexity int, input []UpdateTaskDueDateNotification) int
 		UpdateTaskGroupLocation         func(childComplexity int, input NewTaskGroupLocation) int
 		UpdateTaskGroupName             func(childComplexity int, input UpdateTaskGroupName) int
 		UpdateTaskLocation              func(childComplexity int, input NewTaskLocation) int
@@ -547,6 +569,10 @@ type ComplexityRoot struct {
 		TaskID  func(childComplexity int) int
 	}
 
+	UpdateTaskDueDateNotificationsResult struct {
+		Notifications func(childComplexity int) int
+	}
+
 	UpdateTaskLocationPayload struct {
 		PreviousTaskGroupID func(childComplexity int) int
 		Task                func(childComplexity int) int
@@ -636,6 +662,9 @@ type MutationResolver interface {
 	ToggleTaskWatch(ctx context.Context, input ToggleTaskWatch) (*db.Task, error)
 	AssignTask(ctx context.Context, input *AssignTaskInput) (*db.Task, error)
 	UnassignTask(ctx context.Context, input *UnassignTaskInput) (*db.Task, error)
+	CreateTaskDueDateNotifications(ctx context.Context, input []CreateTaskDueDateNotification) (*CreateTaskDueDateNotificationsResult, error)
+	UpdateTaskDueDateNotifications(ctx context.Context, input []UpdateTaskDueDateNotification) (*UpdateTaskDueDateNotificationsResult, error)
+	DeleteTaskDueDateNotifications(ctx context.Context, input []DeleteTaskDueDateNotification) (*DeleteTaskDueDateNotificationsResult, error)
 	CreateTeamMember(ctx context.Context, input CreateTeamMember) (*CreateTeamMemberPayload, error)
 	UpdateTeamMemberRole(ctx context.Context, input UpdateTeamMemberRole) (*UpdateTeamMemberRolePayload, error)
 	DeleteTeamMember(ctx context.Context, input DeleteTeamMember) (*DeleteTeamMemberPayload, error)
@@ -706,7 +735,7 @@ type TaskResolver interface {
 
 	Description(ctx context.Context, obj *db.Task) (*string, error)
 	Watched(ctx context.Context, obj *db.Task) (bool, error)
-	DueDate(ctx context.Context, obj *db.Task) (*time.Time, error)
+	DueDate(ctx context.Context, obj *db.Task) (*DueDate, error)
 
 	CompletedAt(ctx context.Context, obj *db.Task) (*time.Time, error)
 	Assigned(ctx context.Context, obj *db.Task) ([]Member, error)
@@ -843,6 +872,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CreateTaskCommentPayload.TaskID(childComplexity), true
 
+	case "CreateTaskDueDateNotificationsResult.notifications":
+		if e.complexity.CreateTaskDueDateNotificationsResult.Notifications == nil {
+			break
+		}
+
+		return e.complexity.CreateTaskDueDateNotificationsResult.Notifications(childComplexity), true
+
 	case "CreateTeamMemberPayload.team":
 		if e.complexity.CreateTeamMemberPayload.Team == nil {
 			break
@@ -969,6 +1005,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeleteTaskCommentPayload.TaskID(childComplexity), true
 
+	case "DeleteTaskDueDateNotificationsResult.notifications":
+		if e.complexity.DeleteTaskDueDateNotificationsResult.Notifications == nil {
+			break
+		}
+
+		return e.complexity.DeleteTaskDueDateNotificationsResult.Notifications(childComplexity), true
+
 	case "DeleteTaskGroupPayload.affectedRows":
 		if e.complexity.DeleteTaskGroupPayload.AffectedRows == nil {
 			break
@@ -1066,6 +1109,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteUserAccountPayload.UserAccount(childComplexity), true
+
+	case "DueDate.at":
+		if e.complexity.DueDate.At == nil {
+			break
+		}
+
+		return e.complexity.DueDate.At(childComplexity), true
+
+	case "DueDate.notifications":
+		if e.complexity.DueDate.Notifications == nil {
+			break
+		}
+
+		return e.complexity.DueDate.Notifications(childComplexity), true
+
+	case "DueDateNotification.duration":
+		if e.complexity.DueDateNotification.Duration == nil {
+			break
+		}
+
+		return e.complexity.DueDateNotification.Duration(childComplexity), true
+
+	case "DueDateNotification.id":
+		if e.complexity.DueDateNotification.ID == nil {
+			break
+		}
+
+		return e.complexity.DueDateNotification.ID(childComplexity), true
+
+	case "DueDateNotification.period":
+		if e.complexity.DueDateNotification.Period == nil {
+			break
+		}
+
+		return e.complexity.DueDateNotification.Period(childComplexity), true
 
 	case "DuplicateTaskGroupPayload.taskGroup":
 		if e.complexity.DuplicateTaskGroupPayload.TaskGroup == nil {
@@ -1401,6 +1479,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTaskComment(childComplexity, args["input"].(*CreateTaskComment)), true
 
+	case "Mutation.createTaskDueDateNotifications":
+		if e.complexity.Mutation.CreateTaskDueDateNotifications == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTaskDueDateNotifications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTaskDueDateNotifications(childComplexity, args["input"].([]CreateTaskDueDateNotification)), true
+
 	case "Mutation.createTaskGroup":
 		if e.complexity.Mutation.CreateTaskGroup == nil {
 			break
@@ -1556,6 +1646,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteTaskComment(childComplexity, args["input"].(*DeleteTaskComment)), true
+
+	case "Mutation.deleteTaskDueDateNotifications":
+		if e.complexity.Mutation.DeleteTaskDueDateNotifications == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTaskDueDateNotifications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTaskDueDateNotifications(childComplexity, args["input"].([]DeleteTaskDueDateNotification)), true
 
 	case "Mutation.deleteTaskGroup":
 		if e.complexity.Mutation.DeleteTaskGroup == nil {
@@ -1904,6 +2006,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTaskDueDate(childComplexity, args["input"].(UpdateTaskDueDate)), true
+
+	case "Mutation.updateTaskDueDateNotifications":
+		if e.complexity.Mutation.UpdateTaskDueDateNotifications == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTaskDueDateNotifications_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTaskDueDateNotifications(childComplexity, args["input"].([]UpdateTaskDueDateNotification)), true
 
 	case "Mutation.updateTaskGroupLocation":
 		if e.complexity.Mutation.UpdateTaskGroupLocation == nil {
@@ -3063,6 +3177,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UpdateTaskCommentPayload.TaskID(childComplexity), true
 
+	case "UpdateTaskDueDateNotificationsResult.notifications":
+		if e.complexity.UpdateTaskDueDateNotificationsResult.Notifications == nil {
+			break
+		}
+
+		return e.complexity.UpdateTaskDueDateNotificationsResult.Notifications(childComplexity), true
+
 	case "UpdateTaskLocationPayload.previousTaskGroupID":
 		if e.complexity.UpdateTaskLocationPayload.PreviousTaskGroupID == nil {
 			break
@@ -3720,7 +3841,13 @@ input FindTeam {
   teamID: UUID!
 }
 `, BuiltIn: false},
-	{Name: "internal/graph/schema/task.gql", Input: `
+	{Name: "internal/graph/schema/task.gql", Input: `enum DueDateNotificationDuration {
+  MINUTE
+  HOUR
+  DAY
+  WEEK
+}
+
 type TaskLabel {
   id: ID!
   projectLabel: ProjectLabel!
@@ -3742,6 +3869,18 @@ type TaskBadges {
   comments: CommentsBadge
 }
 
+type DueDateNotification {
+  id: ID!
+  period: Int!
+  duration: DueDateNotificationDuration!
+}
+
+type DueDate {
+  at: Time
+  notifications: [DueDateNotification!]!
+}
+
+
 type Task {
   id: ID!
   shortId: String!
@@ -3751,7 +3890,7 @@ type Task {
   position: Float!
   description: String
   watched: Boolean!
-  dueDate: Time
+  dueDate: DueDate!
   hasTime: Boolean!
   complete: Boolean!
   completedAt: Time
@@ -4093,7 +4232,44 @@ extend type Mutation {
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
+
+  createTaskDueDateNotifications(input: [CreateTaskDueDateNotification!]!):
+    CreateTaskDueDateNotificationsResult!
+  updateTaskDueDateNotifications(input: [UpdateTaskDueDateNotification!]!):
+    UpdateTaskDueDateNotificationsResult!
+  deleteTaskDueDateNotifications(input: [DeleteTaskDueDateNotification!]!):
+    DeleteTaskDueDateNotificationsResult!
 }
+
+input DeleteTaskDueDateNotification {
+  id: UUID!
+}
+
+type DeleteTaskDueDateNotificationsResult {
+  notifications: [UUID!]!
+}
+
+input UpdateTaskDueDateNotification {
+  id: UUID!
+  period: Int!
+  duration: DueDateNotificationDuration!
+}
+
+type UpdateTaskDueDateNotificationsResult {
+  notifications: [DueDateNotification!]!
+}
+
+input CreateTaskDueDateNotification {
+  taskID: UUID!
+  period: Int!
+  duration: DueDateNotificationDuration!
+}
+
+type CreateTaskDueDateNotificationsResult {
+  notifications: [DueDateNotification!]!
+}
+
 
 input ToggleTaskWatch {
   taskID: UUID!
@@ -4511,6 +4687,21 @@ func (ec *executionContext) field_Mutation_createTaskComment_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createTaskDueDateNotifications_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []CreateTaskDueDateNotification
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateTaskDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotificationᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createTaskGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4698,6 +4889,21 @@ func (ec *executionContext) field_Mutation_deleteTaskComment_args(ctx context.Co
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalODeleteTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskComment(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteTaskDueDateNotifications_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []DeleteTaskDueDateNotification
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNDeleteTaskDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotificationᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5133,6 +5339,21 @@ func (ec *executionContext) field_Mutation_updateTaskDescription_args(ctx contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDescriptionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTaskDueDateNotifications_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []UpdateTaskDueDateNotification
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateTaskDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotificationᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5759,6 +5980,41 @@ func (ec *executionContext) _CreateTaskCommentPayload_comment(ctx context.Contex
 	res := resTmp.(*db.TaskComment)
 	fc.Result = res
 	return ec.marshalNTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CreateTaskDueDateNotificationsResult_notifications(ctx context.Context, field graphql.CollectedField, obj *CreateTaskDueDateNotificationsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CreateTaskDueDateNotificationsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Notifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]DueDateNotification)
+	fc.Result = res
+	return ec.marshalNDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CreateTeamMemberPayload_team(ctx context.Context, field graphql.CollectedField, obj *CreateTeamMemberPayload) (ret graphql.Marshaler) {
@@ -6391,6 +6647,41 @@ func (ec *executionContext) _DeleteTaskCommentPayload_commentID(ctx context.Cont
 	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _DeleteTaskDueDateNotificationsResult_notifications(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskDueDateNotificationsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DeleteTaskDueDateNotificationsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Notifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DeleteTaskGroupPayload_ok(ctx context.Context, field graphql.CollectedField, obj *DeleteTaskGroupPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6879,6 +7170,178 @@ func (ec *executionContext) _DeleteUserAccountPayload_userAccount(ctx context.Co
 	res := resTmp.(*db.UserAccount)
 	fc.Result = res
 	return ec.marshalNUserAccount2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐUserAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DueDate_at(ctx context.Context, field graphql.CollectedField, obj *DueDate) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DueDate",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.At, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DueDate_notifications(ctx context.Context, field graphql.CollectedField, obj *DueDate) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DueDate",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Notifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]DueDateNotification)
+	fc.Result = res
+	return ec.marshalNDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DueDateNotification_id(ctx context.Context, field graphql.CollectedField, obj *DueDateNotification) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DueDateNotification",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DueDateNotification_period(ctx context.Context, field graphql.CollectedField, obj *DueDateNotification) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DueDateNotification",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Period, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DueDateNotification_duration(ctx context.Context, field graphql.CollectedField, obj *DueDateNotification) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DueDateNotification",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(DueDateNotificationDuration)
+	fc.Result = res
+	return ec.marshalNDueDateNotificationDuration2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationDuration(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DuplicateTaskGroupPayload_taskGroup(ctx context.Context, field graphql.CollectedField, obj *DuplicateTaskGroupPayload) (ret graphql.Marshaler) {
@@ -11402,6 +11865,132 @@ func (ec *executionContext) _Mutation_unassignTask(ctx context.Context, field gr
 	return ec.marshalNTask2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTask(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createTaskDueDateNotifications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createTaskDueDateNotifications_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTaskDueDateNotifications(rctx, args["input"].([]CreateTaskDueDateNotification))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CreateTaskDueDateNotificationsResult)
+	fc.Result = res
+	return ec.marshalNCreateTaskDueDateNotificationsResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotificationsResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTaskDueDateNotifications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTaskDueDateNotifications_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTaskDueDateNotifications(rctx, args["input"].([]UpdateTaskDueDateNotification))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UpdateTaskDueDateNotificationsResult)
+	fc.Result = res
+	return ec.marshalNUpdateTaskDueDateNotificationsResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotificationsResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTaskDueDateNotifications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTaskDueDateNotifications_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTaskDueDateNotifications(rctx, args["input"].([]DeleteTaskDueDateNotification))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*DeleteTaskDueDateNotificationsResult)
+	fc.Result = res
+	return ec.marshalNDeleteTaskDueDateNotificationsResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotificationsResult(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createTeamMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15260,11 +15849,14 @@ func (ec *executionContext) _Task_dueDate(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*time.Time)
+	res := resTmp.(*DueDate)
 	fc.Result = res
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNDueDate2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Task_hasTime(ctx context.Context, field graphql.CollectedField, obj *db.Task) (ret graphql.Marshaler) {
@@ -17460,6 +18052,41 @@ func (ec *executionContext) _UpdateTaskCommentPayload_comment(ctx context.Contex
 	return ec.marshalNTaskComment2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋdbᚐTaskComment(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UpdateTaskDueDateNotificationsResult_notifications(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskDueDateNotificationsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UpdateTaskDueDateNotificationsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Notifications, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]DueDateNotification)
+	fc.Result = res
+	return ec.marshalNDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UpdateTaskLocationPayload_previousTaskGroupID(ctx context.Context, field graphql.CollectedField, obj *UpdateTaskLocationPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19403,6 +20030,42 @@ func (ec *executionContext) unmarshalInputCreateTaskComment(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateTaskDueDateNotification(ctx context.Context, obj interface{}) (CreateTaskDueDateNotification, error) {
+	var it CreateTaskDueDateNotification
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "taskID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("taskID"))
+			it.TaskID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "period":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
+			it.Period, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "duration":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
+			it.Duration, err = ec.unmarshalNDueDateNotificationDuration2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationDuration(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateTeamMember(ctx context.Context, obj interface{}) (CreateTeamMember, error) {
 	var it CreateTeamMember
 	var asMap = obj.(map[string]interface{})
@@ -19598,6 +20261,26 @@ func (ec *executionContext) unmarshalInputDeleteTaskComment(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commentID"))
 			it.CommentID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDeleteTaskDueDateNotification(ctx context.Context, obj interface{}) (DeleteTaskDueDateNotification, error) {
+	var it DeleteTaskDueDateNotification
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21007,6 +21690,42 @@ func (ec *executionContext) unmarshalInputUpdateTaskDueDate(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateTaskDueDateNotification(ctx context.Context, obj interface{}) (UpdateTaskDueDateNotification, error) {
+	var it UpdateTaskDueDateNotification
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "period":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
+			it.Period, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "duration":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
+			it.Duration, err = ec.unmarshalNDueDateNotificationDuration2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationDuration(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateTaskGroupName(ctx context.Context, obj interface{}) (UpdateTaskGroupName, error) {
 	var it UpdateTaskGroupName
 	var asMap = obj.(map[string]interface{})
@@ -21337,6 +22056,33 @@ func (ec *executionContext) _CreateTaskCommentPayload(ctx context.Context, sel a
 	return out
 }
 
+var createTaskDueDateNotificationsResultImplementors = []string{"CreateTaskDueDateNotificationsResult"}
+
+func (ec *executionContext) _CreateTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, obj *CreateTaskDueDateNotificationsResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createTaskDueDateNotificationsResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreateTaskDueDateNotificationsResult")
+		case "notifications":
+			out.Values[i] = ec._CreateTaskDueDateNotificationsResult_notifications(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var createTeamMemberPayloadImplementors = []string{"CreateTeamMemberPayload"}
 
 func (ec *executionContext) _CreateTeamMemberPayload(ctx context.Context, sel ast.SelectionSet, obj *CreateTeamMemberPayload) graphql.Marshaler {
@@ -21625,6 +22371,33 @@ func (ec *executionContext) _DeleteTaskCommentPayload(ctx context.Context, sel a
 	return out
 }
 
+var deleteTaskDueDateNotificationsResultImplementors = []string{"DeleteTaskDueDateNotificationsResult"}
+
+func (ec *executionContext) _DeleteTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskDueDateNotificationsResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTaskDueDateNotificationsResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTaskDueDateNotificationsResult")
+		case "notifications":
+			out.Values[i] = ec._DeleteTaskDueDateNotificationsResult_notifications(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var deleteTaskGroupPayloadImplementors = []string{"DeleteTaskGroupPayload"}
 
 func (ec *executionContext) _DeleteTaskGroupPayload(ctx context.Context, sel ast.SelectionSet, obj *DeleteTaskGroupPayload) graphql.Marshaler {
@@ -21813,6 +22586,72 @@ func (ec *executionContext) _DeleteUserAccountPayload(ctx context.Context, sel a
 			}
 		case "userAccount":
 			out.Values[i] = ec._DeleteUserAccountPayload_userAccount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var dueDateImplementors = []string{"DueDate"}
+
+func (ec *executionContext) _DueDate(ctx context.Context, sel ast.SelectionSet, obj *DueDate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dueDateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DueDate")
+		case "at":
+			out.Values[i] = ec._DueDate_at(ctx, field, obj)
+		case "notifications":
+			out.Values[i] = ec._DueDate_notifications(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var dueDateNotificationImplementors = []string{"DueDateNotification"}
+
+func (ec *executionContext) _DueDateNotification(ctx context.Context, sel ast.SelectionSet, obj *DueDateNotification) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dueDateNotificationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DueDateNotification")
+		case "id":
+			out.Values[i] = ec._DueDateNotification_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "period":
+			out.Values[i] = ec._DueDateNotification_period(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "duration":
+			out.Values[i] = ec._DueDateNotification_duration(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -22457,6 +23296,21 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "unassignTask":
 			out.Values[i] = ec._Mutation_unassignTask(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createTaskDueDateNotifications":
+			out.Values[i] = ec._Mutation_createTaskDueDateNotifications(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateTaskDueDateNotifications":
+			out.Values[i] = ec._Mutation_updateTaskDueDateNotifications(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTaskDueDateNotifications":
+			out.Values[i] = ec._Mutation_deleteTaskDueDateNotifications(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -23716,6 +24570,9 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Task_dueDate(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "hasTime":
@@ -24640,6 +25497,33 @@ func (ec *executionContext) _UpdateTaskCommentPayload(ctx context.Context, sel a
 	return out
 }
 
+var updateTaskDueDateNotificationsResultImplementors = []string{"UpdateTaskDueDateNotificationsResult"}
+
+func (ec *executionContext) _UpdateTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskDueDateNotificationsResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateTaskDueDateNotificationsResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateTaskDueDateNotificationsResult")
+		case "notifications":
+			out.Values[i] = ec._UpdateTaskDueDateNotificationsResult_notifications(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var updateTaskLocationPayloadImplementors = []string{"UpdateTaskLocationPayload"}
 
 func (ec *executionContext) _UpdateTaskLocationPayload(ctx context.Context, sel ast.SelectionSet, obj *UpdateTaskLocationPayload) graphql.Marshaler {
@@ -25245,6 +26129,46 @@ func (ec *executionContext) marshalNCreateTaskCommentPayload2ᚖgithubᚗcomᚋj
 	return ec._CreateTaskCommentPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNCreateTaskDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotification(ctx context.Context, v interface{}) (CreateTaskDueDateNotification, error) {
+	res, err := ec.unmarshalInputCreateTaskDueDateNotification(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateTaskDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotificationᚄ(ctx context.Context, v interface{}) ([]CreateTaskDueDateNotification, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]CreateTaskDueDateNotification, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCreateTaskDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotification(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNCreateTaskDueDateNotificationsResult2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, v CreateTaskDueDateNotificationsResult) graphql.Marshaler {
+	return ec._CreateTaskDueDateNotificationsResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreateTaskDueDateNotificationsResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, v *CreateTaskDueDateNotificationsResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CreateTaskDueDateNotificationsResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCreateTeamMember2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐCreateTeamMember(ctx context.Context, v interface{}) (CreateTeamMember, error) {
 	res, err := ec.unmarshalInputCreateTeamMember(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -25411,6 +26335,46 @@ func (ec *executionContext) marshalNDeleteTaskCommentPayload2ᚖgithubᚗcomᚋj
 	return ec._DeleteTaskCommentPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDeleteTaskDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotification(ctx context.Context, v interface{}) (DeleteTaskDueDateNotification, error) {
+	res, err := ec.unmarshalInputDeleteTaskDueDateNotification(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDeleteTaskDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotificationᚄ(ctx context.Context, v interface{}) ([]DeleteTaskDueDateNotification, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]DeleteTaskDueDateNotification, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNDeleteTaskDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotification(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNDeleteTaskDueDateNotificationsResult2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, v DeleteTaskDueDateNotificationsResult) graphql.Marshaler {
+	return ec._DeleteTaskDueDateNotificationsResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteTaskDueDateNotificationsResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, v *DeleteTaskDueDateNotificationsResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteTaskDueDateNotificationsResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNDeleteTaskGroupInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDeleteTaskGroupInput(ctx context.Context, v interface{}) (DeleteTaskGroupInput, error) {
 	res, err := ec.unmarshalInputDeleteTaskGroupInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -25523,6 +26487,71 @@ func (ec *executionContext) marshalNDeleteUserAccountPayload2ᚖgithubᚗcomᚋj
 		return graphql.Null
 	}
 	return ec._DeleteUserAccountPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDueDate2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDate(ctx context.Context, sel ast.SelectionSet, v DueDate) graphql.Marshaler {
+	return ec._DueDate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDueDate2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDate(ctx context.Context, sel ast.SelectionSet, v *DueDate) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._DueDate(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotification(ctx context.Context, sel ast.SelectionSet, v DueDateNotification) graphql.Marshaler {
+	return ec._DueDateNotification(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationᚄ(ctx context.Context, sel ast.SelectionSet, v []DueDateNotification) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotification(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNDueDateNotificationDuration2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationDuration(ctx context.Context, v interface{}) (DueDateNotificationDuration, error) {
+	var res DueDateNotificationDuration
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDueDateNotificationDuration2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDueDateNotificationDuration(ctx context.Context, sel ast.SelectionSet, v DueDateNotificationDuration) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNDuplicateTaskGroup2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐDuplicateTaskGroup(ctx context.Context, v interface{}) (DuplicateTaskGroup, error) {
@@ -27337,6 +28366,46 @@ func (ec *executionContext) unmarshalNUpdateTaskDescriptionInput2githubᚗcomᚋ
 func (ec *executionContext) unmarshalNUpdateTaskDueDate2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDate(ctx context.Context, v interface{}) (UpdateTaskDueDate, error) {
 	res, err := ec.unmarshalInputUpdateTaskDueDate(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateTaskDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotification(ctx context.Context, v interface{}) (UpdateTaskDueDateNotification, error) {
+	res, err := ec.unmarshalInputUpdateTaskDueDateNotification(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateTaskDueDateNotification2ᚕgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotificationᚄ(ctx context.Context, v interface{}) ([]UpdateTaskDueDateNotification, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]UpdateTaskDueDateNotification, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUpdateTaskDueDateNotification2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotification(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNUpdateTaskDueDateNotificationsResult2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, v UpdateTaskDueDateNotificationsResult) graphql.Marshaler {
+	return ec._UpdateTaskDueDateNotificationsResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateTaskDueDateNotificationsResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskDueDateNotificationsResult(ctx context.Context, sel ast.SelectionSet, v *UpdateTaskDueDateNotificationsResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateTaskDueDateNotificationsResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateTaskGroupName2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐUpdateTaskGroupName(ctx context.Context, v interface{}) (UpdateTaskGroupName, error) {

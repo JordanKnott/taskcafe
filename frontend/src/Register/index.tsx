@@ -39,7 +39,6 @@ const UsersRegister = () => {
                 .then(async (x) => {
                   const response = await x.json();
                   const { setup } = response;
-                  console.log(response);
                   if (setup) {
                     history.replace(`/confirm?confirmToken=xxxx`);
                     isRedirected = true;

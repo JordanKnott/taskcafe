@@ -12,6 +12,7 @@ import {
   useUpdateTaskChecklistItemLocationMutation,
   useCreateTaskChecklistMutation,
   useFindTaskQuery,
+  DueDateNotificationDuration,
   useUpdateTaskDueDateMutation,
   useSetTaskCompleteMutation,
   useAssignTaskMutation,
@@ -647,12 +648,79 @@ const Details: React.FC<DetailsProps> = ({
                     <DueDateManager
                       task={task}
                       onRemoveDueDate={(t) => {
-                        updateTaskDueDate({ variables: { taskID: t.id, dueDate: null, hasTime: false } });
-                        // hidePopup();
+                        updateTaskDueDate({
+                          variables: {
+                            taskID: t.id,
+                            dueDate: null,
+                            hasTime: false,
+                            deleteNotifications: t.dueDate.notifications
+                              ? t.dueDate.notifications.map((n) => ({ id: n.id }))
+                              : [],
+                            updateNotifications: [],
+                            createNotifications: [],
+                          },
+                        });
+                        hidePopup();
                       }}
-                      onDueDateChange={(t, newDueDate, hasTime) => {
-                        updateTaskDueDate({ variables: { taskID: t.id, dueDate: newDueDate, hasTime } });
-                        // hidePopup();
+                      onDueDateChange={(t, newDueDate, hasTime, notifications) => {
+                        const updatedNotifications = notifications.current
+                          .filter((c) => c.externalId !== null)
+                          .map((c) => {
+                            let duration = DueDateNotificationDuration.Minute;
+                            switch (c.duration.value) {
+                              case 'hour':
+                                duration = DueDateNotificationDuration.Hour;
+                                break;
+                              case 'day':
+                                duration = DueDateNotificationDuration.Day;
+                                break;
+                              case 'week':
+                                duration = DueDateNotificationDuration.Week;
+                                break;
+                              default:
+                                break;
+                            }
+                            return {
+                              id: c.externalId ?? '',
+                              period: c.period,
+                              duration,
+                            };
+                          });
+                        const newNotifications = notifications.current
+                          .filter((c) => c.externalId === null)
+                          .map((c) => {
+                            let duration = DueDateNotificationDuration.Minute;
+                            switch (c.duration.value) {
+                              case 'hour':
+                                duration = DueDateNotificationDuration.Hour;
+                                break;
+                              case 'day':
+                                duration = DueDateNotificationDuration.Day;
+                                break;
+                              case 'week':
+                                duration = DueDateNotificationDuration.Week;
+                                break;
+                              default:
+                                break;
+                            }
+                            return {
+                              taskID: task.id,
+                              period: c.period,
+                              duration,
+                            };
+                          });
+                        // const updatedNotifications = notifications.filter(c => c.externalId === null);
+                        updateTaskDueDate({
+                          variables: {
+                            taskID: t.id,
+                            dueDate: newDueDate,
+                            hasTime,
+                            createNotifications: newNotifications,
+                            updateNotifications: updatedNotifications,
+                            deleteNotifications: notifications.removed.map((n) => ({ id: n })),
+                          },
+                        });
+                        hidePopup();
                       }}
                       onCancel={NOOP}
                     />

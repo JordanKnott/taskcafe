@@ -334,7 +334,7 @@ const NavBar: React.FC<NavBarProps> = ({
             <ListUnordered width={20} height={20} />
           </IconContainer>
           <IconContainer onClick={onNotificationClick}>
-            <Bell color="#c2c6dc" size={20} />
+            <Bell width={20} height={20} />
             {hasUnread && <NotificationCount />}
           </IconContainer>
           <IconContainer disabled onClick={NOOP}>

@@ -31,7 +31,44 @@ extend type Mutation {
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
   unassignTask(input: UnassignTaskInput):
     Task! @hasRole(roles: [ADMIN, MEMBER], level: PROJECT, type: TASK)
+
+
+  createTaskDueDateNotifications(input: [CreateTaskDueDateNotification!]!):
+    CreateTaskDueDateNotificationsResult!
+  updateTaskDueDateNotifications(input: [UpdateTaskDueDateNotification!]!):
+    UpdateTaskDueDateNotificationsResult!
+  deleteTaskDueDateNotifications(input: [DeleteTaskDueDateNotification!]!):
+    DeleteTaskDueDateNotificationsResult!
 }
+
+input DeleteTaskDueDateNotification {
+  id: UUID!
+}
+
+type DeleteTaskDueDateNotificationsResult {
+  notifications: [UUID!]!
+}
+
+input UpdateTaskDueDateNotification {
+  id: UUID!
+  period: Int!
+  duration: DueDateNotificationDuration!
+}
+
+type UpdateTaskDueDateNotificationsResult {
+  notifications: [DueDateNotification!]!
+}
+
+input CreateTaskDueDateNotification {
+  taskID: UUID!
+  period: Int!
+  duration: DueDateNotificationDuration!
+}
+
+type CreateTaskDueDateNotificationsResult {
+  notifications: [DueDateNotification!]!
+}
+
 
 input ToggleTaskWatch {
   taskID: UUID!

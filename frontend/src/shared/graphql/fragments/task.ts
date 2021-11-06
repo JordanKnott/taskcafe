@@ -6,7 +6,9 @@ const TASK_FRAGMENT = gql`
     shortId
     name
     description
-    dueDate
+    dueDate {
+      at
+    }
     hasTime
     complete
     watched
