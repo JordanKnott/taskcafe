@@ -68,6 +68,6 @@ func initConfig() {
 // Execute the root cobra command
 func Execute() {
 	rootCmd.SetVersionTemplate(VersionTemplate())
-	rootCmd.AddCommand(newTokenCmd(), newWebCmd(), newMigrateCmd(), newWorkerCmd(), newResetPasswordCmd(), newSeedCmd())
+	rootCmd.AddCommand(newJobCmd(), newTokenCmd(), newWebCmd(), newMigrateCmd(), newWorkerCmd(), newResetPasswordCmd(), newSeedCmd())
 	rootCmd.Execute()
 }

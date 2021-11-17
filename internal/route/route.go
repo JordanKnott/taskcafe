@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/frontend"
 	"github.com/jordanknott/taskcafe/internal/graph"
+	"github.com/jordanknott/taskcafe/internal/jobs"
 	"github.com/jordanknott/taskcafe/internal/logger"
 )
 
@@ -67,7 +69,7 @@ type TaskcafeHandler struct {
 }
 
 // NewRouter creates a new router for chi
-func NewRouter(dbConnection *sqlx.DB, job *machinery.Server, appConfig config.AppConfig) (chi.Router, error) {
+func NewRouter(dbConnection *sqlx.DB, redisClient *redis.Client, jobServer *machinery.Server, appConfig config.AppConfig) (chi.Router, error) {
 	formatter := new(log.TextFormatter)
 	formatter.TimestampFormat = "02-01-2006 15:04:05"
 	formatter.FullTimestamp = true
@@ -107,10 +109,15 @@ func NewRouter(dbConnection *sqlx.DB, job *machinery.Server, appConfig config.Ap
 		mux.Post("/logger", taskcafeHandler.HandleClientLog)
 	})
 	auth := AuthenticationMiddleware{*repository}
+	jobQueue := jobs.JobQueue{
+		Repository: *repository,
+		AppConfig:  appConfig,
+		Server:     jobServer,
+	}
 	r.Group(func(mux chi.Router) {
 		mux.Use(auth.Middleware)
 		mux.Post("/users/me/avatar", taskcafeHandler.ProfileImageUpload)
-		mux.Mount("/graphql", graph.NewHandler(*repository, appConfig))
+		mux.Mount("/graphql", graph.NewHandler(*repository, appConfig, jobQueue, redisClient))
 	})
 
 	frontend := FrontendHandler{staticPath: "build", indexPath: "index.html"}

@@ -73,7 +73,9 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
   });
   const { showPopup, hidePopup } = usePopup();
   const { setUser } = useCurrentUser();
-  const { data: unreadData } = useHasUnreadNotificationsQuery({ pollInterval: polling.UNREAD_NOTIFICATIONS });
+  const { data: unreadData, refetch: refetchHasUnread } = useHasUnreadNotificationsQuery({
+    pollInterval: polling.UNREAD_NOTIFICATIONS,
+  });
   const history = useHistory();
   const onLogout = () => {
     fetch('/auth/logout', {
@@ -118,9 +120,11 @@ const LoggedInNavbar: React.FC<GlobalTopNavbarProps> = ({
 
   // TODO: rewrite popup to contain subscription and notification fetch
   const onNotificationClick = ($target: React.RefObject<HTMLElement>) => {
-    if (data) {
-      showPopup($target, <NotificationPopup />, { width: 605, borders: false, diamondColor: theme.colors.primary });
-    }
+    showPopup($target, <NotificationPopup onToggleRead={() => refetchHasUnread()} />, {
+      width: 605,
+      borders: false,
+      diamondColor: theme.colors.primary,
+    });
   };
 
   // TODO: readd permision check

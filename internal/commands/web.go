@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/RichardKnop/machinery/v1"
+	mTasks "github.com/RichardKnop/machinery/v1/tasks"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
@@ -35,6 +36,12 @@ func newWebCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			redisClient, err := appConfig.MessageQueue.GetMessageQueueClient()
+			if err != nil {
+				return err
+			}
+			defer redisClient.Close()
 
 			connection := appConfig.Database.GetDatabaseConnectionUri()
 			var db *sqlx.DB
@@ -67,15 +74,17 @@ func newWebCmd() *cobra.Command {
 			}
 
 			var server *machinery.Server
-			if appConfig.Job.Enabled {
-				jobConfig := appConfig.Job.GetJobConfig()
-				server, err = machinery.NewServer(&jobConfig)
-				if err != nil {
-					return err
-				}
+			jobConfig := appConfig.Job.GetJobConfig()
+			server, err = machinery.NewServer(&jobConfig)
+			if err != nil {
+				return err
 			}
+			signature := &mTasks.Signature{
+				Name: "scheduleDueDateNotifications",
+			}
+			server.SendTask(signature)
 
-			r, _ := route.NewRouter(db, server, appConfig)
+			r, _ := route.NewRouter(db, redisClient, server, appConfig)
 			log.WithFields(log.Fields{"url": viper.GetString("server.hostname")}).Info("starting server")
 			return http.ListenAndServe(viper.GetString("server.hostname"), r)
 		},

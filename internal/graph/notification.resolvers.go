@@ -70,6 +70,19 @@ func (r *mutationResolver) NotificationToggleRead(ctx context.Context, input Not
 	}, nil
 }
 
+func (r *mutationResolver) NotificationMarkAllRead(ctx context.Context) (*NotificationMarkAllAsReadResult, error) {
+	userID, ok := GetUserID(ctx)
+	if !ok {
+		return &NotificationMarkAllAsReadResult{}, errors.New("invalid user ID")
+	}
+	now := time.Now().UTC()
+	err := r.Repository.MarkAllNotificationsRead(ctx, db.MarkAllNotificationsReadParams{UserID: userID, ReadAt: sql.NullTime{Valid: true, Time: now}})
+	if err != nil {
+		return &NotificationMarkAllAsReadResult{}, err
+	}
+	return &NotificationMarkAllAsReadResult{Success: false}, nil
+}
+
 func (r *notificationResolver) ID(ctx context.Context, obj *db.Notification) (uuid.UUID, error) {
 	return obj.NotificationID, nil
 }

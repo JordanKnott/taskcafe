@@ -5,6 +5,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -82,6 +83,8 @@ type Querier interface {
 	GetCommentsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskComment, error)
 	GetConfirmTokenByEmail(ctx context.Context, email string) (UserAccountConfirmToken, error)
 	GetConfirmTokenByID(ctx context.Context, confirmTokenID uuid.UUID) (UserAccountConfirmToken, error)
+	GetDueDateReminderByID(ctx context.Context, dueDateReminderID uuid.UUID) (TaskDueDateReminder, error)
+	GetDueDateRemindersForDuration(ctx context.Context, startAt time.Time) ([]TaskDueDateReminder, error)
 	GetDueDateRemindersForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskDueDateReminder, error)
 	GetInvitedMembersForProjectID(ctx context.Context, projectID uuid.UUID) ([]GetInvitedMembersForProjectIDRow, error)
 	GetInvitedUserAccounts(ctx context.Context) ([]UserAccountInvited, error)
@@ -92,9 +95,11 @@ type Querier interface {
 	GetMemberData(ctx context.Context, projectID uuid.UUID) ([]UserAccount, error)
 	GetMemberProjectIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	GetMemberTeamIDsForUserID(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetNotificationByID(ctx context.Context, notificationID uuid.UUID) (Notification, error)
 	GetNotificationsForUserIDCursor(ctx context.Context, arg GetNotificationsForUserIDCursorParams) ([]GetNotificationsForUserIDCursorRow, error)
 	GetNotificationsForUserIDPaged(ctx context.Context, arg GetNotificationsForUserIDPagedParams) ([]GetNotificationsForUserIDPagedRow, error)
 	GetNotifiedByID(ctx context.Context, notifiedID uuid.UUID) (GetNotifiedByIDRow, error)
+	GetNotifiedByIDNoExtra(ctx context.Context, notifiedID uuid.UUID) (NotificationNotified, error)
 	GetPersonalProjectsForUserID(ctx context.Context, userID uuid.UUID) ([]Project, error)
 	GetProjectByID(ctx context.Context, projectID uuid.UUID) (Project, error)
 	GetProjectIDByShortID(ctx context.Context, shortID string) (uuid.UUID, error)
@@ -121,6 +126,7 @@ type Querier interface {
 	GetTaskChecklistItemByID(ctx context.Context, taskChecklistItemID uuid.UUID) (TaskChecklistItem, error)
 	GetTaskChecklistItemsForTaskChecklist(ctx context.Context, taskChecklistID uuid.UUID) ([]TaskChecklistItem, error)
 	GetTaskChecklistsForTask(ctx context.Context, taskID uuid.UUID) ([]TaskChecklist, error)
+	GetTaskForDueDateReminder(ctx context.Context, dueDateReminderID uuid.UUID) (Task, error)
 	GetTaskGroupByID(ctx context.Context, taskGroupID uuid.UUID) (TaskGroup, error)
 	GetTaskGroupsForProject(ctx context.Context, projectID uuid.UUID) ([]TaskGroup, error)
 	GetTaskIDByShortID(ctx context.Context, shortID string) (uuid.UUID, error)
@@ -128,6 +134,7 @@ type Querier interface {
 	GetTaskLabelForTaskByProjectLabelID(ctx context.Context, arg GetTaskLabelForTaskByProjectLabelIDParams) (TaskLabel, error)
 	GetTaskLabelsForTaskID(ctx context.Context, taskID uuid.UUID) ([]TaskLabel, error)
 	GetTaskWatcher(ctx context.Context, arg GetTaskWatcherParams) (TaskWatcher, error)
+	GetTaskWatchersForTask(ctx context.Context, taskID uuid.UUID) ([]TaskWatcher, error)
 	GetTasksForTaskGroupID(ctx context.Context, taskGroupID uuid.UUID) ([]Task, error)
 	GetTeamByID(ctx context.Context, teamID uuid.UUID) (Team, error)
 	GetTeamMemberByID(ctx context.Context, arg GetTeamMemberByIDParams) (TeamMember, error)
@@ -144,6 +151,7 @@ type Querier interface {
 	HasActiveUser(ctx context.Context) (bool, error)
 	HasAnyUser(ctx context.Context) (bool, error)
 	HasUnreadNotification(ctx context.Context, userID uuid.UUID) (bool, error)
+	MarkAllNotificationsRead(ctx context.Context, arg MarkAllNotificationsReadParams) error
 	MarkNotificationAsRead(ctx context.Context, arg MarkNotificationAsReadParams) error
 	SetFirstUserActive(ctx context.Context) (UserAccount, error)
 	SetInactiveLastMoveForTaskID(ctx context.Context, taskID uuid.UUID) error
@@ -154,6 +162,7 @@ type Querier interface {
 	SetUserActiveByEmail(ctx context.Context, email string) (UserAccount, error)
 	SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (UserAccount, error)
 	UpdateDueDateReminder(ctx context.Context, arg UpdateDueDateReminderParams) (TaskDueDateReminder, error)
+	UpdateDueDateReminderRemindAt(ctx context.Context, arg UpdateDueDateReminderRemindAtParams) (TaskDueDateReminder, error)
 	UpdateProjectLabel(ctx context.Context, arg UpdateProjectLabelParams) (ProjectLabel, error)
 	UpdateProjectLabelColor(ctx context.Context, arg UpdateProjectLabelColorParams) (ProjectLabel, error)
 	UpdateProjectLabelName(ctx context.Context, arg UpdateProjectLabelNameParams) (ProjectLabel, error)

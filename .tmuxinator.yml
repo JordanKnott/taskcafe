@@ -10,6 +10,8 @@ windows:
         - yarn:
           - cd frontend
           - yarn start
+        - worker:
+          - go run cmd/taskcafe/main.go worker
   - web/editor:
       root: ./frontend
       panes:

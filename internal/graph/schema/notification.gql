@@ -10,6 +10,10 @@ extend type Query {
 
 extend type Mutation {
   notificationToggleRead(input: NotificationToggleReadInput!): Notified!
+  notificationMarkAllRead: NotificationMarkAllAsReadResult!
+}
+type NotificationMarkAllAsReadResult {
+  success: Boolean!
 }
 
 type HasUnreadNotificationsResult {
@@ -45,6 +49,7 @@ enum ActionType {
   DUE_DATE_ADDED
   DUE_DATE_REMOVED
   DUE_DATE_CHANGED
+  DUE_DATE_REMINDER
   TASK_ASSIGNED
   TASK_MOVED
   TASK_ARCHIVED

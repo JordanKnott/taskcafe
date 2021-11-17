@@ -192,6 +192,7 @@ type TaskDueDateReminder struct {
 	TaskID            uuid.UUID `json:"task_id"`
 	Period            int32     `json:"period"`
 	Duration          string    `json:"duration"`
+	RemindAt          time.Time `json:"remind_at"`
 }
 
 type TaskDueDateReminderDuration struct {

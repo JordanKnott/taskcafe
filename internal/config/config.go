@@ -1,9 +1,13 @@
 package config
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	mConfig "github.com/RichardKnop/machinery/v1/config"
 	"github.com/google/uuid"
@@ -28,6 +32,8 @@ const (
 	JobStore     = "job.store"
 	JobQueueName = "job.queue_name"
 
+	MessageQueue = "message.queue"
+
 	SmtpFrom       = "smtp.from"
 	SmtpHost       = "smtp.host"
 	SmtpPort       = "smtp.port"
@@ -46,9 +52,10 @@ var defaults = map[string]interface{}{
 	DatabaseSslMode:         "disable",
 	SecurityTokenExpiration: "15m",
 	SecuritySecret:          "",
+	MessageQueue:            "localhost:6379",
 	JobEnabled:              false,
-	JobBroker:               "amqp://guest:guest@localhost:5672/",
-	JobStore:                "memcache://localhost:11211",
+	JobBroker:               "redis://localhost:6379",
+	JobStore:                "redis://localhost:6379",
 	JobQueueName:            "taskcafe_tasks",
 	SmtpFrom:                "no-reply@example.com",
 	SmtpHost:                "localhost",
@@ -65,10 +72,15 @@ func InitDefaults() {
 }
 
 type AppConfig struct {
-	Email    EmailConfig
-	Security SecurityConfig
-	Database DatabaseConfig
-	Job      JobConfig
+	Email        EmailConfig
+	Security     SecurityConfig
+	Database     DatabaseConfig
+	Job          JobConfig
+	MessageQueue MessageQueueConfig
+}
+
+type MessageQueueConfig struct {
+	URI string
 }
 
 type JobConfig struct {
@@ -92,11 +104,12 @@ func (cfg *JobConfig) GetJobConfig() mConfig.Config {
 		Broker:        cfg.Broker,
 		DefaultQueue:  cfg.QueueName,
 		ResultBackend: cfg.Store,
-		AMQP: &mConfig.AMQPConfig{
-			Exchange:     "machinery_exchange",
-			ExchangeType: "direct",
-			BindingKey:   "machinery_task",
-		},
+		/*
+			AMQP: &mConfig.AMQPConfig{
+				Exchange:     "machinery_exchange",
+				ExchangeType: "direct",
+				BindingKey:   "machinery_task",
+			} */
 	}
 }
 
@@ -149,12 +162,14 @@ func GetAppConfig() (AppConfig, error) {
 	jobCfg := GetJobConfig()
 	databaseCfg := GetDatabaseConfig()
 	emailCfg := GetEmailConfig()
+	messageCfg := MessageQueueConfig{URI: viper.GetString("message.queue")}
 	return AppConfig{
-		Email:    emailCfg,
-		Security: securityCfg,
-		Database: databaseCfg,
-		Job:      jobCfg,
-	}, nil
+		Email:        emailCfg,
+		Security:     securityCfg,
+		Database:     databaseCfg,
+		Job:          jobCfg,
+		MessageQueue: messageCfg,
+	}, err
 }
 
 func GetSecurityConfig(accessTokenExp string, secret []byte) (SecurityConfig, error) {
@@ -164,6 +179,19 @@ func GetSecurityConfig(accessTokenExp string, secret []byte) (SecurityConfig, er
 		return SecurityConfig{}, err
 	}
 	return SecurityConfig{AccessTokenExpiration: exp, Secret: secret}, nil
+}
+
+func (c MessageQueueConfig) GetMessageQueueClient() (*redis.Client, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr: c.URI,
+	})
+
+	_, err := client.Ping(context.Background()).Result()
+	if !errors.Is(err, nil) {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func GetEmailConfig() EmailConfig {

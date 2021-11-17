@@ -17,26 +17,37 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/jordanknott/taskcafe/internal/config"
 	"github.com/jordanknott/taskcafe/internal/db"
+	"github.com/jordanknott/taskcafe/internal/jobs"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	"github.com/jordanknott/taskcafe/internal/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
+type NotificationObservers struct {
+	Mu          sync.Mutex
+	Subscribers map[string]map[string]chan *Notified
+}
+
 // NewHandler returns a new graphql endpoint handler.
-func NewHandler(repo db.Repository, appConfig config.AppConfig) http.Handler {
-	c := Config{
-		Resolvers: &Resolver{
-			Repository: repo,
-			AppConfig:  appConfig,
-			Notifications: NotificationObservers{
-				Mu:          sync.Mutex{},
-				Subscribers: make(map[string]map[string]chan *Notified),
-			},
+func NewHandler(repo db.Repository, appConfig config.AppConfig, jobQueue jobs.JobQueue, redisClient *redis.Client) http.Handler {
+	resolver := &Resolver{
+		Repository: repo,
+		Redis:      redisClient,
+		AppConfig:  appConfig,
+		Job:        jobQueue,
+		Notifications: &NotificationObservers{
+			Mu:          sync.Mutex{},
+			Subscribers: make(map[string]map[string]chan *Notified),
 		},
+	}
+	resolver.SubscribeRedis()
+	c := Config{
+		Resolvers: resolver,
 	}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, roles []RoleLevel, level ActionLevel, typeArg ObjectType) (interface{}, error) {
 		userID, ok := GetUser(ctx)

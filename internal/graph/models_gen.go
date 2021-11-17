@@ -402,6 +402,10 @@ type NotificationData struct {
 	Value string `json:"value"`
 }
 
+type NotificationMarkAllAsReadResult struct {
+	Success bool `json:"success"`
+}
+
 type NotificationToggleReadInput struct {
 	NotifiedID uuid.UUID `json:"notifiedID"`
 }
@@ -749,6 +753,7 @@ const (
 	ActionTypeDueDateAdded           ActionType = "DUE_DATE_ADDED"
 	ActionTypeDueDateRemoved         ActionType = "DUE_DATE_REMOVED"
 	ActionTypeDueDateChanged         ActionType = "DUE_DATE_CHANGED"
+	ActionTypeDueDateReminder        ActionType = "DUE_DATE_REMINDER"
 	ActionTypeTaskAssigned           ActionType = "TASK_ASSIGNED"
 	ActionTypeTaskMoved              ActionType = "TASK_MOVED"
 	ActionTypeTaskArchived           ActionType = "TASK_ARCHIVED"
@@ -766,6 +771,7 @@ var AllActionType = []ActionType{
 	ActionTypeDueDateAdded,
 	ActionTypeDueDateRemoved,
 	ActionTypeDueDateChanged,
+	ActionTypeDueDateReminder,
 	ActionTypeTaskAssigned,
 	ActionTypeTaskMoved,
 	ActionTypeTaskArchived,
@@ -776,7 +782,7 @@ var AllActionType = []ActionType{
 
 func (e ActionType) IsValid() bool {
 	switch e {
-	case ActionTypeTeamAdded, ActionTypeTeamRemoved, ActionTypeProjectAdded, ActionTypeProjectRemoved, ActionTypeProjectArchived, ActionTypeDueDateAdded, ActionTypeDueDateRemoved, ActionTypeDueDateChanged, ActionTypeTaskAssigned, ActionTypeTaskMoved, ActionTypeTaskArchived, ActionTypeTaskAttachmentUploaded, ActionTypeCommentMentioned, ActionTypeCommentOther:
+	case ActionTypeTeamAdded, ActionTypeTeamRemoved, ActionTypeProjectAdded, ActionTypeProjectRemoved, ActionTypeProjectArchived, ActionTypeDueDateAdded, ActionTypeDueDateRemoved, ActionTypeDueDateChanged, ActionTypeDueDateReminder, ActionTypeTaskAssigned, ActionTypeTaskMoved, ActionTypeTaskArchived, ActionTypeTaskAttachmentUploaded, ActionTypeCommentMentioned, ActionTypeCommentOther:
 		return true
 	}
 	return false

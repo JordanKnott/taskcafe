@@ -8,6 +8,8 @@ require (
 	github.com/brianvoe/gofakeit/v5 v5.11.2
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-chi/cors v1.2.0
+	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis/v8 v8.0.0-beta.6
 	github.com/golang-migrate/migrate/v4 v4.11.0
 	github.com/google/uuid v1.1.1
 	github.com/jinzhu/now v1.1.1

@@ -1,6 +1,9 @@
 -- name: GetTaskWatcher :one
 SELECT * FROM task_watcher WHERE user_id = $1 AND task_id = $2;
 
+-- name: GetTaskWatchersForTask :many
+SELECT * FROM task_watcher WHERE task_id = $1;
+
 -- name: CreateTaskWatcher :one
 INSERT INTO task_watcher (user_id, task_id, watched_at) VALUES ($1, $2, $3) RETURNING *;
 
@@ -119,13 +122,28 @@ SELECT COUNT(*) FROM task_comment WHERE task_id = $1;
 
 
 -- name: CreateDueDateReminder :one
-INSERT INTO task_due_date_reminder (task_id, period, duration) VALUES ($1, $2, $3) RETURNING *;
+INSERT INTO task_due_date_reminder (task_id, period, duration, remind_at) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: UpdateDueDateReminder :one
-UPDATE task_due_date_reminder SET period = $2, duration = $3 WHERE due_date_reminder_id = $1 RETURNING *;
+UPDATE task_due_date_reminder SET remind_at = $4, period = $2, duration = $3 WHERE due_date_reminder_id = $1 RETURNING *;
+
+-- name: GetTaskForDueDateReminder :one
+SELECT task.* FROM task_due_date_reminder 
+  INNER JOIN task ON task.task_id = task_due_date_reminder.task_id
+  WHERE task_due_date_reminder.due_date_reminder_id = $1;
+
+-- name: UpdateDueDateReminderRemindAt :one
+UPDATE task_due_date_reminder SET remind_at = $2 WHERE due_date_reminder_id = $1 RETURNING *;
 
 -- name: GetDueDateRemindersForTaskID :many
 SELECT * FROM task_due_date_reminder WHERE task_id = $1;
 
+-- name: GetDueDateReminderByID :one
+SELECT * FROM task_due_date_reminder WHERE due_date_reminder_id = $1;
+
 -- name: DeleteDueDateReminder :exec
 DELETE FROM task_due_date_reminder WHERE due_date_reminder_id = $1;
+
+-- name: GetDueDateRemindersForDuration :many
+SELECT * FROM task_due_date_reminder WHERE remind_at >= @start_at::timestamptz;
+

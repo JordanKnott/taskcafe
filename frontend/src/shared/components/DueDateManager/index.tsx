@@ -446,10 +446,8 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
         </LeftWrapper>
         <RightWrapper>
           <ActionIcon
-            // disabled={notifications.length === 3}
-            disabled
+            disabled={notifications.length === 3}
             onClick={() => {
-              /*
               setNotifications((prev) => [
                 ...prev,
                 {
@@ -459,7 +457,6 @@ const DueDateManager: React.FC<DueDateManagerProps> = ({ task, onDueDateChange, 
                   period: 10,
                 },
               ]);
-               */
             }}
           >
             <Bell width={16} height={16} />

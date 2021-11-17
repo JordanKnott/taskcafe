@@ -19,17 +19,11 @@ services:
     ports:
       - 1025:1025
       - 8025:8025
-  broker:
-    image: rabbitmq:3-management
+  redis:
+    image: redis:6.2
     restart: always
     ports:
-      - 8060:15672
-      - 5672:5672
-  result_store:
-    image: memcached:1.6-alpine
-    restart: always
-    ports:
-      - 11211:11211
+      - 6379:6379
 
 volumes:
   taskcafe-postgres:

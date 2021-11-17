@@ -34,6 +34,7 @@ export enum ActionType {
   DueDateAdded = 'DUE_DATE_ADDED',
   DueDateRemoved = 'DUE_DATE_REMOVED',
   DueDateChanged = 'DUE_DATE_CHANGED',
+  DueDateReminder = 'DUE_DATE_REMINDER',
   TaskAssigned = 'TASK_ASSIGNED',
   TaskMoved = 'TASK_MOVED',
   TaskArchived = 'TASK_ARCHIVED',
@@ -456,6 +457,7 @@ export type Mutation = {
   duplicateTaskGroup: DuplicateTaskGroupPayload;
   inviteProjectMembers: InviteProjectMembersPayload;
   logoutUser: Scalars['Boolean'];
+  notificationMarkAllRead: NotificationMarkAllAsReadResult;
   notificationToggleRead: Notified;
   removeTaskLabel: Task;
   setTaskChecklistItemComplete: TaskChecklistItem;
@@ -898,6 +900,11 @@ export enum NotificationFilter {
   Assigned = 'ASSIGNED',
   Mentioned = 'MENTIONED'
 }
+
+export type NotificationMarkAllAsReadResult = {
+  __typename?: 'NotificationMarkAllAsReadResult';
+  success: Scalars['Boolean'];
+};
 
 export type NotificationToggleReadInput = {
   notifiedID: Scalars['UUID'];
@@ -1926,6 +1933,17 @@ export type NotificationsQuery = (
         )> }
       ) }
     )> }
+  ) }
+);
+
+export type NotificationMarkAllReadMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationMarkAllReadMutation = (
+  { __typename?: 'Mutation' }
+  & { notificationMarkAllRead: (
+    { __typename?: 'NotificationMarkAllAsReadResult' }
+    & Pick<NotificationMarkAllAsReadResult, 'success'>
   ) }
 );
 
@@ -3891,6 +3909,38 @@ export function useNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
 export type NotificationsQueryHookResult = ReturnType<typeof useNotificationsQuery>;
 export type NotificationsLazyQueryHookResult = ReturnType<typeof useNotificationsLazyQuery>;
 export type NotificationsQueryResult = Apollo.QueryResult<NotificationsQuery, NotificationsQueryVariables>;
+export const NotificationMarkAllReadDocument = gql`
+    mutation notificationMarkAllRead {
+  notificationMarkAllRead {
+    success
+  }
+}
+    `;
+export type NotificationMarkAllReadMutationFn = Apollo.MutationFunction<NotificationMarkAllReadMutation, NotificationMarkAllReadMutationVariables>;
+
+/**
+ * __useNotificationMarkAllReadMutation__
+ *
+ * To run a mutation, you first call `useNotificationMarkAllReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useNotificationMarkAllReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [notificationMarkAllReadMutation, { data, loading, error }] = useNotificationMarkAllReadMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationMarkAllReadMutation(baseOptions?: Apollo.MutationHookOptions<NotificationMarkAllReadMutation, NotificationMarkAllReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<NotificationMarkAllReadMutation, NotificationMarkAllReadMutationVariables>(NotificationMarkAllReadDocument, options);
+      }
+export type NotificationMarkAllReadMutationHookResult = ReturnType<typeof useNotificationMarkAllReadMutation>;
+export type NotificationMarkAllReadMutationResult = Apollo.MutationResult<NotificationMarkAllReadMutation>;
+export type NotificationMarkAllReadMutationOptions = Apollo.BaseMutationOptions<NotificationMarkAllReadMutation, NotificationMarkAllReadMutationVariables>;
 export const NotificationAddedDocument = gql`
     subscription notificationAdded {
   notificationAdded {

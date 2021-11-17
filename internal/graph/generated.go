@@ -277,6 +277,7 @@ type ComplexityRoot struct {
 		DuplicateTaskGroup              func(childComplexity int, input DuplicateTaskGroup) int
 		InviteProjectMembers            func(childComplexity int, input InviteProjectMembers) int
 		LogoutUser                      func(childComplexity int, input LogoutUser) int
+		NotificationMarkAllRead         func(childComplexity int) int
 		NotificationToggleRead          func(childComplexity int, input NotificationToggleReadInput) int
 		RemoveTaskLabel                 func(childComplexity int, input *RemoveTaskLabelInput) int
 		SetTaskChecklistItemComplete    func(childComplexity int, input SetTaskChecklistItemComplete) int
@@ -331,6 +332,10 @@ type ComplexityRoot struct {
 	NotificationData struct {
 		Key   func(childComplexity int) int
 		Value func(childComplexity int) int
+	}
+
+	NotificationMarkAllAsReadResult struct {
+		Success func(childComplexity int) int
 	}
 
 	Notified struct {
@@ -617,6 +622,7 @@ type LabelColorResolver interface {
 }
 type MutationResolver interface {
 	NotificationToggleRead(ctx context.Context, input NotificationToggleReadInput) (*Notified, error)
+	NotificationMarkAllRead(ctx context.Context) (*NotificationMarkAllAsReadResult, error)
 	CreateProjectLabel(ctx context.Context, input NewProjectLabel) (*db.ProjectLabel, error)
 	DeleteProjectLabel(ctx context.Context, input DeleteProjectLabel) (*db.ProjectLabel, error)
 	UpdateProjectLabel(ctx context.Context, input UpdateProjectLabel) (*db.ProjectLabel, error)
@@ -1755,6 +1761,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LogoutUser(childComplexity, args["input"].(LogoutUser)), true
 
+	case "Mutation.notificationMarkAllRead":
+		if e.complexity.Mutation.NotificationMarkAllRead == nil {
+			break
+		}
+
+		return e.complexity.Mutation.NotificationMarkAllRead(childComplexity), true
+
 	case "Mutation.notificationToggleRead":
 		if e.complexity.Mutation.NotificationToggleRead == nil {
 			break
@@ -2198,6 +2211,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NotificationData.Value(childComplexity), true
+
+	case "NotificationMarkAllAsReadResult.success":
+		if e.complexity.NotificationMarkAllAsReadResult.Success == nil {
+			break
+		}
+
+		return e.complexity.NotificationMarkAllAsReadResult.Success(childComplexity), true
 
 	case "Notified.id":
 		if e.complexity.Notified.ID == nil {
@@ -3417,6 +3437,10 @@ extend type Query {
 
 extend type Mutation {
   notificationToggleRead(input: NotificationToggleReadInput!): Notified!
+  notificationMarkAllRead: NotificationMarkAllAsReadResult!
+}
+type NotificationMarkAllAsReadResult {
+  success: Boolean!
 }
 
 type HasUnreadNotificationsResult {
@@ -3452,6 +3476,7 @@ enum ActionType {
   DUE_DATE_ADDED
   DUE_DATE_REMOVED
   DUE_DATE_CHANGED
+  DUE_DATE_REMINDER
   TASK_ASSIGNED
   TASK_MOVED
   TASK_ARCHIVED
@@ -8535,6 +8560,41 @@ func (ec *executionContext) _Mutation_notificationToggleRead(ctx context.Context
 	return ec.marshalNNotified2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNotified(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_notificationMarkAllRead(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().NotificationMarkAllRead(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationMarkAllAsReadResult)
+	fc.Result = res
+	return ec.marshalNNotificationMarkAllAsReadResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNotificationMarkAllAsReadResult(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createProjectLabel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13265,6 +13325,41 @@ func (ec *executionContext) _NotificationData_value(ctx context.Context, field g
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NotificationMarkAllAsReadResult_success(ctx context.Context, field graphql.CollectedField, obj *NotificationMarkAllAsReadResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NotificationMarkAllAsReadResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Notified_id(ctx context.Context, field graphql.CollectedField, obj *Notified) (ret graphql.Marshaler) {
@@ -23074,6 +23169,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "notificationMarkAllRead":
+			out.Values[i] = ec._Mutation_notificationMarkAllRead(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createProjectLabel":
 			out.Values[i] = ec._Mutation_createProjectLabel(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -23566,6 +23666,33 @@ func (ec *executionContext) _NotificationData(ctx context.Context, sel ast.Selec
 			}
 		case "value":
 			out.Values[i] = ec._NotificationData_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var notificationMarkAllAsReadResultImplementors = []string{"NotificationMarkAllAsReadResult"}
+
+func (ec *executionContext) _NotificationMarkAllAsReadResult(ctx context.Context, sel ast.SelectionSet, obj *NotificationMarkAllAsReadResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, notificationMarkAllAsReadResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NotificationMarkAllAsReadResult")
+		case "success":
+			out.Values[i] = ec._NotificationMarkAllAsReadResult_success(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -27104,6 +27231,20 @@ func (ec *executionContext) unmarshalNNotificationFilter2githubᚗcomᚋjordankn
 
 func (ec *executionContext) marshalNNotificationFilter2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNotificationFilter(ctx context.Context, sel ast.SelectionSet, v NotificationFilter) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNNotificationMarkAllAsReadResult2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNotificationMarkAllAsReadResult(ctx context.Context, sel ast.SelectionSet, v NotificationMarkAllAsReadResult) graphql.Marshaler {
+	return ec._NotificationMarkAllAsReadResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNNotificationMarkAllAsReadResult2ᚖgithubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNotificationMarkAllAsReadResult(ctx context.Context, sel ast.SelectionSet, v *NotificationMarkAllAsReadResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._NotificationMarkAllAsReadResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNNotificationToggleReadInput2githubᚗcomᚋjordanknottᚋtaskcafeᚋinternalᚋgraphᚐNotificationToggleReadInput(ctx context.Context, v interface{}) (NotificationToggleReadInput, error) {

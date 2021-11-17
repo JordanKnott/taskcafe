@@ -66,9 +66,8 @@ func (q *Queries) CreateNotificationNotifed(ctx context.Context, arg CreateNotif
 }
 
 const getAllNotificationsForUserID = `-- name: GetAllNotificationsForUserID :many
-SELECT notified_id, nn.notification_id, nn.user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on, user_account.user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio, active FROM notification_notified AS nn
+SELECT notified_id, nn.notification_id, user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on FROM notification_notified AS nn
   INNER JOIN notification AS n ON n.notification_id = nn.notification_id
-  LEFT JOIN user_account ON user_account.user_id = n.caused_by
   WHERE nn.user_id = $1
 `
 
@@ -83,18 +82,6 @@ type GetAllNotificationsForUserIDRow struct {
 	ActionType       string          `json:"action_type"`
 	Data             json.RawMessage `json:"data"`
 	CreatedOn        time.Time       `json:"created_on"`
-	UserID_2         uuid.UUID       `json:"user_id_2"`
-	CreatedAt        time.Time       `json:"created_at"`
-	Email            string          `json:"email"`
-	Username         string          `json:"username"`
-	PasswordHash     string          `json:"password_hash"`
-	ProfileBgColor   string          `json:"profile_bg_color"`
-	FullName         string          `json:"full_name"`
-	Initials         string          `json:"initials"`
-	ProfileAvatarUrl sql.NullString  `json:"profile_avatar_url"`
-	RoleCode         string          `json:"role_code"`
-	Bio              string          `json:"bio"`
-	Active           bool            `json:"active"`
 }
 
 func (q *Queries) GetAllNotificationsForUserID(ctx context.Context, userID uuid.UUID) ([]GetAllNotificationsForUserIDRow, error) {
@@ -117,18 +104,6 @@ func (q *Queries) GetAllNotificationsForUserID(ctx context.Context, userID uuid.
 			&i.ActionType,
 			&i.Data,
 			&i.CreatedOn,
-			&i.UserID_2,
-			&i.CreatedAt,
-			&i.Email,
-			&i.Username,
-			&i.PasswordHash,
-			&i.ProfileBgColor,
-			&i.FullName,
-			&i.Initials,
-			&i.ProfileAvatarUrl,
-			&i.RoleCode,
-			&i.Bio,
-			&i.Active,
 		); err != nil {
 			return nil, err
 		}
@@ -143,10 +118,26 @@ func (q *Queries) GetAllNotificationsForUserID(ctx context.Context, userID uuid.
 	return items, nil
 }
 
+const getNotificationByID = `-- name: GetNotificationByID :one
+SELECT notification_id, caused_by, action_type, data, created_on FROM notification WHERE notification_id = $1
+`
+
+func (q *Queries) GetNotificationByID(ctx context.Context, notificationID uuid.UUID) (Notification, error) {
+	row := q.db.QueryRowContext(ctx, getNotificationByID, notificationID)
+	var i Notification
+	err := row.Scan(
+		&i.NotificationID,
+		&i.CausedBy,
+		&i.ActionType,
+		&i.Data,
+		&i.CreatedOn,
+	)
+	return i, err
+}
+
 const getNotificationsForUserIDCursor = `-- name: GetNotificationsForUserIDCursor :many
-SELECT notified_id, nn.notification_id, nn.user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on, user_account.user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio, active FROM notification_notified AS nn
+SELECT n.notification_id, n.caused_by, n.action_type, n.data, n.created_on, nn.notified_id, nn.notification_id, nn.user_id, nn.read, nn.read_at FROM notification_notified AS nn
   INNER JOIN notification AS n ON n.notification_id = nn.notification_id
-  LEFT JOIN user_account ON user_account.user_id = n.caused_by
   WHERE (n.created_on, n.notification_id) < ($1::timestamptz, $2::uuid)
   AND nn.user_id = $3::uuid
   AND ($4::boolean = false OR nn.read = false)
@@ -166,28 +157,16 @@ type GetNotificationsForUserIDCursorParams struct {
 }
 
 type GetNotificationsForUserIDCursorRow struct {
-	NotifiedID       uuid.UUID       `json:"notified_id"`
 	NotificationID   uuid.UUID       `json:"notification_id"`
-	UserID           uuid.UUID       `json:"user_id"`
-	Read             bool            `json:"read"`
-	ReadAt           sql.NullTime    `json:"read_at"`
-	NotificationID_2 uuid.UUID       `json:"notification_id_2"`
 	CausedBy         uuid.UUID       `json:"caused_by"`
 	ActionType       string          `json:"action_type"`
 	Data             json.RawMessage `json:"data"`
 	CreatedOn        time.Time       `json:"created_on"`
-	UserID_2         uuid.UUID       `json:"user_id_2"`
-	CreatedAt        time.Time       `json:"created_at"`
-	Email            string          `json:"email"`
-	Username         string          `json:"username"`
-	PasswordHash     string          `json:"password_hash"`
-	ProfileBgColor   string          `json:"profile_bg_color"`
-	FullName         string          `json:"full_name"`
-	Initials         string          `json:"initials"`
-	ProfileAvatarUrl sql.NullString  `json:"profile_avatar_url"`
-	RoleCode         string          `json:"role_code"`
-	Bio              string          `json:"bio"`
-	Active           bool            `json:"active"`
+	NotifiedID       uuid.UUID       `json:"notified_id"`
+	NotificationID_2 uuid.UUID       `json:"notification_id_2"`
+	UserID           uuid.UUID       `json:"user_id"`
+	Read             bool            `json:"read"`
+	ReadAt           sql.NullTime    `json:"read_at"`
 }
 
 func (q *Queries) GetNotificationsForUserIDCursor(ctx context.Context, arg GetNotificationsForUserIDCursorParams) ([]GetNotificationsForUserIDCursorRow, error) {
@@ -208,28 +187,16 @@ func (q *Queries) GetNotificationsForUserIDCursor(ctx context.Context, arg GetNo
 	for rows.Next() {
 		var i GetNotificationsForUserIDCursorRow
 		if err := rows.Scan(
-			&i.NotifiedID,
 			&i.NotificationID,
-			&i.UserID,
-			&i.Read,
-			&i.ReadAt,
-			&i.NotificationID_2,
 			&i.CausedBy,
 			&i.ActionType,
 			&i.Data,
 			&i.CreatedOn,
-			&i.UserID_2,
-			&i.CreatedAt,
-			&i.Email,
-			&i.Username,
-			&i.PasswordHash,
-			&i.ProfileBgColor,
-			&i.FullName,
-			&i.Initials,
-			&i.ProfileAvatarUrl,
-			&i.RoleCode,
-			&i.Bio,
-			&i.Active,
+			&i.NotifiedID,
+			&i.NotificationID_2,
+			&i.UserID,
+			&i.Read,
+			&i.ReadAt,
 		); err != nil {
 			return nil, err
 		}
@@ -245,9 +212,8 @@ func (q *Queries) GetNotificationsForUserIDCursor(ctx context.Context, arg GetNo
 }
 
 const getNotificationsForUserIDPaged = `-- name: GetNotificationsForUserIDPaged :many
-SELECT notified_id, nn.notification_id, nn.user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on, user_account.user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio, active FROM notification_notified AS nn
+SELECT n.notification_id, n.caused_by, n.action_type, n.data, n.created_on, nn.notified_id, nn.notification_id, nn.user_id, nn.read, nn.read_at FROM notification_notified AS nn
   INNER JOIN notification AS n ON n.notification_id = nn.notification_id
-  LEFT JOIN user_account ON user_account.user_id = n.caused_by
   WHERE nn.user_id = $1::uuid
   AND ($2::boolean = false OR nn.read = false)
   AND ($3::boolean = false OR n.action_type = ANY($4::text[]))
@@ -264,28 +230,16 @@ type GetNotificationsForUserIDPagedParams struct {
 }
 
 type GetNotificationsForUserIDPagedRow struct {
-	NotifiedID       uuid.UUID       `json:"notified_id"`
 	NotificationID   uuid.UUID       `json:"notification_id"`
-	UserID           uuid.UUID       `json:"user_id"`
-	Read             bool            `json:"read"`
-	ReadAt           sql.NullTime    `json:"read_at"`
-	NotificationID_2 uuid.UUID       `json:"notification_id_2"`
 	CausedBy         uuid.UUID       `json:"caused_by"`
 	ActionType       string          `json:"action_type"`
 	Data             json.RawMessage `json:"data"`
 	CreatedOn        time.Time       `json:"created_on"`
-	UserID_2         uuid.UUID       `json:"user_id_2"`
-	CreatedAt        time.Time       `json:"created_at"`
-	Email            string          `json:"email"`
-	Username         string          `json:"username"`
-	PasswordHash     string          `json:"password_hash"`
-	ProfileBgColor   string          `json:"profile_bg_color"`
-	FullName         string          `json:"full_name"`
-	Initials         string          `json:"initials"`
-	ProfileAvatarUrl sql.NullString  `json:"profile_avatar_url"`
-	RoleCode         string          `json:"role_code"`
-	Bio              string          `json:"bio"`
-	Active           bool            `json:"active"`
+	NotifiedID       uuid.UUID       `json:"notified_id"`
+	NotificationID_2 uuid.UUID       `json:"notification_id_2"`
+	UserID           uuid.UUID       `json:"user_id"`
+	Read             bool            `json:"read"`
+	ReadAt           sql.NullTime    `json:"read_at"`
 }
 
 func (q *Queries) GetNotificationsForUserIDPaged(ctx context.Context, arg GetNotificationsForUserIDPagedParams) ([]GetNotificationsForUserIDPagedRow, error) {
@@ -304,28 +258,16 @@ func (q *Queries) GetNotificationsForUserIDPaged(ctx context.Context, arg GetNot
 	for rows.Next() {
 		var i GetNotificationsForUserIDPagedRow
 		if err := rows.Scan(
-			&i.NotifiedID,
 			&i.NotificationID,
-			&i.UserID,
-			&i.Read,
-			&i.ReadAt,
-			&i.NotificationID_2,
 			&i.CausedBy,
 			&i.ActionType,
 			&i.Data,
 			&i.CreatedOn,
-			&i.UserID_2,
-			&i.CreatedAt,
-			&i.Email,
-			&i.Username,
-			&i.PasswordHash,
-			&i.ProfileBgColor,
-			&i.FullName,
-			&i.Initials,
-			&i.ProfileAvatarUrl,
-			&i.RoleCode,
-			&i.Bio,
-			&i.Active,
+			&i.NotifiedID,
+			&i.NotificationID_2,
+			&i.UserID,
+			&i.Read,
+			&i.ReadAt,
 		); err != nil {
 			return nil, err
 		}
@@ -341,9 +283,8 @@ func (q *Queries) GetNotificationsForUserIDPaged(ctx context.Context, arg GetNot
 }
 
 const getNotifiedByID = `-- name: GetNotifiedByID :one
-SELECT notified_id, nn.notification_id, nn.user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on, user_account.user_id, created_at, email, username, password_hash, profile_bg_color, full_name, initials, profile_avatar_url, role_code, bio, active FROM notification_notified as nn
+SELECT notified_id, nn.notification_id, user_id, read, read_at, n.notification_id, caused_by, action_type, data, created_on FROM notification_notified as nn
   INNER JOIN notification AS n ON n.notification_id = nn.notification_id
-  LEFT JOIN user_account ON user_account.user_id = n.caused_by
   WHERE notified_id = $1
 `
 
@@ -358,18 +299,6 @@ type GetNotifiedByIDRow struct {
 	ActionType       string          `json:"action_type"`
 	Data             json.RawMessage `json:"data"`
 	CreatedOn        time.Time       `json:"created_on"`
-	UserID_2         uuid.UUID       `json:"user_id_2"`
-	CreatedAt        time.Time       `json:"created_at"`
-	Email            string          `json:"email"`
-	Username         string          `json:"username"`
-	PasswordHash     string          `json:"password_hash"`
-	ProfileBgColor   string          `json:"profile_bg_color"`
-	FullName         string          `json:"full_name"`
-	Initials         string          `json:"initials"`
-	ProfileAvatarUrl sql.NullString  `json:"profile_avatar_url"`
-	RoleCode         string          `json:"role_code"`
-	Bio              string          `json:"bio"`
-	Active           bool            `json:"active"`
 }
 
 func (q *Queries) GetNotifiedByID(ctx context.Context, notifiedID uuid.UUID) (GetNotifiedByIDRow, error) {
@@ -386,18 +315,23 @@ func (q *Queries) GetNotifiedByID(ctx context.Context, notifiedID uuid.UUID) (Ge
 		&i.ActionType,
 		&i.Data,
 		&i.CreatedOn,
-		&i.UserID_2,
-		&i.CreatedAt,
-		&i.Email,
-		&i.Username,
-		&i.PasswordHash,
-		&i.ProfileBgColor,
-		&i.FullName,
-		&i.Initials,
-		&i.ProfileAvatarUrl,
-		&i.RoleCode,
-		&i.Bio,
-		&i.Active,
+	)
+	return i, err
+}
+
+const getNotifiedByIDNoExtra = `-- name: GetNotifiedByIDNoExtra :one
+SELECT notified_id, notification_id, user_id, read, read_at FROM notification_notified as nn WHERE nn.notified_id = $1
+`
+
+func (q *Queries) GetNotifiedByIDNoExtra(ctx context.Context, notifiedID uuid.UUID) (NotificationNotified, error) {
+	row := q.db.QueryRowContext(ctx, getNotifiedByIDNoExtra, notifiedID)
+	var i NotificationNotified
+	err := row.Scan(
+		&i.NotifiedID,
+		&i.NotificationID,
+		&i.UserID,
+		&i.Read,
+		&i.ReadAt,
 	)
 	return i, err
 }
@@ -411,6 +345,20 @@ func (q *Queries) HasUnreadNotification(ctx context.Context, userID uuid.UUID) (
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const markAllNotificationsRead = `-- name: MarkAllNotificationsRead :exec
+UPDATE notification_notified SET read = true, read_at = $2 WHERE user_id = $1
+`
+
+type MarkAllNotificationsReadParams struct {
+	UserID uuid.UUID    `json:"user_id"`
+	ReadAt sql.NullTime `json:"read_at"`
+}
+
+func (q *Queries) MarkAllNotificationsRead(ctx context.Context, arg MarkAllNotificationsReadParams) error {
+	_, err := q.db.ExecContext(ctx, markAllNotificationsRead, arg.UserID, arg.ReadAt)
+	return err
 }
 
 const markNotificationAsRead = `-- name: MarkNotificationAsRead :exec

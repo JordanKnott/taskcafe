@@ -11,7 +11,10 @@ import (
 	"strconv"
 	"time"
 
+	mTasks "github.com/RichardKnop/machinery/v1/tasks"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
+	"github.com/jinzhu/now"
 	"github.com/jordanknott/taskcafe/internal/db"
 	"github.com/jordanknott/taskcafe/internal/logger"
 	log "github.com/sirupsen/logrus"
@@ -539,6 +542,42 @@ func (r *mutationResolver) UpdateTaskDueDate(ctx context.Context, input UpdateTa
 			DueDate: dueDate,
 			HasTime: input.HasTime,
 		})
+		reminders, err := r.Repository.GetDueDateRemindersForTaskID(ctx, input.TaskID)
+		if err != nil {
+			log.WithError(err).Error("error while getting due date reminders for task ID")
+			return &db.Task{}, err
+		}
+		if input.DueDate != nil {
+			for _, rem := range reminders {
+				remindAt := now.With(*input.DueDate).BeginningOfDay()
+				if input.HasTime {
+					remindAt = *input.DueDate
+				}
+				switch rem.Duration {
+				case "MINUTE":
+					remindAt = remindAt.Add(time.Duration(-rem.Period) * time.Minute)
+					break
+				case "HOUR":
+					remindAt = remindAt.Add(time.Duration(-rem.Period) * time.Hour)
+					break
+				case "DAY":
+					remindAt = remindAt.AddDate(0, 0, int(-rem.Period))
+					break
+				case "WEEK":
+					remindAt = remindAt.AddDate(0, 0, 7*int(-rem.Period))
+					break
+				}
+
+				_, err := r.Repository.UpdateDueDateReminderRemindAt(ctx, db.UpdateDueDateReminderRemindAtParams{
+					DueDateReminderID: rem.DueDateReminderID,
+					RemindAt:          remindAt,
+				})
+				if err != nil {
+					log.WithError(err).Error("error while updating due date reminder remind at")
+					return &db.Task{}, err
+				}
+			}
+		}
 		createdAt := time.Now().UTC()
 		d, _ := json.Marshal(data)
 		if !isSame {
@@ -686,12 +725,55 @@ func (r *mutationResolver) UnassignTask(ctx context.Context, input *UnassignTask
 
 func (r *mutationResolver) CreateTaskDueDateNotifications(ctx context.Context, input []CreateTaskDueDateNotification) (*CreateTaskDueDateNotificationsResult, error) {
 	reminders := []DueDateNotification{}
+	if len(input) == 0 {
+		return &CreateTaskDueDateNotificationsResult{}, nil
+	}
+	task, err := r.Repository.GetTaskByID(ctx, input[0].TaskID)
+	if err != nil {
+		log.WithError(err).Error("error while getting task by id")
+		return &CreateTaskDueDateNotificationsResult{}, nil
+	}
 	for _, in := range input {
+		remindAt := now.With(task.DueDate.Time).BeginningOfDay()
+		if task.HasTime {
+			remindAt = task.DueDate.Time
+		}
+		switch in.Duration {
+		case "MINUTE":
+			remindAt = remindAt.Add(time.Duration(-in.Period) * time.Minute)
+			break
+		case "HOUR":
+			remindAt = remindAt.Add(time.Duration(-in.Period) * time.Hour)
+			break
+		case "DAY":
+			remindAt = remindAt.AddDate(0, 0, int(-in.Period))
+			break
+		case "WEEK":
+			remindAt = remindAt.AddDate(0, 0, 7*int(-in.Period))
+			break
+		}
+
+		log.Info("task not found, sending task")
+
 		n, err := r.Repository.CreateDueDateReminder(ctx, db.CreateDueDateReminderParams{
 			TaskID:   in.TaskID,
 			Period:   int32(in.Period),
 			Duration: in.Duration.String(),
+			RemindAt: remindAt,
 		})
+		signature := &mTasks.Signature{
+			UUID: "due_date_reminder_" + n.DueDateReminderID.String(),
+			Name: "dueDateNotification",
+			ETA:  &remindAt,
+			Args: []mTasks.Arg{{
+				Type:  "string",
+				Value: n.DueDateReminderID.String(),
+			}, {
+				Type:  "string",
+				Value: in.TaskID.String(),
+			}},
+		}
+		r.Job.Server.SendTask(signature)
 		if err != nil {
 			return &CreateTaskDueDateNotificationsResult{}, err
 		}
@@ -713,15 +795,71 @@ func (r *mutationResolver) CreateTaskDueDateNotifications(ctx context.Context, i
 
 func (r *mutationResolver) UpdateTaskDueDateNotifications(ctx context.Context, input []UpdateTaskDueDateNotification) (*UpdateTaskDueDateNotificationsResult, error) {
 	reminders := []DueDateNotification{}
+	if len(input) == 0 {
+		return &UpdateTaskDueDateNotificationsResult{}, nil
+	}
 	for _, in := range input {
+		task, err := r.Repository.GetTaskForDueDateReminder(ctx, in.ID)
+		if err != nil {
+			log.WithError(err).Error("error while getting task by id")
+			return &UpdateTaskDueDateNotificationsResult{}, nil
+		}
+		current, err := r.Repository.GetDueDateReminderByID(ctx, in.ID)
+		if err != nil {
+			log.WithError(err).Error("error while getting task by id")
+			return &UpdateTaskDueDateNotificationsResult{}, nil
+		}
+
+		remindAt := now.With(task.DueDate.Time).BeginningOfDay()
+		if task.HasTime {
+			remindAt = task.DueDate.Time
+		}
+		switch in.Duration {
+		case "MINUTE":
+			remindAt = remindAt.Add(time.Duration(-in.Period) * time.Minute)
+			break
+		case "HOUR":
+			remindAt = remindAt.Add(time.Duration(-in.Period) * time.Hour)
+			break
+		case "DAY":
+			remindAt = remindAt.AddDate(0, 0, int(-in.Period))
+			break
+		case "WEEK":
+			remindAt = remindAt.AddDate(0, 0, 7*int(-in.Period))
+			break
+		}
+
 		n, err := r.Repository.UpdateDueDateReminder(ctx, db.UpdateDueDateReminderParams{
 			DueDateReminderID: in.ID,
 			Period:            int32(in.Period),
 			Duration:          in.Duration.String(),
+			RemindAt:          remindAt,
 		})
 		if err != nil {
 			return &UpdateTaskDueDateNotificationsResult{}, err
 		}
+		etaNano := strconv.FormatInt(current.RemindAt.UnixNano(), 10)
+		result, err := r.Redis.ZRangeByScore(ctx, "delayed_tasks", &redis.ZRangeBy{Max: etaNano, Min: etaNano}).Result()
+		if err != nil {
+			log.WithError(err).Error("error while getting due date reminder")
+		}
+		log.WithField("result", result).Info("result raw")
+		if len(result) != 0 {
+			r.Redis.ZRem(ctx, "delayed_tasks", result)
+		}
+		signature := &mTasks.Signature{
+			UUID: "due_date_reminder_" + n.DueDateReminderID.String(),
+			Name: "dueDateNotification",
+			ETA:  &remindAt,
+			Args: []mTasks.Arg{{
+				Type:  "string",
+				Value: n.DueDateReminderID.String(),
+			}, {
+				Type:  "string",
+				Value: task.TaskID.String(),
+			}},
+		}
+		r.Job.Server.SendTask(signature)
 		duration := DueDateNotificationDuration(n.Duration)
 		if !duration.IsValid() {
 			log.WithField("duration", n.Duration).Error("invalid duration found")
@@ -741,10 +879,20 @@ func (r *mutationResolver) UpdateTaskDueDateNotifications(ctx context.Context, i
 func (r *mutationResolver) DeleteTaskDueDateNotifications(ctx context.Context, input []DeleteTaskDueDateNotification) (*DeleteTaskDueDateNotificationsResult, error) {
 	ids := []uuid.UUID{}
 	for _, n := range input {
-		err := r.Repository.DeleteDueDateReminder(ctx, n.ID)
+		reminder, err := r.Repository.GetDueDateReminderByID(ctx, n.ID)
+		err = r.Repository.DeleteDueDateReminder(ctx, n.ID)
 		if err != nil {
 			log.WithError(err).Error("error while deleting task due date notification")
 			return &DeleteTaskDueDateNotificationsResult{}, err
+		}
+		etaNano := strconv.FormatInt(reminder.RemindAt.UnixNano(), 10)
+		result, err := r.Redis.ZRangeByScore(ctx, "delayed_tasks", &redis.ZRangeBy{Max: etaNano, Min: etaNano}).Result()
+		if err != nil {
+			log.WithError(err).Error("error while getting due date reminder")
+		}
+		log.WithField("result", result).Info("result raw")
+		if len(result) != 0 {
+			r.Redis.ZRem(ctx, "delayed_tasks", result)
 		}
 		ids = append(ids, n.ID)
 	}

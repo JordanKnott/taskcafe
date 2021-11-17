@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import TimeAgo from 'react-timeago';
 import { Link } from 'react-router-dom';
 import { mixin } from 'shared/utils/styles';
 import {
+  useNotificationMarkAllReadMutation,
   useNotificationsQuery,
   NotificationFilter,
   ActionType,
@@ -13,10 +14,24 @@ import {
 import dayjs from 'dayjs';
 
 import { Popup, usePopup } from 'shared/components/PopupMenu';
-import { CheckCircleOutline, Circle, CircleSolid, UserCircle } from 'shared/icons';
+import { Bell, CheckCircleOutline, Circle, Ellipsis, UserCircle } from 'shared/icons';
 import produce from 'immer';
 import { useLocalStorage } from 'shared/hooks/useStateWithLocalStorage';
 import localStorage from 'shared/utils/localStorage';
+import useOnOutsideClick from 'shared/hooks/onOutsideClick';
+
+function getFilterMessage(filter: NotificationFilter) {
+  switch (filter) {
+    case NotificationFilter.Unread:
+      return 'no unread';
+    case NotificationFilter.Assigned:
+      return 'no assigned';
+    case NotificationFilter.Mentioned:
+      return 'no mentioned';
+    default:
+      return 'no';
+  }
+}
 
 const ItemWrapper = styled.div`
   cursor: pointer;
@@ -98,6 +113,17 @@ const NotificationHeaderTitle = styled.span`
   color: ${(props) => props.theme.colors.text.secondary};
 `;
 
+const EmptyMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  height: 448px;
+`;
+
+const EmptyMessageLabel = styled.span`
+  margin-bottom: 80px;
+`;
 const Notifications = styled.div`
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   border-left: 1px solid rgba(0, 0, 0, 0.1);
@@ -180,7 +206,6 @@ const NotificationTab = styled.div<{ active: boolean }>`
 
 const NotificationLink = styled(Link)`
   display: flex;
-  align-items: center;
   text-decoration: none;
   padding: 16px 8px;
   width: 100%;
@@ -213,8 +238,8 @@ const NotificationButton = styled.div`
   }
 `;
 
-const NotificationWrapper = styled.li`
-  min-height: 112px;
+const NotificationWrapper = styled.li<{ read: boolean }>`
+  min-height: 80px;
   display: flex;
   font-size: 14px;
   transition: background-color 0.1s ease-in-out;
@@ -231,20 +256,28 @@ const NotificationWrapper = styled.li`
   &:hover ${NotificationControls} {
     visibility: visible;
   }
+  ${(props) =>
+    !props.read &&
+    css`
+      background: ${(props) => mixin.rgba(props.theme.colors.primary, 0.5)};
+      &:hover {
+        background: ${(props) => mixin.rgba(props.theme.colors.primary, 0.6)};
+      }
+    `}
 `;
 
 const NotificationContentFooter = styled.div`
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   color: ${(props) => props.theme.colors.text.primary};
 `;
 
 const NotificationCausedBy = styled.div`
-  height: 60px;
-  width: 60px;
-  min-height: 60px;
-  min-width: 60px;
+  height: 48px;
+  width: 48px;
+  min-height: 48px;
+  min-width: 48px;
 `;
 const NotificationCausedByInitials = styled.div`
   position: relative;
@@ -292,7 +325,6 @@ const NotificationContentHeader = styled.div`
 `;
 
 const NotificationBody = styled.div`
-  margin-top: 8px;
   display: flex;
   align-items: center;
   color: #fff;
@@ -328,17 +360,39 @@ const Notification: React.FC<NotificationProps> = ({ causedBy, createdAt, data, 
   let link = '#';
   switch (actionType) {
     case ActionType.TaskAssigned:
-      prefix.push(<UserCircle width={14} height={16} />);
-      prefix.push(<NotificationPrefix>Assigned </NotificationPrefix>);
-      prefix.push(<span>you to the task "{dataMap.get('TaskName')}"</span>);
+      prefix.push(<UserCircle key="profile" width={14} height={16} />);
+      prefix.push(
+        <NotificationPrefix key="prefix">
+          <span style={{ fontWeight: 'bold' }}>{causedBy ? causedBy.fullname : 'Removed user'}</span>
+        </NotificationPrefix>,
+      );
+      prefix.push(<span key="content">assigned you to the task "{dataMap.get('TaskName')}"</span>);
       link = `/p/${dataMap.get('ProjectID')}/board/c/${dataMap.get('TaskID')}`;
       break;
+    case ActionType.DueDateReminder:
+      prefix.push(<Bell key="profile" width={14} height={16} />);
+      prefix.push(<NotificationPrefix key="prefix">{dataMap.get('TaskName')}</NotificationPrefix>);
+      const now = dayjs();
+      if (dayjs(dataMap.get('DueDate')).isBefore(dayjs())) {
+        prefix.push(
+          <span key="content">is due {dayjs.duration(now.diff(dayjs(dataMap.get('DueAt')))).humanize(true)}</span>,
+        );
+      } else {
+        prefix.push(
+          <span key="content">
+            has passed the due date {dayjs.duration(dayjs(dataMap.get('DueAt')).diff(now)).humanize(true)}
+          </span>,
+        );
+      }
+      link = `/p/${dataMap.get('ProjectID')}/board/c/${dataMap.get('TaskID')}`;
+      break;
+
     default:
       throw new Error('unknown action type');
   }
 
   return (
-    <NotificationWrapper>
+    <NotificationWrapper read={read}>
       <NotificationLink to={link} onClick={hidePopup}>
         <NotificationCausedBy>
           <NotificationCausedByInitials>
@@ -351,10 +405,6 @@ const Notification: React.FC<NotificationProps> = ({ causedBy, createdAt, data, 
           </NotificationCausedByInitials>
         </NotificationCausedBy>
         <NotificationContent>
-          <NotificationContentHeader>
-            {causedBy ? causedBy.fullname : 'Removed user'}
-            {!read && <CircleSolid width={10} height={10} />}
-          </NotificationContentHeader>
           <NotificationBody>{prefix}</NotificationBody>
           <NotificationContentFooter>
             <span>{dayjs.duration(dayjs(createdAt).diff(dayjs())).humanize(true)}</span>
@@ -404,7 +454,59 @@ type NotificationEntry = {
     createdAt: string;
   };
 };
-const NotificationPopup: React.FC = ({ children }) => {
+type NotificationPopupProps = {
+  onToggleRead: () => void;
+};
+
+const NotificationHeaderMenu = styled.div`
+  position: absolute;
+  right: 16px;
+  top: 16px;
+`;
+
+const NotificationHeaderMenuIcon = styled.div`
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  svg {
+    fill: #fff;
+    stroke: #fff;
+  }
+`;
+
+const NotificationHeaderMenuContent = styled.div<{ show: boolean }>`
+  min-width: 130px;
+  position: absolute;
+  top: 16px;
+  background: #fff;
+  border-radius: 6px;
+  height: 50px;
+  visibility: ${(props) => (props.show ? 'visible' : 'hidden')};
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-color: #414561;
+  background: #262c49;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+`;
+
+const NotificationHeaderMenuButton = styled.div`
+  position: relative;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  &:hover {
+    background: ${(props) => props.theme.colors.primary};
+  }
+`;
+const NotificationPopup: React.FC<NotificationPopupProps> = ({ onToggleRead }) => {
   const [filter, setFilter] = useLocalStorage<NotificationFilter>(
     localStorage.NOTIFICATIONS_FILTER,
     NotificationFilter.Unread,
@@ -425,10 +527,12 @@ const NotificationPopup: React.FC = ({ children }) => {
           }
         });
       });
+      onToggleRead();
     },
   });
-  const { data: nData, fetchMore } = useNotificationsQuery({
-    variables: { limit: 5, filter },
+  const { fetchMore } = useNotificationsQuery({
+    variables: { limit: 8, filter },
+    fetchPolicy: 'network-only',
     onCompleted: (d) => {
       setData((prev) => ({
         hasNextPage: d.notified.pageInfo.hasNextPage,
@@ -437,7 +541,7 @@ const NotificationPopup: React.FC = ({ children }) => {
       }));
     },
   });
-  const { data: sData, loading } = useNotificationAddedSubscription({
+  useNotificationAddedSubscription({
     onSubscriptionData: (d) => {
       setData((n) => {
         if (d.subscriptionData.data) {
@@ -450,12 +554,40 @@ const NotificationPopup: React.FC = ({ children }) => {
       });
     },
   });
+  const [toggleAllRead] = useNotificationMarkAllReadMutation();
 
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+
+  const $menuContent = useRef<HTMLDivElement>(null);
+  useOnOutsideClick($menuContent, true, () => setShowHeaderMenu(false), null);
   return (
     <Popup title={null} tab={0} borders={false} padding={false}>
       <PopupContent>
         <NotificationHeader>
           <NotificationHeaderTitle>Notifications</NotificationHeaderTitle>
+          <NotificationHeaderMenu>
+            <NotificationHeaderMenuIcon onClick={() => setShowHeaderMenu(true)}>
+              <Ellipsis size={18} color="#fff" vertical={false} />
+              <NotificationHeaderMenuContent ref={$menuContent} show={showHeaderMenu}>
+                <NotificationHeaderMenuButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowHeaderMenu(() => false);
+                    toggleAllRead().then(() => {
+                      setData((prev) =>
+                        produce(prev, (draftData) => {
+                          draftData.nodes = draftData.nodes.map((node) => ({ ...node, read: true }));
+                        }),
+                      );
+                      onToggleRead();
+                    });
+                  }}
+                >
+                  Mark all as read
+                </NotificationHeaderMenuButton>
+              </NotificationHeaderMenuContent>
+            </NotificationHeaderMenuIcon>
+          </NotificationHeaderMenu>
         </NotificationHeader>
         <NotificationTabs>
           {tabs.map((tab) => (
@@ -473,65 +605,73 @@ const NotificationPopup: React.FC = ({ children }) => {
             </NotificationTab>
           ))}
         </NotificationTabs>
-        <Notifications
-          onScroll={({ currentTarget }) => {
-            if (currentTarget.scrollTop + currentTarget.clientHeight >= currentTarget.scrollHeight) {
-              if (data.hasNextPage) {
-                console.log(`fetching more = ${data.cursor} - ${data.hasNextPage}`);
-                fetchMore({
-                  variables: {
-                    limit: 5,
-                    filter,
-                    cursor: data.cursor,
-                  },
-                  updateQuery: (prev, { fetchMoreResult }) => {
-                    if (!fetchMoreResult) return prev;
-                    setData((d) => ({
-                      cursor: fetchMoreResult.notified.pageInfo.endCursor ?? '',
-                      hasNextPage: fetchMoreResult.notified.pageInfo.hasNextPage,
-                      nodes: [...d.nodes, ...fetchMoreResult.notified.notified],
-                    }));
-                    return {
-                      ...prev,
-                      notified: {
-                        ...prev.notified,
-                        pageInfo: {
-                          ...fetchMoreResult.notified.pageInfo,
-                        },
-                        notified: [...prev.notified.notified, ...fetchMoreResult.notified.notified],
-                      },
-                    };
-                  },
-                });
-              }
-            }
-          }}
-        >
-          {data.nodes.map((n) => (
-            <Notification
-              key={n.id}
-              read={n.read}
-              actionType={n.notification.actionType}
-              data={n.notification.data}
-              createdAt={n.notification.createdAt}
-              causedBy={n.notification.causedBy}
-              onToggleRead={() =>
-                toggleRead({
-                  variables: { notifiedID: n.id },
-                  optimisticResponse: {
-                    __typename: 'Mutation',
-                    notificationToggleRead: {
-                      __typename: 'Notified',
-                      id: n.id,
-                      read: !n.read,
-                      readAt: new Date().toUTCString(),
+        {data.nodes.length !== 0 ? (
+          <Notifications
+            onScroll={({ currentTarget }) => {
+              if (Math.ceil(currentTarget.scrollTop + currentTarget.clientHeight) >= currentTarget.scrollHeight) {
+                if (data.hasNextPage) {
+                  console.log(`fetching more = ${data.cursor} - ${data.hasNextPage}`);
+                  fetchMore({
+                    variables: {
+                      limit: 8,
+                      filter,
+                      cursor: data.cursor,
                     },
-                  },
-                })
+                    updateQuery: (prev, { fetchMoreResult }) => {
+                      if (!fetchMoreResult) return prev;
+                      setData((d) => ({
+                        cursor: fetchMoreResult.notified.pageInfo.endCursor ?? '',
+                        hasNextPage: fetchMoreResult.notified.pageInfo.hasNextPage,
+                        nodes: [...d.nodes, ...fetchMoreResult.notified.notified],
+                      }));
+                      return {
+                        ...prev,
+                        notified: {
+                          ...prev.notified,
+                          pageInfo: {
+                            ...fetchMoreResult.notified.pageInfo,
+                          },
+                          notified: [...prev.notified.notified, ...fetchMoreResult.notified.notified],
+                        },
+                      };
+                    },
+                  });
+                }
               }
-            />
-          ))}
-        </Notifications>
+            }}
+          >
+            {data.nodes.map((n) => (
+              <Notification
+                key={n.id}
+                read={n.read}
+                actionType={n.notification.actionType}
+                data={n.notification.data}
+                createdAt={n.notification.createdAt}
+                causedBy={n.notification.causedBy}
+                onToggleRead={() =>
+                  toggleRead({
+                    variables: { notifiedID: n.id },
+                    optimisticResponse: {
+                      __typename: 'Mutation',
+                      notificationToggleRead: {
+                        __typename: 'Notified',
+                        id: n.id,
+                        read: !n.read,
+                        readAt: new Date().toUTCString(),
+                      },
+                    },
+                  }).then(() => {
+                    onToggleRead();
+                  })
+                }
+              />
+            ))}
+          </Notifications>
+        ) : (
+          <EmptyMessage>
+            <EmptyMessageLabel>You have {getFilterMessage(filter)} notifications</EmptyMessageLabel>
+          </EmptyMessage>
+        )}
       </PopupContent>
     </Popup>
   );
