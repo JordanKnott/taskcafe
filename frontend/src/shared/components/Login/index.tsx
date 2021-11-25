@@ -64,7 +64,11 @@ const Login = ({ onSubmit }: LoginProps) => {
             <Form onSubmit={handleSubmit(loginSubmit)}>
               <FormLabel htmlFor="username">
                 Username
-                <FormTextInput type="text" {...register('username', { required: 'Username is required' })} />
+                <FormTextInput
+                  placeholder="Username"
+                  type="text"
+                  {...register('username', { required: 'Username is required' })}
+                />
                 <FormIcon>
                   <User width={20} height={20} />
                 </FormIcon>
@@ -72,7 +76,11 @@ const Login = ({ onSubmit }: LoginProps) => {
               {errors.username && <FormError>{errors.username.message}</FormError>}
               <FormLabel htmlFor="password">
                 Password
-                <FormTextInput type="password" {...register('password', { required: 'Password is required' })} />
+                <FormTextInput
+                  placeholder="Password"
+                  type="password"
+                  {...register('password', { required: 'Password is required' })}
+                />
                 <FormIcon>
                   <Lock width={20} height={20} />
                 </FormIcon>
