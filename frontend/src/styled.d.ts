@@ -1,7 +1,5 @@
-// import original module declarations
 import 'styled-components';
 
-// and extend them!
 declare module 'styled-components' {
   export interface DefaultTheme {
     borderRadius: {
@@ -18,9 +16,38 @@ declare module 'styled-components' {
       warning: string;
       dark: string;
       alternate: string;
-      text: {
+      form: {
+        textfield: {
+          error: string;
+          label: string;
+          text: string;
+          background: string;
+          secondaryLabel: string;
+          placeholder: string;
+          borderColor: string;
+          hover: {
+            text: string;
+            background: string;
+            borderColor: string;
+          };
+        };
+      };
+      border: {
+        [key: string]: any;
         primary: string;
         secondary: string;
+      };
+      icon: {
+        [key: string]: any;
+        primary: string;
+        secondary: string;
+        alternate: string;
+      };
+      text: {
+        [key: string]: any;
+        primary: string;
+        secondary: string;
+        alternate: string;
       };
       bg: {
         primary: string;

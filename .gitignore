@@ -6,3 +6,5 @@ internal/frontend/frontend_generated.go
 internal/migrations/migrations_generated.go
 taskcafe
 conf/taskcafe.toml
+scripts/gqlgen
+scripts/sqlc

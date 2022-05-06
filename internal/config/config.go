@@ -22,7 +22,7 @@ const (
 	DatabaseUser     = "database.user"
 	DatabasePassword = "database.password"
 	DatabasePort     = "database.port"
-	DatabaseSslMode  = "database.sslmode"
+	DatabaseSslMode  = "database.ssl_mode"
 
 	SecurityTokenExpiration = "security.token_expiration"
 	SecuritySecret          = "security.secret"
@@ -132,6 +132,15 @@ type DatabaseConfig struct {
 	SslMode  string
 }
 
+func (cfg DatabaseConfig) GetDatabaseStandardUri() string {
+  return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s",
+  cfg.Username,
+  cfg.Password,
+  cfg.Host,
+  cfg.Port,
+  cfg.Name,
+)
+}
 func (cfg DatabaseConfig) GetDatabaseConnectionUri() string {
 	connection := fmt.Sprintf("user=%s password=%s host=%s dbname=%s port=%s sslmode=%s",
 		cfg.Username,

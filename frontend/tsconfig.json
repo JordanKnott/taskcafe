@@ -12,20 +12,16 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "downlevelIteration": true,
+    "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
     "baseUrl": "src",
-    "noFallthroughCasesInSwitch": true
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
   "include": [
     "src"
-  ],
-  "types": [
-    "react-beautiful-dnd"
   ]
 }

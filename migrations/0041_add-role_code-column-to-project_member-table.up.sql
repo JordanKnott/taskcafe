@@ -1,2 +1,0 @@
-ALTER TABLE project_member ADD COLUMN role_code TEXT
-  NOT NULL REFERENCES role(code) ON DELETE CASCADE DEFAULT 'member';

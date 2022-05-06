@@ -1,7 +1,0 @@
-mutation updateTaskName($taskID: UUID!, $name: String!) {
-  updateTaskName(input: { taskID: $taskID, name: $name }) {
-    id
-    name
-    position
-  }
-}

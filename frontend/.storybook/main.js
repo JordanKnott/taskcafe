@@ -1,18 +1,15 @@
-const path = require('path');
-
 module.exports = {
-  stories: ['../src/shared/components/**/*.stories.tsx'],
-  addons: [
-    '@storybook/addon-actions/register',
-    '@storybook/addon-links',
-    '@storybook/addon-storysource',
-    '@storybook/addon-knobs/register',
-    '@storybook/addon-docs/register',
-    '@storybook/addon-viewport/register',
-    '@storybook/addon-backgrounds/register',
+  "stories": [
+    "../src/**/*.stories.mdx",
+    "../src/**/*.stories.@(js|jsx|ts|tsx)"
   ],
-  webpackFinal: async config => {
-    config.resolve.modules.push(path.resolve(__dirname, '../src'));
-    return config;
-  },
-};
+  "addons": [
+    "@storybook/addon-links",
+    "@storybook/addon-essentials",
+    "@storybook/preset-create-react-app"
+  ],
+  "framework": "@storybook/react",
+  "core": {
+    "builder": "webpack5"
+  }
+}

@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/jordanknott/taskcafe/internal/commands"
-	_ "github.com/lib/pq"
+	"github.com/jordanknott/taskcafe/internal/command"
 )
 
 func main() {
-	commands.Execute()
+	command.Execute()
 }

@@ -1,9 +1,0 @@
-mutation assignTask($taskID: UUID!, $userID: UUID!) {
-  assignTask(input: {taskID: $taskID, userID: $userID}) {
-    id
-    assigned {
-      id
-      fullName
-    }
-  }
-}

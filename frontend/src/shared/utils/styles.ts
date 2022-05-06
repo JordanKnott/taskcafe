@@ -1,51 +1,55 @@
-import { css } from 'styled-components';
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { css, keyframes } from 'styled-components';
 import Color from 'color';
-
-export const color = {
-  primary: '#0052cc', // Blue
-  success: '#0B875B', // green
-  danger: '#E13C3C', // red
-  warning: '#F89C1C', // orange
-  secondary: '#F4F5F7', // light grey
-
-  textDarkest: '#172b4d',
-  textDark: '#42526E',
-  textMedium: '#5E6C84',
-  textLight: '#8993a4',
-  textLink: '#0052cc',
-
-  backgroundDarkPrimary: '#0747A6',
-  backgroundMedium: '#dfe1e6',
-  backgroundLight: '#ebecf0',
-  backgroundLightest: '#F4F5F7',
-  backgroundLightPrimary: '#D2E5FE',
-  backgroundLightSuccess: '#E4FCEF',
-
-  borderLightest: '#dfe1e6',
-  borderLight: '#C1C7D0',
-  borderInputFocus: '#4c9aff',
-};
 
 export const font = {
   regular: 'font-family: "Open Sans", Roboto, sans-serif; font-weight: normal;',
-  size: (size: number) => `font-size: ${size}px;`,
   bold: 'font-family: "Open Sans", Roboto, sans-serif; font-weight: normal;',
   medium: 'font-family: "Open Sans", Roboto, sans-serif; font-weight: normal;',
 };
 
+const skeletonKeyframe = keyframes`
+100% {
+  transform: translateX(100%);
+}
+  `;
+
+const lighten = (colorValue: string, amount: number) => Color(colorValue).lighten(amount).string();
+const rgba = (colorValue: string, opacity: number) => Color(colorValue).alpha(opacity).string();
+const darken = (colorValue: string, amount: number) => Color(colorValue).darken(amount).string();
+
 export const mixin = {
-  darken: (colorValue: string, amount: number) =>
-    Color(colorValue)
-      .darken(amount)
-      .string(),
-  lighten: (colorValue: string, amount: number) =>
-    Color(colorValue)
-      .lighten(amount)
-      .string(),
-  rgba: (colorValue: string, opacity: number) =>
-    Color(colorValue)
-      .alpha(opacity)
-      .string(),
+  darken,
+  lighten,
+  rgba,
+  skeleton: css`
+    background: ${(props) => darken(props.theme.colors.bg.secondary, 0.2)};
+    border-radius: 6px;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    right: -6px;
+    bottom: 0;
+    left: -6px;
+    z-index: 100;
+    &::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        ${(props) => rgba(props.theme.colors.bg.secondary, 0)} 0,
+        ${(props) => rgba(props.theme.colors.bg.secondary, 0.2)} 20%,
+        ${(props) => rgba(props.theme.colors.bg.secondary, 0.5)} 60%,
+        ${(props) => rgba(props.theme.colors.bg.secondary, 0)}
+      );
+      animation: ${skeletonKeyframe} 2s infinite;
+      content: '';
+    }
+  `,
   boxShadowCard: css`
     box-shadow: rgba(9, 30, 66, 0.25) 0px 1px 2px 0px;
   `,
@@ -74,18 +78,6 @@ export const mixin = {
     bottom: 0;
     left: 0;
   `,
-  link: (colorValue = color.textLink) => css`
-    cursor: pointer;
-    color: ${colorValue};
-    ${font.medium}
-    &:hover, &:visited, &:active {
-      color: ${colorValue};
-    }
-    &:hover {
-      text-decoration: underline;
-    }
-  `,
-
   placeholderColor: (colorValue: string) => css`
     ::-webkit-input-placeholder {
       color: ${colorValue} !important;

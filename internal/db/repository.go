@@ -1,19 +1,17 @@
 package db
 
-import (
-	"github.com/jmoiron/sqlx"
-)
+import "database/sql"
 
 // Repository contains methods for interacting with a database storage
 type Repository struct {
 	*Queries
-	db *sqlx.DB
+	db *sql.DB
 }
 
 // NewRepository returns an implementation of the Repository interface.
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		Queries: New(db.DB),
+		Queries: New(db),
 		db:      db,
 	}
 }
