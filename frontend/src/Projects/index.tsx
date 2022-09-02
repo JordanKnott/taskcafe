@@ -9,6 +9,7 @@ import {
   GetProjectsDocument,
   GetProjectsQuery,
 } from 'shared/generated/graphql';
+import FormInput from 'shared/components/FormInput';
 
 import { Link } from 'react-router-dom';
 import NewProject from 'shared/components/NewProject';
@@ -23,7 +24,6 @@ import NOOP from 'shared/utils/noop';
 import theme from 'App/ThemeStyles';
 import polling from 'shared/utils/polling';
 import { mixin } from '../shared/utils/styles';
-import FormInput from 'shared/components/FormInput';
 
 type CreateTeamData = { name: string };
 

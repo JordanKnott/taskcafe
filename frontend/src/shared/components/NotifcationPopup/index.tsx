@@ -366,7 +366,7 @@ const Notification: React.FC<NotificationProps> = ({ causedBy, createdAt, data, 
           <span style={{ fontWeight: 'bold' }}>{causedBy ? causedBy.fullname : 'Removed user'}</span>
         </NotificationPrefix>,
       );
-      prefix.push(<span key="content">assigned you to the task "{dataMap.get('TaskName')}"</span>);
+      prefix.push(<span key="content">assigned you to the task &quote;{dataMap.get('TaskName')}&quote;</span>);
       link = `/p/${dataMap.get('ProjectID')}/board/c/${dataMap.get('TaskID')}`;
       break;
     case ActionType.DueDateReminder:

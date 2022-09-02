@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TopNavbar, { MenuItem } from 'shared/components/TopNavbar';
 import LoggedOutNavbar from 'shared/components/TopNavbar/LoggedOut';
 import { ProfileMenu } from 'shared/components/DropdownMenu';
+import polling from 'shared/utils/polling';
 import { useHistory, useRouteMatch } from 'react-router';
 import { useCurrentUser } from 'App/context';
 import {
@@ -16,7 +17,6 @@ import cache from 'App/cache';
 import NotificationPopup, { NotificationItem } from 'shared/components/NotifcationPopup';
 import theme from 'App/ThemeStyles';
 import ProjectFinder from './ProjectFinder';
-import polling from 'shared/utils/polling';
 
 // TODO: Move to context based navbar?
 
